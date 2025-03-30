@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -48,13 +47,13 @@ const DeliveryForm = ({
   onSubmit,
   onCancel,
 }: {
-  onSubmit: (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight' | 'minuteNumber'>) => void;
+  onSubmit: (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>) => void;
   onCancel: () => void;
 }) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { clients } = useClients();
   const { calculateFreight } = useDeliveries();
-  const [formData, setFormData] = useState<Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight' | 'minuteNumber'>>({
+  const [formData, setFormData] = useState<Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>>({
     clientId: '',
     deliveryDate: format(new Date(), 'yyyy-MM-dd'),
     deliveryTime: format(new Date(), 'HH:mm'),
@@ -65,6 +64,7 @@ const DeliveryForm = ({
     cargoType: 'standard',
     cargoValue: 0,
     notes: '',
+    minuteNumber: '',
   });
   const [estimatedFreight, setEstimatedFreight] = useState<number | null>(null);
 
@@ -89,7 +89,6 @@ const DeliveryForm = ({
         : value,
     }));
     
-    // If changing relevant fields, update estimated freight
     if (
       formData.clientId && 
       (name === 'weight' || name === 'cargoValue' || name === 'distance')
@@ -109,7 +108,6 @@ const DeliveryForm = ({
   const handleClientChange = (clientId: string) => {
     setFormData(prev => ({ ...prev, clientId }));
     
-    // Update estimated freight
     if (clientId && formData.weight > 0) {
       const freight = calculateFreight(
         clientId,
@@ -126,7 +124,6 @@ const DeliveryForm = ({
   const handleDeliveryTypeChange = (deliveryType: Delivery['deliveryType']) => {
     setFormData(prev => ({ ...prev, deliveryType }));
     
-    // Update estimated freight
     if (formData.clientId && formData.weight > 0) {
       const freight = calculateFreight(
         formData.clientId,
@@ -143,7 +140,6 @@ const DeliveryForm = ({
   const handleCargoTypeChange = (cargoType: Delivery['cargoType']) => {
     setFormData(prev => ({ ...prev, cargoType }));
     
-    // Update estimated freight
     if (formData.clientId && formData.weight > 0) {
       const freight = calculateFreight(
         formData.clientId,
@@ -365,20 +361,17 @@ const DeliveriesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const handleCreate = (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight' | 'minuteNumber'>) => {
+  const handleCreate = (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>) => {
     addDelivery(data);
     setIsCreateDialogOpen(false);
   };
 
-  // Filter and sort deliveries
   const filteredDeliveries = deliveries
     .filter((delivery) => {
-      // Client filter
       if (clientFilter && delivery.clientId !== clientFilter) {
         return false;
       }
       
-      // Search term
       const client = clients.find(c => c.id === delivery.clientId);
       const clientName = client ? client.name.toLowerCase() : '';
       
@@ -388,7 +381,6 @@ const DeliveriesPage = () => {
     })
     .sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime());
   
-  // Pagination
   const totalPages = Math.ceil(filteredDeliveries.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedDeliveries = filteredDeliveries.slice(startIndex, startIndex + itemsPerPage);

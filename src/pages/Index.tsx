@@ -5,16 +5,18 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   
   useEffect(() => {
-    // Redirect to login or dashboard based on auth status
-    if (user) {
-      navigate('/dashboard');
-    } else {
-      navigate('/login');
+    if (!loading) {
+      // Redirect to login or dashboard based on auth status
+      if (user) {
+        navigate('/dashboard');
+      } else {
+        navigate('/login');
+      }
     }
-  }, [user, navigate]);
+  }, [user, navigate, loading]);
   
   return (
     <div className="min-h-screen flex items-center justify-center">

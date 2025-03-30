@@ -10,6 +10,7 @@ import { ClientsProvider } from "./contexts/ClientsContext";
 import { DeliveriesProvider } from "./contexts/DeliveriesContext";
 
 // Pages
+import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
@@ -37,8 +38,7 @@ const App = () => (
                   <Route path="/price-tables" element={<PriceTables />} />
                   <Route path="/deliveries" element={<Deliveries />} />
                   <Route path="/reports" element={<Reports />} />
-                  {/* Redirect root to dashboard */}
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/" element={<Index />} />
                   {/* 404 Route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
