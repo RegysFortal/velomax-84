@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -168,7 +167,7 @@ const ReportsPage = () => {
       'Carga': '',
       'Distância (Km)': '',
       'Observações': ''
-    });
+    } as any);
     
     // Convert to worksheet
     const worksheet = XLSX.utils.json_to_sheet(excelData);
