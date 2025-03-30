@@ -38,18 +38,15 @@ const ReportsPage = () => {
     format(new Date(), 'yyyy-MM-dd')
   );
 
-  // Filter deliveries
   const filteredDeliveries = deliveries.filter((delivery) => {
-    // Client filter
     if (clientFilter && delivery.clientId !== clientFilter) {
       return false;
     }
     
-    // Date range filter
     const deliveryDate = new Date(delivery.deliveryDate);
     const start = new Date(startDate);
     const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); // Set to end of day
+    end.setHours(23, 59, 59, 999);
     
     return deliveryDate >= start && deliveryDate <= end;
   }).sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime());
@@ -61,37 +58,30 @@ const ReportsPage = () => {
     }).format(value);
   };
 
-  // Calculate totals
   const totalFreight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.totalFreight, 0);
   const totalWeight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.weight, 0);
   const deliveryCount = filteredDeliveries.length;
 
   const exportToPDF = () => {
-    // Create a new jsPDF instance with landscape orientation and A4 size
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
       format: 'a4'
     });
     
-    // Add title
     doc.setFontSize(18);
     doc.text('Relatório de Entregas', 14, 22);
     
-    // Add filters information
-    doc.setFontSize(10);
     const clientName = clientFilter 
       ? clients.find(c => c.id === clientFilter)?.name || 'Cliente não encontrado'
       : 'Todos os clientes';
     doc.text(`Cliente: ${clientName}`, 14, 30);
     doc.text(`Período: ${new Date(startDate).toLocaleDateString('pt-BR')} até ${new Date(endDate).toLocaleDateString('pt-BR')}`, 14, 35);
     
-    // Add summary
     doc.text(`Quantidade de entregas: ${deliveryCount}`, 14, 40);
     doc.text(`Peso total: ${totalWeight.toFixed(2)} Kg`, 14, 45);
     doc.text(`Frete total: ${formatCurrency(totalFreight)}`, 14, 50);
     
-    // Create table data
     const tableColumn = ["Minuta", "Data", "Cliente", "Recebedor", "Peso (Kg)", "Frete", "Observações"];
     const tableRows = filteredDeliveries.map((delivery) => {
       const client = clients.find(c => c.id === delivery.clientId);
@@ -106,7 +96,6 @@ const ReportsPage = () => {
       ];
     });
 
-    // Add table
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
@@ -114,7 +103,6 @@ const ReportsPage = () => {
       theme: 'striped',
     });
     
-    // Add footer with date
     const pageCount = doc.getNumberOfPages();
     for(let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -131,12 +119,10 @@ const ReportsPage = () => {
       );
     }
     
-    // Save the PDF
     doc.save(`relatorio-entregas-${format(new Date(), 'yyyyMMdd')}.pdf`);
   };
 
   const exportToExcel = () => {
-    // Prepare data for Excel export
     const excelData = filteredDeliveries.map((delivery) => {
       const client = clients.find(c => c.id === delivery.clientId);
       return {
@@ -154,7 +140,6 @@ const ReportsPage = () => {
       };
     });
     
-    // Add summary row
     excelData.push({
       'Minuta': '',
       'Data': '',
@@ -169,28 +154,25 @@ const ReportsPage = () => {
       'Observações': ''
     } as any);
     
-    // Convert to worksheet
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Entregas");
     
-    // Auto-fit columns
     const colWidths = [
-      { wch: 15 }, // Minuta
-      { wch: 12 }, // Data
-      { wch: 8 }, // Hora
-      { wch: 30 }, // Cliente
-      { wch: 20 }, // Recebedor
-      { wch: 10 }, // Peso
-      { wch: 15 }, // Frete
-      { wch: 15 }, // Tipo
-      { wch: 12 }, // Carga
-      { wch: 15 }, // Distância
-      { wch: 30 }, // Observações
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 8 },
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 10 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 30 },
     ];
     worksheet["!cols"] = colWidths;
     
-    // Save the Excel file
     XLSX.writeFile(workbook, `relatorio-entregas-${format(new Date(), 'yyyyMMdd')}.xlsx`);
   };
   
@@ -215,7 +197,7 @@ const ReportsPage = () => {
                 <SelectValue placeholder="Todos os clientes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os clientes</SelectItem>
+                <SelectItem value="all">Todos os clientes</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.name}

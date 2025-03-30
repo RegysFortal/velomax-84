@@ -451,7 +451,7 @@ const DeliveriesPage = () => {
                 <SelectValue placeholder="Filtrar por cliente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os clientes</SelectItem>
+                <SelectItem value="all">Todos os clientes</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.name}
