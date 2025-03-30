@@ -68,8 +68,12 @@ const ReportsPage = () => {
   const deliveryCount = filteredDeliveries.length;
 
   const exportToPDF = () => {
-    // Create a new jsPDF instance
-    const doc = new jsPDF();
+    // Create a new jsPDF instance with landscape orientation and A4 size
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
     
     // Add title
     doc.setFontSize(18);
@@ -89,7 +93,7 @@ const ReportsPage = () => {
     doc.text(`Frete total: ${formatCurrency(totalFreight)}`, 14, 50);
     
     // Create table data
-    const tableColumn = ["Minuta", "Data", "Cliente", "Recebedor", "Peso (Kg)", "Frete"];
+    const tableColumn = ["Minuta", "Data", "Cliente", "Recebedor", "Peso (Kg)", "Frete", "Observações"];
     const tableRows = filteredDeliveries.map((delivery) => {
       const client = clients.find(c => c.id === delivery.clientId);
       return [
@@ -98,7 +102,8 @@ const ReportsPage = () => {
         client?.name || 'N/A',
         delivery.receiver,
         delivery.weight.toFixed(2),
-        formatCurrency(delivery.totalFreight)
+        formatCurrency(delivery.totalFreight),
+        delivery.notes || ''
       ];
     });
 
@@ -146,6 +151,7 @@ const ReportsPage = () => {
         'Tipo': delivery.deliveryType,
         'Carga': delivery.cargoType,
         'Distância (Km)': delivery.distance || 'N/A',
+        'Observações': delivery.notes || ''
       };
     });
     
@@ -161,6 +167,7 @@ const ReportsPage = () => {
       'Tipo': '',
       'Carga': '',
       'Distância (Km)': '',
+      'Observações': ''
     });
     
     // Convert to worksheet
@@ -180,6 +187,7 @@ const ReportsPage = () => {
       { wch: 15 }, // Tipo
       { wch: 12 }, // Carga
       { wch: 15 }, // Distância
+      { wch: 30 }, // Observações
     ];
     worksheet["!cols"] = colWidths;
     
@@ -275,12 +283,13 @@ const ReportsPage = () => {
                 <TableHead>Recebedor</TableHead>
                 <TableHead className="text-right">Peso</TableHead>
                 <TableHead className="text-right">Frete</TableHead>
+                <TableHead>Observações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDeliveries.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={7} className="text-center">
                     Nenhum registro encontrado
                   </TableCell>
                 </TableRow>
@@ -295,6 +304,7 @@ const ReportsPage = () => {
                       <TableCell>{delivery.receiver}</TableCell>
                       <TableCell className="text-right">{delivery.weight.toFixed(2)} Kg</TableCell>
                       <TableCell className="text-right">{formatCurrency(delivery.totalFreight)}</TableCell>
+                      <TableCell>{delivery.notes || '-'}</TableCell>
                     </TableRow>
                   );
                 })
