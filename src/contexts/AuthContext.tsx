@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { User } from '@/types';
+import { User, UserPermissions } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 
 type AuthContextType = {
@@ -9,19 +9,65 @@ type AuthContextType = {
   logout: () => void;
   loading: boolean;
   isAuthenticated: boolean;
+  updateUserPermissions: (userId: string, permissions: UserPermissions) => void;
+  users: User[];
 };
 
-// Mock users for demo
-const MOCK_USERS = [
-  { id: '1', username: 'admin', password: 'admin123', role: 'admin', name: 'Administrador' },
-  { id: '2', username: 'manager', password: 'manager123', role: 'manager', name: 'Gerente' },
-  { id: '3', username: 'user', password: 'user123', role: 'user', name: 'Usuário Padrão' },
+// Mock users for demo with default permissions
+const DEFAULT_PERMISSIONS: UserPermissions = {
+  clients: true,
+  cities: true,
+  reports: true,
+  financial: true,
+  priceTables: true,
+  settings: false
+};
+
+const MOCK_USERS: User[] = [
+  { 
+    id: '1', 
+    username: 'admin', 
+    password: 'admin123', 
+    role: 'admin', 
+    name: 'Administrador',
+    permissions: {
+      ...DEFAULT_PERMISSIONS,
+      settings: true
+    }
+  },
+  { 
+    id: '2', 
+    username: 'manager', 
+    password: 'manager123', 
+    role: 'manager', 
+    name: 'Gerente',
+    permissions: {
+      ...DEFAULT_PERMISSIONS,
+      settings: false
+    }
+  },
+  { 
+    id: '3', 
+    username: 'user', 
+    password: 'user123', 
+    role: 'user', 
+    name: 'Usuário Padrão',
+    permissions: {
+      clients: false,
+      cities: false,
+      reports: true,
+      financial: false,
+      priceTables: false,
+      settings: false
+    }
+  },
 ];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
@@ -47,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Simulating network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const foundUser = MOCK_USERS.find(
+      const foundUser = users.find(
         u => u.username === username && u.password === password
       );
       
@@ -65,7 +111,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id: foundUser.id,
         username: foundUser.username,
         role: foundUser.role as 'admin' | 'manager' | 'user',
-        name: foundUser.name
+        name: foundUser.name,
+        permissions: foundUser.permissions
       };
       
       setUser(authenticatedUser);
@@ -91,6 +138,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       description: "Você foi desconectado do sistema.",
     });
   };
+
+  const updateUserPermissions = (userId: string, permissions: UserPermissions) => {
+    const updatedUsers = users.map(u => 
+      u.id === userId ? { ...u, permissions } : u
+    );
+    
+    setUsers(updatedUsers);
+    
+    // If the current user's permissions are being updated, update the current user state
+    if (user && user.id === userId) {
+      const updatedUser = { ...user, permissions };
+      setUser(updatedUser);
+      localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
+    }
+    
+    toast({
+      title: "Permissões atualizadas",
+      description: "As permissões do usuário foram atualizadas com sucesso.",
+    });
+  };
   
   return (
     <AuthContext.Provider value={{ 
@@ -98,7 +165,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       login, 
       logout, 
       loading,
-      isAuthenticated: !!user 
+      isAuthenticated: !!user,
+      updateUserPermissions,
+      users
     }}>
       {children}
     </AuthContext.Provider>

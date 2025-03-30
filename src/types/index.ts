@@ -1,8 +1,19 @@
+
 export interface User {
   id: string;
   username: string;
   role: 'admin' | 'manager' | 'user';
   name: string;
+  permissions?: UserPermissions;
+}
+
+export interface UserPermissions {
+  clients: boolean;
+  cities: boolean;
+  reports: boolean;
+  financial: boolean;
+  priceTables: boolean;
+  settings: boolean;
 }
 
 export interface Client {

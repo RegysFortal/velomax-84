@@ -21,6 +21,7 @@ import Deliveries from "./pages/Deliveries";
 import Reports from "./pages/Reports";
 import Cities from "./pages/Cities";
 import Financial from "./pages/Financial";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/cities" element={<Cities />} />
                       <Route path="/financial" element={<Financial />} />
+                      <Route path="/settings" element={<Settings />} />
                       <Route path="/" element={<Index />} />
                       {/* 404 Route */}
                       <Route path="*" element={<NotFound />} />
