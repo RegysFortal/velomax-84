@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -18,9 +19,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts/ClientsContext';
-import { Download, FileText } from 'lucide-react';
+import { useCities } from '@/contexts/CitiesContext';
+import { useFinancial } from '@/contexts/FinancialContext';
+import { Download, FileText, Save } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -30,7 +34,11 @@ import { ptBR } from 'date-fns/locale';
 const ReportsPage = () => {
   const { deliveries } = useDeliveries();
   const { clients } = useClients();
+  const { cities } = useCities();
+  const { addFinancialReport } = useFinancial();
+  const { toast } = useToast();
   const [clientFilter, setClientFilter] = useState<string>('');
+  const [cityFilter, setCityFilter] = useState<string>('');
   const [startDate, setStartDate] = useState<string>(
     format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd')
   );
@@ -39,7 +47,7 @@ const ReportsPage = () => {
   );
 
   const filteredDeliveries = deliveries.filter((delivery) => {
-    if (clientFilter && delivery.clientId !== clientFilter) {
+    if (clientFilter && clientFilter !== 'all' && delivery.clientId !== clientFilter) {
       return false;
     }
     
@@ -62,6 +70,17 @@ const ReportsPage = () => {
   const totalWeight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.weight, 0);
   const deliveryCount = filteredDeliveries.length;
 
+  const handleCityChange = (cityId: string) => {
+    setCityFilter(cityId);
+    if (cityId && cityId !== 'all') {
+      const selectedCity = cities.find(c => c.id === cityId);
+      if (selectedCity) {
+        // Update distance in UI or use it for calculations
+        console.log(`Selected city: ${selectedCity.name} with distance: ${selectedCity.distance} km`);
+      }
+    }
+  };
+
   const exportToPDF = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -72,7 +91,7 @@ const ReportsPage = () => {
     doc.setFontSize(18);
     doc.text('Relatório de Entregas', 14, 22);
     
-    const clientName = clientFilter 
+    const clientName = clientFilter && clientFilter !== 'all'
       ? clients.find(c => c.id === clientFilter)?.name || 'Cliente não encontrado'
       : 'Todos os clientes';
     doc.text(`Cliente: ${clientName}`, 14, 30);
@@ -175,6 +194,30 @@ const ReportsPage = () => {
     
     XLSX.writeFile(workbook, `relatorio-entregas-${format(new Date(), 'yyyyMMdd')}.xlsx`);
   };
+
+  const saveFinancialReport = () => {
+    if (clientFilter && clientFilter !== 'all') {
+      const newReportId = addFinancialReport({
+        clientId: clientFilter,
+        startDate,
+        endDate,
+        totalFreight,
+        totalDeliveries: deliveryCount,
+        status: 'open',
+      });
+      
+      toast({
+        title: "Relatório financeiro criado",
+        description: "O relatório foi salvo e está disponível na seção Financeiro.",
+      });
+    } else {
+      toast({
+        title: "Selecione um cliente",
+        description: "É necessário filtrar por um cliente específico para criar um relatório financeiro.",
+        variant: "destructive"
+      });
+    }
+  };
   
   return (
     <AppLayout>
@@ -186,7 +229,7 @@ const ReportsPage = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <Label htmlFor="client">Cliente</Label>
             <Select 
@@ -206,6 +249,27 @@ const ReportsPage = () => {
               </SelectContent>
             </Select>
           </div>
+          
+          <div>
+            <Label htmlFor="city">Cidade (Porta a Porta)</Label>
+            <Select 
+              value={cityFilter} 
+              onValueChange={handleCityChange}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Selecione uma cidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as cidades</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.id}>
+                    {city.name} ({city.distance} km)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
           <div>
             <Label htmlFor="startDate">Data inicial</Label>
             <Input
@@ -229,6 +293,14 @@ const ReportsPage = () => {
         </div>
         
         <div className="flex flex-col md:flex-row gap-4 justify-end">
+          <Button
+            variant="outline"
+            onClick={saveFinancialReport}
+            disabled={!clientFilter || clientFilter === 'all'}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Salvar para Financeiro
+          </Button>
           <Button onClick={exportToPDF} variant="outline">
             <FileText className="mr-2 h-4 w-4" />
             Exportar PDF

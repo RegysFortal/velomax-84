@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BarChart3, ClipboardList, Home, Package, Settings, Users } from "lucide-react";
+import { BarChart3, ClipboardList, Home, Package, Settings, Users, MapPin, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface MainNavProps {
@@ -37,10 +37,23 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       active: pathname.includes("/deliveries"),
     },
     {
+      href: "/cities",
+      label: "Cidades",
+      icon: MapPin,
+      active: pathname.includes("/cities"),
+      canAccess: canManageSystem
+    },
+    {
       href: "/reports",
       label: "Relatórios",
       icon: BarChart3,
       active: pathname.includes("/reports"),
+    },
+    {
+      href: "/financial",
+      label: "Financeiro",
+      icon: Wallet,
+      active: pathname.includes("/financial"),
     },
     {
       href: "/price-tables",

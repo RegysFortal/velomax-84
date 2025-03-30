@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   username: string;
@@ -61,6 +60,26 @@ export interface Delivery {
   cargoValue: number;
   totalFreight: number;
   notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface City {
+  id: string;
+  name: string;
+  distance: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinancialReport {
+  id: string;
+  clientId: string;
+  startDate: string;
+  endDate: string;
+  totalFreight: number;
+  totalDeliveries: number;
+  status: 'open' | 'closed';
   createdAt: string;
   updatedAt: string;
 }
