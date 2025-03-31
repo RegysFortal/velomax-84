@@ -41,9 +41,10 @@ export interface PriceTable {
     infectiousBiological: number;
     sundayHoliday: number;
     metropolitanRegion: number;
-    nightExclusiveVehicle: number; // após 22:00hs as 06:00hs e Domingos ou Feriados
+    nightExclusiveVehicle: number;
     trackedVehicle: number;
     reshipment: number;
+    doorToDoorInterior: number;
   };
   excessWeight: {
     minPerKg: number;
@@ -57,8 +58,8 @@ export interface PriceTable {
   };
   waitingHour: {
     fiorino: number;
-    medium: number; // 3/4
-    large: number; // Toco
+    medium: number;
+    large: number;
   };
   insurance: {
     standard: number;
@@ -79,18 +80,20 @@ export interface Delivery {
   receiver: string;
   weight: number;
   distance?: number;
-  cityId?: string; // Added cityId for door-to-door deliveries
-  deliveryType: 'standard' | 'saturday' | 'emergency' | 'exclusive' | 'scheduled' | 'normalBiological' | 'infectiousBiological' | 'sundayHoliday';
+  cityId?: string;
+  deliveryType: 'standard' | 'emergency' | 'saturday' | 'exclusive' | 'difficultAccess' | 'metropolitanRegion' | 'sundayHoliday' | 'normalBiological' | 'infectiousBiological' | 'tracked' | 'doorToDoorInterior' | 'reshipment';
   cargoType: 'standard' | 'perishable';
   cargoValue: number;
   totalFreight: number;
+  customPricing?: boolean;
+  discount?: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 // Helper constant to identify door-to-door delivery types
-export const doorToDoorDeliveryTypes: Delivery['deliveryType'][] = ['exclusive', 'scheduled'];
+export const doorToDoorDeliveryTypes: Delivery['deliveryType'][] = ['exclusive', 'difficultAccess', 'doorToDoorInterior'];
 
 export interface City {
   id: string;

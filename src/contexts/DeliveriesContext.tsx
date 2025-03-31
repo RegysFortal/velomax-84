@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Delivery, Client, PriceTable, doorToDoorDeliveryTypes } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -7,7 +8,7 @@ import { useCities } from './CitiesContext';
 
 type DeliveriesContextType = {
   deliveries: Delivery[];
-  addDelivery: (delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>) => string;
+  addDelivery: (delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => string;
   updateDelivery: (id: string, delivery: Partial<Delivery>) => void;
   deleteDelivery: (id: string) => void;
   getDelivery: (id: string) => Delivery | undefined;
@@ -31,8 +32,10 @@ const generateInitialDeliveries = (): Delivery[] => {
   
   const deliveries: Delivery[] = [];
   const deliveryTypes: Delivery['deliveryType'][] = [
-    'standard', 'saturday', 'emergency', 'exclusive', 
-    'scheduled', 'normalBiological', 'infectiousBiological', 'sundayHoliday'
+    'standard', 'emergency', 'saturday', 'exclusive', 
+    'difficultAccess', 'metropolitanRegion', 'sundayHoliday',
+    'normalBiological', 'infectiousBiological', 'tracked',
+    'doorToDoorInterior', 'reshipment'
   ];
   const cargoTypes: Delivery['cargoType'][] = ['standard', 'perishable'];
   const clientIds = ['client-1', 'client-2', 'client-3', 'client-4'];
@@ -69,6 +72,8 @@ const generateInitialDeliveries = (): Delivery[] => {
       notes: `Observação para entrega ${i}`,
       createdAt: date.toISOString(),
       updatedAt: date.toISOString(),
+      customPricing: false,
+      discount: 0,
     });
   }
   
@@ -91,7 +96,18 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
       const storedDeliveries = localStorage.getItem('velomax_deliveries');
       if (storedDeliveries) {
         try {
-          setDeliveries(JSON.parse(storedDeliveries));
+          const parsedDeliveries = JSON.parse(storedDeliveries);
+          // Add any missing properties to existing deliveries
+          const updatedDeliveries = parsedDeliveries.map((delivery: any) => {
+            if (delivery.customPricing === undefined) {
+              delivery.customPricing = false;
+            }
+            if (delivery.discount === undefined) {
+              delivery.discount = 0;
+            }
+            return delivery;
+          });
+          setDeliveries(updatedDeliveries);
         } catch (error) {
           console.error('Failed to parse stored deliveries', error);
           setDeliveries(generateInitialDeliveries());
@@ -153,7 +169,7 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
         case 'exclusive':
           baseRate = priceTable.minimumRate.exclusiveVehicle;
           break;
-        case 'scheduled':
+        case 'difficultAccess':
           baseRate = priceTable.minimumRate.scheduledDifficultAccess;
           break;
         case 'normalBiological':
@@ -164,6 +180,18 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
           break;
         case 'sundayHoliday':
           baseRate = priceTable.minimumRate.sundayHoliday;
+          break;
+        case 'metropolitanRegion':
+          baseRate = priceTable.minimumRate.metropolitanRegion;
+          break;
+        case 'tracked':
+          baseRate = priceTable.minimumRate.trackedVehicle;
+          break;
+        case 'reshipment':
+          baseRate = priceTable.minimumRate.reshipment;
+          break;
+        case 'doorToDoorInterior':
+          baseRate = priceTable.minimumRate.doorToDoorInterior;
           break;
       }
     } else {
@@ -181,7 +209,7 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
         case 'exclusive':
           baseRate = priceTable.minimumRate.exclusiveVehicle;
           break;
-        case 'scheduled':
+        case 'difficultAccess':
           baseRate = priceTable.minimumRate.scheduledDifficultAccess;
           break;
         case 'normalBiological':
@@ -193,16 +221,35 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
         case 'sundayHoliday':
           baseRate = priceTable.minimumRate.sundayHoliday;
           break;
+        case 'metropolitanRegion':
+          baseRate = priceTable.minimumRate.metropolitanRegion;
+          break;
+        case 'tracked':
+          baseRate = priceTable.minimumRate.trackedVehicle;
+          break;
+        case 'reshipment':
+          baseRate = priceTable.minimumRate.reshipment;
+          break;
+        case 'doorToDoorInterior':
+          baseRate = priceTable.minimumRate.doorToDoorInterior;
+          break;
       }
       
       // Add excess weight charges
       const excessWeight = weight - 10;
       if (excessWeight > 0) {
         // Use minimum or maximum per kg rate based on the delivery type
-        // More premium services use the higher rate
-        const ratePerKg = ['exclusive', 'emergency', 'infectiousBiological', 'sundayHoliday'].includes(deliveryType)
-          ? priceTable.excessWeight.maxPerKg
-          : priceTable.excessWeight.minPerKg;
+        let ratePerKg;
+        if (['normalBiological', 'infectiousBiological'].includes(deliveryType)) {
+          ratePerKg = priceTable.excessWeight.biologicalPerKg;
+        } else if (deliveryType === 'reshipment') {
+          ratePerKg = priceTable.excessWeight.reshipmentPerKg;
+        } else {
+          // More premium services use the higher rate
+          ratePerKg = ['exclusive', 'emergency', 'tracked', 'sundayHoliday'].includes(deliveryType)
+            ? priceTable.excessWeight.maxPerKg
+            : priceTable.excessWeight.minPerKg;
+        }
           
         baseRate += excessWeight * ratePerKg;
       }
@@ -238,7 +285,7 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const addDelivery = (
-    delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>
+    delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>
   ): string => {
     const timestamp = new Date().toISOString();
     const newId = `delivery-${Date.now()}`;
@@ -253,16 +300,24 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     
-    // Calculate the total freight
-    const totalFreight = calculateFreight(
-      delivery.clientId,
-      delivery.weight,
-      delivery.deliveryType,
-      delivery.cargoType,
-      delivery.cargoValue,
-      finalDistance,
-      delivery.cityId
-    );
+    // Calculate the total freight if not using custom pricing
+    let totalFreight = delivery.totalFreight;
+    if (!delivery.customPricing) {
+      totalFreight = calculateFreight(
+        delivery.clientId,
+        delivery.weight,
+        delivery.deliveryType,
+        delivery.cargoType,
+        delivery.cargoValue,
+        finalDistance,
+        delivery.cityId
+      );
+      
+      // Apply discount if specified
+      if (delivery.discount && delivery.discount > 0) {
+        totalFreight = Math.max(0, totalFreight - delivery.discount);
+      }
+    }
     
     const newDelivery: Delivery = {
       ...delivery,
@@ -304,17 +359,19 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
             }
           }
           
-          // Recalculate freight if relevant fields were changed
+          // Recalculate freight if relevant fields were changed and not using custom pricing
           if (
-            delivery.clientId !== undefined ||
+            !updatedDelivery.customPricing &&
+            (delivery.clientId !== undefined ||
             delivery.weight !== undefined ||
             delivery.deliveryType !== undefined ||
             delivery.cargoType !== undefined ||
             delivery.cargoValue !== undefined ||
             delivery.distance !== undefined ||
-            delivery.cityId !== undefined
+            delivery.cityId !== undefined ||
+            delivery.discount !== undefined)
           ) {
-            updatedDelivery.totalFreight = calculateFreight(
+            let recalculatedFreight = calculateFreight(
               updatedDelivery.clientId,
               updatedDelivery.weight,
               updatedDelivery.deliveryType,
@@ -323,6 +380,13 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
               updatedDelivery.distance,
               updatedDelivery.cityId
             );
+            
+            // Apply discount if specified
+            if (updatedDelivery.discount && updatedDelivery.discount > 0) {
+              recalculatedFreight = Math.max(0, recalculatedFreight - updatedDelivery.discount);
+            }
+            
+            updatedDelivery.totalFreight = recalculatedFreight;
           }
           
           return updatedDelivery;
@@ -335,7 +399,7 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
       description: `A entrega foi atualizada com sucesso.`,
     });
   };
-  
+
   const deleteDelivery = (id: string) => {
     setDeliveries((prev) => prev.filter((delivery) => delivery.id !== id));
     toast({

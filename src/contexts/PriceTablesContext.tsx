@@ -30,6 +30,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       nightExclusiveVehicle: 0.00,
       trackedVehicle: 440.00,
       reshipment: 170.00,
+      doorToDoorInterior: 200.00, // Added for "Porta a Porta interior"
     },
     excessWeight: {
       minPerKg: 0.55,
@@ -71,6 +72,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       nightExclusiveVehicle: 0.00,
       trackedVehicle: 460.00,
       reshipment: 180.00,
+      doorToDoorInterior: 220.00,
     },
     excessWeight: {
       minPerKg: 0.60,
@@ -112,6 +114,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       nightExclusiveVehicle: 0.00,
       trackedVehicle: 440.00,
       reshipment: 170.00,
+      doorToDoorInterior: 240.00,
     },
     excessWeight: {
       minPerKg: 0.65,
@@ -153,6 +156,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       nightExclusiveVehicle: 0.00,
       trackedVehicle: 440.00,
       reshipment: 170.00,
+      doorToDoorInterior: 260.00,
     },
     excessWeight: {
       minPerKg: 0.70,
@@ -193,16 +197,33 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
       if (storedTables) {
         try {
           const parsedTables = JSON.parse(storedTables);
-          // Validate and fix any missing waitingHour properties
+          // Validate and fix any missing properties in the price tables
           const validatedTables = parsedTables.map((table: PriceTable) => {
-            if (!table.waitingHour) {
-              table.waitingHour = {
+            const updatedTable = { ...table };
+            
+            if (!updatedTable.waitingHour) {
+              updatedTable.waitingHour = {
                 fiorino: 44.00,
                 medium: 55.00,
                 large: 66.00,
               };
             }
-            return table;
+            
+            // Ensure minimumRate has all required properties
+            if (!updatedTable.minimumRate.doorToDoorInterior) {
+              updatedTable.minimumRate.doorToDoorInterior = 200.00;
+            }
+            
+            // Ensure excessWeight has all required properties
+            if (!updatedTable.excessWeight.biologicalPerKg) {
+              updatedTable.excessWeight.biologicalPerKg = 0.72;
+            }
+            
+            if (!updatedTable.excessWeight.reshipmentPerKg) {
+              updatedTable.excessWeight.reshipmentPerKg = 0.70;
+            }
+            
+            return updatedTable;
           });
           setPriceTables(validatedTables);
         } catch (error) {

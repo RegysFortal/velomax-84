@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -379,14 +380,18 @@ const DeliveryForm = ({
               <SelectValue placeholder="Selecione o tipo de entrega" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="standard">Região Metropolitana</SelectItem>
-              <SelectItem value="saturday">Coleta aos Sábados</SelectItem>
-              <SelectItem value="emergency">Coleta Emergencial</SelectItem>
-              <SelectItem value="exclusive">Veículo Exclusivo (Porta a Porta)</SelectItem>
-              <SelectItem value="scheduled">Agendado/Difícil Acesso (Porta a Porta)</SelectItem>
+              <SelectItem value="standard">Normal</SelectItem>
+              <SelectItem value="emergency">Emergencial</SelectItem>
+              <SelectItem value="saturday">Sábados até 12:00hs</SelectItem>
+              <SelectItem value="exclusive">Exclusivo em Fortaleza</SelectItem>
+              <SelectItem value="difficultAccess">Difícil Acesso</SelectItem>
+              <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
+              <SelectItem value="sundayHoliday">Capital Domingos e Feriados</SelectItem>
               <SelectItem value="normalBiological">Material Biológico Normal</SelectItem>
               <SelectItem value="infectiousBiological">Material Biológico Infeccioso</SelectItem>
-              <SelectItem value="sundayHoliday">Domingos e Feriados</SelectItem>
+              <SelectItem value="tracked">Rastreado</SelectItem>
+              <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
+              <SelectItem value="reshipment">Redespacho por Transportadora</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -471,7 +476,7 @@ const DeliveryForm = ({
         <Textarea
           id="notes"
           name="notes"
-          value={formData.notes}
+          value={formData.notes || ''}
           onChange={handleChange}
           className="mt-1"
           rows={3}

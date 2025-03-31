@@ -78,6 +78,12 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
 
   const managementRoutes = [
     {
+      href: "/dashboard",
+      label: "Dashboard",
+      icon: Home,
+      active: pathname === "/dashboard",
+    },
+    {
       href: "/clients",
       label: "Clientes",
       icon: Users,
@@ -120,16 +126,8 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
     }
   ];
 
-  // Dashboard is a separate route
-  const dashboardRoute = {
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: Home,
-    active: pathname === "/dashboard",
-  };
-
   // Filter routes based on user's role and access permissions
-  const filterRoutes = (routes: typeof operationalRoutes) => 
+  const filterRoutes = (routes: any[]) => 
     routes.filter(route => route.canAccess === undefined || route.canAccess);
 
   const accessibleOperationalRoutes = filterRoutes(operationalRoutes);
@@ -139,7 +137,6 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
   // For mobile, we'll render a flat list
   if (isMobile) {
     const allRoutes = [
-      dashboardRoute,
       ...accessibleOperationalRoutes,
       ...accessibleFinancialRoutes,
       ...accessibleManagementRoutes
@@ -172,21 +169,6 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
   return (
     <NavigationMenu className={cn("flex", className)}>
       <NavigationMenuList className="flex gap-2">
-        <NavigationMenuItem>
-          <Link
-            to={dashboardRoute.href}
-            className={cn(
-              "flex items-center px-3 py-2 text-sm transition-colors hover:text-primary rounded-md",
-              dashboardRoute.active
-                ? "font-medium text-primary bg-accent"
-                : "text-muted-foreground"
-            )}
-          >
-            <dashboardRoute.icon className="h-4 w-4 mr-2" />
-            {dashboardRoute.label}
-          </Link>
-        </NavigationMenuItem>
-
         {accessibleOperationalRoutes.length > 0 && (
           <NavigationMenuItem>
             <NavigationMenuTrigger className={cn(
