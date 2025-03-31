@@ -1,8 +1,29 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BarChart3, ClipboardList, Home, Package, Settings, Users, MapPin, Wallet, Truck, UserCheck, Wrench, BookOpenCheck } from "lucide-react";
+import { 
+  BarChart3, 
+  ClipboardList, 
+  Home, 
+  Package, 
+  Settings, 
+  Users, 
+  MapPin, 
+  Wallet, 
+  Truck, 
+  UserCheck, 
+  Wrench, 
+  BookOpenCheck 
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 interface MainNavProps {
   className?: string;
@@ -16,32 +37,22 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
   const isManager = user?.role === 'manager';
   const canManageSystem = isAdmin || isManager;
   
-  const routes = [
-    {
-      href: "/dashboard",
-      label: "Dashboard",
-      icon: Home,
-      active: pathname === "/dashboard",
-    },
-    {
-      href: "/clients",
-      label: "Clientes",
-      icon: Users,
-      active: pathname.includes("/clients"),
-      canAccess: canManageSystem
-    },
+  // Define routes categorized by section
+  const operationalRoutes = [
     {
       href: "/deliveries",
       label: "Entregas",
       icon: Package,
       active: pathname.includes("/deliveries"),
-    },
+    }
+  ];
+
+  const financialRoutes = [
     {
-      href: "/cities",
-      label: "Cidades",
-      icon: MapPin,
-      active: pathname.includes("/cities"),
-      canAccess: canManageSystem
+      href: "/financial",
+      label: "Financeiro",
+      icon: Wallet,
+      active: pathname.includes("/financial"),
     },
     {
       href: "/reports",
@@ -50,16 +61,34 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       active: pathname.includes("/reports"),
     },
     {
-      href: "/financial",
-      label: "Financeiro",
-      icon: Wallet,
-      active: pathname.includes("/financial"),
-    },
-    {
       href: "/price-tables",
       label: "Tabelas de Preço",
       icon: ClipboardList,
       active: pathname.includes("/price-tables"),
+      canAccess: canManageSystem
+    },
+    {
+      href: "/cities",
+      label: "Cidades",
+      icon: MapPin,
+      active: pathname.includes("/cities"),
+      canAccess: canManageSystem
+    }
+  ];
+
+  const managementRoutes = [
+    {
+      href: "/clients",
+      label: "Clientes",
+      icon: Users,
+      active: pathname.includes("/clients"),
+      canAccess: canManageSystem
+    },
+    {
+      href: "/employees",
+      label: "Funcionários",
+      icon: UserCheck,
+      active: pathname.includes("/employees"),
       canAccess: canManageSystem
     },
     {
@@ -76,13 +105,6 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       canAccess: canManageSystem
     },
     {
-      href: "/employees",
-      label: "Funcionários",
-      icon: UserCheck,
-      active: pathname.includes("/employees"),
-      canAccess: canManageSystem
-    },
-    {
       href: "/maintenance",
       label: "Manutenções",
       icon: Wrench,
@@ -95,34 +117,169 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       icon: Settings,
       active: pathname.includes("/settings"),
       canAccess: isAdmin
-    },
+    }
   ];
 
+  // Dashboard is a separate route
+  const dashboardRoute = {
+    href: "/dashboard",
+    label: "Dashboard",
+    icon: Home,
+    active: pathname === "/dashboard",
+  };
+
   // Filter routes based on user's role and access permissions
-  const accessibleRoutes = routes.filter(
-    route => route.canAccess === undefined || route.canAccess
-  );
+  const filterRoutes = (routes: typeof operationalRoutes) => 
+    routes.filter(route => route.canAccess === undefined || route.canAccess);
+
+  const accessibleOperationalRoutes = filterRoutes(operationalRoutes);
+  const accessibleFinancialRoutes = filterRoutes(financialRoutes);
+  const accessibleManagementRoutes = filterRoutes(managementRoutes);
   
+  // For mobile, we'll render a flat list
+  if (isMobile) {
+    const allRoutes = [
+      dashboardRoute,
+      ...accessibleOperationalRoutes,
+      ...accessibleFinancialRoutes,
+      ...accessibleManagementRoutes
+    ];
+    
+    return (
+      <nav className={cn("flex flex-col", className)}>
+        {allRoutes.map((route) => (
+          <Link
+            key={route.href}
+            to={route.href}
+            className={cn(
+              "flex items-center px-2 py-2 text-base transition-colors hover:text-primary",
+              route.active
+                ? "font-medium text-primary"
+                : "text-muted-foreground"
+            )}
+          >
+            {route.icon && (
+              <route.icon className="h-5 w-5 mr-2" />
+            )}
+            {route.label}
+          </Link>
+        ))}
+      </nav>
+    );
+  }
+  
+  // For desktop, we'll use the NavigationMenu
   return (
-    <nav className={cn("flex", className)}>
-      {accessibleRoutes.map((route) => (
-        <Link
-          key={route.href}
-          to={route.href}
-          className={cn(
-            "flex items-center px-2 py-1.5 text-sm transition-colors hover:text-primary",
-            route.active
-              ? "font-medium text-primary"
-              : "text-muted-foreground",
-            isMobile && "justify-start text-base py-2"
-          )}
-        >
-          {route.icon && (
-            <route.icon className={cn("h-4 w-4 mr-2", isMobile && "h-5 w-5")} />
-          )}
-          {route.label}
-        </Link>
-      ))}
-    </nav>
+    <NavigationMenu className={cn("flex", className)}>
+      <NavigationMenuList className="flex gap-2">
+        <NavigationMenuItem>
+          <Link
+            to={dashboardRoute.href}
+            className={cn(
+              "flex items-center px-3 py-2 text-sm transition-colors hover:text-primary rounded-md",
+              dashboardRoute.active
+                ? "font-medium text-primary bg-accent"
+                : "text-muted-foreground"
+            )}
+          >
+            <dashboardRoute.icon className="h-4 w-4 mr-2" />
+            {dashboardRoute.label}
+          </Link>
+        </NavigationMenuItem>
+
+        {accessibleOperationalRoutes.length > 0 && (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className={cn(
+              accessibleOperationalRoutes.some(route => route.active) && "text-primary bg-accent"
+            )}>
+              Operacional
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="grid w-[200px] gap-1 p-2">
+                {accessibleOperationalRoutes.map((route) => (
+                  <Link
+                    key={route.href}
+                    to={route.href}
+                    className={cn(
+                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                      route.active
+                        ? "font-medium text-primary bg-accent/50"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {route.icon && (
+                      <route.icon className="h-4 w-4 mr-2" />
+                    )}
+                    {route.label}
+                  </Link>
+                ))}
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
+
+        {accessibleFinancialRoutes.length > 0 && (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className={cn(
+              accessibleFinancialRoutes.some(route => route.active) && "text-primary bg-accent"
+            )}>
+              Financeiro
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="grid w-[200px] gap-1 p-2">
+                {accessibleFinancialRoutes.map((route) => (
+                  <Link
+                    key={route.href}
+                    to={route.href}
+                    className={cn(
+                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                      route.active
+                        ? "font-medium text-primary bg-accent/50"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {route.icon && (
+                      <route.icon className="h-4 w-4 mr-2" />
+                    )}
+                    {route.label}
+                  </Link>
+                ))}
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
+
+        {accessibleManagementRoutes.length > 0 && (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className={cn(
+              accessibleManagementRoutes.some(route => route.active) && "text-primary bg-accent"
+            )}>
+              Gerência
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="grid w-[200px] gap-1 p-2">
+                {accessibleManagementRoutes.map((route) => (
+                  <Link
+                    key={route.href}
+                    to={route.href}
+                    className={cn(
+                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                      route.active
+                        ? "font-medium text-primary bg-accent/50"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {route.icon && (
+                      <route.icon className="h-4 w-4 mr-2" />
+                    )}
+                    {route.label}
+                  </Link>
+                ))}
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
+      </NavigationMenuList>
+    </NavigationMenu>
   );
 }

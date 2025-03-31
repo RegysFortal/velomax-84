@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -49,14 +48,14 @@ const DeliveryForm = ({
   onSubmit,
   onCancel,
 }: {
-  onSubmit: (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>) => void;
+  onSubmit: (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
 }) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { clients } = useClients();
   const { cities } = useCities();
   const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
-  const [formData, setFormData] = useState<Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>>({
+  const [formData, setFormData] = useState<Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>>({
     clientId: '',
     deliveryDate: format(new Date(), 'yyyy-MM-dd'),
     deliveryTime: format(new Date(), 'HH:mm'),
@@ -68,8 +67,12 @@ const DeliveryForm = ({
     cargoValue: 0,
     notes: '',
     minuteNumber: '',
+    totalFreight: 0,
+    customPricing: false,
+    discount: 0,
   });
   const [estimatedFreight, setEstimatedFreight] = useState<number | null>(null);
+  const [useCustomPrice, setUseCustomPrice] = useState(false);
   
   const isCurrentTypeDoorToDoor = isDoorToDoorDelivery(formData.deliveryType);
 
@@ -89,14 +92,15 @@ const DeliveryForm = ({
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'weight' || name === 'distance' || name === 'cargoValue' 
+      [name]: name === 'weight' || name === 'distance' || name === 'cargoValue' || name === 'totalFreight' || name === 'discount'
         ? parseFloat(value) || 0 
         : value,
     }));
     
     if (
       formData.clientId && 
-      (name === 'weight' || name === 'cargoValue' || name === 'distance')
+      (name === 'weight' || name === 'cargoValue' || name === 'distance') &&
+      !useCustomPrice
     ) {
       updateEstimatedFreight(
         formData.clientId,
@@ -113,7 +117,7 @@ const DeliveryForm = ({
   const handleClientChange = (clientId: string) => {
     setFormData(prev => ({ ...prev, clientId }));
     
-    if (clientId && formData.weight > 0) {
+    if (clientId && formData.weight > 0 && !useCustomPrice) {
       updateEstimatedFreight(
         clientId,
         formData.weight,
@@ -133,7 +137,7 @@ const DeliveryForm = ({
       setFormData(prev => ({ ...prev, cityId: undefined }));
     }
     
-    if (formData.clientId && formData.weight > 0) {
+    if (formData.clientId && formData.weight > 0 && !useCustomPrice) {
       updateEstimatedFreight(
         formData.clientId,
         formData.weight,
@@ -149,7 +153,7 @@ const DeliveryForm = ({
   const handleCargoTypeChange = (cargoType: Delivery['cargoType']) => {
     setFormData(prev => ({ ...prev, cargoType }));
     
-    if (formData.clientId && formData.weight > 0) {
+    if (formData.clientId && formData.weight > 0 && !useCustomPrice) {
       updateEstimatedFreight(
         formData.clientId,
         formData.weight,
@@ -166,7 +170,7 @@ const DeliveryForm = ({
     setFormData(prev => ({ ...prev, cityId }));
     
     const city = cities.find(c => c.id === cityId);
-    if (city && formData.clientId && formData.weight > 0) {
+    if (city && formData.clientId && formData.weight > 0 && !useCustomPrice) {
       updateEstimatedFreight(
         formData.clientId,
         formData.weight,
@@ -198,11 +202,23 @@ const DeliveryForm = ({
       cityId
     );
     setEstimatedFreight(freight);
+    setFormData(prev => ({ ...prev, totalFreight: freight }));
+  };
+
+  const handleCustomPricingToggle = () => {
+    setUseCustomPrice(!useCustomPrice);
+    setFormData(prev => ({
+      ...prev,
+      customPricing: !useCustomPrice,
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      totalFreight: useCustomPrice ? formData.totalFreight : (estimatedFreight || 0)
+    });
   };
 
   const formatCurrency = (value: number) => {
@@ -392,12 +408,63 @@ const DeliveryForm = ({
         </div>
       </div>
 
-      {estimatedFreight !== null && (
-        <div className="bg-muted p-4 rounded-md">
-          <div className="text-sm text-muted-foreground">Frete estimado:</div>
-          <div className="text-2xl font-bold">{formatCurrency(estimatedFreight)}</div>
+      <div className="bg-muted p-4 rounded-md">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-sm text-muted-foreground">Valor do Frete:</div>
+          <div className="flex items-center gap-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={handleCustomPricingToggle}
+            >
+              {useCustomPrice ? "Usar Cálculo Automático" : "Definir Preço Manualmente"}
+            </Button>
+          </div>
         </div>
-      )}
+        
+        {useCustomPrice ? (
+          <div className="space-y-2">
+            <Label htmlFor="totalFreight">Valor Total</Label>
+            <Input
+              id="totalFreight"
+              name="totalFreight"
+              type="number"
+              step="0.01"
+              value={formData.totalFreight || ''}
+              onChange={handleChange}
+              required
+              className="text-lg font-bold"
+            />
+          </div>
+        ) : (
+          <>
+            <div className="text-2xl font-bold">
+              {estimatedFreight !== null ? formatCurrency(estimatedFreight) : "R$ 0,00"}
+            </div>
+            <div className="mt-2">
+              <Label htmlFor="discount">Desconto</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="discount"
+                  name="discount"
+                  type="number"
+                  step="0.01"
+                  value={formData.discount || ''}
+                  onChange={handleChange}
+                  className="mt-1"
+                  placeholder="Valor de desconto"
+                />
+                {formData.discount > 0 && estimatedFreight !== null && (
+                  <div className="mt-1 text-muted-foreground">
+                    Total com desconto: {formatCurrency(estimatedFreight - formData.discount)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       <div>
         <Label htmlFor="notes">Observações</Label>
@@ -433,7 +500,7 @@ const DeliveriesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const handleCreate = (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>) => {
+  const handleCreate = (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => {
     addDelivery(data);
     setIsCreateDialogOpen(false);
   };
