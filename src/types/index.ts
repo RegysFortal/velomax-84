@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   username: string;
@@ -100,3 +101,81 @@ export interface FinancialReport {
 }
 
 export type SortDirection = 'asc' | 'desc';
+
+// Novas interfaces para o diário de bordo
+export interface Vehicle {
+  id: string;
+  plate: string;
+  model: string;
+  year: string;
+  make: string;
+  currentOdometer: number;
+  lastOilChange: number;
+  nextOilChangeKm: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  role: 'driver' | 'assistant';
+  documentId: string;
+  phone: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TireMaintenance {
+  id: string;
+  vehicleId: string;
+  tirePosition: 'frontLeft' | 'frontRight' | 'rearLeft' | 'rearRight' | 'spare';
+  changeDate: string;
+  brand: string;
+  model: string;
+  odometerKm: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Maintenance {
+  id: string;
+  vehicleId: string;
+  date: string;
+  type: string;
+  description: string;
+  cost: number;
+  odometerKm: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FuelRecord {
+  id: string;
+  vehicleId: string;
+  date: string;
+  odometerKm: number;
+  liters: number;
+  pricePerLiter: number;
+  totalCost: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LogbookEntry {
+  id: string;
+  date: string;
+  vehicleId: string;
+  driverId: string;
+  assistantId?: string;
+  departureTime: string;
+  returnTime?: string;
+  departureOdometer: number;
+  returnOdometer?: number;
+  fuelRecordId?: string;
+  maintenanceId?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
