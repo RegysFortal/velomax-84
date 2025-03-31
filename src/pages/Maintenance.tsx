@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { TirePlus, Tool, CarFront, History } from 'lucide-react';
+import { Car, Wrench, CarFront, History } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Maintenance = () => {
@@ -65,11 +64,11 @@ const Maintenance = () => {
                     
                     <div className="flex gap-2 mt-4">
                       <Button size="sm" variant="outline" className="w-full flex items-center gap-1">
-                        <Tool className="h-4 w-4" />
+                        <Wrench className="h-4 w-4" />
                         <span>Manutenção</span>
                       </Button>
                       <Button size="sm" variant="outline" className="w-full flex items-center gap-1">
-                        <TirePlus className="h-4 w-4" />
+                        <Car className="h-4 w-4" />
                         <span>Pneu</span>
                       </Button>
                     </div>
@@ -123,7 +122,7 @@ const Maintenance = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <TirePlus className="h-10 w-10 text-muted-foreground mb-3" />
+                  <Car className="h-10 w-10 text-muted-foreground mb-3" />
                   <p className="text-muted-foreground">A funcionalidade de controle de pneus será implementada em breve.</p>
                 </div>
               </CardContent>
