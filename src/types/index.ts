@@ -5,6 +5,7 @@ export interface User {
   role: 'admin' | 'manager' | 'user';
   name: string;
   permissions?: UserPermissions;
+  password?: string; // Add password property for internal use
 }
 
 export interface UserPermissions {

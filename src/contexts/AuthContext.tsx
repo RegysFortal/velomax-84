@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, UserPermissions } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -110,7 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const authenticatedUser: User = {
         id: foundUser.id,
         username: foundUser.username,
-        role: foundUser.role as 'admin' | 'manager' | 'user',
+        role: foundUser.role,
         name: foundUser.name,
         permissions: foundUser.permissions
       };

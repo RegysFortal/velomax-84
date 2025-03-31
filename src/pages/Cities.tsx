@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -71,7 +70,7 @@ const CitiesPage = () => {
       updateCity(editingCity, data);
       setEditingCity(null);
     } else {
-      addCity(data);
+      addCity({ name: data.name || "", distance: data.distance });
     }
     setIsDialogOpen(false);
     form.reset();
