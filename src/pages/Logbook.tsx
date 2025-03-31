@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -61,7 +60,6 @@ const Logbook = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { toast } = useToast();
 
-  // Filtrar entradas pelo dia selecionado
   const filteredEntries = entries.filter(entry => {
     const entryDate = new Date(entry.date);
     return (
@@ -145,7 +143,7 @@ const Logbook = () => {
             <Dialog open={isNewFuelOpen} onOpenChange={setIsNewFuelOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2" variant="outline">
-                  <GasTank className="h-4 w-4" />
+                  <Fuel className="h-4 w-4" />
                   Abastecimento
                 </Button>
               </DialogTrigger>
