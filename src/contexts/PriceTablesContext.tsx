@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -191,7 +192,19 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
       const storedTables = localStorage.getItem('velomax_price_tables');
       if (storedTables) {
         try {
-          setPriceTables(JSON.parse(storedTables));
+          const parsedTables = JSON.parse(storedTables);
+          // Validate and fix any missing waitingHour properties
+          const validatedTables = parsedTables.map((table: PriceTable) => {
+            if (!table.waitingHour) {
+              table.waitingHour = {
+                fiorino: 44.00,
+                medium: 55.00,
+                large: 66.00,
+              };
+            }
+            return table;
+          });
+          setPriceTables(validatedTables);
         } catch (error) {
           console.error('Failed to parse stored price tables', error);
           setPriceTables(INITIAL_PRICE_TABLES);

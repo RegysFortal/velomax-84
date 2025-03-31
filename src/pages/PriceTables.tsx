@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -68,9 +67,9 @@ const PriceTableForm = ({
   const [maxWeight, setMaxWeight] = useState(initialData?.doorToDoor.maxWeight || 100);
   
   // Waiting hour rates
-  const [fiorinoWaitingHour, setFiorinoWaitingHour] = useState(initialData?.waitingHour.fiorino || 44);
-  const [mediumWaitingHour, setMediumWaitingHour] = useState(initialData?.waitingHour.medium || 55);
-  const [largeWaitingHour, setLargeWaitingHour] = useState(initialData?.waitingHour.large || 66);
+  const [fiorinoWaitingHour, setFiorinoWaitingHour] = useState(initialData?.waitingHour?.fiorino || 44);
+  const [mediumWaitingHour, setMediumWaitingHour] = useState(initialData?.waitingHour?.medium || 55);
+  const [largeWaitingHour, setLargeWaitingHour] = useState(initialData?.waitingHour?.large || 66);
   
   // Insurance rates
   const [standardInsurance, setStandardInsurance] = useState(initialData?.insurance.standard || 0.01);
@@ -576,6 +575,15 @@ const PriceTablesPage = () => {
   const formatPercentage = (value: number) => {
     return `${(value * 100).toFixed(2)}%`;
   };
+
+  const safeRender = (render: () => React.ReactNode, fallback: React.ReactNode = "-") => {
+    try {
+      return render();
+    } catch (error) {
+      console.error("Error rendering value:", error);
+      return fallback;
+    }
+  };
   
   return (
     <AppLayout>
@@ -716,11 +724,17 @@ const PriceTablesPage = () => {
                       <h3 className="text-sm font-medium text-muted-foreground mb-2">Hora Parada</h3>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                         <div className="text-sm">Fiorino:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.waitingHour.fiorino)}</div>
+                        <div className="text-sm font-medium">
+                          {safeRender(() => formatCurrency(table.waitingHour?.fiorino || 44))}
+                        </div>
                         <div className="text-sm">3/4:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.waitingHour.medium)}</div>
+                        <div className="text-sm font-medium">
+                          {safeRender(() => formatCurrency(table.waitingHour?.medium || 55))}
+                        </div>
                         <div className="text-sm">Toco:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.waitingHour.large)}</div>
+                        <div className="text-sm font-medium">
+                          {safeRender(() => formatCurrency(table.waitingHour?.large || 66))}
+                        </div>
                       </div>
                     </div>
                     
@@ -728,9 +742,13 @@ const PriceTablesPage = () => {
                       <h3 className="text-sm font-medium text-muted-foreground mb-2">Porta a Porta</h3>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                         <div className="text-sm">Por Km rodado:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.doorToDoor.ratePerKm)}</div>
+                        <div className="text-sm font-medium">
+                          {safeRender(() => formatCurrency(table.doorToDoor?.ratePerKm || 2.4))}
+                        </div>
                         <div className="text-sm">Peso máximo:</div>
-                        <div className="text-sm font-medium">{table.doorToDoor.maxWeight} Kg</div>
+                        <div className="text-sm font-medium">
+                          {safeRender(() => `${table.doorToDoor?.maxWeight || 100} Kg`)}
+                        </div>
                       </div>
                     </div>
                     
@@ -738,9 +756,13 @@ const PriceTablesPage = () => {
                       <h3 className="text-sm font-medium text-muted-foreground mb-2">Preço personalizado</h3>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                         <div className="text-sm">Preço personalizado:</div>
-                        <div className="text-sm font-medium">{table.allowCustomPricing ? "Permitido" : "Não permitido"}</div>
+                        <div className="text-sm font-medium">
+                          {safeRender(() => table.allowCustomPricing ? "Permitido" : "Não permitido")}
+                        </div>
                         <div className="text-sm">Desconto padrão:</div>
-                        <div className="text-sm font-medium">{table.defaultDiscount}%</div>
+                        <div className="text-sm font-medium">
+                          {safeRender(() => `${table.defaultDiscount || 0}%`)}
+                        </div>
                       </div>
                     </div>
                   </TabsContent>
@@ -750,7 +772,6 @@ const PriceTablesPage = () => {
           </div>
         )}
         
-        {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="max-w-4xl">
             <DialogHeader>
@@ -769,7 +790,6 @@ const PriceTablesPage = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Delete Dialog */}
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
