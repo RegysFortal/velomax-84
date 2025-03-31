@@ -1,9 +1,9 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Delivery, Client, PriceTable } from '@/types';
+import { Delivery, Client, PriceTable, doorToDoorDeliveryTypes } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { useClients } from './ClientsContext';
 import { usePriceTables } from './PriceTablesContext';
+import { useCities } from './CitiesContext';
 
 type DeliveriesContextType = {
   deliveries: Delivery[];
@@ -17,9 +17,11 @@ type DeliveriesContextType = {
     deliveryType: Delivery['deliveryType'],
     cargoType: Delivery['cargoType'],
     cargoValue: number,
-    distance?: number
+    distance?: number,
+    cityId?: string
   ) => number;
   loading: boolean;
+  isDoorToDoorDelivery: (deliveryType: Delivery['deliveryType']) => boolean;
 };
 
 // Generate initial data
@@ -81,6 +83,7 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const { clients } = useClients();
   const { priceTables } = usePriceTables();
+  const { cities } = useCities();
   
   useEffect(() => {
     // Load deliveries from localStorage or use initial data
@@ -113,13 +116,19 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [deliveries, loading]);
   
+  // Helper function to determine if a delivery type is door-to-door
+  const isDoorToDoorDelivery = (deliveryType: Delivery['deliveryType']): boolean => {
+    return doorToDoorDeliveryTypes.includes(deliveryType);
+  };
+  
   const calculateFreight = (
     clientId: string,
     weight: number,
     deliveryType: Delivery['deliveryType'],
     cargoType: Delivery['cargoType'],
     cargoValue: number,
-    distance?: number
+    distance?: number,
+    cityId?: string
   ): number => {
     const client = clients.find(c => c.id === clientId);
     if (!client) return 0;
@@ -200,8 +209,19 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
     }
     
     // Add distance charge for door to door deliveries if applicable
-    if (distance && distance > 0) {
-      baseRate += distance * priceTable.doorToDoor.ratePerKm;
+    if (isDoorToDoorDelivery(deliveryType)) {
+      // If cityId is provided, use city's distance
+      let calculatedDistance = distance;
+      if (cityId) {
+        const city = cities.find(c => c.id === cityId);
+        if (city) {
+          calculatedDistance = city.distance;
+        }
+      }
+      
+      if (calculatedDistance && calculatedDistance > 0) {
+        baseRate += calculatedDistance * priceTable.doorToDoor.ratePerKm;
+      }
     }
     
     // Add insurance
@@ -224,6 +244,15 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
     const newId = `delivery-${Date.now()}`;
     const minuteNumber = `MIN-${String(Math.floor(Math.random() * 90000) + 10000)}`;
     
+    // Get distance from city if it's a door-to-door delivery and cityId is provided
+    let finalDistance = delivery.distance;
+    if (isDoorToDoorDelivery(delivery.deliveryType) && delivery.cityId) {
+      const city = cities.find(c => c.id === delivery.cityId);
+      if (city) {
+        finalDistance = city.distance;
+      }
+    }
+    
     // Calculate the total freight
     const totalFreight = calculateFreight(
       delivery.clientId,
@@ -231,13 +260,15 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
       delivery.deliveryType,
       delivery.cargoType,
       delivery.cargoValue,
-      delivery.distance
+      finalDistance,
+      delivery.cityId
     );
     
     const newDelivery: Delivery = {
       ...delivery,
       id: newId,
       minuteNumber,
+      distance: finalDistance,
       totalFreight,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -256,11 +287,22 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
     setDeliveries((prev) => 
       prev.map((d) => {
         if (d.id === id) {
-          const updatedDelivery = {
+          let updatedDelivery = {
             ...d,
             ...delivery,
             updatedAt: new Date().toISOString()
           };
+          
+          // If it's a door-to-door delivery and cityId changed, update the distance
+          if (
+            isDoorToDoorDelivery(updatedDelivery.deliveryType) && 
+            delivery.cityId !== undefined
+          ) {
+            const city = cities.find(c => c.id === delivery.cityId);
+            if (city) {
+              updatedDelivery.distance = city.distance;
+            }
+          }
           
           // Recalculate freight if relevant fields were changed
           if (
@@ -269,7 +311,8 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
             delivery.deliveryType !== undefined ||
             delivery.cargoType !== undefined ||
             delivery.cargoValue !== undefined ||
-            delivery.distance !== undefined
+            delivery.distance !== undefined ||
+            delivery.cityId !== undefined
           ) {
             updatedDelivery.totalFreight = calculateFreight(
               updatedDelivery.clientId,
@@ -277,7 +320,8 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
               updatedDelivery.deliveryType,
               updatedDelivery.cargoType,
               updatedDelivery.cargoValue,
-              updatedDelivery.distance
+              updatedDelivery.distance,
+              updatedDelivery.cityId
             );
           }
           
@@ -313,6 +357,7 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
       getDelivery,
       calculateFreight,
       loading,
+      isDoorToDoorDelivery,
     }}>
       {children}
     </DeliveriesContext.Provider>

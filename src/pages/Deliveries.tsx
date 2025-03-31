@@ -37,11 +37,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useClients } from '@/contexts/ClientsContext';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
-import { CalendarIcon, Download, FileText, Plus, Search } from 'lucide-react';
+import { useCities } from '@/contexts/CitiesContext';
+import { CalendarIcon, Download, FileText, Plus, Search, MapPin, City } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Delivery } from '@/types';
+import { Delivery, doorToDoorDeliveryTypes } from '@/types';
 
 const DeliveryForm = ({
   onSubmit,
@@ -52,7 +53,8 @@ const DeliveryForm = ({
 }) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { clients } = useClients();
-  const { calculateFreight } = useDeliveries();
+  const { cities } = useCities();
+  const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
   const [formData, setFormData] = useState<Omit<Delivery, 'id' | 'createdAt' | 'updatedAt' | 'totalFreight'>>({
     clientId: '',
     deliveryDate: format(new Date(), 'yyyy-MM-dd'),
@@ -67,6 +69,8 @@ const DeliveryForm = ({
     minuteNumber: '',
   });
   const [estimatedFreight, setEstimatedFreight] = useState<number | null>(null);
+  
+  const isCurrentTypeDoorToDoor = isDoorToDoorDelivery(formData.deliveryType);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -93,15 +97,15 @@ const DeliveryForm = ({
       formData.clientId && 
       (name === 'weight' || name === 'cargoValue' || name === 'distance')
     ) {
-      const freight = calculateFreight(
+      updateEstimatedFreight(
         formData.clientId,
         name === 'weight' ? parseFloat(value) || 0 : formData.weight,
         formData.deliveryType,
         formData.cargoType,
         name === 'cargoValue' ? parseFloat(value) || 0 : formData.cargoValue,
-        name === 'distance' ? parseFloat(value) || 0 : formData.distance
+        name === 'distance' ? parseFloat(value) || 0 : formData.distance,
+        formData.cityId
       );
-      setEstimatedFreight(freight);
     }
   };
 
@@ -109,31 +113,35 @@ const DeliveryForm = ({
     setFormData(prev => ({ ...prev, clientId }));
     
     if (clientId && formData.weight > 0) {
-      const freight = calculateFreight(
+      updateEstimatedFreight(
         clientId,
         formData.weight,
         formData.deliveryType,
         formData.cargoType,
         formData.cargoValue,
-        formData.distance
+        formData.distance,
+        formData.cityId
       );
-      setEstimatedFreight(freight);
     }
   };
 
   const handleDeliveryTypeChange = (deliveryType: Delivery['deliveryType']) => {
     setFormData(prev => ({ ...prev, deliveryType }));
     
+    if (!isDoorToDoorDelivery(deliveryType)) {
+      setFormData(prev => ({ ...prev, cityId: undefined }));
+    }
+    
     if (formData.clientId && formData.weight > 0) {
-      const freight = calculateFreight(
+      updateEstimatedFreight(
         formData.clientId,
         formData.weight,
         deliveryType,
         formData.cargoType,
         formData.cargoValue,
-        formData.distance
+        formData.distance,
+        isDoorToDoorDelivery(deliveryType) ? formData.cityId : undefined
       );
-      setEstimatedFreight(freight);
     }
   };
 
@@ -141,16 +149,54 @@ const DeliveryForm = ({
     setFormData(prev => ({ ...prev, cargoType }));
     
     if (formData.clientId && formData.weight > 0) {
-      const freight = calculateFreight(
+      updateEstimatedFreight(
         formData.clientId,
         formData.weight,
         formData.deliveryType,
         cargoType,
         formData.cargoValue,
-        formData.distance
+        formData.distance,
+        formData.cityId
       );
-      setEstimatedFreight(freight);
     }
+  };
+
+  const handleCityChange = (cityId: string) => {
+    setFormData(prev => ({ ...prev, cityId }));
+    
+    const city = cities.find(c => c.id === cityId);
+    if (city && formData.clientId && formData.weight > 0) {
+      updateEstimatedFreight(
+        formData.clientId,
+        formData.weight,
+        formData.deliveryType,
+        formData.cargoType,
+        formData.cargoValue,
+        city.distance,
+        cityId
+      );
+    }
+  };
+
+  const updateEstimatedFreight = (
+    clientId: string,
+    weight: number,
+    deliveryType: Delivery['deliveryType'],
+    cargoType: Delivery['cargoType'],
+    cargoValue: number,
+    distance?: number,
+    cityId?: string
+  ) => {
+    const freight = calculateFreight(
+      clientId,
+      weight,
+      deliveryType,
+      cargoType,
+      cargoValue,
+      distance,
+      cityId
+    );
+    setEstimatedFreight(freight);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -253,18 +299,42 @@ const DeliveryForm = ({
             className="mt-1"
           />
         </div>
-        <div>
-          <Label htmlFor="distance">Distância (Km)</Label>
-          <Input
-            id="distance"
-            name="distance"
-            type="number"
-            step="0.1"
-            value={formData.distance || ''}
-            onChange={handleChange}
-            className="mt-1"
-          />
-        </div>
+        
+        {isCurrentTypeDoorToDoor ? (
+          <div>
+            <Label htmlFor="cityId">Cidade</Label>
+            <Select 
+              value={formData.cityId} 
+              onValueChange={handleCityChange}
+              required
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Selecione a cidade" />
+              </SelectTrigger>
+              <SelectContent>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.id}>
+                    {city.name} ({city.distance} Km)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <div>
+            <Label htmlFor="distance">Distância (Km)</Label>
+            <Input
+              id="distance"
+              name="distance"
+              type="number"
+              step="0.1"
+              value={formData.distance || ''}
+              onChange={handleChange}
+              className="mt-1"
+            />
+          </div>
+        )}
+        
         <div>
           <Label htmlFor="cargoValue">Valor da Carga</Label>
           <Input
@@ -295,8 +365,8 @@ const DeliveryForm = ({
               <SelectItem value="standard">Região Metropolitana</SelectItem>
               <SelectItem value="saturday">Coleta aos Sábados</SelectItem>
               <SelectItem value="emergency">Coleta Emergencial</SelectItem>
-              <SelectItem value="exclusive">Veículo Exclusivo</SelectItem>
-              <SelectItem value="scheduled">Agendado/Difícil Acesso</SelectItem>
+              <SelectItem value="exclusive">Veículo Exclusivo (Porta a Porta)</SelectItem>
+              <SelectItem value="scheduled">Agendado/Difícil Acesso (Porta a Porta)</SelectItem>
               <SelectItem value="normalBiological">Material Biológico Normal</SelectItem>
               <SelectItem value="infectiousBiological">Material Biológico Infeccioso</SelectItem>
               <SelectItem value="sundayHoliday">Domingos e Feriados</SelectItem>
@@ -355,6 +425,7 @@ const DeliveryForm = ({
 const DeliveriesPage = () => {
   const { deliveries, loading, addDelivery } = useDeliveries();
   const { clients } = useClients();
+  const { cities } = useCities();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [clientFilter, setClientFilter] = useState<string>('');

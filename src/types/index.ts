@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   username: string;
@@ -67,6 +66,7 @@ export interface Delivery {
   receiver: string;
   weight: number;
   distance?: number;
+  cityId?: string; // Added cityId for door-to-door deliveries
   deliveryType: 'standard' | 'saturday' | 'emergency' | 'exclusive' | 'scheduled' | 'normalBiological' | 'infectiousBiological' | 'sundayHoliday';
   cargoType: 'standard' | 'perishable';
   cargoValue: number;
@@ -75,6 +75,9 @@ export interface Delivery {
   createdAt: string;
   updatedAt: string;
 }
+
+// Helper constant to identify door-to-door delivery types
+export const doorToDoorDeliveryTypes: Delivery['deliveryType'][] = ['exclusive', 'scheduled'];
 
 export interface City {
   id: string;
