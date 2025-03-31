@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -23,22 +22,35 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       emergencyCollection: 72.00,
       exclusiveVehicle: 176.00,
       scheduledDifficultAccess: 154.00,
-      normalBiological: 165.00,
-      infectiousBiological: 170.00,
+      normalBiological: 72.00,
+      infectiousBiological: 99.00,
       sundayHoliday: 308.00,
+      metropolitanRegion: 165.00,
+      nightExclusiveVehicle: 0.00,
+      trackedVehicle: 440.00,
+      reshipment: 170.00,
     },
     excessWeight: {
       minPerKg: 0.55,
-      maxPerKg: 0.72,
+      maxPerKg: 0.65,
+      biologicalPerKg: 0.72,
+      reshipmentPerKg: 0.70,
     },
     doorToDoor: {
       ratePerKm: 2.40,
       maxWeight: 100,
     },
+    waitingHour: {
+      fiorino: 44.00,
+      medium: 55.00,
+      large: 66.00,
+    },
     insurance: {
       standard: 0.01,
       perishable: 0.015,
     },
+    allowCustomPricing: true,
+    defaultDiscount: 0.00,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -51,22 +63,35 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       emergencyCollection: 80.00,
       exclusiveVehicle: 190.00,
       scheduledDifficultAccess: 165.00,
-      normalBiological: 180.00,
-      infectiousBiological: 185.00,
+      normalBiological: 80.00,
+      infectiousBiological: 110.00,
       sundayHoliday: 330.00,
+      metropolitanRegion: 180.00,
+      nightExclusiveVehicle: 0.00,
+      trackedVehicle: 460.00,
+      reshipment: 180.00,
     },
     excessWeight: {
       minPerKg: 0.60,
-      maxPerKg: 0.80,
+      maxPerKg: 0.70,
+      biologicalPerKg: 0.75,
+      reshipmentPerKg: 0.75,
     },
     doorToDoor: {
       ratePerKm: 2.60,
       maxWeight: 100,
     },
+    waitingHour: {
+      fiorino: 48.00,
+      medium: 60.00,
+      large: 72.00,
+    },
     insurance: {
       standard: 0.01,
       perishable: 0.015,
     },
+    allowCustomPricing: true,
+    defaultDiscount: 0.00,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -136,7 +161,6 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Load price tables from localStorage or use initial data
     const loadPriceTables = () => {
       const storedTables = localStorage.getItem('velomax_price_tables');
       if (storedTables) {
@@ -155,7 +179,6 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
     loadPriceTables();
   }, []);
   
-  // Save price tables to localStorage whenever they change
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_price_tables', JSON.stringify(priceTables));

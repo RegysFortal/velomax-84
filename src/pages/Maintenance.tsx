@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -82,7 +83,7 @@ const Maintenance = () => {
               {maintenances.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                    <Tool className="h-10 w-10 text-muted-foreground mb-3" />
+                    <Wrench className="h-10 w-10 text-muted-foreground mb-3" />
                     <p className="text-muted-foreground">Nenhuma manutenção registrada.</p>
                     <Button variant="outline" className="mt-4">
                       Registrar manutenção

@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   username: string;
@@ -41,19 +40,32 @@ export interface PriceTable {
     normalBiological: number;
     infectiousBiological: number;
     sundayHoliday: number;
+    metropolitanRegion: number;
+    nightExclusiveVehicle: number; // após 22:00hs as 06:00hs e Domingos ou Feriados
+    trackedVehicle: number;
+    reshipment: number;
   };
   excessWeight: {
     minPerKg: number;
     maxPerKg: number;
+    biologicalPerKg: number;
+    reshipmentPerKg: number;
   };
   doorToDoor: {
     ratePerKm: number;
     maxWeight: number;
   };
+  waitingHour: {
+    fiorino: number;
+    medium: number; // 3/4
+    large: number; // Toco
+  };
   insurance: {
     standard: number;
     perishable: number;
   };
+  allowCustomPricing: boolean;
+  defaultDiscount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -176,6 +188,17 @@ export interface LogbookEntry {
   fuelRecordId?: string;
   maintenanceId?: string;
   notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PriceOverride {
+  id: string;
+  clientId: string;
+  deliveryId?: string;
+  customPrice?: number;
+  discount?: number;
+  reason?: string;
   createdAt: string;
   updatedAt: string;
 }
