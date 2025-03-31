@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -38,7 +39,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useClients } from '@/contexts/ClientsContext';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useCities } from '@/contexts/CitiesContext';
-import { CalendarIcon, Download, FileText, Plus, Search, MapPin, City } from 'lucide-react';
+import { CalendarIcon, Download, FileText, Plus, Search, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
