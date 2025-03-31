@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BarChart3, ClipboardList, Home, Package, Settings, Users, MapPin, Wallet, Truck, UserCheck, Tool, BookOpenCheck } from "lucide-react";
+import { BarChart3, ClipboardList, Home, Package, Settings, Users, MapPin, Wallet, Truck, UserCheck, Wrench, BookOpenCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface MainNavProps {
@@ -85,7 +85,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
     {
       href: "/maintenance",
       label: "Manutenções",
-      icon: Tool,
+      icon: Wrench,
       active: pathname.includes("/maintenance"),
       canAccess: canManageSystem
     },
@@ -118,7 +118,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
           )}
         >
           {route.icon && (
-            <route.icon className={cn("h-4 w-4 mr-2", iMobile && "h-5 w-5")} />
+            <route.icon className={cn("h-4 w-4 mr-2", isMobile && "h-5 w-5")} />
           )}
           {route.label}
         </Link>
