@@ -44,7 +44,7 @@ import { useLogbook } from '@/contexts/LogbookContext';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Clock, Download, FilePlus, Fuel, GasTank, Plus, Search, Truck, User, UserCheck } from 'lucide-react';
+import { CalendarIcon, Clock, Download, FilePlus, Fuel, Plus, Search, Truck, User, UserCheck } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

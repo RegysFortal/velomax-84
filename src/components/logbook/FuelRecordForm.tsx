@@ -98,7 +98,11 @@ const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) 
         });
       } else {
         await addFuelRecord({
-          ...data,
+          vehicleId: data.vehicleId,
+          date: data.date,
+          odometerKm: data.odometerKm,
+          liters: data.liters,
+          pricePerLiter: data.pricePerLiter,
           totalCost
         });
       }

@@ -104,7 +104,13 @@ const Employees = () => {
           description: `As informações de ${data.name} foram atualizadas.`,
         });
       } else {
-        await addEmployee(data);
+        // Ensure all required properties are explicitly passed
+        await addEmployee({
+          name: data.name,
+          role: data.role,
+          documentId: data.documentId,
+          phone: data.phone
+        });
         toast({
           title: "Funcionário adicionado",
           description: `${data.name} foi adicionado com sucesso.`,

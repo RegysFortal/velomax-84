@@ -105,7 +105,16 @@ const Vehicles = () => {
           description: `As informações de ${data.plate} foram atualizadas.`,
         });
       } else {
-        await addVehicle(data);
+        // Ensure all required properties are explicitly passed
+        await addVehicle({
+          plate: data.plate,
+          model: data.model,
+          year: data.year,
+          make: data.make,
+          currentOdometer: data.currentOdometer,
+          lastOilChange: data.lastOilChange,
+          nextOilChangeKm: data.nextOilChangeKm
+        });
         toast({
           title: "Veículo adicionado",
           description: `${data.plate} foi adicionado com sucesso.`,

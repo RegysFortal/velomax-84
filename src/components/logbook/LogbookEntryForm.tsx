@@ -110,8 +110,15 @@ const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProp
         });
       } else {
         await addLogbookEntry({
-          ...data,
+          vehicleId: data.vehicleId,
+          driverId: data.driverId,
+          assistantId: data.assistantId || undefined,
+          date: data.date,
+          departureTime: data.departureTime,
+          departureOdometer: data.departureOdometer,
+          returnTime: data.returnTime || undefined,
           returnOdometer: data.returnOdometer || undefined,
+          notes: data.notes || ""
         });
       }
       onSuccess();
