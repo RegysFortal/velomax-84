@@ -135,8 +135,17 @@ export interface Employee {
   id: string;
   name: string;
   role: 'driver' | 'assistant';
-  documentId: string;
+  dateOfBirth?: string;
+  rg?: string;
+  cpf?: string;
+  driverLicense?: string;
+  licenseCategory?: string;
+  licenseValidity?: string;
+  address?: string;
   phone: string;
+  motherName?: string;
+  fatherName?: string;
+  documentId: string;
   createdAt: string;
   updatedAt: string;
 }

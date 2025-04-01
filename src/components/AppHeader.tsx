@@ -55,7 +55,7 @@ export function AppHeader() {
                     className="h-8 mr-2"
                   />
                   <span className="text-lg font-bold">
-                    Freight Keeper Pro
+                    Gerenciamento de cargas
                   </span>
                 </Link>
               </div>
@@ -75,7 +75,7 @@ export function AppHeader() {
                   alt="Velomax Brasil Logo" 
                   className="h-8 mr-2" 
                 />
-                <span className="text-lg font-bold">Freight Keeper Pro</span>
+                <span className="text-lg font-bold">Gerenciamento de cargas</span>
               </Link>
             )}
             

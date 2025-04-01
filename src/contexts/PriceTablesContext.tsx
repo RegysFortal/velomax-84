@@ -9,6 +9,7 @@ type PriceTablesContextType = {
   updatePriceTable: (id: string, priceTable: Partial<PriceTable>) => void;
   deletePriceTable: (id: string) => void;
   getPriceTable: (id: string) => PriceTable | undefined;
+  calculateInsurance: (priceTableId: string, invoiceValue: number, isReshipment: boolean, cargoType: 'standard' | 'perishable') => number;
   loading: boolean;
 };
 
@@ -30,7 +31,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       nightExclusiveVehicle: 0.00,
       trackedVehicle: 440.00,
       reshipment: 170.00,
-      doorToDoorInterior: 200.00, // Added for "Porta a Porta interior"
+      doorToDoorInterior: 200.00,
     },
     excessWeight: {
       minPerKg: 0.55,
@@ -289,6 +290,25 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
     return priceTables.find((table) => table.id === id);
   };
   
+  const calculateInsurance = (
+    priceTableId: string, 
+    invoiceValue: number, 
+    isReshipment: boolean,
+    cargoType: 'standard' | 'perishable'
+  ) => {
+    const table = getPriceTable(priceTableId);
+    if (!table) return 0;
+    
+    // For reshipment, always apply 1% insurance regardless of cargo type
+    if (isReshipment) {
+      return invoiceValue * 0.01;  // Fixed 1% for reshipment
+    }
+    
+    // For other deliveries, apply standard or perishable rate based on cargo type
+    const rate = cargoType === 'perishable' ? table.insurance.perishable : table.insurance.standard;
+    return invoiceValue * rate;
+  };
+  
   return (
     <PriceTablesContext.Provider value={{
       priceTables,
@@ -296,6 +316,7 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
       updatePriceTable,
       deletePriceTable,
       getPriceTable,
+      calculateInsurance,
       loading,
     }}>
       {children}

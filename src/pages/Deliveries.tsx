@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -39,11 +38,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useClients } from '@/contexts/ClientsContext';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useCities } from '@/contexts/CitiesContext';
-import { CalendarIcon, Download, FileText, Plus, Search, MapPin } from 'lucide-react';
+import { usePriceTables } from '@/contexts/PriceTablesContext';
+import { CalendarIcon, Download, FileText, Plus, Search, MapPin, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Delivery, doorToDoorDeliveryTypes } from '@/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const DeliveryForm = ({
   onSubmit,
@@ -56,6 +57,7 @@ const DeliveryForm = ({
   const { clients } = useClients();
   const { cities } = useCities();
   const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
+  const { calculateInsurance } = usePriceTables();
   const [formData, setFormData] = useState<Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>>({
     clientId: '',
     deliveryDate: format(new Date(), 'yyyy-MM-dd'),
@@ -74,8 +76,11 @@ const DeliveryForm = ({
   });
   const [estimatedFreight, setEstimatedFreight] = useState<number | null>(null);
   const [useCustomPrice, setUseCustomPrice] = useState(false);
+  const [invoiceValue, setInvoiceValue] = useState<number>(0);
+  const [insuranceAmount, setInsuranceAmount] = useState<number>(0);
   
   const isCurrentTypeDoorToDoor = isDoorToDoorDelivery(formData.deliveryType);
+  const isReshipment = formData.deliveryType === 'reshipment';
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -149,7 +154,33 @@ const DeliveryForm = ({
         isDoorToDoorDelivery(deliveryType) ? formData.cityId : undefined
       );
     }
+    
+    if (deliveryType === 'reshipment') {
+      calculateReshipmentInsurance();
+    } else {
+      setInsuranceAmount(0);
+      setInvoiceValue(0);
+    }
   };
+  
+  const calculateReshipmentInsurance = () => {
+    if (isReshipment && formData.clientId && invoiceValue > 0) {
+      const client = clients.find(c => c.id === formData.clientId);
+      if (client) {
+        const calculatedInsurance = calculateInsurance(
+          client.priceTableId,
+          invoiceValue,
+          true,
+          formData.cargoType
+        );
+        setInsuranceAmount(calculatedInsurance);
+      }
+    }
+  };
+  
+  useEffect(() => {
+    calculateReshipmentInsurance();
+  }, [invoiceValue, formData.clientId, formData.cargoType, isReshipment]);
 
   const handleCargoTypeChange = (cargoType: Delivery['cargoType']) => {
     setFormData(prev => ({ ...prev, cargoType }));
@@ -164,6 +195,10 @@ const DeliveryForm = ({
         formData.distance,
         formData.cityId
       );
+    }
+    
+    if (isReshipment) {
+      calculateReshipmentInsurance();
     }
   };
 
@@ -182,6 +217,11 @@ const DeliveryForm = ({
         cityId
       );
     }
+  };
+  
+  const handleInvoiceValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value) || 0;
+    setInvoiceValue(value);
   };
 
   const updateEstimatedFreight = (
@@ -202,8 +242,15 @@ const DeliveryForm = ({
       distance,
       cityId
     );
-    setEstimatedFreight(freight);
-    setFormData(prev => ({ ...prev, totalFreight: freight }));
+    
+    let totalFreight = freight;
+    
+    if (deliveryType === 'reshipment') {
+      totalFreight += insuranceAmount;
+    }
+    
+    setEstimatedFreight(totalFreight);
+    setFormData(prev => ({ ...prev, totalFreight }));
   };
 
   const handleCustomPricingToggle = () => {
@@ -216,9 +263,17 @@ const DeliveryForm = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    let finalFreight = useCustomPrice ? formData.totalFreight : (estimatedFreight || 0);
+    
+    if (isReshipment && !useCustomPrice) {
+      finalFreight += insuranceAmount;
+    }
+    
     onSubmit({
       ...formData,
-      totalFreight: useCustomPrice ? formData.totalFreight : (estimatedFreight || 0)
+      totalFreight: finalFreight,
+      cargoValue: isReshipment ? invoiceValue : formData.cargoValue
     });
   };
 
@@ -303,6 +358,33 @@ const DeliveryForm = ({
         />
       </div>
 
+      <div>
+        <Label htmlFor="deliveryType">Tipo de Entrega</Label>
+        <Select 
+          value={formData.deliveryType} 
+          onValueChange={(value) => handleDeliveryTypeChange(value as Delivery['deliveryType'])}
+          required
+        >
+          <SelectTrigger className="mt-1">
+            <SelectValue placeholder="Selecione o tipo de entrega" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="standard">Normal</SelectItem>
+            <SelectItem value="emergency">Emergencial</SelectItem>
+            <SelectItem value="saturday">Sábados até 12:00hs</SelectItem>
+            <SelectItem value="exclusive">Exclusivo em Fortaleza</SelectItem>
+            <SelectItem value="difficultAccess">Difícil Acesso</SelectItem>
+            <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
+            <SelectItem value="sundayHoliday">Capital Domingos e Feriados</SelectItem>
+            <SelectItem value="normalBiological">Material Biológico Normal</SelectItem>
+            <SelectItem value="infectiousBiological">Material Biológico Infeccioso</SelectItem>
+            <SelectItem value="tracked">Rastreado</SelectItem>
+            <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
+            <SelectItem value="reshipment">Redespacho por Transportadora</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="weight">Peso (Kg)</Label>
@@ -354,48 +436,6 @@ const DeliveryForm = ({
         )}
         
         <div>
-          <Label htmlFor="cargoValue">Valor da Carga</Label>
-          <Input
-            id="cargoValue"
-            name="cargoValue"
-            type="number"
-            step="0.01"
-            value={formData.cargoValue || ''}
-            onChange={handleChange}
-            required
-            className="mt-1"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="deliveryType">Tipo de Entrega</Label>
-          <Select 
-            value={formData.deliveryType} 
-            onValueChange={(value) => handleDeliveryTypeChange(value as Delivery['deliveryType'])}
-            required
-          >
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Selecione o tipo de entrega" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="standard">Normal</SelectItem>
-              <SelectItem value="emergency">Emergencial</SelectItem>
-              <SelectItem value="saturday">Sábados até 12:00hs</SelectItem>
-              <SelectItem value="exclusive">Exclusivo em Fortaleza</SelectItem>
-              <SelectItem value="difficultAccess">Difícil Acesso</SelectItem>
-              <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
-              <SelectItem value="sundayHoliday">Capital Domingos e Feriados</SelectItem>
-              <SelectItem value="normalBiological">Material Biológico Normal</SelectItem>
-              <SelectItem value="infectiousBiological">Material Biológico Infeccioso</SelectItem>
-              <SelectItem value="tracked">Rastreado</SelectItem>
-              <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
-              <SelectItem value="reshipment">Redespacho por Transportadora</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
           <Label htmlFor="cargoType">Tipo de Carga</Label>
           <Select 
             value={formData.cargoType} 
@@ -412,6 +452,47 @@ const DeliveryForm = ({
           </Select>
         </div>
       </div>
+
+      {isReshipment ? (
+        <div className="bg-muted p-4 rounded-md mb-4">
+          <Label htmlFor="invoiceValue">Valor da Nota Fiscal (Redespacho)</Label>
+          <Input
+            id="invoiceValue"
+            type="number"
+            step="0.01"
+            value={invoiceValue || ''}
+            onChange={handleInvoiceValueChange}
+            required
+            className="mt-1"
+          />
+          {invoiceValue > 0 && (
+            <div className="mt-2 text-sm">
+              <p>Seguro obrigatório (1%): {formatCurrency(insuranceAmount)}</p>
+            </div>
+          )}
+          <Alert className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Atenção</AlertTitle>
+            <AlertDescription>
+              Para redespacho, é obrigatório informar o valor da nota fiscal para cálculo do seguro de 1%.
+            </AlertDescription>
+          </Alert>
+        </div>
+      ) : (
+        <div>
+          <Label htmlFor="cargoValue">Valor da Carga</Label>
+          <Input
+            id="cargoValue"
+            name="cargoValue"
+            type="number"
+            step="0.01"
+            value={formData.cargoValue || ''}
+            onChange={handleChange}
+            required
+            className="mt-1"
+          />
+        </div>
+      )}
 
       <div className="bg-muted p-4 rounded-md">
         <div className="flex items-center justify-between mb-2">
@@ -445,8 +526,13 @@ const DeliveryForm = ({
         ) : (
           <>
             <div className="text-2xl font-bold">
-              {estimatedFreight !== null ? formatCurrency(estimatedFreight) : "R$ 0,00"}
+              {estimatedFreight !== null ? formatCurrency(estimatedFreight + (isReshipment ? insuranceAmount : 0)) : "R$ 0,00"}
             </div>
+            {isReshipment && insuranceAmount > 0 && (
+              <div className="text-sm mt-1">
+                Inclui seguro de {formatCurrency(insuranceAmount)}
+              </div>
+            )}
             <div className="mt-2">
               <Label htmlFor="discount">Desconto</Label>
               <div className="flex gap-2">
@@ -462,7 +548,7 @@ const DeliveryForm = ({
                 />
                 {formData.discount > 0 && estimatedFreight !== null && (
                   <div className="mt-1 text-muted-foreground">
-                    Total com desconto: {formatCurrency(estimatedFreight - formData.discount)}
+                    Total com desconto: {formatCurrency((estimatedFreight + (isReshipment ? insuranceAmount : 0)) - formData.discount)}
                   </div>
                 )}
               </div>
@@ -499,6 +585,7 @@ const DeliveriesPage = () => {
   const { deliveries, loading, addDelivery } = useDeliveries();
   const { clients } = useClients();
   const { cities } = useCities();
+  const { priceTables } = usePriceTables();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [clientFilter, setClientFilter] = useState<string>('');
@@ -554,7 +641,7 @@ const DeliveriesPage = () => {
                 Nova Entrega
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-3xl">
               <DialogHeader>
                 <DialogTitle>Registrar Nova Entrega</DialogTitle>
                 <DialogDescription>

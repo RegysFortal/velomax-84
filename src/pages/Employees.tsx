@@ -40,16 +40,34 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
-import { Edit, Plus, Search, UserCheck } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { Edit, Plus, Search, UserCheck, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter no mínimo 3 caracteres"),
   role: z.enum(['driver', 'assistant'], {
     required_error: "Selecione uma função",
   }),
-  documentId: z.string().min(5, "O documento deve ter no mínimo 5 caracteres"),
+  dateOfBirth: z.string().optional(),
+  rg: z.string().optional(),
+  cpf: z.string().optional(),
+  driverLicense: z.string().optional(),
+  licenseCategory: z.string().optional(),
+  licenseValidity: z.string().optional(),
+  address: z.string().optional(),
   phone: z.string().min(8, "O telefone deve ter no mínimo 8 caracteres"),
+  motherName: z.string().optional(),
+  fatherName: z.string().optional(),
+  documentId: z.string().min(5, "O documento deve ter no mínimo 5 caracteres"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -59,6 +77,8 @@ const Employees = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [birthDate, setBirthDate] = useState<Date | undefined>();
+  const [licenseDate, setLicenseDate] = useState<Date | undefined>();
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -66,8 +86,17 @@ const Employees = () => {
     defaultValues: {
       name: '',
       role: 'driver',
-      documentId: '',
+      dateOfBirth: '',
+      rg: '',
+      cpf: '',
+      driverLicense: '',
+      licenseCategory: '',
+      licenseValidity: '',
+      address: '',
       phone: '',
+      motherName: '',
+      fatherName: '',
+      documentId: '',
     },
   });
 
@@ -80,11 +109,34 @@ const Employees = () => {
 
   const handleEdit = (employee: Employee) => {
     setEditingEmployee(employee);
+    
+    // Set dates if they exist
+    if (employee.dateOfBirth) {
+      setBirthDate(new Date(employee.dateOfBirth));
+    } else {
+      setBirthDate(undefined);
+    }
+    
+    if (employee.licenseValidity) {
+      setLicenseDate(new Date(employee.licenseValidity));
+    } else {
+      setLicenseDate(undefined);
+    }
+    
     form.reset({
       name: employee.name,
       role: employee.role,
+      dateOfBirth: employee.dateOfBirth || '',
+      rg: employee.rg || '',
+      cpf: employee.cpf || '',
+      driverLicense: employee.driverLicense || '',
+      licenseCategory: employee.licenseCategory || '',
+      licenseValidity: employee.licenseValidity || '',
+      address: employee.address || '',
+      phone: employee.phone || '',
+      motherName: employee.motherName || '',
+      fatherName: employee.fatherName || '',
       documentId: employee.documentId,
-      phone: employee.phone,
     });
     setIsAddDialogOpen(true);
   };
@@ -92,13 +144,22 @@ const Employees = () => {
   const onCloseDialog = () => {
     setIsAddDialogOpen(false);
     setEditingEmployee(null);
+    setBirthDate(undefined);
+    setLicenseDate(undefined);
     form.reset();
   };
 
   const onSubmit = async (data: FormValues) => {
     try {
+      // Set date values from the calendar popover components
+      const formData = {
+        ...data,
+        dateOfBirth: birthDate ? format(birthDate, 'yyyy-MM-dd') : undefined,
+        licenseValidity: licenseDate ? format(licenseDate, 'yyyy-MM-dd') : undefined,
+      };
+
       if (editingEmployee) {
-        await updateEmployee(editingEmployee.id, data);
+        await updateEmployee(editingEmployee.id, formData);
         toast({
           title: "Funcionário atualizado",
           description: `As informações de ${data.name} foram atualizadas.`,
@@ -106,10 +167,19 @@ const Employees = () => {
       } else {
         // Ensure all required properties are explicitly passed
         await addEmployee({
-          name: data.name,
-          role: data.role,
-          documentId: data.documentId,
-          phone: data.phone
+          name: formData.name,
+          role: formData.role,
+          documentId: formData.documentId,
+          dateOfBirth: formData.dateOfBirth,
+          rg: formData.rg,
+          cpf: formData.cpf,
+          driverLicense: formData.driverLicense,
+          licenseCategory: formData.licenseCategory,
+          licenseValidity: formData.licenseValidity,
+          address: formData.address,
+          phone: formData.phone,
+          motherName: formData.motherName,
+          fatherName: formData.fatherName
         });
         toast({
           title: "Funcionário adicionado",
@@ -145,7 +215,7 @@ const Employees = () => {
                 Novo funcionário
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-3xl">
               <DialogHeader>
                 <DialogTitle>
                   {editingEmployee ? "Editar funcionário" : "Adicionar novo funcionário"}
@@ -171,37 +241,71 @@ const Employees = () => {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Função</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma função" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="driver">Motorista</SelectItem>
-                            <SelectItem value="assistant">Ajudante</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="documentId"
+                      name="role"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>CPF/RG</FormLabel>
+                          <FormLabel>Função</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione uma função" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="driver">Motorista</SelectItem>
+                              <SelectItem value="assistant">Ajudante</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Data de Nascimento</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !birthDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {birthDate ? (
+                              format(birthDate, "dd/MM/yyyy", { locale: ptBR })
+                            ) : (
+                              <span>Selecione uma data</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={birthDate}
+                            onSelect={setBirthDate}
+                            initialFocus
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="rg"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>RG</FormLabel>
                           <FormControl>
-                            <Input placeholder="123.456.789-00" {...field} />
+                            <Input placeholder="00.000.000-0" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -210,12 +314,146 @@ const Employees = () => {
 
                     <FormField
                       control={form.control}
-                      name="phone"
+                      name="cpf"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Telefone</FormLabel>
+                          <FormLabel>CPF</FormLabel>
                           <FormControl>
-                            <Input placeholder="(11) 98765-4321" {...field} />
+                            <Input placeholder="000.000.000-00" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="documentId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Documento de ID</FormLabel>
+                          <FormControl>
+                            <Input placeholder="000000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="driverLicense"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>CNH</FormLabel>
+                          <FormControl>
+                            <Input placeholder="00000000000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="licenseCategory"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Categoria</FormLabel>
+                          <FormControl>
+                            <Input placeholder="A, B, AB, etc" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Validade</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !licenseDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {licenseDate ? (
+                              format(licenseDate, "dd/MM/yyyy", { locale: ptBR })
+                            ) : (
+                              <span>Selecione uma data</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={licenseDate}
+                            onSelect={setLicenseDate}
+                            initialFocus
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Endereço</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Rua, número, bairro, cidade, UF" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(00) 00000-0000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="motherName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome da Mãe</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Maria Silva" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="fatherName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome do Pai</FormLabel>
+                          <FormControl>
+                            <Input placeholder="João Silva" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -266,7 +504,8 @@ const Employees = () => {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Função</TableHead>
-                  <TableHead>Documento</TableHead>
+                  <TableHead>CPF/RG</TableHead>
+                  <TableHead>CNH</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -276,7 +515,8 @@ const Employees = () => {
                   <TableRow key={employee.id}>
                     <TableCell className="font-medium">{employee.name}</TableCell>
                     <TableCell>{employee.role === 'driver' ? 'Motorista' : 'Ajudante'}</TableCell>
-                    <TableCell>{employee.documentId}</TableCell>
+                    <TableCell>{employee.cpf || employee.rg || employee.documentId}</TableCell>
+                    <TableCell>{employee.driverLicense || '-'}</TableCell>
                     <TableCell>{employee.phone}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
