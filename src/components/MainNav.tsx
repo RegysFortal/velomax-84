@@ -44,6 +44,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Entregas",
       icon: Package,
       active: pathname.includes("/deliveries"),
+      canAccess: user?.permissions?.reports
     }
   ];
 
@@ -53,26 +54,28 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Financeiro",
       icon: Wallet,
       active: pathname.includes("/financial"),
+      canAccess: user?.permissions?.financial
     },
     {
       href: "/reports",
       label: "Relatórios",
       icon: BarChart3,
       active: pathname.includes("/reports"),
+      canAccess: user?.permissions?.reports
     },
     {
       href: "/price-tables",
       label: "Tabelas de Preço",
       icon: ClipboardList,
       active: pathname.includes("/price-tables"),
-      canAccess: canManageSystem
+      canAccess: user?.permissions?.priceTables
     },
     {
       href: "/cities",
       label: "Cidades",
       icon: MapPin,
       active: pathname.includes("/cities"),
-      canAccess: canManageSystem
+      canAccess: user?.permissions?.cities
     }
   ];
 
@@ -88,7 +91,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Clientes",
       icon: Users,
       active: pathname.includes("/clients"),
-      canAccess: canManageSystem
+      canAccess: user?.permissions?.clients
     },
     {
       href: "/employees",
@@ -102,6 +105,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Diário de Bordo",
       icon: BookOpenCheck,
       active: pathname.includes("/logbook"),
+      canAccess: true // Everyone can access logbook
     },
     {
       href: "/vehicles",

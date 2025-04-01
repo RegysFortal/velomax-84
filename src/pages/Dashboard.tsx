@@ -46,7 +46,11 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { employees } = useLogbook();
   const isAdmin = user?.role === 'admin';
-  const canManageClients = isAdmin || user?.role === 'manager';
+  const isManager = user?.role === 'manager';
+  const hasClientAccess = user?.permissions?.clients;
+  const hasFinancialAccess = user?.permissions?.financial;
+  const hasReportsAccess = user?.permissions?.reports;
+  
   const today = new Date();
   
   // Find employees with birthdays today
@@ -84,7 +88,7 @@ const Dashboard = () => {
           </p>
         </div>
         
-        {birthdaysToday.length > 0 && (
+        {birthdaysToday.length > 0 && isAdmin && (
           <Alert className="bg-blue-50 border-blue-200">
             <Gift className="h-5 w-5 text-blue-600" />
             <AlertTitle className="text-blue-800">Aniversariante(s) do dia!</AlertTitle>
@@ -98,7 +102,7 @@ const Dashboard = () => {
           </Alert>
         )}
         
-        {birthdaysThisMonth.length > 0 && (
+        {birthdaysThisMonth.length > 0 && isAdmin && (
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -126,7 +130,7 @@ const Dashboard = () => {
         )}
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {canManageClients && (
+          {hasClientAccess && (
             <DashboardCard
               title="Clientes Cadastrados"
               value={stats.clients.toString()}
@@ -135,59 +139,73 @@ const Dashboard = () => {
               href="/clients"
             />
           )}
-          <DashboardCard
-            title="Total de Entregas"
-            value={stats.deliveries.toString()}
-            description="Número total de entregas registradas"
-            icon={Package}
-            href="/deliveries"
-          />
-          <DashboardCard
-            title="Entregas Ativas"
-            value={stats.activeDeliveries.toString()}
-            description="Entregas em andamento"
-            icon={Truck}
-            iconColor="text-velomax-red"
-          />
-          <DashboardCard
-            title="Entregas do Mês"
-            value={stats.currentMonthDeliveries.toString()}
-            description="Total de entregas no mês atual"
-            icon={ClipboardList}
-          />
-          <DashboardCard
-            title="Frete Médio"
-            value={stats.avgFreight}
-            description="Valor médio dos fretes"
-            icon={TrendingUp}
-            iconColor="text-green-500"
-          />
-          <DashboardCard
-            title="Total de Fretes (Mês)"
-            value={stats.totalFreight}
-            description="Valor total dos fretes no mês atual"
-            icon={BarChart3}
-            href="/reports"
-            iconColor="text-blue-500"
-          />
+          {hasReportsAccess && (
+            <DashboardCard
+              title="Total de Entregas"
+              value={stats.deliveries.toString()}
+              description="Número total de entregas registradas"
+              icon={Package}
+              href="/deliveries"
+            />
+          )}
+          {hasReportsAccess && (
+            <DashboardCard
+              title="Entregas Ativas"
+              value={stats.activeDeliveries.toString()}
+              description="Entregas em andamento"
+              icon={Truck}
+              iconColor="text-velomax-red"
+            />
+          )}
+          {hasReportsAccess && (
+            <DashboardCard
+              title="Entregas do Mês"
+              value={stats.currentMonthDeliveries.toString()}
+              description="Total de entregas no mês atual"
+              icon={ClipboardList}
+            />
+          )}
+          {hasFinancialAccess && (
+            <DashboardCard
+              title="Frete Médio"
+              value={stats.avgFreight}
+              description="Valor médio dos fretes"
+              icon={TrendingUp}
+              iconColor="text-green-500"
+            />
+          )}
+          {hasFinancialAccess && (
+            <DashboardCard
+              title="Total de Fretes (Mês)"
+              value={stats.totalFreight}
+              description="Valor total dos fretes no mês atual"
+              icon={BarChart3}
+              href="/reports"
+              iconColor="text-blue-500"
+            />
+          )}
         </div>
         
         <div className="mt-6">
           <h2 className="text-xl font-semibold mb-4">Acesso Rápido</h2>
           <div className="flex flex-wrap gap-3">
-            <Button asChild>
-              <Link to="/deliveries/new">Nova Entrega</Link>
-            </Button>
+            {hasReportsAccess && (
+              <Button asChild>
+                <Link to="/deliveries/new">Nova Entrega</Link>
+              </Button>
+            )}
             
-            {canManageClients && (
+            {hasClientAccess && (
               <Button asChild variant="outline">
                 <Link to="/clients/new">Novo Cliente</Link>
               </Button>
             )}
             
-            <Button asChild variant="outline">
-              <Link to="/reports">Gerar Relatório</Link>
-            </Button>
+            {hasReportsAccess && (
+              <Button asChild variant="outline">
+                <Link to="/reports">Gerar Relatório</Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
