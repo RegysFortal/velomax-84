@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,7 @@ const PriceTableForm = ({
   const [nightExclusiveVehicle, setNightExclusiveVehicle] = useState(initialData?.minimumRate.nightExclusiveVehicle || 0);
   const [trackedVehicle, setTrackedVehicle] = useState(initialData?.minimumRate.trackedVehicle || 440);
   const [reshipment, setReshipment] = useState(initialData?.minimumRate.reshipment || 170);
+  const [doorToDoorInterior, setDoorToDoorInterior] = useState(initialData?.minimumRate.doorToDoorInterior || 200);
   
   // Excess weight rates
   const [minPerKg, setMinPerKg] = useState(initialData?.excessWeight.minPerKg || 0.55);
@@ -97,6 +99,7 @@ const PriceTableForm = ({
         nightExclusiveVehicle,
         trackedVehicle,
         reshipment,
+        doorToDoorInterior,
       },
       excessWeight: {
         minPerKg,
@@ -320,6 +323,18 @@ const PriceTableForm = ({
                 <span className="text-sm text-muted-foreground mt-1 block">
                   Use 0 para "valor a combinar"
                 </span>
+              </div>
+              <div>
+                <Label htmlFor="doorToDoorInterior">Porta a Porta interior</Label>
+                <Input
+                  id="doorToDoorInterior"
+                  type="number"
+                  step="0.01"
+                  value={doorToDoorInterior}
+                  onChange={(e) => setDoorToDoorInterior(parseFloat(e.target.value) || 0)}
+                  required
+                  className="mt-1"
+                />
               </div>
             </div>
           </div>
@@ -695,6 +710,8 @@ const PriceTablesPage = () => {
                         <div className="text-sm font-medium">{formatCurrency(table.minimumRate.sundayHoliday)}</div>
                         <div className="text-sm">Região Metropolitana:</div>
                         <div className="text-sm font-medium">{formatCurrency(table.minimumRate.metropolitanRegion)}</div>
+                        <div className="text-sm">Porta a Porta interior:</div>
+                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.doorToDoorInterior)}</div>
                         <div className="text-sm">Excedente biológico:</div>
                         <div className="text-sm font-medium">{formatCurrency(table.excessWeight.biologicalPerKg)} por Kg</div>
                       </div>
