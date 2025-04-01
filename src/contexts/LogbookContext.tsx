@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { 
@@ -9,6 +8,7 @@ import {
   Maintenance, 
   TireMaintenance 
 } from "@/types";
+import { toast } from "@/components/ui/use-toast";
 
 interface LogbookContextType {
   entries: LogbookEntry[];
@@ -95,7 +95,8 @@ const mockEmployees: Employee[] = [
     id: "1",
     name: "João Silva",
     role: "driver",
-    documentId: "123.456.789-00",
+    employeeSince: "2021-01-15",
+    dateOfBirth: "1985-05-12",
     phone: "(11) 98765-4321",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -104,7 +105,8 @@ const mockEmployees: Employee[] = [
     id: "2",
     name: "Maria Souza",
     role: "assistant",
-    documentId: "987.654.321-00",
+    employeeSince: "2022-03-20",
+    dateOfBirth: "1990-07-25",
     phone: "(11) 91234-5678",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -134,7 +136,20 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
         if (storedEntries) setEntries(JSON.parse(storedEntries));
         if (storedVehicles) setVehicles(JSON.parse(storedVehicles));
         else setVehicles(mockVehicles);
-        if (storedEmployees) setEmployees(JSON.parse(storedEmployees));
+        if (storedEmployees) {
+          const parsedEmployees = JSON.parse(storedEmployees);
+          // Migrate old employees data structure if needed
+          const migratedEmployees = parsedEmployees.map((emp: any) => {
+            if (emp.documentId && !emp.employeeSince) {
+              return {
+                ...emp,
+                employeeSince: new Date().toISOString().split('T')[0],
+              };
+            }
+            return emp;
+          });
+          setEmployees(migratedEmployees);
+        }
         else setEmployees(mockEmployees);
         if (storedFuelRecords) setFuelRecords(JSON.parse(storedFuelRecords));
         if (storedMaintenances) setMaintenances(JSON.parse(storedMaintenances));
@@ -142,6 +157,11 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
         
       } catch (error) {
         console.error("Error loading data:", error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar os dados do diário de bordo.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -162,7 +182,7 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     }
   }, [entries, vehicles, employees, fuelRecords, maintenances, tireMaintenance, loading]);
   
-  // Implementação das operações do contexto
+  // Operações de entradas do diário
   const addLogbookEntry = async (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const newEntry: LogbookEntry = {
@@ -229,7 +249,7 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
   const getLogbookEntryById = (id: string) => {
     return entries.find(e => e.id === id);
   };
-  
+
   // Operações de veículos
   const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
@@ -366,7 +386,7 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
   const getFuelRecordById = (id: string) => {
     return fuelRecords.find(r => r.id === id);
   };
-  
+
   // Operações de manutenções
   const addMaintenance = async (maintenance: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();

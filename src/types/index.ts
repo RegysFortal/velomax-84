@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   username: string;
@@ -145,7 +146,7 @@ export interface Employee {
   phone: string;
   motherName?: string;
   fatherName?: string;
-  documentId: string;
+  employeeSince: string; // Changed from documentId to employeeSince
   createdAt: string;
   updatedAt: string;
 }

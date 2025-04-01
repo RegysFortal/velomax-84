@@ -67,7 +67,7 @@ const formSchema = z.object({
   phone: z.string().min(8, "O telefone deve ter no mínimo 8 caracteres"),
   motherName: z.string().optional(),
   fatherName: z.string().optional(),
-  documentId: z.string().min(5, "O documento deve ter no mínimo 5 caracteres"),
+  employeeSince: z.string().min(1, "A data de início é obrigatória"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -79,6 +79,7 @@ const Employees = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [birthDate, setBirthDate] = useState<Date | undefined>();
   const [licenseDate, setLicenseDate] = useState<Date | undefined>();
+  const [employmentDate, setEmploymentDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -96,7 +97,7 @@ const Employees = () => {
       phone: '',
       motherName: '',
       fatherName: '',
-      documentId: '',
+      employeeSince: format(new Date(), 'yyyy-MM-dd'),
     },
   });
 
@@ -104,7 +105,7 @@ const Employees = () => {
   const filteredEmployees = employees.filter(
     employee =>
       employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.documentId.includes(searchTerm)
+      (employee.cpf && employee.cpf.includes(searchTerm))
   );
 
   const handleEdit = (employee: Employee) => {
@@ -123,6 +124,12 @@ const Employees = () => {
       setLicenseDate(undefined);
     }
     
+    if (employee.employeeSince) {
+      setEmploymentDate(new Date(employee.employeeSince));
+    } else {
+      setEmploymentDate(new Date());
+    }
+    
     form.reset({
       name: employee.name,
       role: employee.role,
@@ -136,7 +143,7 @@ const Employees = () => {
       phone: employee.phone || '',
       motherName: employee.motherName || '',
       fatherName: employee.fatherName || '',
-      documentId: employee.documentId,
+      employeeSince: employee.employeeSince || format(new Date(), 'yyyy-MM-dd'),
     });
     setIsAddDialogOpen(true);
   };
@@ -146,6 +153,7 @@ const Employees = () => {
     setEditingEmployee(null);
     setBirthDate(undefined);
     setLicenseDate(undefined);
+    setEmploymentDate(new Date());
     form.reset();
   };
 
@@ -156,6 +164,7 @@ const Employees = () => {
         ...data,
         dateOfBirth: birthDate ? format(birthDate, 'yyyy-MM-dd') : undefined,
         licenseValidity: licenseDate ? format(licenseDate, 'yyyy-MM-dd') : undefined,
+        employeeSince: employmentDate ? format(employmentDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
       };
 
       if (editingEmployee) {
@@ -169,7 +178,7 @@ const Employees = () => {
         await addEmployee({
           name: formData.name,
           role: formData.role,
-          documentId: formData.documentId,
+          employeeSince: formData.employeeSince,
           dateOfBirth: formData.dateOfBirth,
           rg: formData.rg,
           cpf: formData.cpf,
@@ -241,7 +250,7 @@ const Employees = () => {
                     )}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
                       name="role"
@@ -295,6 +304,38 @@ const Employees = () => {
                       </Popover>
                       <FormMessage />
                     </FormItem>
+                    
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Funcionário desde</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !employmentDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {employmentDate ? (
+                              format(employmentDate, "dd/MM/yyyy", { locale: ptBR })
+                            ) : (
+                              <span>Selecione uma data</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={employmentDate}
+                            onSelect={setEmploymentDate}
+                            initialFocus
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -328,12 +369,12 @@ const Employees = () => {
 
                     <FormField
                       control={form.control}
-                      name="documentId"
+                      name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Documento de ID</FormLabel>
+                          <FormLabel>Telefone</FormLabel>
                           <FormControl>
-                            <Input placeholder="000000" {...field} />
+                            <Input placeholder="(00) 00000-0000" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -417,20 +458,6 @@ const Employees = () => {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telefone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="(00) 00000-0000" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -478,7 +505,7 @@ const Employees = () => {
         <div className="flex items-center gap-4 mb-4">
           <div className="flex-1">
             <Input
-              placeholder="Pesquisar por nome ou documento..."
+              placeholder="Pesquisar por nome ou CPF..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -506,6 +533,7 @@ const Employees = () => {
                   <TableHead>Função</TableHead>
                   <TableHead>CPF/RG</TableHead>
                   <TableHead>CNH</TableHead>
+                  <TableHead>Funcionário desde</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -515,8 +543,9 @@ const Employees = () => {
                   <TableRow key={employee.id}>
                     <TableCell className="font-medium">{employee.name}</TableCell>
                     <TableCell>{employee.role === 'driver' ? 'Motorista' : 'Ajudante'}</TableCell>
-                    <TableCell>{employee.cpf || employee.rg || employee.documentId}</TableCell>
+                    <TableCell>{employee.cpf || employee.rg || '-'}</TableCell>
                     <TableCell>{employee.driverLicense || '-'}</TableCell>
+                    <TableCell>{employee.employeeSince ? format(new Date(employee.employeeSince), 'dd/MM/yyyy') : '-'}</TableCell>
                     <TableCell>{employee.phone}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>

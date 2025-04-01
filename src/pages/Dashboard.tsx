@@ -1,10 +1,14 @@
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useLogbook } from '@/contexts/LogbookContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, ClipboardList, Package, TrendingUp, Truck, Users } from 'lucide-react';
+import { BarChart3, ClipboardList, Package, TrendingUp, Truck, Users, Calendar, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { format, isSameDay, isSameMonth, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const DashboardCard = ({ 
   title, 
@@ -40,8 +44,25 @@ const DashboardCard = ({
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { employees } = useLogbook();
   const isAdmin = user?.role === 'admin';
   const canManageClients = isAdmin || user?.role === 'manager';
+  const today = new Date();
+  
+  // Find employees with birthdays today
+  const birthdaysToday = employees.filter(employee => {
+    if (!employee.dateOfBirth) return false;
+    const birthDate = parseISO(employee.dateOfBirth);
+    return isSameDay(new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()), today);
+  });
+  
+  // Find employees with birthdays this month
+  const birthdaysThisMonth = employees.filter(employee => {
+    if (!employee.dateOfBirth) return false;
+    const birthDate = parseISO(employee.dateOfBirth);
+    return isSameMonth(new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()), today) && 
+           !birthdaysToday.includes(employee);
+  });
   
   // Mock data - would come from API in production
   const stats = {
@@ -62,6 +83,47 @@ const Dashboard = () => {
             Bem-vindo, {user?.name}! Aqui estão os dados do sistema.
           </p>
         </div>
+        
+        {birthdaysToday.length > 0 && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <Gift className="h-5 w-5 text-blue-600" />
+            <AlertTitle className="text-blue-800">Aniversariante(s) do dia!</AlertTitle>
+            <AlertDescription className="text-blue-700">
+              {birthdaysToday.map(employee => (
+                <div key={employee.id} className="font-medium">
+                  Feliz aniversário para {employee.name}!
+                </div>
+              ))}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {birthdaysThisMonth.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium">Aniversariantes do mês</CardTitle>
+                <Calendar className="h-4 w-4 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                {birthdaysThisMonth.map(employee => {
+                  if (!employee.dateOfBirth) return null;
+                  const birthDate = parseISO(employee.dateOfBirth);
+                  return (
+                    <div key={employee.id} className="flex justify-between items-center text-sm">
+                      <span>{employee.name}</span>
+                      <span className="text-muted-foreground">
+                        {format(new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()), "dd 'de' MMMM", { locale: ptBR })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {canManageClients && (
