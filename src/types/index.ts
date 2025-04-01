@@ -80,7 +80,6 @@ export interface Delivery {
   deliveryTime: string;
   receiver: string;
   weight: number;
-  distance?: number;
   cityId?: string;
   deliveryType: 'standard' | 'emergency' | 'saturday' | 'exclusive' | 'difficultAccess' | 'metropolitanRegion' | 'sundayHoliday' | 'normalBiological' | 'infectiousBiological' | 'tracked' | 'doorToDoorInterior' | 'reshipment';
   cargoType: 'standard' | 'perishable';
@@ -146,7 +145,7 @@ export interface Employee {
   phone: string;
   motherName?: string;
   fatherName?: string;
-  employeeSince: string; // Changed from documentId to employeeSince
+  employeeSince: string;
   createdAt: string;
   updatedAt: string;
 }

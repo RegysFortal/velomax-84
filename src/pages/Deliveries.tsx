@@ -64,7 +64,6 @@ const DeliveryForm = ({
     deliveryTime: format(new Date(), 'HH:mm'),
     receiver: '',
     weight: 0,
-    distance: 0,
     deliveryType: 'standard',
     cargoType: 'standard',
     cargoValue: 0,
@@ -98,14 +97,14 @@ const DeliveryForm = ({
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'weight' || name === 'distance' || name === 'cargoValue' || name === 'totalFreight' || name === 'discount'
+      [name]: name === 'weight' || name === 'cargoValue' || name === 'totalFreight' || name === 'discount'
         ? parseFloat(value) || 0 
         : value,
     }));
     
     if (
       formData.clientId && 
-      (name === 'weight' || name === 'cargoValue' || name === 'distance') &&
+      (name === 'weight' || name === 'cargoValue') &&
       !useCustomPrice
     ) {
       updateEstimatedFreight(
@@ -114,7 +113,7 @@ const DeliveryForm = ({
         formData.deliveryType,
         formData.cargoType,
         name === 'cargoValue' ? parseFloat(value) || 0 : formData.cargoValue,
-        name === 'distance' ? parseFloat(value) || 0 : formData.distance,
+        undefined,
         formData.cityId
       );
     }
@@ -130,7 +129,7 @@ const DeliveryForm = ({
         formData.deliveryType,
         formData.cargoType,
         formData.cargoValue,
-        formData.distance,
+        undefined,
         formData.cityId
       );
     }
@@ -150,7 +149,7 @@ const DeliveryForm = ({
         deliveryType,
         formData.cargoType,
         formData.cargoValue,
-        formData.distance,
+        undefined,
         isDoorToDoorDelivery(deliveryType) ? formData.cityId : undefined
       );
     }
@@ -192,7 +191,7 @@ const DeliveryForm = ({
         formData.deliveryType,
         cargoType,
         formData.cargoValue,
-        formData.distance,
+        undefined,
         formData.cityId
       );
     }
@@ -205,15 +204,14 @@ const DeliveryForm = ({
   const handleCityChange = (cityId: string) => {
     setFormData(prev => ({ ...prev, cityId }));
     
-    const city = cities.find(c => c.id === cityId);
-    if (city && formData.clientId && formData.weight > 0 && !useCustomPrice) {
+    if (formData.clientId && formData.weight > 0 && !useCustomPrice) {
       updateEstimatedFreight(
         formData.clientId,
         formData.weight,
         formData.deliveryType,
         formData.cargoType,
         formData.cargoValue,
-        city.distance,
+        undefined,
         cityId
       );
     }
@@ -230,7 +228,7 @@ const DeliveryForm = ({
     deliveryType: Delivery['deliveryType'],
     cargoType: Delivery['cargoType'],
     cargoValue: number,
-    distance?: number,
+    _distance?: number,
     cityId?: string
   ) => {
     const freight = calculateFreight(
@@ -239,7 +237,7 @@ const DeliveryForm = ({
       deliveryType,
       cargoType,
       cargoValue,
-      distance,
+      _distance,
       cityId
     );
     
@@ -385,7 +383,7 @@ const DeliveryForm = ({
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="weight">Peso (Kg)</Label>
           <Input
@@ -420,23 +418,23 @@ const DeliveryForm = ({
             </SelectContent>
           </Select>
         </div>
-        
-        <div>
-          <Label htmlFor="cargoType">Tipo de Carga</Label>
-          <Select 
-            value={formData.cargoType} 
-            onValueChange={(value) => handleCargoTypeChange(value as Delivery['cargoType'])}
-            required
-          >
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Selecione o tipo de carga" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="standard">Padrão</SelectItem>
-              <SelectItem value="perishable">Perecível/Medicamentos/Frágil</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      </div>
+      
+      <div>
+        <Label htmlFor="cargoType">Tipo de Carga</Label>
+        <Select 
+          value={formData.cargoType} 
+          onValueChange={(value) => handleCargoTypeChange(value as Delivery['cargoType'])}
+          required
+        >
+          <SelectTrigger className="mt-1">
+            <SelectValue placeholder="Selecione o tipo de carga" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="standard">Padrão</SelectItem>
+            <SelectItem value="perishable">Perecível/Medicamentos/Frágil</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isReshipment ? (
