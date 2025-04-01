@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
@@ -84,8 +83,21 @@ type SystemSettingsData = {
   theme: string;
 };
 
+const defaultSettings: SystemSettingsData = {
+  companyName: 'Velomax Transportes',
+  companyLogo: '',
+  companyAddress: 'Av. Principal, 1000 - Fortaleza, CE',
+  companyPhone: '(85) 3333-3333',
+  companyEmail: 'contato@velomaxtransportes.com.br',
+  taxId: '12.345.678/0001-90',
+  defaultCurrency: 'BRL',
+  dateFormat: 'dd/MM/yyyy',
+  timeFormat: 'HH:mm',
+  theme: 'light',
+};
+
 const SettingsPage = () => {
-  const { user, updateUser, users, addUser, deleteUser, updateSystemSettings, systemSettings } = useAuth();
+  const { user, updateUserProfile, users, createUser, deleteUser, resetUserPassword } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
@@ -95,20 +107,10 @@ const SettingsPage = () => {
     newPassword: '',
     confirmPassword: '',
   });
+  const [systemSettings, setSystemSettings] = useState<SystemSettingsData>(defaultSettings);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<SystemSettingsData>({
-    defaultValues: systemSettings || {
-      companyName: 'Velomax Transportes',
-      companyLogo: '',
-      companyAddress: 'Av. Principal, 1000 - Fortaleza, CE',
-      companyPhone: '(85) 3333-3333',
-      companyEmail: 'contato@velomaxtransportes.com.br',
-      taxId: '12.345.678/0001-90',
-      defaultCurrency: 'BRL',
-      dateFormat: 'dd/MM/yyyy',
-      timeFormat: 'HH:mm',
-      theme: 'light',
-    },
+    defaultValues: systemSettings
   });
 
   const { register: registerUser, handleSubmit: handleSubmitUser, reset: resetUser, setValue: setUserValue, watch: watchUser } = useForm<UserFormData>({
@@ -129,10 +131,22 @@ const SettingsPage = () => {
   });
 
   useEffect(() => {
-    if (systemSettings) {
-      reset(systemSettings);
+    const storedSettings = localStorage.getItem('velomax_settings');
+    if (storedSettings) {
+      try {
+        const parsedSettings = JSON.parse(storedSettings);
+        setSystemSettings(parsedSettings);
+        reset(parsedSettings);
+      } catch (error) {
+        console.error('Failed to parse stored settings', error);
+      }
     }
-  }, [systemSettings, reset]);
+  }, [reset]);
+
+  const updateSystemSettings = (data: SystemSettingsData) => {
+    setSystemSettings(data);
+    localStorage.setItem('velomax_settings', JSON.stringify(data));
+  };
 
   const onSubmitSettings = (data: SystemSettingsData) => {
     updateSystemSettings(data);
@@ -174,8 +188,7 @@ const SettingsPage = () => {
 
   const onSubmitUser = (data: UserFormData) => {
     if (editingUserId) {
-      // Update existing user
-      updateUser(editingUserId, {
+      updateUserProfile(editingUserId, {
         name: data.name,
         username: data.username,
         role: data.role,
@@ -187,8 +200,7 @@ const SettingsPage = () => {
         description: "As informações do usuário foram atualizadas com sucesso."
       });
     } else {
-      // Add new user
-      addUser({
+      createUser({
         name: data.name,
         username: data.username,
         password: data.password,
@@ -245,9 +257,7 @@ const SettingsPage = () => {
       return;
     }
 
-    updateUser(passwordData.userId, {
-      password: passwordData.newPassword,
-    });
+    resetUserPassword(passwordData.userId, passwordData.newPassword);
 
     toast({
       title: "Senha atualizada",
@@ -483,7 +493,6 @@ const SettingsPage = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Add/Edit User Dialog */}
         <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -640,7 +649,6 @@ const SettingsPage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Change Password Dialog */}
         <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
           <DialogContent className="sm:max-w-[400px]">
             <DialogHeader>

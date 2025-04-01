@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Delivery, doorToDoorDeliveryTypes } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -35,7 +34,6 @@ const INITIAL_DELIVERIES: Delivery[] = [
     deliveryTime: '14:00',
     receiver: 'João Silva',
     weight: 5.5,
-    distance: 0,
     deliveryType: 'standard',
     cargoType: 'standard',
     cargoValue: 500,
@@ -52,7 +50,6 @@ const INITIAL_DELIVERIES: Delivery[] = [
     deliveryTime: '09:30',
     receiver: 'Farmácia Popular',
     weight: 2.3,
-    distance: 0,
     deliveryType: 'emergency',
     cargoType: 'perishable',
     cargoValue: 1200,
@@ -165,7 +162,6 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
     return deliveries.find(delivery => delivery.id === id);
   };
   
-  // Importing the calculateFreight function that was provided
   const calculateFreight = (
     clientId: string,
     weight: number,

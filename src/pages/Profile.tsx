@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/AppLayout';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { User } from '@/lucide-react';
+import { User } from 'lucide-react';
 
 interface ProfileFormData {
   name: string;
@@ -18,7 +17,7 @@ interface ProfileFormData {
 }
 
 const ProfilePage = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUserProfile, updateUserPassword } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState<ProfileFormData>({
     name: '',
@@ -49,13 +48,13 @@ const ProfilePage = () => {
     }));
   };
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (user) {
-        updateUser(user.id, {
+        await updateUserProfile(user.id, {
           name: formData.name,
           username: formData.username,
         });
@@ -77,24 +76,11 @@ const ProfilePage = () => {
     }
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (user && user.password) {
-        // In a real app, you would hash the password and compare with stored hash
-        if (formData.currentPassword !== user.password) {
-          toast({
-            title: "Erro",
-            description: "Senha atual incorreta.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-      }
-
       if (formData.newPassword !== formData.confirmPassword) {
         toast({
           title: "Erro",
@@ -116,9 +102,7 @@ const ProfilePage = () => {
       }
 
       if (user) {
-        updateUser(user.id, {
-          password: formData.newPassword,
-        });
+        await updateUserPassword(user.id, formData.currentPassword, formData.newPassword);
         
         setIsChangingPassword(false);
         setFormData(prevState => ({

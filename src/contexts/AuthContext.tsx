@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, UserPermissions } from '@/types';
 import { useToast } from '@/components/ui/use-toast';

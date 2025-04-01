@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,8 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { Delivery, doorToDoorDeliveryTypes } from '@/types';
 
 const ReportsPage = () => {
   const { deliveries } = useDeliveries();
@@ -75,7 +76,6 @@ const ReportsPage = () => {
     if (cityId && cityId !== 'all') {
       const selectedCity = cities.find(c => c.id === cityId);
       if (selectedCity) {
-        // Update distance in UI or use it for calculations
         console.log(`Selected city: ${selectedCity.name} with distance: ${selectedCity.distance} km`);
       }
     }
@@ -154,7 +154,6 @@ const ReportsPage = () => {
         'Frete': formatCurrency(delivery.totalFreight),
         'Tipo': delivery.deliveryType,
         'Carga': delivery.cargoType,
-        'Distância (Km)': delivery.distance || 'N/A',
         'Observações': delivery.notes || ''
       };
     });
@@ -169,7 +168,6 @@ const ReportsPage = () => {
       'Frete': formatCurrency(totalFreight),
       'Tipo': '',
       'Carga': '',
-      'Distância (Km)': '',
       'Observações': ''
     } as any);
     
