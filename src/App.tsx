@@ -28,6 +28,7 @@ import Logbook from "./pages/Logbook";
 import Vehicles from "./pages/Vehicles";
 import Employees from "./pages/Employees";
 import Maintenance from "./pages/Maintenance";
+import Profile from "./pages/Profile";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => {
                           <Route path="/vehicles" element={<Vehicles />} />
                           <Route path="/employees" element={<Employees />} />
                           <Route path="/maintenance" element={<Maintenance />} />
+                          <Route path="/profile" element={<Profile />} />
                           <Route path="/" element={<Index />} />
                           {/* 404 Route */}
                           <Route path="*" element={<NotFound />} />

@@ -400,40 +400,26 @@ const DeliveryForm = ({
           />
         </div>
         
-        {isCurrentTypeDoorToDoor ? (
-          <div>
-            <Label htmlFor="cityId">Cidade</Label>
-            <Select 
-              value={formData.cityId} 
-              onValueChange={handleCityChange}
-              required
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Selecione a cidade" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={city.id} value={city.id}>
-                    {city.name} ({city.distance} Km)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : (
-          <div>
-            <Label htmlFor="distance">Distância (Km)</Label>
-            <Input
-              id="distance"
-              name="distance"
-              type="number"
-              step="0.1"
-              value={formData.distance || ''}
-              onChange={handleChange}
-              className="mt-1"
-            />
-          </div>
-        )}
+        <div>
+          <Label htmlFor="cityId">Cidade</Label>
+          <Select 
+            value={formData.cityId} 
+            onValueChange={handleCityChange}
+            required={isCurrentTypeDoorToDoor}
+            disabled={!isCurrentTypeDoorToDoor}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder={isCurrentTypeDoorToDoor ? "Selecione a cidade" : "Não aplicável para este tipo"} />
+            </SelectTrigger>
+            <SelectContent>
+              {cities.map((city) => (
+                <SelectItem key={city.id} value={city.id}>
+                  {city.name} ({city.distance} Km)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         
         <div>
           <Label htmlFor="cargoType">Tipo de Carga</Label>
