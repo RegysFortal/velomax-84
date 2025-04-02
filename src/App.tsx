@@ -11,6 +11,7 @@ import { DeliveriesProvider } from "./contexts/DeliveriesContext";
 import { CitiesProvider } from "./contexts/CitiesContext";
 import { FinancialProvider } from "./contexts/FinancialContext";
 import { LogbookProvider } from "./contexts/LogbookContext";
+import { ShipmentsProvider } from "./contexts/ShipmentsContext";
 
 // Pages
 import Index from "./pages/Index";
@@ -29,6 +30,8 @@ import Vehicles from "./pages/Vehicles";
 import Employees from "./pages/Employees";
 import Maintenance from "./pages/Maintenance";
 import Profile from "./pages/Profile";
+import Shipments from "./pages/Shipments";
+import ShipmentReports from "./pages/ShipmentReports";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -46,27 +49,31 @@ const App = () => {
                 <FinancialProvider>
                   <DeliveriesProvider>
                     <LogbookProvider>
-                      <BrowserRouter>
-                        <Routes>
-                          <Route path="/login" element={<Login />} />
-                          <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/clients" element={<Clients />} />
-                          <Route path="/price-tables" element={<PriceTables />} />
-                          <Route path="/deliveries" element={<Deliveries />} />
-                          <Route path="/reports" element={<Reports />} />
-                          <Route path="/cities" element={<Cities />} />
-                          <Route path="/financial" element={<Financial />} />
-                          <Route path="/settings" element={<Settings />} />
-                          <Route path="/logbook" element={<Logbook />} />
-                          <Route path="/vehicles" element={<Vehicles />} />
-                          <Route path="/employees" element={<Employees />} />
-                          <Route path="/maintenance" element={<Maintenance />} />
-                          <Route path="/profile" element={<Profile />} />
-                          <Route path="/" element={<Index />} />
-                          {/* 404 Route */}
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </BrowserRouter>
+                      <ShipmentsProvider>
+                        <BrowserRouter>
+                          <Routes>
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/clients" element={<Clients />} />
+                            <Route path="/price-tables" element={<PriceTables />} />
+                            <Route path="/deliveries" element={<Deliveries />} />
+                            <Route path="/reports" element={<Reports />} />
+                            <Route path="/cities" element={<Cities />} />
+                            <Route path="/financial" element={<Financial />} />
+                            <Route path="/settings" element={<Settings />} />
+                            <Route path="/logbook" element={<Logbook />} />
+                            <Route path="/vehicles" element={<Vehicles />} />
+                            <Route path="/employees" element={<Employees />} />
+                            <Route path="/maintenance" element={<Maintenance />} />
+                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/shipments" element={<Shipments />} />
+                            <Route path="/shipment-reports" element={<ShipmentReports />} />
+                            <Route path="/" element={<Index />} />
+                            {/* 404 Route */}
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </BrowserRouter>
+                      </ShipmentsProvider>
                     </LogbookProvider>
                   </DeliveriesProvider>
                 </FinancialProvider>

@@ -13,7 +13,9 @@ import {
   Truck, 
   UserCheck, 
   Wrench, 
-  BookOpenCheck 
+  BookOpenCheck,
+  PackageOpen,
+  ChartBar
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -45,6 +47,20 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       icon: Package,
       active: pathname.includes("/deliveries"),
       canAccess: user?.permissions?.reports
+    },
+    {
+      href: "/shipments",
+      label: "Embarques",
+      icon: PackageOpen,
+      active: pathname.includes("/shipments"),
+      canAccess: true // Everyone can access shipments
+    },
+    {
+      href: "/shipment-reports",
+      label: "Relatórios de Embarques",
+      icon: ChartBar,
+      active: pathname.includes("/shipment-reports"),
+      canAccess: true // Everyone can access shipment reports
     }
   ];
 
