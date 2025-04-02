@@ -20,20 +20,16 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Chart,
   ChartContainer,
-  ChartCategoryAxis,
-  ChartCategoryAxisTick,
-  ChartValueAxis,
-  ChartValueAxisTick,
-  ChartBar,
   ChartTooltip,
+  ChartTooltipContent,
   ChartLegend,
+  ChartLegendContent
 } from '@/components/ui/chart';
 import { 
   FileText, 
   Download, 
-  BarChart, 
+  BarChart as BarChartIcon, 
   Truck, 
   AlertTriangle, 
   CheckCircle2, 
@@ -47,6 +43,7 @@ import { ptBR } from 'date-fns/locale';
 import { ShipmentStatus } from '@/types/shipment';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 export default function ShipmentReports() {
   const { shipments, loading } = useShipments();
@@ -161,7 +158,7 @@ export default function ShipmentReports() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Peso Total</CardTitle>
-              <BarChart className="h-4 w-4 text-muted-foreground" />
+              <BarChartIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalWeight.toFixed(2)} kg</div>
@@ -190,19 +187,16 @@ export default function ShipmentReports() {
               <CardTitle>Status dos Embarques</CardTitle>
             </CardHeader>
             <CardContent className="h-80">
-              <ChartContainer>
-                <ChartLegend />
-                <Chart>
-                  <ChartBar data={chartData} valueKey="value" categoryKey="name" />
-                  <ChartTooltip />
-                </Chart>
-                <ChartCategoryAxis>
-                  <ChartCategoryAxisTick />
-                </ChartCategoryAxis>
-                <ChartValueAxis>
-                  <ChartValueAxisTick />
-                </ChartValueAxis>
-              </ChartContainer>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="#3b82f6" name="Quantidade" />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
           

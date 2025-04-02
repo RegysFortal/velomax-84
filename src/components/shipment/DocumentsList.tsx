@@ -1,21 +1,8 @@
 
-import { useState } from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,24 +10,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/ShipmentsContext";
+import { Document } from "@/types/shipment";
+import { FileText, Trash2, PlusCircle, ExternalLink, FileEdit } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FileText, Pencil, Plus, Trash2, Link2 } from "lucide-react";
-
-const documentSchema = z.object({
-  name: z.string().min(2, "Nome do documento é obrigatório"),
-  type: z.enum(["cte", "invoice", "delivery_location", "other"]),
-  url: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type DocumentFormValues = z.infer<typeof documentSchema>;
 
 interface DocumentsListProps {
   shipmentId: string;
@@ -49,255 +30,217 @@ interface DocumentsListProps {
 
 export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
   const { addDocument, updateDocument, deleteDocument } = useShipments();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm<DocumentFormValues>({
-    resolver: zodResolver(documentSchema),
-    defaultValues: {
-      name: "",
-      type: "cte",
-      url: "",
-      notes: "",
-    },
-  });
-
-  const openEditDialog = (document: Document) => {
-    setEditingDocument(document);
-    form.reset({
-      name: document.name,
-      type: document.type,
-      url: document.url || "",
-      notes: document.notes || "",
-    });
-    setIsAddDialogOpen(true);
-  };
-
-  const openAddDialog = () => {
+  
+  // Form state
+  const [name, setName] = useState("");
+  const [type, setType] = useState<"cte" | "invoice" | "delivery_location" | "other">("cte");
+  const [url, setUrl] = useState("");
+  const [notes, setNotes] = useState("");
+  
+  const resetForm = () => {
+    setName("");
+    setType("cte");
+    setUrl("");
+    setNotes("");
     setEditingDocument(null);
-    form.reset({
-      name: "",
-      type: "cte",
-      url: "",
-      notes: "",
-    });
-    setIsAddDialogOpen(true);
   };
-
-  const onSubmit = async (data: DocumentFormValues) => {
-    setIsLoading(true);
-
+  
+  const handleOpenDialog = (document?: Document) => {
+    resetForm();
+    if (document) {
+      setName(document.name);
+      setType(document.type);
+      setUrl(document.url || "");
+      setNotes(document.notes || "");
+      setEditingDocument(document);
+    }
+    setIsDialogOpen(true);
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     try {
       if (editingDocument) {
-        await updateDocument(shipmentId, editingDocument.id, data);
-        toast.success("Documento atualizado com sucesso!");
+        // Ensure all required fields are present
+        const updatedDoc = {
+          name,
+          type,
+          url: url || undefined,
+          notes: notes || undefined,
+        };
+        await updateDocument(shipmentId, editingDocument.id, updatedDoc);
+        toast.success("Documento atualizado com sucesso");
       } else {
-        await addDocument(shipmentId, data);
-        toast.success("Documento adicionado com sucesso!");
+        // Ensure all required fields are present
+        const newDoc = {
+          name,  // This is required
+          type,  // This is required
+          url: url || undefined,
+          notes: notes || undefined,
+        };
+        await addDocument(shipmentId, newDoc);
+        toast.success("Documento adicionado com sucesso");
       }
-      setIsAddDialogOpen(false);
+      setIsDialogOpen(false);
+      resetForm();
     } catch (error) {
-      console.error("Error saving document:", error);
-      toast.error("Erro ao salvar o documento");
-    } finally {
-      setIsLoading(false);
+      toast.error("Erro ao salvar documento");
+      console.error(error);
     }
   };
-
-  const handleDeleteDocument = async (documentId: string) => {
-    if (confirm("Tem certeza que deseja excluir este documento?")) {
-      try {
-        await deleteDocument(shipmentId, documentId);
-        toast.success("Documento excluído com sucesso");
-      } catch (error) {
-        console.error("Error deleting document:", error);
-        toast.error("Erro ao excluir o documento");
-      }
+  
+  const handleDelete = async (documentId: string) => {
+    try {
+      await deleteDocument(shipmentId, documentId);
+      toast.success("Documento removido com sucesso");
+    } catch (error) {
+      toast.error("Erro ao remover documento");
+      console.error(error);
     }
   };
-
-  const documentTypeLabel = {
-    cte: "Conhecimento de Transporte (CT-e)",
-    invoice: "Nota Fiscal",
-    delivery_location: "Local de Entrega",
-    other: "Outro",
+  
+  const getDocumentTypeLabel = (type: string) => {
+    switch (type) {
+      case "cte": return "CT-e";
+      case "invoice": return "Nota Fiscal";
+      case "delivery_location": return "Local de Entrega";
+      case "other": return "Outro";
+      default: return type;
+    }
   };
-
+  
+  const getDocumentIcon = (type: string) => {
+    switch (type) {
+      case "cte": return <FileText className="h-4 w-4 text-blue-500" />;
+      case "invoice": return <FileText className="h-4 w-4 text-green-500" />;
+      case "delivery_location": return <FileText className="h-4 w-4 text-yellow-500" />;
+      case "other": return <FileText className="h-4 w-4 text-gray-500" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
+  
   return (
-    <div className="space-y-4 py-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Documentos do Embarque</h3>
-        <Button size="sm" onClick={openAddDialog}>
-          <Plus className="h-4 w-4 mr-1" /> Adicionar
+        <h3 className="text-lg font-medium">Documentos</h3>
+        <Button variant="outline" onClick={() => handleOpenDialog()} size="sm">
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Adicionar
         </Button>
       </div>
-
+      
       {documents.length === 0 ? (
-        <div className="text-center text-muted-foreground py-8">
-          <FileText className="h-12 w-12 mx-auto mb-2 opacity-20" />
-          <p>Nenhum documento cadastrado para este embarque</p>
+        <div className="text-center p-4 text-muted-foreground border border-dashed rounded-md">
+          Nenhum documento encontrado
         </div>
       ) : (
-        <div className="grid gap-4">
-          {documents.map((document) => (
-            <div
-              key={document.id}
-              className="flex items-center justify-between p-3 border rounded-md"
-            >
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 mr-3 text-muted-foreground" />
+        <div className="space-y-2">
+          {documents.map((doc) => (
+            <div key={doc.id} className="flex items-center justify-between p-2 border rounded-md">
+              <div className="flex items-center space-x-2">
+                {getDocumentIcon(doc.type)}
                 <div>
-                  <p className="font-medium">{document.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {documentTypeLabel[document.type]}
-                  </p>
-                  {document.notes && (
-                    <p className="text-xs mt-1">{document.notes}</p>
-                  )}
+                  <div className="font-medium">{doc.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {getDocumentTypeLabel(doc.type)}
+                    {doc.notes && ` • ${doc.notes}`}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                {document.url && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <a href={document.url} target="_blank" rel="noopener noreferrer">
-                      <Link2 className="h-4 w-4" />
-                      <span className="sr-only">Abrir link</span>
-                    </a>
-                  </Button>
+                {doc.url && (
+                  <a 
+                    href={doc.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openEditDialog(document)}
-                >
-                  <Pencil className="h-4 w-4" />
-                  <span className="sr-only">Editar</span>
+                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(doc)}>
+                  <FileEdit className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteDocument(document.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Excluir</span>
+                <Button variant="ghost" size="icon" onClick={() => handleDelete(doc.id)}>
+                  <Trash2 className="h-4 w-4 text-red-500" />
                 </Button>
               </div>
             </div>
           ))}
         </div>
       )}
-
-      {/* Add/Edit Document Dialog */}
-      <Dialog
-        open={isAddDialogOpen}
-        onOpenChange={(open) => !open && setIsAddDialogOpen(false)}
-      >
-        <DialogContent className="sm:max-w-[500px]">
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {editingDocument ? "Editar Documento" : "Adicionar Documento"}
             </DialogTitle>
           </DialogHeader>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Documento</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do documento" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Documento</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="cte">Conhecimento de Transporte (CT-e)</SelectItem>
-                        <SelectItem value="invoice">Nota Fiscal</SelectItem>
-                        <SelectItem value="delivery_location">Local de Entrega</SelectItem>
-                        <SelectItem value="other">Outro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL (opcional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="https://exemplo.com/documento"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observações (opcional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Informações adicionais sobre o documento"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setIsAddDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      Salvando...
-                    </>
-                  ) : (
-                    "Salvar"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium">Nome do Documento</label>
+                <Input 
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: CT-e 12345"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="type" className="text-sm font-medium">Tipo de Documento</label>
+                <Select value={type} onValueChange={(value: any) => setType(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cte">CT-e</SelectItem>
+                    <SelectItem value="invoice">Nota Fiscal</SelectItem>
+                    <SelectItem value="delivery_location">Local de Entrega</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="url" className="text-sm font-medium">URL do Documento (opcional)</label>
+                <Input 
+                  id="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://"
+                  type="url"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="notes" className="text-sm font-medium">Observações (opcional)</label>
+                <Textarea 
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Observações sobre o documento"
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {editingDocument ? "Atualizar" : "Adicionar"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,190 +1,156 @@
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useShipments } from "@/contexts/ShipmentsContext";
 import { FiscalAction } from "@/types/shipment";
+import { format } from 'date-fns';
 import { toast } from "sonner";
 
-const fiscalActionSchema = z.object({
-  reason: z.string().min(2, "Motivo da retenção é obrigatório"),
-  amountToPay: z.coerce.number().min(0, "Valor deve ser igual ou maior que 0"),
-  paymentDate: z.string().optional(),
-  releaseDate: z.string().optional(),
-});
-
-type FiscalActionFormValues = z.infer<typeof fiscalActionSchema>;
-
 interface FiscalActionFormProps {
-  open: boolean;
-  onClose: () => void;
   shipmentId: string;
   fiscalAction?: FiscalAction;
 }
 
-export function FiscalActionForm({
-  open,
-  onClose,
-  shipmentId,
-  fiscalAction,
-}: FiscalActionFormProps) {
-  const { updateFiscalAction } = useShipments();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const isEditing = !!fiscalAction;
-
-  // Default values for the form
-  const defaultValues: Partial<FiscalActionFormValues> = {
-    reason: fiscalAction?.reason || "",
-    amountToPay: fiscalAction?.amountToPay || 0,
-    paymentDate: fiscalAction?.paymentDate || "",
-    releaseDate: fiscalAction?.releaseDate || "",
-  };
-
-  const form = useForm<FiscalActionFormValues>({
-    resolver: zodResolver(fiscalActionSchema),
-    defaultValues,
-  });
-
-  const onSubmit = async (data: FiscalActionFormValues) => {
-    setIsLoading(true);
-
+export function FiscalActionForm({ shipmentId, fiscalAction }: FiscalActionFormProps) {
+  const { updateFiscalAction, clearFiscalAction } = useShipments();
+  
+  // Form state
+  const [reason, setReason] = useState(fiscalAction?.reason || "");
+  const [amountToPay, setAmountToPay] = useState(fiscalAction?.amountToPay?.toString() || "");
+  const [paymentDate, setPaymentDate] = useState(
+    fiscalAction?.paymentDate
+      ? format(new Date(fiscalAction.paymentDate), 'yyyy-MM-dd')
+      : ""
+  );
+  const [releaseDate, setReleaseDate] = useState(
+    fiscalAction?.releaseDate
+      ? format(new Date(fiscalAction.releaseDate), 'yyyy-MM-dd')
+      : ""
+  );
+  
+  useEffect(() => {
+    if (fiscalAction) {
+      setReason(fiscalAction.reason || "");
+      setAmountToPay(fiscalAction.amountToPay?.toString() || "");
+      
+      if (fiscalAction.paymentDate) {
+        setPaymentDate(format(new Date(fiscalAction.paymentDate), 'yyyy-MM-dd'));
+      }
+      
+      if (fiscalAction.releaseDate) {
+        setReleaseDate(format(new Date(fiscalAction.releaseDate), 'yyyy-MM-dd'));
+      }
+    }
+  }, [fiscalAction]);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     try {
+      // Validate form
+      if (!reason.trim()) {
+        toast.error("O motivo da ação fiscal é obrigatório");
+        return;
+      }
+      
+      const amount = amountToPay ? parseFloat(amountToPay) : 0;
+      
+      // Ensure all required fields are present
+      const data = {
+        reason: reason.trim(),  // Required
+        amountToPay: amount,    // Required
+        paymentDate: paymentDate || undefined,
+        releaseDate: releaseDate || undefined,
+      };
+      
       await updateFiscalAction(shipmentId, data);
-      toast.success(
-        isEditing
-          ? "Informações fiscais atualizadas com sucesso!"
-          : "Ação fiscal registrada com sucesso!"
-      );
-      onClose();
-      form.reset();
+      toast.success("Ação fiscal atualizada com sucesso");
     } catch (error) {
-      console.error("Error saving fiscal action:", error);
-      toast.error("Erro ao salvar as informações fiscais");
-    } finally {
-      setIsLoading(false);
+      toast.error("Erro ao salvar ação fiscal");
+      console.error(error);
     }
   };
-
+  
+  const handleClear = async () => {
+    try {
+      await clearFiscalAction(shipmentId);
+      toast.success("Ação fiscal removida com sucesso");
+    } catch (error) {
+      toast.error("Erro ao remover ação fiscal");
+      console.error(error);
+    }
+  };
+  
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "Editar Ação Fiscal" : "Registrar Ação Fiscal"}
-          </DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Motivo da Retenção</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Descreva o motivo da retenção fiscal"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="reason" className="text-sm font-medium">Motivo da Retenção</label>
+          <Textarea 
+            id="reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Descreva o motivo da retenção"
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="amountToPay" className="text-sm font-medium">Valor a Pagar</label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2">R$</span>
+            <Input 
+              id="amountToPay"
+              type="number"
+              min="0"
+              step="0.01"
+              value={amountToPay}
+              onChange={(e) => setAmountToPay(e.target.value)}
+              className="pl-8"
+              placeholder="0,00"
             />
-
-            <FormField
-              control={form.control}
-              name="amountToPay"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor a Pagar (R$)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={0.01}
-                      placeholder="0.00"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Informe o valor a ser pago para liberação
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="paymentDate" className="text-sm font-medium">Data de Pagamento</label>
+            <Input 
+              id="paymentDate"
+              type="date"
+              value={paymentDate}
+              onChange={(e) => setPaymentDate(e.target.value)}
             />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="paymentDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de Pagamento</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="releaseDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de Liberação</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    Salvando...
-                  </>
-                ) : (
-                  "Salvar"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="releaseDate" className="text-sm font-medium">Data de Liberação</label>
+            <Input 
+              id="releaseDate"
+              type="date"
+              value={releaseDate}
+              onChange={(e) => setReleaseDate(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex justify-end space-x-2">
+        {fiscalAction && (
+          <Button 
+            type="button" 
+            variant="destructive" 
+            onClick={handleClear}
+          >
+            Remover Ação Fiscal
+          </Button>
+        )}
+        <Button type="submit">
+          {fiscalAction ? "Atualizar" : "Registrar"}
+        </Button>
+      </div>
+    </form>
   );
 }
