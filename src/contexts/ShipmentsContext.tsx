@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Shipment, Document, FiscalAction, ShipmentStatus } from "@/types/shipment";
@@ -31,7 +30,6 @@ interface ShipmentsContextType {
   getShipmentsByCarrier: (carrierName: string) => Shipment[];
   getShipmentsByDateRange: (startDate: string, endDate: string) => Shipment[];
   getShipmentsByCompany: (companyId: string) => Shipment[];
-  getPriorityShipments: () => Shipment[];
   getRetainedShipments: () => Shipment[];
   getUndeliveredShipments: () => Shipment[];
 }
@@ -46,7 +44,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Load data from localStorage on initialization
   useEffect(() => {
     const loadData = () => {
       try {
@@ -66,14 +63,12 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     loadData();
   }, []);
   
-  // Save data to localStorage when it changes
   useEffect(() => {
     if (!loading) {
       localStorage.setItem("velomax_shipments", JSON.stringify(shipments));
     }
   }, [shipments, loading]);
   
-  // CRUD operations for shipments
   const addShipment = async (shipment: Omit<Shipment, 'id' | 'createdAt' | 'updatedAt' | 'documents'>) => {
     const now = new Date().toISOString();
     const newShipment: Shipment = {
@@ -114,7 +109,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     return shipments.find(s => s.id === id);
   };
   
-  // Document management
   const addDocument = async (shipmentId: string, document: Omit<Document, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const newDocument: Document = {
@@ -187,7 +181,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     setShipments(updatedShipments);
   };
   
-  // Fiscal action management
   const updateFiscalAction = async (shipmentId: string, fiscalActionData: Omit<FiscalAction, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const fiscalAction: FiscalAction = {
@@ -231,7 +224,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     setShipments(updatedShipments);
   };
   
-  // Status management
   const updateStatus = async (shipmentId: string, status: ShipmentStatus) => {
     const now = new Date().toISOString();
     const updatedShipments = shipments.map(s => {
@@ -239,7 +231,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
         return { 
           ...s, 
           status,
-          // If status is no longer retained, clear the retention flag
           isRetained: status === "retained" ? s.isRetained : false,
           updatedAt: now
         };
@@ -250,7 +241,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     setShipments(updatedShipments);
   };
   
-  // Filtering functions
   const getShipmentsByStatus = (status: ShipmentStatus) => {
     return shipments.filter(s => s.status === status);
   };
@@ -270,10 +260,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
   
   const getShipmentsByCompany = (companyId: string) => {
     return shipments.filter(s => s.companyId === companyId);
-  };
-  
-  const getPriorityShipments = () => {
-    return shipments.filter(s => s.isPriority);
   };
   
   const getRetainedShipments = () => {
@@ -301,7 +287,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     getShipmentsByCarrier,
     getShipmentsByDateRange,
     getShipmentsByCompany,
-    getPriorityShipments,
     getRetainedShipments,
     getUndeliveredShipments,
   };

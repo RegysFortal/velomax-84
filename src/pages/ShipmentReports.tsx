@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useShipments } from '@/contexts/ShipmentsContext';
 import { AppLayout } from '@/components/AppLayout';
@@ -75,16 +74,12 @@ export default function ShipmentReports() {
   const statusCounts = {
     in_transit: filteredShipments.filter(s => s.status === 'in_transit').length,
     retained: filteredShipments.filter(s => s.status === 'retained').length,
-    cleared: filteredShipments.filter(s => s.status === 'cleared').length,
-    standby: filteredShipments.filter(s => s.status === 'standby').length,
     delivered: filteredShipments.filter(s => s.status === 'delivered').length,
   };
   
   const chartData = [
     { name: 'Em Trânsito', value: statusCounts.in_transit },
     { name: 'Retida', value: statusCounts.retained },
-    { name: 'Liberada', value: statusCounts.cleared },
-    { name: 'Standby', value: statusCounts.standby },
     { name: 'Entregue', value: statusCounts.delivered },
   ];
   
@@ -244,9 +239,7 @@ export default function ShipmentReports() {
                         <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="in_transit">Em Trânsito</SelectItem>
                         <SelectItem value="retained">Retida</SelectItem>
-                        <SelectItem value="cleared">Liberada</SelectItem>
-                        <SelectItem value="standby">Standby</SelectItem>
-                        <SelectItem value="delivered">Entregue</SelectItem>
+                        <SelectItem value="delivered">Retirada</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
