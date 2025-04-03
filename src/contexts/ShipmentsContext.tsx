@@ -3,29 +3,28 @@ import { v4 as uuidv4 } from "uuid";
 import { Shipment, Document, FiscalAction, ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
 
+interface ShipmentCreateData extends Omit<Shipment, 'id' | 'createdAt' | 'updatedAt' | 'documents' | 'fiscalAction'> {
+  fiscalActionData?: Omit<FiscalAction, 'id' | 'createdAt' | 'updatedAt'>;
+}
+
 interface ShipmentsContextType {
   shipments: Shipment[];
   loading: boolean;
   
-  // CRUD operations for shipments
-  addShipment: (shipment: Omit<Shipment, 'id' | 'createdAt' | 'updatedAt' | 'documents'>) => Promise<Shipment>;
+  addShipment: (shipment: ShipmentCreateData) => Promise<Shipment>;
   updateShipment: (id: string, shipment: Partial<Shipment>) => Promise<Shipment>;
   deleteShipment: (id: string) => Promise<void>;
   getShipmentById: (id: string) => Shipment | undefined;
   
-  // Document management
   addDocument: (shipmentId: string, document: Omit<Document, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Document>;
   updateDocument: (shipmentId: string, documentId: string, document: Partial<Document>) => Promise<Document>;
   deleteDocument: (shipmentId: string, documentId: string) => Promise<void>;
   
-  // Fiscal action management
   updateFiscalAction: (shipmentId: string, fiscalAction: Omit<FiscalAction, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FiscalAction>;
   clearFiscalAction: (shipmentId: string) => Promise<void>;
   
-  // Status management
   updateStatus: (shipmentId: string, status: ShipmentStatus) => Promise<void>;
   
-  // Filtering functions
   getShipmentsByStatus: (status: ShipmentStatus) => Shipment[];
   getShipmentsByCarrier: (carrierName: string) => Shipment[];
   getShipmentsByDateRange: (startDate: string, endDate: string) => Shipment[];
@@ -69,15 +68,30 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     }
   }, [shipments, loading]);
   
-  const addShipment = async (shipment: Omit<Shipment, 'id' | 'createdAt' | 'updatedAt' | 'documents'>) => {
+  const addShipment = async (shipmentData: ShipmentCreateData) => {
     const now = new Date().toISOString();
+    
+    let fiscalAction: FiscalAction | undefined = undefined;
+    
+    if (shipmentData.fiscalActionData) {
+      fiscalAction = {
+        ...shipmentData.fiscalActionData,
+        id: uuidv4(),
+        createdAt: now,
+        updatedAt: now
+      };
+    }
+    
     const newShipment: Shipment = {
-      ...shipment,
+      ...(shipmentData as Omit<Shipment, 'id' | 'createdAt' | 'updatedAt' | 'documents' | 'fiscalAction'>),
       id: uuidv4(),
       documents: [],
+      fiscalAction,
       createdAt: now,
       updatedAt: now,
     };
+    
+    const { fiscalActionData, ...rest } = shipmentData;
     
     setShipments(prev => [...prev, newShipment]);
     return newShipment;

@@ -120,7 +120,9 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       
       // Add fiscal action if status is retained
       if (status === "retained") {
-        const fiscalAction = {
+        // Create fiscal action data without ID, createdAt, updatedAt
+        // These will be added by the addShipment function in the context
+        const fiscalActionData = {
           reason: retentionReason.trim(),
           amountToPay: parseFloat(retentionAmount) || 0,
           paymentDate: paymentDate || undefined,
@@ -129,7 +131,9 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
         // Include fiscal action in shipment data
         await addShipment({
           ...shipmentData,
-          fiscalAction,
+          // We're passing fiscalActionData, not a complete FiscalAction
+          // The ShipmentContext.addShipment will handle creating the complete FiscalAction
+          fiscalActionData,
         });
       } else {
         await addShipment(shipmentData);
