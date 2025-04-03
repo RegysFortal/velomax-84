@@ -35,13 +35,6 @@ const Login = () => {
       </div>
       
       <LoginForm />
-      
-      <div className="mt-6 text-center text-sm text-muted-foreground">
-        <p>Para demonstração, use:</p>
-        <p className="mt-1">Usuário: <strong>admin</strong> / Senha: <strong>admin123</strong></p>
-        <p>Usuário: <strong>manager</strong> / Senha: <strong>manager123</strong></p>
-        <p>Usuário: <strong>user</strong> / Senha: <strong>user123</strong></p>
-      </div>
     </div>
   );
 };

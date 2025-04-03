@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
   Dialog, 
   DialogContent,
@@ -30,6 +32,7 @@ import { DocumentsList } from '@/components/shipment/DocumentsList';
 import { FiscalActionForm } from '@/components/shipment/FiscalActionForm';
 import { ShipmentDialog } from '@/components/shipment/ShipmentDialog';
 import { StatusBadge } from '@/components/shipment/StatusBadge';
+import { useDeliveries } from '@/contexts/DeliveriesContext';
 import {
   Select,
   SelectContent,
@@ -47,15 +50,85 @@ interface ShipmentDetailsProps {
 
 export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProps) {
   const { updateStatus, updateShipment } = useShipments();
+  const { addDelivery } = useDeliveries();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isFiscalActionDialogOpen, setIsFiscalActionDialogOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<ShipmentStatus>(shipment.status);
   
+  // Status change form
+  const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [deliveryTime, setDeliveryTime] = useState(format(new Date(), 'HH:mm'));
+  const [receiverName, setReceiverName] = useState("");
+
   const handleStatusChange = async (newStatus: ShipmentStatus) => {
+    if (newStatus === currentStatus) return;
+    
+    // If changing to "delivered" or "delivered_final", show dialog to collect additional info
+    if (newStatus === "delivered" || newStatus === "delivered_final") {
+      setCurrentStatus(newStatus);
+      setIsStatusDialogOpen(true);
+      return;
+    }
+    
     try {
       setCurrentStatus(newStatus);
       await updateStatus(shipment.id, newStatus);
       toast.success(`Status atualizado para ${getStatusLabel(newStatus)}`);
+    } catch (error) {
+      toast.error("Erro ao atualizar o status");
+      console.error(error);
+    }
+  };
+  
+  const handleCompleteStatusChange = async () => {
+    try {
+      // Update the shipment status
+      const statusData = {
+        status: currentStatus,
+        deliveryDate,
+        deliveryTime,
+        receiverName
+      };
+      
+      await updateShipment(shipment.id, statusData);
+      
+      // If status is "delivered_final", create a delivery entry
+      if (currentStatus === "delivered_final") {
+        // Find documents with minute numbers to create deliveries
+        const documentsWithMinuteNumbers = shipment.documents.filter(doc => doc.minuteNumber);
+        
+        if (documentsWithMinuteNumbers.length === 0) {
+          toast.warning("Nenhuma minuta encontrada para registro de entrega");
+        } else {
+          // Create delivery entries for each document with minute number
+          for (const doc of documentsWithMinuteNumbers) {
+            if (doc.minuteNumber) {
+              await addDelivery({
+                clientId: shipment.companyId,
+                minuteNumber: doc.minuteNumber,
+                deliveryDate,
+                deliveryTime,
+                receiver: receiverName,
+                weight: doc.weight || shipment.weight / shipment.documents.length,
+                packages: doc.packages || Math.ceil(shipment.packages / shipment.documents.length),
+                cargoType: 'standard',
+                deliveryType: 'standard',
+                cargoValue: 0, // To be filled out later
+                totalFreight: 0, // To be calculated later
+                customPricing: false,
+                discount: 0,
+                notes: `Gerado automaticamente do embarque ${shipment.trackingNumber}`
+              });
+            }
+          }
+          
+          toast.success("Entregas registradas com sucesso");
+        }
+      }
+      
+      setIsStatusDialogOpen(false);
+      toast.success(`Status atualizado para ${getStatusLabel(currentStatus)}`);
     } catch (error) {
       toast.error("Erro ao atualizar o status");
       console.error(error);
@@ -67,6 +140,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
       case 'in_transit': return 'Em Trânsito';
       case 'retained': return 'Retida';
       case 'delivered': return 'Retirada';
+      case 'delivered_final': return 'Entregue';
       default: return status;
     }
   };
@@ -76,6 +150,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
       case 'in_transit': return <Truck className="h-4 w-4" />;
       case 'retained': return <AlertTriangle className="h-4 w-4" />;
       case 'delivered': return <CheckCircle2 className="h-4 w-4" />;
+      case 'delivered_final': return <CheckCircle2 className="h-4 w-4" />;
       default: return null;
     }
   };
@@ -89,7 +164,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
     arrivalDate.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
     
-    return arrivalDate < today && shipment.status !== 'delivered';
+    return arrivalDate < today && shipment.status !== 'delivered' && shipment.status !== 'delivered_final';
   };
   
   const handleCloseEditDialog = () => {
@@ -159,6 +234,12 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
                         <span>Retirada</span>
                       </div>
                     </SelectItem>
+                    <SelectItem value="delivered_final">
+                      <div className="flex items-center">
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        <span>Entregue</span>
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -217,6 +298,25 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
                       <span className="text-sm font-medium">Cadastrado em:</span>
                       <span className="text-sm">{formatDate(shipment.createdAt)}</span>
                     </div>
+                    
+                    {shipment.deliveryDate && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Data de Retirada:</span>
+                        <span className="text-sm">
+                          {formatDate(shipment.deliveryDate)}
+                          {shipment.deliveryTime && ` às ${shipment.deliveryTime}`}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {shipment.receiverName && (
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Recebedor:</span>
+                        <span className="text-sm">{shipment.receiverName}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -321,6 +421,71 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
           onOpenChange={setIsFiscalActionDialogOpen}
         />
       )}
+      
+      {/* Status change dialog */}
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="text-lg font-semibold">
+              {currentStatus === 'delivered' ? 'Registrar Retirada' : 'Registrar Entrega'}
+            </div>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Data</label>
+              <Input
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Hora</label>
+              <Input
+                type="time"
+                value={deliveryTime}
+                onChange={(e) => setDeliveryTime(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Nome do Recebedor</label>
+              <Input
+                value={receiverName}
+                onChange={(e) => setReceiverName(e.target.value)}
+                placeholder="Nome de quem recebeu"
+                required
+              />
+            </div>
+            
+            {currentStatus === 'delivered_final' && (
+              <div className="bg-blue-50 border border-blue-100 rounded-md p-3 text-sm">
+                <p className="font-semibold">Atenção</p>
+                <p className="mt-1">
+                  Documentos com números de minuta serão registrados automaticamente na lista de entregas.
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsStatusDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCompleteStatusChange}
+            >
+              {currentStatus === 'delivered' ? 'Registrar Retirada' : 'Registrar Entrega'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

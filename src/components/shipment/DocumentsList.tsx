@@ -3,16 +3,9 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useShipments } from "@/contexts/ShipmentsContext";
 import { Document } from "@/types/shipment";
-import { FileText, Trash2, PlusCircle, ExternalLink, FileEdit } from "lucide-react";
+import { FileText, Trash2, PlusCircle, FileEdit } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,15 +28,19 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
   
   // Form state
   const [name, setName] = useState("");
-  const [type, setType] = useState<"cte" | "invoice" | "delivery_location" | "other">("cte");
-  const [url, setUrl] = useState("");
+  const [minuteNumber, setMinuteNumber] = useState("");
+  const [weight, setWeight] = useState("");
+  const [packages, setPackages] = useState("");
   const [notes, setNotes] = useState("");
+  const [isDelivered, setIsDelivered] = useState(false);
   
   const resetForm = () => {
     setName("");
-    setType("cte");
-    setUrl("");
+    setMinuteNumber("");
+    setWeight("");
+    setPackages("");
     setNotes("");
+    setIsDelivered(false);
     setEditingDocument(null);
   };
   
@@ -51,9 +48,11 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
     resetForm();
     if (document) {
       setName(document.name);
-      setType(document.type);
-      setUrl(document.url || "");
+      setMinuteNumber(document.minuteNumber || "");
+      setWeight(document.weight?.toString() || "");
+      setPackages(document.packages?.toString() || "");
       setNotes(document.notes || "");
+      setIsDelivered(!!document.isDelivered);
       setEditingDocument(document);
     }
     setIsDialogOpen(true);
@@ -63,23 +62,30 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
     e.preventDefault();
     
     try {
+      // Convert weight and packages to numbers
+      const weightValue = weight ? parseFloat(weight) : undefined;
+      const packagesValue = packages ? parseInt(packages) : undefined;
+      
       if (editingDocument) {
-        // Ensure all required fields are present
         const updatedDoc = {
           name,
-          type,
-          url: url || undefined,
+          minuteNumber: minuteNumber || undefined,
+          weight: weightValue,
+          packages: packagesValue,
           notes: notes || undefined,
+          isDelivered
         };
         await updateDocument(shipmentId, editingDocument.id, updatedDoc);
         toast.success("Documento atualizado com sucesso");
       } else {
-        // Ensure all required fields are present
         const newDoc = {
-          name,  // This is required
-          type,  // This is required
-          url: url || undefined,
+          name,
+          minuteNumber: minuteNumber || undefined,
+          weight: weightValue,
+          packages: packagesValue,
           notes: notes || undefined,
+          isDelivered,
+          type: "invoice" // Default type since we're not asking for it anymore
         };
         await addDocument(shipmentId, newDoc);
         toast.success("Documento adicionado com sucesso");
@@ -102,26 +108,6 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
     }
   };
   
-  const getDocumentTypeLabel = (type: string) => {
-    switch (type) {
-      case "cte": return "CT-e";
-      case "invoice": return "Nota Fiscal";
-      case "delivery_location": return "Local de Entrega";
-      case "other": return "Outro";
-      default: return type;
-    }
-  };
-  
-  const getDocumentIcon = (type: string) => {
-    switch (type) {
-      case "cte": return <FileText className="h-4 w-4 text-blue-500" />;
-      case "invoice": return <FileText className="h-4 w-4 text-green-500" />;
-      case "delivery_location": return <FileText className="h-4 w-4 text-yellow-500" />;
-      case "other": return <FileText className="h-4 w-4 text-gray-500" />;
-      default: return <FileText className="h-4 w-4" />;
-    }
-  };
-  
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -141,26 +127,22 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
           {documents.map((doc) => (
             <div key={doc.id} className="flex items-center justify-between p-2 border rounded-md">
               <div className="flex items-center space-x-2">
-                {getDocumentIcon(doc.type)}
+                <FileText className="h-4 w-4 text-blue-500" />
                 <div>
                   <div className="font-medium">{doc.name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {getDocumentTypeLabel(doc.type)}
-                    {doc.notes && ` • ${doc.notes}`}
+                    {doc.minuteNumber && `Minuta: ${doc.minuteNumber}`}
+                    {doc.minuteNumber && doc.packages && " • "}
+                    {doc.packages && `Volumes: ${doc.packages}`}
+                    {doc.packages && doc.weight && " • "}
+                    {doc.weight && `Peso: ${doc.weight} kg`}
+                    {(doc.minuteNumber || doc.packages || doc.weight) && doc.notes && " • "}
+                    {doc.notes && doc.notes}
+                    {doc.isDelivered && " • Entregue"}
                   </div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                {doc.url && (
-                  <a 
-                    href={doc.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:text-blue-700"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                )}
                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(doc)}>
                   <FileEdit className="h-4 w-4" />
                 </Button>
@@ -189,39 +171,50 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: CT-e 12345"
+                  placeholder="Ex: Nota Fiscal 12345"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <label htmlFor="type" className="text-sm font-medium">Tipo de Documento</label>
-                <Select value={type} onValueChange={(value: any) => setType(value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cte">CT-e</SelectItem>
-                    <SelectItem value="invoice">Nota Fiscal</SelectItem>
-                    <SelectItem value="delivery_location">Local de Entrega</SelectItem>
-                    <SelectItem value="other">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="url" className="text-sm font-medium">URL do Documento (opcional)</label>
+                <label htmlFor="minuteNumber" className="text-sm font-medium">Número da Minuta</label>
                 <Input 
-                  id="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://"
-                  type="url"
+                  id="minuteNumber"
+                  value={minuteNumber}
+                  onChange={(e) => setMinuteNumber(e.target.value)}
+                  placeholder="Ex: MIN12345"
                 />
               </div>
               
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="packages" className="text-sm font-medium">Volumes</label>
+                  <Input 
+                    id="packages"
+                    type="number"
+                    value={packages}
+                    onChange={(e) => setPackages(e.target.value)}
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="weight" className="text-sm font-medium">Peso (kg)</label>
+                  <Input 
+                    id="weight"
+                    type="number"
+                    step="0.01"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="0.00"
+                    min="0"
+                  />
+                </div>
+              </div>
+              
               <div className="space-y-2">
-                <label htmlFor="notes" className="text-sm font-medium">Observações (opcional)</label>
+                <label htmlFor="notes" className="text-sm font-medium">Observações</label>
                 <Textarea 
                   id="notes"
                   value={notes}
@@ -229,6 +222,19 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
                   placeholder="Observações sobre o documento"
                   rows={3}
                 />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  id="isDelivered" 
+                  checked={isDelivered}
+                  onChange={(e) => setIsDelivered(e.target.checked)}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <label htmlFor="isDelivered" className="text-sm font-medium">
+                  Marcar como entregue
+                </label>
               </div>
             </div>
             

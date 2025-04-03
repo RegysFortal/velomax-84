@@ -39,8 +39,8 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const [transportMode, setTransportMode] = useState<"air" | "road">("air");
   const [carrierName, setCarrierName] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
-  const [packages, setPackages] = useState("1");
-  const [weight, setWeight] = useState("0");
+  const [packages, setPackages] = useState("");
+  const [weight, setWeight] = useState("");
   const [arrivalFlight, setArrivalFlight] = useState("");
   const [arrivalDate, setArrivalDate] = useState("");
   const [status, setStatus] = useState<ShipmentStatus>("in_transit");
@@ -62,8 +62,8 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       setTransportMode("air");
       setCarrierName("");
       setTrackingNumber("");
-      setPackages("1");
-      setWeight("0");
+      setPackages("");
+      setWeight("");
       setArrivalFlight("");
       setArrivalDate("");
       setStatus("in_transit");
@@ -86,10 +86,10 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
         return;
       }
       
-      const packageCount = parseInt(packages);
-      const weightValue = parseFloat(weight);
+      const packageCount = parseInt(packages || "0");
+      const weightValue = parseFloat(weight || "0");
       
-      if (isNaN(packageCount) || isNaN(weightValue) || packageCount < 1 || weightValue < 0) {
+      if (isNaN(packageCount) || isNaN(weightValue) || packageCount < 0 || weightValue < 0) {
         toast.error("Volumes e peso devem ser valores numéricos válidos");
         return;
       }
@@ -264,7 +264,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                 <Input 
                   id="packages"
                   type="number"
-                  min="1"
+                  min="0"
                   value={packages}
                   onChange={(e) => setPackages(e.target.value)}
                   required
