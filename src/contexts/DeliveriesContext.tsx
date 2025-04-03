@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Delivery, doorToDoorDeliveryTypes } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -21,7 +22,9 @@ type DeliveriesContextType = {
     cityId?: string
   ) => number;
   isDoorToDoorDelivery: (deliveryType: Delivery['deliveryType']) => boolean;
+  isExclusiveDelivery: (deliveryType: Delivery['deliveryType']) => boolean;
   loading: boolean;
+  checkMinuteNumberExists: (minuteNumber: string, clientId: string) => boolean;
 };
 
 // Initial deliveries data for demo purposes
@@ -100,31 +103,34 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
   const addDelivery = (delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => {
     const timestamp = new Date().toISOString();
     
-    // Generate a sequential minute number based on the current date
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    
-    // Find the highest minute number for the current month
-    const currentMonthDeliveries = deliveries.filter(d => 
-      d.minuteNumber.includes(`/${month}/${year}`)
-    );
-    
-    let nextNumber = 1;
-    if (currentMonthDeliveries.length > 0) {
-      const numbers = currentMonthDeliveries.map(d => {
-        const parts = d.minuteNumber.split('/');
-        return parseInt(parts[0], 10);
-      });
-      nextNumber = Math.max(...numbers) + 1;
+    // Generate a sequential minute number based on the current date if not provided
+    let minuteNumber = delivery.minuteNumber;
+    if (!minuteNumber) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      
+      // Find the highest minute number for the current month
+      const currentMonthDeliveries = deliveries.filter(d => 
+        d.minuteNumber.includes(`/${month}/${year}`)
+      );
+      
+      let nextNumber = 1;
+      if (currentMonthDeliveries.length > 0) {
+        const numbers = currentMonthDeliveries.map(d => {
+          const parts = d.minuteNumber.split('/');
+          return parseInt(parts[0], 10);
+        });
+        nextNumber = Math.max(...numbers) + 1;
+      }
+      
+      minuteNumber = `${String(nextNumber).padStart(3, '0')}/${month}/${year}`;
     }
-    
-    const minuteNumber = `${String(nextNumber).padStart(3, '0')}/${month}/${year}`;
     
     const newDelivery: Delivery = {
       ...delivery,
-      id: `delivery-${Date.now()}`,
       minuteNumber,
+      id: `delivery-${Date.now()}`,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -245,6 +251,11 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
         case 'reshipment':
           baseRate = priceTable.minimumRate.reshipment;
           excessWeightRate = priceTable.excessWeight.reshipmentPerKg;
+          
+          // For reshipment, add 1% insurance on cargo value
+          const insuranceRate = 0.01; // 1%
+          const insurance = cargoValue * insuranceRate;
+          totalFreight += insurance;
           break;
       }
       
@@ -271,6 +282,16 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
   const isDoorToDoorDelivery = (deliveryType: Delivery['deliveryType']): boolean => {
     return doorToDoorDeliveryTypes.includes(deliveryType);
   };
+
+  const isExclusiveDelivery = (deliveryType: Delivery['deliveryType']): boolean => {
+    return deliveryType === 'exclusive';
+  };
+  
+  const checkMinuteNumberExists = (minuteNumber: string, clientId: string): boolean => {
+    return deliveries.some(d => 
+      d.minuteNumber === minuteNumber && d.clientId === clientId
+    );
+  };
   
   return (
     <DeliveriesContext.Provider value={{
@@ -281,7 +302,9 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
       getDelivery,
       calculateFreight,
       isDoorToDoorDelivery,
+      isExclusiveDelivery,
       loading,
+      checkMinuteNumberExists,
     }}>
       {children}
     </DeliveriesContext.Provider>

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts/ClientsContext';
-import { useCities } from '@/contexts/CitiesContext';
 import { useFinancial } from '@/contexts/FinancialContext';
 import { Download, FileText, Save } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -30,16 +30,15 @@ import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Delivery, doorToDoorDeliveryTypes } from '@/types';
+import { Delivery } from '@/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ReportsPage = () => {
   const { deliveries } = useDeliveries();
   const { clients } = useClients();
-  const { cities } = useCities();
-  const { addFinancialReport } = useFinancial();
+  const { addFinancialReport, financialReports } = useFinancial();
   const { toast } = useToast();
   const [clientFilter, setClientFilter] = useState<string>('');
-  const [cityFilter, setCityFilter] = useState<string>('');
   const [startDate, setStartDate] = useState<string>(
     format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd')
   );
@@ -47,7 +46,30 @@ const ReportsPage = () => {
     format(new Date(), 'yyyy-MM-dd')
   );
 
+  // Filter out deliveries that are already in financial reports
+  const existingReportDeliveries = financialReports
+    .filter(report => report.status === 'open' || report.status === 'paid')
+    .flatMap(report => {
+      const reportStartDate = new Date(report.startDate);
+      const reportEndDate = new Date(report.endDate);
+      reportEndDate.setHours(23, 59, 59, 999);
+      
+      // Find all deliveries within the report date range for the specific client
+      return deliveries.filter(delivery => 
+        delivery.clientId === report.clientId &&
+        new Date(delivery.deliveryDate) >= reportStartDate &&
+        new Date(delivery.deliveryDate) <= reportEndDate
+      );
+    })
+    .map(delivery => delivery.id);
+
+  // Filter deliveries that are not in any financial report
   const filteredDeliveries = deliveries.filter((delivery) => {
+    // Exclude deliveries that are already in financial reports
+    if (existingReportDeliveries.includes(delivery.id)) {
+      return false;
+    }
+    
     if (clientFilter && clientFilter !== 'all' && delivery.clientId !== clientFilter) {
       return false;
     }
@@ -71,14 +93,22 @@ const ReportsPage = () => {
   const totalWeight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.weight, 0);
   const deliveryCount = filteredDeliveries.length;
 
-  const handleCityChange = (cityId: string) => {
-    setCityFilter(cityId);
-    if (cityId && cityId !== 'all') {
-      const selectedCity = cities.find(c => c.id === cityId);
-      if (selectedCity) {
-        console.log(`Selected city: ${selectedCity.name} with distance: ${selectedCity.distance} km`);
-      }
-    }
+  const getDeliveryTypeName = (type: Delivery['deliveryType']) => {
+    const types: Record<Delivery['deliveryType'], string> = {
+      'standard': 'Normal',
+      'emergency': 'Emergencial',
+      'saturday': 'Sábados',
+      'exclusive': 'Exclusivo',
+      'difficultAccess': 'Difícil Acesso',
+      'metropolitanRegion': 'Região Metropolitana',
+      'sundayHoliday': 'Domingos/Feriados',
+      'normalBiological': 'Biológico Normal',
+      'infectiousBiological': 'Biológico Infeccioso',
+      'tracked': 'Rastreado',
+      'doorToDoorInterior': 'Porta a Porta',
+      'reshipment': 'Redespacho',
+    };
+    return types[type] || type;
   };
 
   const exportToPDF = () => {
@@ -88,29 +118,38 @@ const ReportsPage = () => {
       format: 'a4'
     });
     
+    // Add company logo and info
+    // doc.addImage("logo", "PNG", 14, 10, 20, 20);
+    doc.setFontSize(10);
+    doc.text("VELOMAX TRANSPORTES LTDA", 40, 15);
+    doc.text("CNPJ: 00.000.000/0001-00", 40, 20);
+    doc.text("Av. Exemplo, 1000 - Fortaleza - CE", 40, 25);
+    
+    // Add title
     doc.setFontSize(18);
-    doc.text('Relatório de Entregas', 14, 22);
+    doc.text('RELATÓRIO DE ENTREGAS', 14, 40);
     
     const clientName = clientFilter && clientFilter !== 'all'
       ? clients.find(c => c.id === clientFilter)?.name || 'Cliente não encontrado'
-      : 'Todos os clientes';
-    doc.text(`Cliente: ${clientName}`, 14, 30);
-    doc.text(`Período: ${new Date(startDate).toLocaleDateString('pt-BR')} até ${new Date(endDate).toLocaleDateString('pt-BR')}`, 14, 35);
+      : 'TODOS OS CLIENTES';
+    doc.setFontSize(14);
+    doc.text(`CLIENTE: ${clientName.toUpperCase()}`, 14, 50);
+    doc.text(`PERÍODO: ${new Date(startDate).toLocaleDateString('pt-BR')} até ${new Date(endDate).toLocaleDateString('pt-BR')}`, 14, 55);
     
-    doc.text(`Quantidade de entregas: ${deliveryCount}`, 14, 40);
-    doc.text(`Peso total: ${totalWeight.toFixed(2)} Kg`, 14, 45);
-    doc.text(`Frete total: ${formatCurrency(totalFreight)}`, 14, 50);
+    doc.setFontSize(10);
+    doc.text(`Quantidade de entregas: ${deliveryCount}`, 14, 65);
+    doc.text(`Peso total: ${totalWeight.toFixed(2)} Kg`, 14, 70);
+    doc.text(`Frete total: ${formatCurrency(totalFreight)}`, 14, 75);
     
-    const tableColumn = ["Minuta", "Data", "Cliente", "Recebedor", "Peso (Kg)", "Frete", "Observações"];
+    const tableColumn = ["Minuta", "Data", "Recebedor", "Peso (Kg)", "Frete", "Tipo", "Observações"];
     const tableRows = filteredDeliveries.map((delivery) => {
-      const client = clients.find(c => c.id === delivery.clientId);
       return [
         delivery.minuteNumber,
         new Date(delivery.deliveryDate).toLocaleDateString('pt-BR'),
-        client?.name || 'N/A',
         delivery.receiver,
         delivery.weight.toFixed(2),
         formatCurrency(delivery.totalFreight),
+        getDeliveryTypeName(delivery.deliveryType),
         delivery.notes || ''
       ];
     });
@@ -118,7 +157,7 @@ const ReportsPage = () => {
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 60,
+      startY: 85,
       theme: 'striped',
     });
     
@@ -152,8 +191,8 @@ const ReportsPage = () => {
         'Recebedor': delivery.receiver,
         'Peso (Kg)': delivery.weight.toFixed(2),
         'Frete': formatCurrency(delivery.totalFreight),
-        'Tipo': delivery.deliveryType,
-        'Carga': delivery.cargoType,
+        'Tipo': getDeliveryTypeName(delivery.deliveryType),
+        'Carga': delivery.cargoType === 'perishable' ? 'Perecível' : 'Padrão',
         'Observações': delivery.notes || ''
       };
     });
@@ -185,7 +224,6 @@ const ReportsPage = () => {
       { wch: 15 },
       { wch: 15 },
       { wch: 12 },
-      { wch: 15 },
       { wch: 30 },
     ];
     worksheet["!cols"] = colWidths;
@@ -227,7 +265,7 @@ const ReportsPage = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label htmlFor="client">Cliente</Label>
             <Select 
@@ -242,26 +280,6 @@ const ReportsPage = () => {
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <Label htmlFor="city">Cidade (Porta a Porta)</Label>
-            <Select 
-              value={cityFilter} 
-              onValueChange={handleCityChange}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Selecione uma cidade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as cidades</SelectItem>
-                {cities.map((city) => (
-                  <SelectItem key={city.id} value={city.id}>
-                    {city.name} ({city.distance} km)
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -324,45 +342,49 @@ const ReportsPage = () => {
           </div>
         </div>
         
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[120px]">Minuta</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Recebedor</TableHead>
-                <TableHead className="text-right">Peso</TableHead>
-                <TableHead className="text-right">Frete</TableHead>
-                <TableHead>Observações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDeliveries.length === 0 ? (
+        <ScrollArea className="h-[calc(100vh-480px)]">
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center">
-                    Nenhum registro encontrado
-                  </TableCell>
+                  <TableHead className="w-[120px]">Minuta</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Recebedor</TableHead>
+                  <TableHead className="text-right">Peso</TableHead>
+                  <TableHead className="text-right">Frete</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Observações</TableHead>
                 </TableRow>
-              ) : (
-                filteredDeliveries.map((delivery) => {
-                  const client = clients.find(c => c.id === delivery.clientId);
-                  return (
-                    <TableRow key={delivery.id}>
-                      <TableCell className="font-medium">{delivery.minuteNumber}</TableCell>
-                      <TableCell>{new Date(delivery.deliveryDate).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell>{client?.name || 'N/A'}</TableCell>
-                      <TableCell>{delivery.receiver}</TableCell>
-                      <TableCell className="text-right">{delivery.weight.toFixed(2)} Kg</TableCell>
-                      <TableCell className="text-right">{formatCurrency(delivery.totalFreight)}</TableCell>
-                      <TableCell>{delivery.notes || '-'}</TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredDeliveries.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center">
+                      Nenhum registro encontrado
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredDeliveries.map((delivery) => {
+                    const client = clients.find(c => c.id === delivery.clientId);
+                    return (
+                      <TableRow key={delivery.id}>
+                        <TableCell className="font-medium">{delivery.minuteNumber}</TableCell>
+                        <TableCell>{new Date(delivery.deliveryDate).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell>{client?.name || 'N/A'}</TableCell>
+                        <TableCell>{delivery.receiver}</TableCell>
+                        <TableCell className="text-right">{delivery.weight.toFixed(2)} Kg</TableCell>
+                        <TableCell className="text-right">{formatCurrency(delivery.totalFreight)}</TableCell>
+                        <TableCell>{getDeliveryTypeName(delivery.deliveryType)}</TableCell>
+                        <TableCell>{delivery.notes || '-'}</TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
       </div>
     </AppLayout>
   );

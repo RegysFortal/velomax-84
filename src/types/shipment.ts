@@ -40,7 +40,7 @@ export interface Shipment {
   observations?: string;
   status: ShipmentStatus;
   isRetained: boolean;
-  fiscalAction?: FiscalAction;  // This property is now explicitly optional
+  fiscalAction?: FiscalAction;
   documents: Document[];
   deliveryDate?: string;
   deliveryTime?: string;

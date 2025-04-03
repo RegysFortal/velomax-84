@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   username: string;
@@ -20,7 +19,13 @@ export interface UserPermissions {
 export interface Client {
   id: string;
   name: string;
-  address: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
   contact: string;
   phone: string;
   email: string;
@@ -92,8 +97,10 @@ export interface Delivery {
   updatedAt: string;
 }
 
-// Helper constant to identify door-to-door delivery types
-export const doorToDoorDeliveryTypes: Delivery['deliveryType'][] = ['exclusive', 'difficultAccess', 'doorToDoorInterior'];
+// Door to door delivery types array
+export const doorToDoorDeliveryTypes = [
+  'doorToDoorInterior'
+];
 
 export interface City {
   id: string;
