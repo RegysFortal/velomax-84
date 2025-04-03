@@ -10,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -22,70 +21,35 @@ import { useShipments } from "@/contexts/ShipmentsContext";
 import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { format } from 'date-fns';
 import { toast } from "sonner";
+import { useClients } from "@/contexts/ClientsContext";
 
 interface ShipmentDialogProps {
   open: boolean;
-  onOpenChange?: (open: boolean) => void;
-  onClose: () => void;
-  shipment?: Shipment;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function ShipmentDialog({ open, onOpenChange, onClose, shipment }: ShipmentDialogProps) {
+export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const { addShipment, updateShipment } = useShipments();
+  const { clients } = useClients();
   
   // Form state
-  const [companyId, setCompanyId] = useState(shipment?.companyId || "");
-  const [companyName, setCompanyName] = useState(shipment?.companyName || "");
-  const [transportMode, setTransportMode] = useState<"air" | "road">(shipment?.transportMode || "air");
-  const [carrierName, setCarrierName] = useState(shipment?.carrierName || "");
-  const [trackingNumber, setTrackingNumber] = useState(shipment?.trackingNumber || "");
-  const [packages, setPackages] = useState(shipment?.packages?.toString() || "1");
-  const [weight, setWeight] = useState(shipment?.weight?.toString() || "0");
-  const [arrivalFlight, setArrivalFlight] = useState(shipment?.arrivalFlight || "");
-  const [arrivalDate, setArrivalDate] = useState(
-    shipment?.arrivalDate
-      ? format(new Date(shipment.arrivalDate), 'yyyy-MM-dd')
-      : ""
-  );
-  const [status, setStatus] = useState<ShipmentStatus>(shipment?.status || "in_transit");
-  const [isPriority, setIsPriority] = useState(shipment?.isPriority || false);
-  const [observations, setObservations] = useState(shipment?.observations || "");
-  const [deliveryDate, setDeliveryDate] = useState(
-    shipment?.deliveryDate
-      ? format(new Date(shipment.deliveryDate), 'yyyy-MM-dd')
-      : ""
-  );
-  const [deliveryTime, setDeliveryTime] = useState(shipment?.deliveryTime || "");
+  const [companyId, setCompanyId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [transportMode, setTransportMode] = useState<"air" | "road">("air");
+  const [carrierName, setCarrierName] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [packages, setPackages] = useState("1");
+  const [weight, setWeight] = useState("0");
+  const [arrivalFlight, setArrivalFlight] = useState("");
+  const [arrivalDate, setArrivalDate] = useState("");
+  const [status, setStatus] = useState<ShipmentStatus>("in_transit");
+  const [observations, setObservations] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("");
   
-  // Reset form when dialog opens/closes or shipment changes
+  // Reset form when dialog opens/closes
   useEffect(() => {
-    if (open && shipment) {
-      setCompanyId(shipment.companyId || "");
-      setCompanyName(shipment.companyName || "");
-      setTransportMode(shipment.transportMode || "air");
-      setCarrierName(shipment.carrierName || "");
-      setTrackingNumber(shipment.trackingNumber || "");
-      setPackages(shipment.packages?.toString() || "1");
-      setWeight(shipment.weight?.toString() || "0");
-      setArrivalFlight(shipment.arrivalFlight || "");
-      setStatus(shipment.status || "in_transit");
-      setIsPriority(shipment.isPriority || false);
-      setObservations(shipment.observations || "");
-      
-      if (shipment.arrivalDate) {
-        setArrivalDate(format(new Date(shipment.arrivalDate), 'yyyy-MM-dd'));
-      } else {
-        setArrivalDate("");
-      }
-      
-      if (shipment.deliveryDate) {
-        setDeliveryDate(format(new Date(shipment.deliveryDate), 'yyyy-MM-dd'));
-      } else {
-        setDeliveryDate("");
-      }
-      
-      setDeliveryTime(shipment.deliveryTime || "");
-    } else if (open) {
+    if (open) {
       // Reset form for a new shipment
       setCompanyId("");
       setCompanyName("");
@@ -97,12 +61,11 @@ export function ShipmentDialog({ open, onOpenChange, onClose, shipment }: Shipme
       setArrivalFlight("");
       setArrivalDate("");
       setStatus("in_transit");
-      setIsPriority(false);
       setObservations("");
       setDeliveryDate("");
       setDeliveryTime("");
     }
-  }, [open, shipment]);
+  }, [open]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,73 +99,83 @@ export function ShipmentDialog({ open, onOpenChange, onClose, shipment }: Shipme
         observations: observations.trim() || undefined,
         status,
         isRetained: status === "retained",
-        isPriority,
         deliveryDate: deliveryDate || undefined,
         deliveryTime: deliveryTime || undefined,
       };
       
-      if (shipment) {
-        await updateShipment(shipment.id, shipmentData);
-        toast.success("Embarque atualizado com sucesso");
-      } else {
-        await addShipment(shipmentData);
-        toast.success("Embarque criado com sucesso");
-      }
-      
-      onClose();
+      await addShipment(shipmentData);
+      toast.success("Embarque criado com sucesso");
+      onOpenChange(false);
     } catch (error) {
       toast.error("Erro ao salvar embarque");
       console.error(error);
     }
   };
   
-  const handleDialogOpenChange = (open: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(open);
+  const handleCompanySelect = (selectedId: string) => {
+    const selectedClient = clients.find(client => client.id === selectedId);
+    
+    if (selectedClient) {
+      setCompanyId(selectedClient.id);
+      setCompanyName(selectedClient.name);
     }
-    if (!open) {
-      onClose();
+  };
+
+  const getCarrierOptions = () => {
+    if (transportMode === "air") {
+      return (
+        <>
+          <SelectItem value="GOL">GOL</SelectItem>
+          <SelectItem value="LATAM">LATAM</SelectItem>
+          <SelectItem value="AZUL">AZUL</SelectItem>
+        </>
+      );
     }
+    return (
+      <SelectItem value="custom">Outra transportadora</SelectItem>
+    );
   };
   
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>
-            {shipment ? "Editar Embarque" : "Novo Embarque"}
-          </DialogTitle>
+          <DialogTitle>Novo Embarque</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 md:col-span-2">
-              <label htmlFor="companyName" className="text-sm font-medium">Nome da Empresa</label>
-              <Input 
-                id="companyName"
-                value={companyName}
-                onChange={(e) => {
-                  setCompanyName(e.target.value);
-                  if (!companyId && e.target.value) {
-                    // Simple ID generation if no ID is set yet
-                    setCompanyId(e.target.value.toLowerCase().replace(/\s+/g, '-'));
-                  }
-                }}
-                placeholder="Ex: Empresa XYZ"
+              <label htmlFor="companyName" className="text-sm font-medium">Empresa</label>
+              <Select 
+                value={companyId} 
+                onValueChange={handleCompanySelect}
                 required
-              />
-              <Input 
-                type="hidden"
-                value={companyId}
-                onChange={(e) => setCompanyId(e.target.value)}
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="transportMode" className="text-sm font-medium">Modo de Transporte</label>
-              <Select value={transportMode} onValueChange={(val: "air" | "road") => setTransportMode(val)}>
+              <label htmlFor="transportMode" className="text-sm font-medium">Modal de Transporte</label>
+              <Select 
+                value={transportMode} 
+                onValueChange={(val: "air" | "road") => {
+                  setTransportMode(val);
+                  setCarrierName(""); // Reset carrier when mode changes
+                }}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o modo" />
+                  <SelectValue placeholder="Selecione o modal" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="air">Aéreo</SelectItem>
@@ -213,13 +186,30 @@ export function ShipmentDialog({ open, onOpenChange, onClose, shipment }: Shipme
             
             <div className="space-y-2">
               <label htmlFor="carrierName" className="text-sm font-medium">Transportadora</label>
-              <Input 
-                id="carrierName"
-                value={carrierName}
-                onChange={(e) => setCarrierName(e.target.value)}
-                placeholder={transportMode === "air" ? "Ex: LATAM Cargo" : "Ex: Transportadora XYZ"}
-                required
-              />
+              {transportMode === "air" ? (
+                <Select 
+                  value={carrierName} 
+                  onValueChange={(val) => setCarrierName(val)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a companhia aérea" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GOL">GOL</SelectItem>
+                    <SelectItem value="LATAM">LATAM</SelectItem>
+                    <SelectItem value="AZUL">AZUL</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input 
+                  id="carrierName"
+                  value={carrierName}
+                  onChange={(e) => setCarrierName(e.target.value)}
+                  placeholder="Nome da transportadora"
+                  required
+                />
+              )}
             </div>
             
             <div className="space-y-2">
@@ -242,9 +232,7 @@ export function ShipmentDialog({ open, onOpenChange, onClose, shipment }: Shipme
                 <SelectContent>
                   <SelectItem value="in_transit">Em Trânsito</SelectItem>
                   <SelectItem value="retained">Retida</SelectItem>
-                  <SelectItem value="cleared">Liberada</SelectItem>
-                  <SelectItem value="standby">Standby</SelectItem>
-                  <SelectItem value="delivered">Entregue</SelectItem>
+                  <SelectItem value="delivered">Retirada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -306,53 +294,22 @@ export function ShipmentDialog({ open, onOpenChange, onClose, shipment }: Shipme
               />
             </div>
             
-            <div className="space-y-2 md:col-span-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="isPriority" 
-                  checked={isPriority}
-                  onCheckedChange={(checked) => setIsPriority(checked === true)}
-                />
-                <label
-                  htmlFor="isPriority"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Embarque Prioritário
-                </label>
+            {status === "retained" && (
+              <div className="space-y-4 border p-4 rounded-md bg-red-50 md:col-span-2">
+                <h3 className="font-medium">Detalhes da Retenção</h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  Este embarque está marcado como retido. Por favor, salve o embarque primeiro e depois adicione os detalhes da retenção fiscal.
+                </p>
               </div>
-            </div>
-            
-            {isPriority && (
-              <>
-                <div className="space-y-2">
-                  <label htmlFor="deliveryDate" className="text-sm font-medium">Data de Entrega Programada</label>
-                  <Input 
-                    id="deliveryDate"
-                    type="date"
-                    value={deliveryDate}
-                    onChange={(e) => setDeliveryDate(e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="deliveryTime" className="text-sm font-medium">Hora de Entrega Programada</label>
-                  <Input 
-                    id="deliveryTime"
-                    type="time"
-                    value={deliveryTime}
-                    onChange={(e) => setDeliveryTime(e.target.value)}
-                  />
-                </div>
-              </>
             )}
           </div>
           
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit">
-              {shipment ? "Atualizar" : "Criar"}
+              Criar
             </Button>
           </DialogFooter>
         </form>

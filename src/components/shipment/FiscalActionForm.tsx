@@ -19,10 +19,10 @@ interface FiscalActionFormProps {
   shipmentId: string;
   fiscalAction?: FiscalAction;
   open: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function FiscalActionForm({ shipmentId, fiscalAction, open, onClose }: FiscalActionFormProps) {
+export function FiscalActionForm({ shipmentId, fiscalAction, open, onOpenChange }: FiscalActionFormProps) {
   const { updateFiscalAction, clearFiscalAction } = useShipments();
   
   // Form state
@@ -76,7 +76,7 @@ export function FiscalActionForm({ shipmentId, fiscalAction, open, onClose }: Fi
       
       await updateFiscalAction(shipmentId, data);
       toast.success("Ação fiscal atualizada com sucesso");
-      onClose();
+      onOpenChange(false);
     } catch (error) {
       toast.error("Erro ao salvar ação fiscal");
       console.error(error);
@@ -87,7 +87,7 @@ export function FiscalActionForm({ shipmentId, fiscalAction, open, onClose }: Fi
     try {
       await clearFiscalAction(shipmentId);
       toast.success("Ação fiscal removida com sucesso");
-      onClose();
+      onOpenChange(false);
     } catch (error) {
       toast.error("Erro ao remover ação fiscal");
       console.error(error);
@@ -95,7 +95,7 @@ export function FiscalActionForm({ shipmentId, fiscalAction, open, onClose }: Fi
   };
   
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{fiscalAction ? "Editar Ação Fiscal" : "Registrar Ação Fiscal"}</DialogTitle>
@@ -164,7 +164,7 @@ export function FiscalActionForm({ shipmentId, fiscalAction, open, onClose }: Fi
                 Remover Ação Fiscal
               </Button>
             )}
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit">

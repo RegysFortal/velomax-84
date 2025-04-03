@@ -11,14 +11,11 @@ import {
   TabsTrigger 
 } from '@/components/ui/tabs';
 import { 
-  PackageOpen, 
-  Clock, 
   AlertTriangle, 
   CheckCircle2, 
-  Timer, 
+  Search, 
   Truck, 
   Plus, 
-  Search 
 } from 'lucide-react';
 import {
   Table,
@@ -30,16 +27,16 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { ShipmentDialog } from '@/components/shipment/ShipmentDialog';
 import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
 import { Shipment, ShipmentStatus } from '@/types/shipment';
+import { StatusBadge } from '@/components/shipment/StatusBadge';
 
 const statusOptions: { value: ShipmentStatus; label: string; icon: React.ReactNode }[] = [
   { value: 'in_transit', label: 'Em Trânsito', icon: <Truck className="h-4 w-4" /> },
   { value: 'retained', label: 'Retida', icon: <AlertTriangle className="h-4 w-4" /> },
-  { value: 'cleared', label: 'Liberada', icon: <CheckCircle2 className="h-4 w-4" /> },
-  { value: 'standby', label: 'Standby', icon: <Timer className="h-4 w-4" /> },
-  { value: 'delivered', label: 'Entregue', icon: <PackageOpen className="h-4 w-4" /> }
+  { value: 'delivered', label: 'Retirada', icon: <CheckCircle2 className="h-4 w-4" /> }
 ];
 
 export default function Shipments() {
@@ -59,6 +56,20 @@ export default function Shipments() {
     
     return matchesSearch && matchesTab;
   });
+
+  const isShipmentOverdue = (shipment: Shipment) => {
+    if (!shipment.arrivalDate) return false;
+    
+    // Check if the arrival date is in the past and shipment is not delivered
+    const arrivalDate = new Date(shipment.arrivalDate);
+    const today = new Date();
+    
+    // Set both dates to start of day for fair comparison
+    arrivalDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    return arrivalDate < today && shipment.status !== 'delivered';
+  };
 
   return (
     <AppLayout>
@@ -94,9 +105,8 @@ export default function Shipments() {
           onValueChange={(value) => setSelectedTab(value as ShipmentStatus | 'all')}
           className="w-full"
         >
-          <TabsList className="grid grid-cols-6 mb-4">
+          <TabsList className="grid grid-cols-4 mb-4">
             <TabsTrigger value="all">
-              <Clock className="mr-2 h-4 w-4" />
               Todos
             </TabsTrigger>
             {statusOptions.map(status => (
@@ -138,12 +148,16 @@ export default function Shipments() {
                     </TableRow>
                   ) : (
                     filteredShipments.map((shipment) => {
-                      const status = statusOptions.find(s => s.value === shipment.status);
+                      const isOverdue = isShipmentOverdue(shipment);
                       
                       return (
                         <TableRow 
                           key={shipment.id} 
-                          className="cursor-pointer hover:bg-muted"
+                          className={cn(
+                            "cursor-pointer hover:bg-muted",
+                            shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
+                            isOverdue && shipment.status !== 'retained' && "bg-amber-50 hover:bg-amber-100"
+                          )}
                           onClick={() => setSelectedShipment(shipment)}
                         >
                           <TableCell>{shipment.companyName}</TableCell>
@@ -153,16 +167,18 @@ export default function Shipments() {
                           <TableCell>{shipment.weight} kg</TableCell>
                           <TableCell>
                             {shipment.arrivalDate ? (
-                              format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })
+                              <div className="flex items-center gap-1">
+                                {format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })}
+                                {isOverdue && (
+                                  <span className="inline-flex h-2 w-2 rounded-full bg-amber-500" 
+                                    title="Embarque em atraso" />
+                                )}
+                              </div>
                             ) : 'Não definida'}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              {status?.icon}
-                              <span>{status?.label}</span>
-                              {shipment.isPriority && (
-                                <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-red-500" />
-                              )}
+                              <StatusBadge status={shipment.status} />
                             </div>
                           </TableCell>
                         </TableRow>
@@ -189,7 +205,6 @@ export default function Shipments() {
       <ShipmentDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
-        onClose={() => setIsCreateDialogOpen(false)}
       />
     </AppLayout>
   );

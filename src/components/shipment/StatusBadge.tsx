@@ -4,9 +4,7 @@ import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
   CheckCircle2,
-  Timer,
   Truck,
-  PackageOpen,
 } from "lucide-react";
 
 interface StatusBadgeProps {
@@ -31,20 +29,10 @@ export function StatusBadge({
       label: "Retida",
       className: "bg-red-100 text-red-800 border-red-200",
     },
-    cleared: {
-      icon: CheckCircle2,
-      label: "Liberada",
-      className: "bg-green-100 text-green-800 border-green-200",
-    },
-    standby: {
-      icon: Timer,
-      label: "Standby",
-      className: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    },
     delivered: {
-      icon: PackageOpen,
-      label: "Entregue",
-      className: "bg-gray-100 text-gray-800 border-gray-200",
+      icon: CheckCircle2,
+      label: "Retirada",
+      className: "bg-green-100 text-green-800 border-green-200",
     }
   }
   

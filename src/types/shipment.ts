@@ -1,10 +1,8 @@
 
 export type ShipmentStatus = 
-  | "in_transit" 
-  | "retained" 
-  | "cleared" 
-  | "standby" 
-  | "delivered";
+  | "in_transit"  // Em trânsito 
+  | "retained"    // Retida
+  | "delivered";  // Retirada
 
 export type TransportMode = "air" | "road";
 
@@ -44,7 +42,6 @@ export interface Shipment {
   isRetained: boolean;
   fiscalAction?: FiscalAction;
   documents: Document[];
-  isPriority: boolean;
   deliveryDate?: string;
   deliveryTime?: string;
   createdAt: string;
