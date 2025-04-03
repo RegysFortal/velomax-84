@@ -150,7 +150,7 @@ const SettingsPage = () => {
 
   const onSubmitSettings = (data: SystemSettingsData) => {
     updateSystemSettings(data);
-    toast({
+    useToast().toast({
       title: "Configurações atualizadas",
       description: "As configurações do sistema foram salvas com sucesso."
     });

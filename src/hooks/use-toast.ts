@@ -5,10 +5,7 @@ type ToastProps = {
   id: string;
   title?: string;
   description?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
+  action?: React.ReactNode;
   variant?: "default" | "destructive";
 };
 
@@ -37,12 +34,7 @@ export const useToast = () => {
       id: crypto.randomUUID(),
       title,
       description,
-      action: action
-        ? {
-            label: action.label,
-            onClick: action.onClick,
-          }
-        : undefined,
+      action,
       ...props,
     });
   };

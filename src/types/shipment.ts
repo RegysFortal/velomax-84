@@ -53,3 +53,25 @@ export interface Shipment {
   createdAt: string;
   updatedAt: string;
 }
+
+// Add a Delivery type to ensure packages is a recognized property
+export interface Delivery {
+  id: string;
+  clientId: string;
+  minuteNumber: string;
+  deliveryDate: string;
+  deliveryTime?: string;
+  receiver?: string;
+  cityId?: string;
+  weight: number;
+  packages: number;
+  cargoType: string;
+  deliveryType: string;
+  cargoValue: number;
+  totalFreight: number;
+  customPricing: boolean;
+  discount: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
