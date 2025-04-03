@@ -22,6 +22,7 @@ import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { format } from 'date-fns';
 import { toast } from "sonner";
 import { useClients } from "@/contexts/ClientsContext";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -47,6 +48,11 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   
+  // Retention-specific fields
+  const [retentionReason, setRetentionReason] = useState("");
+  const [retentionAmount, setRetentionAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState("");
+  
   // Reset form when dialog opens/closes
   useEffect(() => {
     if (open) {
@@ -64,6 +70,9 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       setObservations("");
       setDeliveryDate("");
       setDeliveryTime("");
+      setRetentionReason("");
+      setRetentionAmount("");
+      setPaymentDate("");
     }
   }, [open]);
   
@@ -85,6 +94,12 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
         return;
       }
       
+      // Validate retention-specific fields if status is "retained"
+      if (status === "retained" && !retentionReason.trim()) {
+        toast.error("Informe o motivo da retenção");
+        return;
+      }
+      
       // Build shipment object with all required fields
       const shipmentData = {
         companyId: companyId.trim(),
@@ -103,7 +118,23 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
         deliveryTime: deliveryTime || undefined,
       };
       
-      await addShipment(shipmentData);
+      // Add fiscal action if status is retained
+      if (status === "retained") {
+        const fiscalAction = {
+          reason: retentionReason.trim(),
+          amountToPay: parseFloat(retentionAmount) || 0,
+          paymentDate: paymentDate || undefined,
+        };
+        
+        // Include fiscal action in shipment data
+        await addShipment({
+          ...shipmentData,
+          fiscalAction,
+        });
+      } else {
+        await addShipment(shipmentData);
+      }
+      
       toast.success("Embarque criado com sucesso");
       onOpenChange(false);
     } catch (error) {
@@ -138,181 +169,220 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl max-h-[95vh]">
         <DialogHeader>
           <DialogTitle>Novo Embarque</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 md:col-span-2">
-              <label htmlFor="companyName" className="text-sm font-medium">Empresa</label>
-              <Select 
-                value={companyId} 
-                onValueChange={handleCompanySelect}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma empresa" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="transportMode" className="text-sm font-medium">Modal de Transporte</label>
-              <Select 
-                value={transportMode} 
-                onValueChange={(val: "air" | "road") => {
-                  setTransportMode(val);
-                  setCarrierName(""); // Reset carrier when mode changes
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o modal" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="air">Aéreo</SelectItem>
-                  <SelectItem value="road">Rodoviário</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="carrierName" className="text-sm font-medium">Transportadora</label>
-              {transportMode === "air" ? (
+        <ScrollArea className="max-h-[calc(95vh-130px)] pr-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2 md:col-span-2">
+                <label htmlFor="companyName" className="text-sm font-medium">Empresa</label>
                 <Select 
-                  value={carrierName} 
-                  onValueChange={(val) => setCarrierName(val)}
+                  value={companyId} 
+                  onValueChange={handleCompanySelect}
                   required
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione a companhia aérea" />
+                    <SelectValue placeholder="Selecione uma empresa" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GOL">GOL</SelectItem>
-                    <SelectItem value="LATAM">LATAM</SelectItem>
-                    <SelectItem value="AZUL">AZUL</SelectItem>
+                    {clients.map(client => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-              ) : (
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="transportMode" className="text-sm font-medium">Modal de Transporte</label>
+                <Select 
+                  value={transportMode} 
+                  onValueChange={(val: "air" | "road") => {
+                    setTransportMode(val);
+                    setCarrierName(""); // Reset carrier when mode changes
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o modal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="air">Aéreo</SelectItem>
+                    <SelectItem value="road">Rodoviário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="carrierName" className="text-sm font-medium">Transportadora</label>
+                {transportMode === "air" ? (
+                  <Select 
+                    value={carrierName} 
+                    onValueChange={(val) => setCarrierName(val)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a companhia aérea" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GOL">GOL</SelectItem>
+                      <SelectItem value="LATAM">LATAM</SelectItem>
+                      <SelectItem value="AZUL">AZUL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input 
+                    id="carrierName"
+                    value={carrierName}
+                    onChange={(e) => setCarrierName(e.target.value)}
+                    placeholder="Nome da transportadora"
+                    required
+                  />
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="trackingNumber" className="text-sm font-medium">Número do Conhecimento</label>
                 <Input 
-                  id="carrierName"
-                  value={carrierName}
-                  onChange={(e) => setCarrierName(e.target.value)}
-                  placeholder="Nome da transportadora"
+                  id="trackingNumber"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder="Ex: 123456789"
                   required
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="packages" className="text-sm font-medium">Volumes</label>
+                <Input 
+                  id="packages"
+                  type="number"
+                  min="1"
+                  value={packages}
+                  onChange={(e) => setPackages(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="weight" className="text-sm font-medium">Peso (kg)</label>
+                <Input 
+                  id="weight"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  required
+                />
+              </div>
+              
+              {transportMode === "air" && (
+                <div className="space-y-2">
+                  <label htmlFor="arrivalFlight" className="text-sm font-medium">Voo de Chegada</label>
+                  <Input 
+                    id="arrivalFlight"
+                    value={arrivalFlight}
+                    onChange={(e) => setArrivalFlight(e.target.value)}
+                    placeholder="Ex: LA3456"
+                  />
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <label htmlFor="arrivalDate" className="text-sm font-medium">Data de Chegada</label>
+                <Input 
+                  id="arrivalDate"
+                  type="date"
+                  value={arrivalDate}
+                  onChange={(e) => setArrivalDate(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2 md:col-span-2">
+                <label htmlFor="observations" className="text-sm font-medium">Observações</label>
+                <Textarea 
+                  id="observations"
+                  value={observations}
+                  onChange={(e) => setObservations(e.target.value)}
+                  placeholder="Observações sobre a carga (perecível, biológico, entrega dedicada, etc.)"
+                />
+              </div>
+              
+              {/* Status field moved to the bottom */}
+              <div className="space-y-2 md:col-span-2">
+                <label htmlFor="status" className="text-sm font-medium">Status</label>
+                <Select value={status} onValueChange={(val: ShipmentStatus) => setStatus(val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in_transit">Em Trânsito</SelectItem>
+                    <SelectItem value="retained">Retida</SelectItem>
+                    <SelectItem value="delivered">Retirada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Show fiscal action fields conditionally when status is "retained" */}
+              {status === "retained" && (
+                <div className="space-y-4 border p-4 rounded-md bg-red-50 md:col-span-2">
+                  <h3 className="font-medium">Detalhes da Retenção</h3>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="retentionReason" className="text-sm font-medium">Motivo da Retenção</label>
+                    <Textarea 
+                      id="retentionReason"
+                      value={retentionReason}
+                      onChange={(e) => setRetentionReason(e.target.value)}
+                      placeholder="Descreva o motivo da retenção fiscal"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="retentionAmount" className="text-sm font-medium">Valor do Imposto</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2">R$</span>
+                      <Input 
+                        id="retentionAmount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={retentionAmount}
+                        onChange={(e) => setRetentionAmount(e.target.value)}
+                        className="pl-8"
+                        placeholder="0,00"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="paymentDate" className="text-sm font-medium">Data de Pagamento</label>
+                    <Input 
+                      id="paymentDate"
+                      type="date"
+                      value={paymentDate}
+                      onChange={(e) => setPaymentDate(e.target.value)}
+                    />
+                  </div>
+                </div>
               )}
             </div>
             
-            <div className="space-y-2">
-              <label htmlFor="trackingNumber" className="text-sm font-medium">Número do Conhecimento</label>
-              <Input 
-                id="trackingNumber"
-                value={trackingNumber}
-                onChange={(e) => setTrackingNumber(e.target.value)}
-                placeholder="Ex: 123456789"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="status" className="text-sm font-medium">Status</label>
-              <Select value={status} onValueChange={(val: ShipmentStatus) => setStatus(val)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in_transit">Em Trânsito</SelectItem>
-                  <SelectItem value="retained">Retida</SelectItem>
-                  <SelectItem value="delivered">Retirada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="packages" className="text-sm font-medium">Volumes</label>
-              <Input 
-                id="packages"
-                type="number"
-                min="1"
-                value={packages}
-                onChange={(e) => setPackages(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="weight" className="text-sm font-medium">Peso (kg)</label>
-              <Input 
-                id="weight"
-                type="number"
-                min="0"
-                step="0.01"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                required
-              />
-            </div>
-            
-            {transportMode === "air" && (
-              <div className="space-y-2">
-                <label htmlFor="arrivalFlight" className="text-sm font-medium">Voo de Chegada</label>
-                <Input 
-                  id="arrivalFlight"
-                  value={arrivalFlight}
-                  onChange={(e) => setArrivalFlight(e.target.value)}
-                  placeholder="Ex: LA3456"
-                />
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <label htmlFor="arrivalDate" className="text-sm font-medium">Data de Chegada</label>
-              <Input 
-                id="arrivalDate"
-                type="date"
-                value={arrivalDate}
-                onChange={(e) => setArrivalDate(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2 md:col-span-2">
-              <label htmlFor="observations" className="text-sm font-medium">Observações</label>
-              <Textarea 
-                id="observations"
-                value={observations}
-                onChange={(e) => setObservations(e.target.value)}
-                placeholder="Observações sobre a carga (perecível, biológico, entrega dedicada, etc.)"
-              />
-            </div>
-            
-            {status === "retained" && (
-              <div className="space-y-4 border p-4 rounded-md bg-red-50 md:col-span-2">
-                <h3 className="font-medium">Detalhes da Retenção</h3>
-                <p className="text-sm text-gray-600 mb-2">
-                  Este embarque está marcado como retido. Por favor, salve o embarque primeiro e depois adicione os detalhes da retenção fiscal.
-                </p>
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">
-              Criar
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                Criar
+              </Button>
+            </DialogFooter>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
