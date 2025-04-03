@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,7 @@ import { Delivery } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const DeliveryForm = ({
   onSubmit,
@@ -816,7 +817,7 @@ const DeliveriesPage = () => {
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const itemsPerPage = 10;
   
-  const canDeleteDeliveries = user?.role === 'admin' || (user?.permissions && user.permissions.financial);
+  const canDeleteDeliveries = user?.role === 'admin' || (user?.permissions?.financial === true);
 
   const handleCreate = (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => {
     addDelivery(data);
@@ -951,4 +952,80 @@ const DeliveriesPage = () => {
                       </TableRow>
                     ) : (
                       paginatedDeliveries.map((delivery) => {
-                        const client =
+                        const client = clients.find(c => c.id === delivery.clientId);
+                        return (
+                          <TableRow 
+                            key={delivery.id} 
+                            className="cursor-pointer hover:bg-muted/50"
+                            onClick={() => setSelectedDelivery(delivery)}
+                          >
+                            <TableCell className="font-medium">{delivery.minuteNumber}</TableCell>
+                            <TableCell>{client?.name || 'N/A'}</TableCell>
+                            <TableCell>{new Date(delivery.deliveryDate).toLocaleDateString('pt-BR')}</TableCell>
+                            <TableCell>{delivery.receiver}</TableCell>
+                            <TableCell className="text-right">{delivery.weight.toFixed(2)} Kg</TableCell>
+                            <TableCell className="text-right">{formatCurrency(delivery.totalFreight)}</TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </ScrollArea>
+            
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-4">
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <Button
+                        key={i}
+                        variant={currentPage === i + 1 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(i + 1)}
+                      >
+                        {i + 1}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+        
+        <Dialog open={!!selectedDelivery} onOpenChange={(open) => !open && setSelectedDelivery(null)}>
+          <DialogContent className="max-w-3xl">
+            {selectedDelivery && (
+              <DeliveryDetails 
+                delivery={selectedDelivery} 
+                onClose={() => setSelectedDelivery(null)}
+                onDelete={handleDelete}
+                canDelete={canDeleteDeliveries}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default DeliveriesPage;
