@@ -188,6 +188,7 @@ export default function Shipments() {
       {/* Create shipment dialog */}
       <ShipmentDialog
         open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
       />
     </AppLayout>

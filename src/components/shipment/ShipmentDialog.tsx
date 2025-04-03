@@ -25,11 +25,12 @@ import { toast } from "sonner";
 
 interface ShipmentDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
+  onClose: () => void;
   shipment?: Shipment;
 }
 
-export function ShipmentDialog({ open, onOpenChange, shipment }: ShipmentDialogProps) {
+export function ShipmentDialog({ open, onOpenChange, onClose, shipment }: ShipmentDialogProps) {
   const { addShipment, updateShipment } = useShipments();
   
   // Form state
@@ -148,15 +149,24 @@ export function ShipmentDialog({ open, onOpenChange, shipment }: ShipmentDialogP
         toast.success("Embarque criado com sucesso");
       }
       
-      onOpenChange(false);
+      onClose();
     } catch (error) {
       toast.error("Erro ao salvar embarque");
       console.error(error);
     }
   };
   
+  const handleDialogOpenChange = (open: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(open);
+    }
+    if (!open) {
+      onClose();
+    }
+  };
+  
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
@@ -338,7 +348,7 @@ export function ShipmentDialog({ open, onOpenChange, shipment }: ShipmentDialogP
           </div>
           
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit">
