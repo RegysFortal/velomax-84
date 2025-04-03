@@ -2,7 +2,8 @@
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
   | "retained"    // Retida
-  | "delivered";  // Retirada
+  | "delivered"   // Retirada
+  | "delivered_final"; // Entregue
 
 export type TransportMode = "air" | "road";
 
@@ -22,6 +23,10 @@ export interface Document {
   type: "cte" | "invoice" | "delivery_location" | "other";
   url?: string;
   notes?: string;
+  minuteNumber?: string;
+  weight?: number;
+  packages?: number;
+  isDelivered?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +49,7 @@ export interface Shipment {
   documents: Document[];
   deliveryDate?: string;
   deliveryTime?: string;
+  receiverName?: string;
   createdAt: string;
   updatedAt: string;
 }

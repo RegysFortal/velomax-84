@@ -85,7 +85,7 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
           packages: packagesValue,
           notes: notes || undefined,
           isDelivered,
-          type: "invoice" // Default type since we're not asking for it anymore
+          type: "invoice" as const // Cast to literal type
         };
         await addDocument(shipmentId, newDoc);
         toast.success("Documento adicionado com sucesso");

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +55,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<ShipmentStatus>(shipment.status);
   
-  // Status change form
   const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [deliveryTime, setDeliveryTime] = useState(format(new Date(), 'HH:mm'));
   const [receiverName, setReceiverName] = useState("");
@@ -64,7 +62,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   const handleStatusChange = async (newStatus: ShipmentStatus) => {
     if (newStatus === currentStatus) return;
     
-    // If changing to "delivered" or "delivered_final", show dialog to collect additional info
     if (newStatus === "delivered" || newStatus === "delivered_final") {
       setCurrentStatus(newStatus);
       setIsStatusDialogOpen(true);
@@ -83,7 +80,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   
   const handleCompleteStatusChange = async () => {
     try {
-      // Update the shipment status
       const statusData = {
         status: currentStatus,
         deliveryDate,
@@ -93,15 +89,12 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
       
       await updateShipment(shipment.id, statusData);
       
-      // If status is "delivered_final", create a delivery entry
       if (currentStatus === "delivered_final") {
-        // Find documents with minute numbers to create deliveries
         const documentsWithMinuteNumbers = shipment.documents.filter(doc => doc.minuteNumber);
         
         if (documentsWithMinuteNumbers.length === 0) {
           toast.warning("Nenhuma minuta encontrada para registro de entrega");
         } else {
-          // Create delivery entries for each document with minute number
           for (const doc of documentsWithMinuteNumbers) {
             if (doc.minuteNumber) {
               await addDelivery({
@@ -114,8 +107,8 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
                 packages: doc.packages || Math.ceil(shipment.packages / shipment.documents.length),
                 cargoType: 'standard',
                 deliveryType: 'standard',
-                cargoValue: 0, // To be filled out later
-                totalFreight: 0, // To be calculated later
+                cargoValue: 0,
+                totalFreight: 0,
                 customPricing: false,
                 discount: 0,
                 notes: `Gerado automaticamente do embarque ${shipment.trackingNumber}`
@@ -422,7 +415,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
         />
       )}
       
-      {/* Status change dialog */}
       <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
         <DialogContent>
           <DialogHeader>

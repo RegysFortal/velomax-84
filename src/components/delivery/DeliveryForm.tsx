@@ -36,6 +36,13 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Delivery } from '@/types';
+
+type DeliveryType = 'standard' | 'emergency' | 'saturday' | 'exclusive' | 'difficultAccess' | 
+                   'metropolitanRegion' | 'sundayHoliday' | 'normalBiological' | 
+                   'infectiousBiological' | 'tracked' | 'doorToDoorInterior' | 'reshipment';
+
+type CargoType = 'standard' | 'perishable';
 
 const FormSchema = z.object({
   clientId: z.string().min(1, {
@@ -101,20 +108,16 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
   const watchCargoValue = form.watch('cargoValue');
   const watchCityId = form.watch('cityId');
 
-  // Show city select only when door to door delivery type is selected
-  // And hide it specifically for 'exclusive' type
   useEffect(() => {
     if (watchDeliveryType) {
-      const isDoorToDoor = isDoorToDoorDelivery(watchDeliveryType);
+      const isDoorToDoor = isDoorToDoorDelivery(watchDeliveryType as DeliveryType);
       const isExclusive = watchDeliveryType === 'exclusive';
       setShowCitySelect(isDoorToDoor && !isExclusive);
       
-      // Only show cargo value field for "reshipment" delivery type
       setShowCargoValue(watchDeliveryType === 'reshipment');
     }
   }, [watchDeliveryType, isDoorToDoorDelivery]);
 
-  // Check for duplicate minute number
   useEffect(() => {
     if (watchMinuteNumber && watchClient) {
       const isDuplicate = checkMinuteNumberExists(watchMinuteNumber, watchClient);
@@ -122,7 +125,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
     }
   }, [watchMinuteNumber, watchClient, checkMinuteNumberExists]);
 
-  // Calculate freight whenever relevant fields change
   useEffect(() => {
     if (watchClient && watchWeight && watchDeliveryType && watchCargoType) {
       const weight = parseFloat(watchWeight.toString());
@@ -131,8 +133,8 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
       const calculatedFreight = calculateFreight(
         watchClient,
         weight,
-        watchDeliveryType,
-        watchCargoType,
+        watchDeliveryType as DeliveryType,
+        watchCargoType as CargoType,
         cargoValue,
         undefined,
         watchCityId
@@ -143,19 +145,26 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
   }, [watchClient, watchWeight, watchDeliveryType, watchCargoType, watchCargoValue, watchCityId, calculateFreight]);
 
   const onSubmit = (data: FormData) => {
-    // If it's a duplicate minute number and the dialog is not open, show confirmation dialog
     if (minuteNumberDuplicate && !dialogOpen) {
       setDialogOpen(true);
       return;
     }
     
     try {
-      // Convert string inputs to appropriate types
       const formattedData = {
         ...data,
         weight: parseFloat(data.weight.toString()),
         cargoValue: data.cargoValue ? parseFloat(data.cargoValue.toString()) : 0,
         totalFreight: totalFreight,
+        minuteNumber: data.minuteNumber,
+        clientId: data.clientId,
+        deliveryDate: data.deliveryDate,
+        deliveryTime: data.deliveryTime || format(new Date(), 'HH:mm'),
+        receiver: data.receiver,
+        deliveryType: data.deliveryType as DeliveryType,
+        cargoType: data.cargoType as CargoType,
+        discount: 0,
+        customPricing: false
       };
 
       addDelivery(formattedData);
@@ -180,6 +189,15 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
         weight: parseFloat(data.weight.toString()),
         cargoValue: data.cargoValue ? parseFloat(data.cargoValue.toString()) : 0,
         totalFreight: totalFreight,
+        minuteNumber: data.minuteNumber,
+        clientId: data.clientId,
+        deliveryDate: data.deliveryDate,
+        deliveryTime: data.deliveryTime || format(new Date(), 'HH:mm'),
+        receiver: data.receiver,
+        deliveryType: data.deliveryType as DeliveryType,
+        cargoType: data.cargoType as CargoType,
+        discount: 0,
+        customPricing: false
       };
 
       addDelivery(formattedData);
@@ -201,7 +219,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pr-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Client selection field */}
               <FormField
                 control={form.control}
                 name="clientId"
@@ -230,7 +247,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                 )}
               />
 
-              {/* Minute Number field - Moved below client selection */}
               <FormField
                 control={form.control}
                 name="minuteNumber"
@@ -251,7 +267,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                 )}
               />
 
-              {/* Date and time fields */}
               <FormField
                 control={form.control}
                 name="deliveryDate"
@@ -279,8 +294,7 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                   </FormItem>
                 )}
               />
-              
-              {/* Delivery Type field */}
+
               <FormField
                 control={form.control}
                 name="deliveryType"
@@ -313,7 +327,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                 )}
               />
 
-              {/* Show City Selection only for door to door deliveries */}
               {showCitySelect && (
                 <FormField
                   control={form.control}
@@ -341,7 +354,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                 />
               )}
 
-              {/* Weight and Cargo Type */}
               <FormField
                 control={form.control}
                 name="weight"
@@ -378,7 +390,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                 )}
               />
 
-              {/* Show Cargo Value only for reshipment deliveries */}
               {showCargoValue && (
                 <FormField
                   control={form.control}
@@ -395,7 +406,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                 />
               )}
 
-              {/* Receiver field */}
               <FormField
                 control={form.control}
                 name="receiver"
@@ -410,7 +420,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                 )}
               />
 
-              {/* Notes field */}
               <FormField
                 control={form.control}
                 name="notes"
@@ -452,7 +461,6 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
         </Form>
       </ScrollArea>
 
-      {/* Confirmation dialog for duplicate minute number */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>

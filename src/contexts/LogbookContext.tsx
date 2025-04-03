@@ -8,7 +8,7 @@ import {
   Maintenance, 
   TireMaintenance 
 } from "@/types";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface LogbookContextType {
   entries: LogbookEntry[];
@@ -157,11 +157,7 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
         
       } catch (error) {
         console.error("Error loading data:", error);
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível carregar os dados do diário de bordo.",
-          variant: "destructive",
-        });
+        toast.error("Erro ao carregar dados");
       } finally {
         setLoading(false);
       }

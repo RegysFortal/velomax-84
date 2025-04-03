@@ -1,10 +1,20 @@
 
-import { Toast as SonnerToast } from "sonner";
 import { create } from "zustand";
 
+type ToastProps = {
+  id: string;
+  title?: string;
+  description?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+  variant?: "default" | "destructive";
+};
+
 type ToasterStore = {
-  toasts: SonnerToast[];
-  addToast: (toast: SonnerToast) => void;
+  toasts: ToastProps[];
+  addToast: (toast: ToastProps) => void;
   dismissToast: (toastId: string) => void;
 };
 
@@ -17,20 +27,12 @@ export const useToastStore = create<ToasterStore>((set) => ({
     })),
 }));
 
-export type ToastProps = {
-  title?: string;
-  description?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-  variant?: "default" | "destructive";
-};
+export type { ToastProps };
 
 export const useToast = () => {
   const { toasts, addToast, dismissToast } = useToastStore();
 
-  const toast = ({ title, description, action, ...props }: ToastProps) => {
+  const toast = ({ title, description, action, ...props }: Omit<ToastProps, 'id'>) => {
     addToast({
       id: crypto.randomUUID(),
       title,
