@@ -1,21 +1,39 @@
 
-import {
-  toast as sonnerToast,
-  ToastOptions as SonnerToastOptions,
-} from "sonner";
+import { Toast as SonnerToast } from "sonner";
+import { create } from "zustand";
 
-type ToastProps = SonnerToastOptions & {
+type ToasterStore = {
+  toasts: SonnerToast[];
+  addToast: (toast: SonnerToast) => void;
+  dismissToast: (toastId: string) => void;
+};
+
+export const useToastStore = create<ToasterStore>((set) => ({
+  toasts: [],
+  addToast: (toast) => set((state) => ({ toasts: [...state.toasts, toast] })),
+  dismissToast: (toastId) =>
+    set((state) => ({
+      toasts: state.toasts.filter((toast) => toast.id !== toastId),
+    })),
+}));
+
+export type ToastProps = {
   title?: string;
   description?: string;
   action?: {
     label: string;
     onClick: () => void;
   };
+  variant?: "default" | "destructive";
 };
 
-const useToast = () => {
+export const useToast = () => {
+  const { toasts, addToast, dismissToast } = useToastStore();
+
   const toast = ({ title, description, action, ...props }: ToastProps) => {
-    sonnerToast(title, {
+    addToast({
+      id: crypto.randomUUID(),
+      title,
       description,
       action: action
         ? {
@@ -29,7 +47,9 @@ const useToast = () => {
 
   return {
     toast,
+    toasts,
+    dismiss: dismissToast,
   };
 };
 
-export { useToast, sonnerToast as toast };
+export { useToastStore as toast };
