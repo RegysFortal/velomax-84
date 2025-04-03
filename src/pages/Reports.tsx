@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,7 @@ const ReportsPage = () => {
 
   // Filter out deliveries that are already in financial reports
   const existingReportDeliveries = financialReports
-    .filter(report => report.status === 'open' || report.status === 'paid')
+    .filter(report => report.status === 'open')  // Only consider 'open' reports
     .flatMap(report => {
       const reportStartDate = new Date(report.startDate);
       const reportEndDate = new Date(report.endDate);
@@ -254,7 +253,7 @@ const ReportsPage = () => {
       });
     }
   };
-  
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">

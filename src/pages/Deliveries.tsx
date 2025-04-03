@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -58,6 +57,7 @@ import { Delivery } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 const DeliveryForm = ({
   onSubmit,
@@ -101,8 +101,8 @@ const DeliveryForm = ({
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setDate(date);
-      setFormData(prev => ({
-        ...prev,
+      setFormData(prevData => ({
+        ...prevData,
         deliveryDate: format(date, 'yyyy-MM-dd'),
       }));
     }
@@ -118,8 +118,8 @@ const DeliveryForm = ({
       setMinuteNumberExists(exists);
     }
     
-    setFormData(prev => ({
-      ...prev,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: name === 'weight' || name === 'cargoValue' || name === 'totalFreight' || name === 'discount'
         ? parseFloat(value) || 0 
         : value,
@@ -143,10 +143,10 @@ const DeliveryForm = ({
   };
 
   const handleClientChange = (clientId: string) => {
-    setFormData(prev => ({ ...prev, clientId }));
+    setFormData(prevData => ({ ...prevData, clientId }));
     
-    if (prev.minuteNumber) {
-      const exists = checkMinuteNumberExists(prev.minuteNumber, clientId);
+    if (formData.minuteNumber) {
+      const exists = checkMinuteNumberExists(formData.minuteNumber, clientId);
       setMinuteNumberExists(exists);
     }
     
@@ -164,10 +164,10 @@ const DeliveryForm = ({
   };
 
   const handleDeliveryTypeChange = (deliveryType: Delivery['deliveryType']) => {
-    setFormData(prev => ({ ...prev, deliveryType }));
+    setFormData(prevData => ({ ...prevData, deliveryType }));
     
     if (!isDoorToDoorDelivery(deliveryType) || isExclusiveDelivery(deliveryType)) {
-      setFormData(prev => ({ ...prev, cityId: undefined }));
+      setFormData(prevData => ({ ...prevData, cityId: undefined }));
     }
     
     if (formData.clientId && formData.weight > 0 && !useCustomPrice) {
@@ -210,7 +210,7 @@ const DeliveryForm = ({
   }, [invoiceValue, formData.clientId, formData.cargoType, isReshipment]);
 
   const handleCargoTypeChange = (cargoType: Delivery['cargoType']) => {
-    setFormData(prev => ({ ...prev, cargoType }));
+    setFormData(prevData => ({ ...prevData, cargoType }));
     
     if (formData.clientId && formData.weight > 0 && !useCustomPrice) {
       updateEstimatedFreight(
@@ -230,7 +230,7 @@ const DeliveryForm = ({
   };
 
   const handleCityChange = (cityId: string) => {
-    setFormData(prev => ({ ...prev, cityId }));
+    setFormData(prevData => ({ ...prevData, cityId }));
     
     if (formData.clientId && formData.weight > 0 && !useCustomPrice) {
       updateEstimatedFreight(
@@ -270,13 +270,13 @@ const DeliveryForm = ({
     );
     
     setEstimatedFreight(freight);
-    setFormData(prev => ({ ...prev, totalFreight: freight }));
+    setFormData(prevData => ({ ...prevData, totalFreight: freight }));
   };
 
   const handleCustomPricingToggle = () => {
     setUseCustomPrice(!useCustomPrice);
-    setFormData(prev => ({
-      ...prev,
+    setFormData(prevData => ({
+      ...prevData,
       customPricing: !useCustomPrice,
     }));
   };
@@ -816,7 +816,7 @@ const DeliveriesPage = () => {
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const itemsPerPage = 10;
   
-  const canDeleteDeliveries = user?.role === 'admin' || user?.permissions?.includes('delete_deliveries');
+  const canDeleteDeliveries = user?.role === 'admin' || (user?.permissions && user.permissions.financial);
 
   const handleCreate = (data: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => {
     addDelivery(data);
@@ -951,86 +951,4 @@ const DeliveriesPage = () => {
                       </TableRow>
                     ) : (
                       paginatedDeliveries.map((delivery) => {
-                        const client = clients.find(c => c.id === delivery.clientId);
-                        
-                        return (
-                          <TableRow 
-                            key={delivery.id}
-                            className="cursor-pointer hover:bg-muted"
-                            onClick={() => setSelectedDelivery(delivery)}
-                          >
-                            <TableCell className="font-medium">
-                              {delivery.minuteNumber}
-                            </TableCell>
-                            <TableCell>{client?.name || 'N/A'}</TableCell>
-                            <TableCell>
-                              {new Date(delivery.deliveryDate).toLocaleDateString('pt-BR')}
-                            </TableCell>
-                            <TableCell>{delivery.receiver}</TableCell>
-                            <TableCell className="text-right">
-                              {delivery.weight.toFixed(2)} Kg
-                            </TableCell>
-                            <TableCell className="text-right font-medium">
-                              {formatCurrency(delivery.totalFreight)}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </ScrollArea>
-            
-            {filteredDeliveries.length > 0 && (
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, filteredDeliveries.length)} de {filteredDeliveries.length} entregas
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Anterior
-                  </Button>
-                  <div className="text-sm">
-                    Página {currentPage} de {totalPages}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Próxima
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-      
-      {selectedDelivery && (
-        <Dialog open={!!selectedDelivery} onOpenChange={(open) => !open && setSelectedDelivery(null)}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Detalhes da Entrega</DialogTitle>
-            </DialogHeader>
-            <DeliveryDetails 
-              delivery={selectedDelivery} 
-              onClose={() => setSelectedDelivery(null)} 
-              onDelete={handleDelete}
-              canDelete={canDeleteDeliveries}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-    </AppLayout>
-  );
-};
-
-export default DeliveriesPage;
+                        const client =
