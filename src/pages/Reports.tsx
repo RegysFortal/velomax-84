@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -120,26 +119,24 @@ const ReportsPage = () => {
     
     // Add company logo and info
     // doc.addImage("logo", "PNG", 14, 10, 20, 20);
-    doc.setFontSize(10);
-    doc.text("VELOMAX TRANSPORTES LTDA", 40, 15);
-    doc.text("CNPJ: 00.000.000/0001-00", 40, 20);
-    doc.text("Av. Exemplo, 1000 - Fortaleza - CE", 40, 25);
     
-    // Add title
+    // Title centered at the top
     doc.setFontSize(18);
-    doc.text('RELATÓRIO DE ENTREGAS', 14, 40);
+    doc.text("RELATÓRIO DE ENTREGAS", doc.internal.pageSize.width / 2, 15, { align: "center" });
+    
+    // Company info aligned to the left
+    doc.setFontSize(10);
+    doc.text("VELOMAX TRANSPORTES LTDA", 14, 25);
+    doc.text("CNPJ: 00.000.000/0001-00", 14, 30);
+    doc.text("Av. Exemplo, 1000 - Fortaleza - CE", 14, 35);
     
     const clientName = clientFilter && clientFilter !== 'all'
       ? clients.find(c => c.id === clientFilter)?.name || 'Cliente não encontrado'
       : 'TODOS OS CLIENTES';
-    doc.setFontSize(14);
-    doc.text(`CLIENTE: ${clientName.toUpperCase()}`, 14, 50);
-    doc.text(`PERÍODO: ${new Date(startDate).toLocaleDateString('pt-BR')} até ${new Date(endDate).toLocaleDateString('pt-BR')}`, 14, 55);
     
-    doc.setFontSize(10);
-    doc.text(`Quantidade de entregas: ${deliveryCount}`, 14, 65);
-    doc.text(`Peso total: ${totalWeight.toFixed(2)} Kg`, 14, 70);
-    doc.text(`Frete total: ${formatCurrency(totalFreight)}`, 14, 75);
+    // Client and period info at the same size as company info
+    doc.text(`CLIENTE: ${clientName.toUpperCase()}`, 14, 45);
+    doc.text(`PERÍODO: ${new Date(startDate).toLocaleDateString('pt-BR')} até ${new Date(endDate).toLocaleDateString('pt-BR')}`, 14, 50);
     
     const tableColumn = ["Minuta", "Data", "Recebedor", "Peso (Kg)", "Frete", "Tipo", "Observações"];
     const tableRows = filteredDeliveries.map((delivery) => {
@@ -154,11 +151,17 @@ const ReportsPage = () => {
       ];
     });
 
+    // Add total row
+    tableRows.push([
+      '', '', '', '', formatCurrency(totalFreight), '', ''
+    ]);
+    
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 85,
+      startY: 60,
       theme: 'striped',
+      foot: [['', '', '', 'TOTAL:', formatCurrency(totalFreight), '', '']]
     });
     
     const pageCount = doc.getNumberOfPages();
@@ -197,13 +200,14 @@ const ReportsPage = () => {
       };
     });
     
+    // Add total row at the bottom
     excelData.push({
       'Minuta': '',
       'Data': '',
       'Hora': '',
       'Cliente': '',
       'Recebedor': 'TOTAL',
-      'Peso (Kg)': totalWeight.toFixed(2),
+      'Peso (Kg)': '',
       'Frete': formatCurrency(totalFreight),
       'Tipo': '',
       'Carga': '',
