@@ -316,8 +316,8 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                 />
               </div>
               
-              {/* Status field moved to the bottom */}
-              <div className="space-y-2 md:col-span-2">
+              {/* Status field moved to the bottom as the last field */}
+              <div className="space-y-2 md:col-span-2 pt-4 border-t border-gray-200">
                 <label htmlFor="status" className="text-sm font-medium">Status</label>
                 <Select value={status} onValueChange={(val: ShipmentStatus) => setStatus(val)}>
                   <SelectTrigger>

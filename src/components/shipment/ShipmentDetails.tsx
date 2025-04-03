@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
@@ -38,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ShipmentDetailsProps {
   shipment: Shipment;
@@ -83,11 +83,9 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   const isShipmentOverdue = (shipment: Shipment) => {
     if (!shipment.arrivalDate) return false;
     
-    // Check if the arrival date is in the past and shipment is not delivered
     const arrivalDate = new Date(shipment.arrivalDate);
     const today = new Date();
     
-    // Set both dates to start of day for fair comparison
     arrivalDate.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
     
@@ -96,7 +94,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   
   const handleCloseEditDialog = () => {
     setIsEditDialogOpen(false);
-    onClose(); // Close the details dialog after editing
+    onClose();
   };
   
   const formatDate = (dateString?: string) => {
@@ -106,7 +104,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[95vh]">
         <DialogHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -117,186 +115,186 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
           </Button>
         </DialogHeader>
         
-        <div className="flex flex-col gap-6">
-          {/* Status bar with update option */}
-          <div className="flex items-center justify-between bg-muted p-3 rounded-md">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Status:</span>
-              <StatusBadge status={currentStatus} />
-              {shipment.isRetained && (
-                <span className="inline-flex items-center rounded-full bg-red-100 text-red-800 border border-red-200 px-2 py-1 text-xs font-semibold">
-                  <ShieldAlert className="h-3 w-3 mr-1" />
-                  <span>Retida</span>
-                </span>
-              )}
-              {isShipmentOverdue(shipment) && (
-                <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-800 border border-amber-200 px-2 py-1 text-xs font-semibold">
-                  <Clock className="h-3 w-3 mr-1" />
-                  <span>Em atraso</span>
-                </span>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Select value={currentStatus} onValueChange={(value: ShipmentStatus) => handleStatusChange(value)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Alterar status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in_transit">
-                    <div className="flex items-center">
-                      <Truck className="mr-2 h-4 w-4" />
-                      <span>Em Trânsito</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="retained">
-                    <div className="flex items-center">
-                      <AlertTriangle className="mr-2 h-4 w-4" />
-                      <span>Retida</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="delivered">
-                    <div className="flex items-center">
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      <span>Retirada</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Main details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Informações Básicas</h3>
-                <div className="mt-2 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Empresa:</span>
-                    <span className="text-sm">{shipment.companyName}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <File className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Conhecimento:</span>
-                    <span className="text-sm">{shipment.trackingNumber}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Transportadora:</span>
-                    <span className="text-sm">{shipment.carrierName}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Weight className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Peso:</span>
-                    <span className="text-sm">{shipment.weight} kg</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Volumes:</span>
-                    <span className="text-sm">{shipment.packages}</span>
-                  </div>
-                </div>
+        <ScrollArea className="max-h-[calc(95vh-130px)] pr-4">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between bg-muted p-3 rounded-md">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Status:</span>
+                <StatusBadge status={currentStatus} />
+                {shipment.isRetained && (
+                  <span className="inline-flex items-center rounded-full bg-red-100 text-red-800 border border-red-200 px-2 py-1 text-xs font-semibold">
+                    <ShieldAlert className="h-3 w-3 mr-1" />
+                    <span>Retida</span>
+                  </span>
+                )}
+                {isShipmentOverdue(shipment) && (
+                  <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-800 border border-amber-200 px-2 py-1 text-xs font-semibold">
+                    <Clock className="h-3 w-3 mr-1" />
+                    <span>Em atraso</span>
+                  </span>
+                )}
               </div>
               
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Datas</h3>
-                <div className="mt-2 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Data de Chegada:</span>
-                    <span className="text-sm">{formatDate(shipment.arrivalDate)}</span>
-                  </div>
-                  {shipment.transportMode === 'air' && shipment.arrivalFlight && (
+              <div className="flex items-center gap-2">
+                <Select value={currentStatus} onValueChange={(value: ShipmentStatus) => handleStatusChange(value)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Alterar status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in_transit">
+                      <div className="flex items-center">
+                        <Truck className="mr-2 h-4 w-4" />
+                        <span>Em Trânsito</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="retained">
+                      <div className="flex items-center">
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        <span>Retida</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="delivered">
+                      <div className="flex items-center">
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        <span>Retirada</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Informações Básicas</h3>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Empresa:</span>
+                      <span className="text-sm">{shipment.companyName}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <File className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Conhecimento:</span>
+                      <span className="text-sm">{shipment.trackingNumber}</span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <Truck className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Voo de Chegada:</span>
-                      <span className="text-sm">{shipment.arrivalFlight}</span>
+                      <span className="text-sm font-medium">Transportadora:</span>
+                      <span className="text-sm">{shipment.carrierName}</span>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Cadastrado em:</span>
-                    <span className="text-sm">{formatDate(shipment.createdAt)}</span>
+                    <div className="flex items-center gap-2">
+                      <Weight className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Peso:</span>
+                      <span className="text-sm">{shipment.weight} kg</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Volumes:</span>
+                      <span className="text-sm">{shipment.packages}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Datas</h3>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Data de Chegada:</span>
+                      <span className="text-sm">{formatDate(shipment.arrivalDate)}</span>
+                    </div>
+                    {shipment.transportMode === 'air' && shipment.arrivalFlight && (
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Voo de Chegada:</span>
+                        <span className="text-sm">{shipment.arrivalFlight}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Cadastrado em:</span>
+                      <span className="text-sm">{formatDate(shipment.createdAt)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="space-y-4">
-              {shipment.observations && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Observações</h3>
-                  <div className="mt-2 p-3 bg-muted rounded-md text-sm">
-                    <ClipboardList className="h-4 w-4 text-muted-foreground inline mr-2" />
-                    {shipment.observations}
-                  </div>
-                </div>
-              )}
               
-              {shipment.status === 'retained' && (
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-muted-foreground">Ação Fiscal</h3>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setIsFiscalActionDialogOpen(true)}
-                    >
-                      {shipment.fiscalAction ? "Editar Ação Fiscal" : "Registrar Ação Fiscal"}
-                    </Button>
-                  </div>
-                  
-                  {shipment.fiscalAction ? (
-                    <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-md space-y-2">
-                      <div>
-                        <span className="text-sm font-medium">Motivo:</span>
-                        <p className="text-sm mt-1">{shipment.fiscalAction.reason}</p>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Banknote className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Valor a Pagar:</span>
-                        <span className="text-sm">
-                          {new Intl.NumberFormat('pt-BR', { 
-                            style: 'currency', 
-                            currency: 'BRL' 
-                          }).format(shipment.fiscalAction.amountToPay)}
-                        </span>
-                      </div>
-                      
-                      {shipment.fiscalAction.paymentDate && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">Data de Pagamento:</span>
-                          <span className="text-sm">{formatDate(shipment.fiscalAction.paymentDate)}</span>
-                        </div>
-                      )}
-                      
-                      {shipment.fiscalAction.releaseDate && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">Data de Liberação:</span>
-                          <span className="text-sm">{formatDate(shipment.fiscalAction.releaseDate)}</span>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
+              <div className="space-y-4">
+                {shipment.observations && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Observações</h3>
                     <div className="mt-2 p-3 bg-muted rounded-md text-sm">
-                      <span>Nenhuma ação fiscal registrada para este embarque.</span>
+                      <ClipboardList className="h-4 w-4 text-muted-foreground inline mr-2" />
+                      {shipment.observations}
                     </div>
-                  )}
+                  </div>
+                )}
+                
+                {shipment.status === 'retained' && (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-muted-foreground">Ação Fiscal</h3>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setIsFiscalActionDialogOpen(true)}
+                      >
+                        {shipment.fiscalAction ? "Editar Ação Fiscal" : "Registrar Ação Fiscal"}
+                      </Button>
+                    </div>
+                    
+                    {shipment.fiscalAction ? (
+                      <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-md space-y-2">
+                        <div>
+                          <span className="text-sm font-medium">Motivo:</span>
+                          <p className="text-sm mt-1">{shipment.fiscalAction.reason}</p>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Banknote className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">Valor a Pagar:</span>
+                          <span className="text-sm">
+                            {new Intl.NumberFormat('pt-BR', { 
+                              style: 'currency', 
+                              currency: 'BRL' 
+                            }).format(shipment.fiscalAction.amountToPay)}
+                          </span>
+                        </div>
+                        
+                        {shipment.fiscalAction.paymentDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">Data de Pagamento:</span>
+                            <span className="text-sm">{formatDate(shipment.fiscalAction.paymentDate)}</span>
+                          </div>
+                        )}
+                        
+                        {shipment.fiscalAction.releaseDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">Data de Liberação:</span>
+                            <span className="text-sm">{formatDate(shipment.fiscalAction.releaseDate)}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mt-2 p-3 bg-muted rounded-md text-sm">
+                        <span>Nenhuma ação fiscal registrada para este embarque.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Documentos</h3>
+                  <DocumentsList shipmentId={shipment.id} documents={shipment.documents} />
                 </div>
-              )}
-              
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Documentos</h3>
-                <DocumentsList shipmentId={shipment.id} documents={shipment.documents} />
               </div>
             </div>
           </div>
-        </div>
+        </ScrollArea>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
@@ -308,7 +306,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
         </DialogFooter>
       </DialogContent>
 
-      {/* Edit shipment dialog */}
       {isEditDialogOpen && (
         <ShipmentDialog
           open={isEditDialogOpen}
@@ -316,7 +313,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
         />
       )}
       
-      {/* Fiscal action dialog */}
       {isFiscalActionDialogOpen && (
         <FiscalActionForm
           shipmentId={shipment.id}
