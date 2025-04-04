@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -185,11 +186,11 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
     <NavigationMenu className={cn("flex", className)}>
       <NavigationMenuList className="flex gap-2">
         {accessibleOperationalRoutes.length > 0 && (
-          <NavigationMenuItem className="relative">
+          <NavigationMenuItem className="relative group">
             <NavigationMenuTrigger>
               Operacional
             </NavigationMenuTrigger>
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50">
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
               <div className="bg-popover rounded-md border shadow-md w-[200px]">
                 <div className="grid w-[200px] gap-1 p-2">
                   {accessibleOperationalRoutes.map((route) => (
@@ -216,11 +217,11 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
         )}
 
         {accessibleFinancialRoutes.length > 0 && (
-          <NavigationMenuItem className="relative">
+          <NavigationMenuItem className="relative group">
             <NavigationMenuTrigger>
               Financeiro
             </NavigationMenuTrigger>
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50">
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
               <div className="bg-popover rounded-md border shadow-md w-[200px]">
                 <div className="grid w-[200px] gap-1 p-2">
                   {accessibleFinancialRoutes.map((route) => (
@@ -247,11 +248,11 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
         )}
 
         {accessibleManagementRoutes.length > 0 && (
-          <NavigationMenuItem className="relative">
+          <NavigationMenuItem className="relative group">
             <NavigationMenuTrigger>
               Gerência
             </NavigationMenuTrigger>
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50">
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
               <div className="bg-popover rounded-md border shadow-md w-[200px]">
                 <div className="grid w-[200px] gap-1 p-2">
                   {accessibleManagementRoutes.map((route) => (
