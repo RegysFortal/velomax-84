@@ -1,7 +1,15 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useCities } from '@/contexts/CitiesContext';
+import { useClients } from '@/contexts/ClientsContext';
+import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useLogbook } from '@/contexts/LogbookContext';
+import { useShipments } from '@/contexts/ShipmentsContext';
+import { usePriceTables } from '@/contexts/PriceTablesContext';
+import { useFinancial } from '@/contexts/FinancialContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -54,7 +63,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { User } from '@/types';
-import { PenLine, Trash2, UserPlus, LockKeyhole } from 'lucide-react';
+import { PenLine, Trash2, UserPlus, LockKeyhole, Save, UploadCloud, Download } from 'lucide-react';
 
 type UserFormData = {
   name: string;
@@ -112,10 +121,21 @@ const defaultSettings: SystemSettingsData = {
 const SettingsPage = () => {
   const { user, updateUserProfile, users, createUser, deleteUser, resetUserPassword } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { cities } = useCities();
+  const { clients } = useClients();
+  const { deliveries } = useDeliveries();
+  const { logbookEntries, fuelRecords } = useLogbook();
+  const { shipments } = useShipments();
+  const { priceTables } = usePriceTables();
+  const { financialReports } = useFinancial();
+  
   const [activeTab, setActiveTab] = useState('general');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isBackupDialogOpen, setIsBackupDialogOpen] = useState(false);
+  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
+  const [backupFile, setBackupFile] = useState<File | null>(null);
   const [passwordData, setPasswordData] = useState({
     userId: '',
     newPassword: '',
@@ -201,19 +221,19 @@ const SettingsPage = () => {
       setUserValue('role', userToEdit.role);
       
       if (userToEdit.permissions) {
-        setUserValue('permissions.deliveries', userToEdit.permissions.deliveries);
-        setUserValue('permissions.shipments', userToEdit.permissions.shipments);
-        setUserValue('permissions.clients', userToEdit.permissions.clients);
-        setUserValue('permissions.cities', userToEdit.permissions.cities);
-        setUserValue('permissions.reports', userToEdit.permissions.reports);
-        setUserValue('permissions.financial', userToEdit.permissions.financial);
-        setUserValue('permissions.priceTables', userToEdit.permissions.priceTables);
-        setUserValue('permissions.dashboard', userToEdit.permissions.dashboard);
-        setUserValue('permissions.logbook', userToEdit.permissions.logbook);
-        setUserValue('permissions.employees', userToEdit.permissions.employees);
-        setUserValue('permissions.vehicles', userToEdit.permissions.vehicles);
-        setUserValue('permissions.maintenance', userToEdit.permissions.maintenance);
-        setUserValue('permissions.settings', userToEdit.permissions.settings);
+        setUserValue('permissions.deliveries', userToEdit.permissions.deliveries || false);
+        setUserValue('permissions.shipments', userToEdit.permissions.shipments || false);
+        setUserValue('permissions.clients', userToEdit.permissions.clients || false);
+        setUserValue('permissions.cities', userToEdit.permissions.cities || false);
+        setUserValue('permissions.reports', userToEdit.permissions.reports || false);
+        setUserValue('permissions.financial', userToEdit.permissions.financial || false);
+        setUserValue('permissions.priceTables', userToEdit.permissions.priceTables || false);
+        setUserValue('permissions.dashboard', userToEdit.permissions.dashboard || true);
+        setUserValue('permissions.logbook', userToEdit.permissions.logbook || false);
+        setUserValue('permissions.employees', userToEdit.permissions.employees || false);
+        setUserValue('permissions.vehicles', userToEdit.permissions.vehicles || false);
+        setUserValue('permissions.maintenance', userToEdit.permissions.maintenance || false);
+        setUserValue('permissions.settings', userToEdit.permissions.settings || false);
       }
     }
     
@@ -324,6 +344,142 @@ const SettingsPage = () => {
       newPassword: '',
       confirmPassword: '',
     });
+  };
+
+  // Backup functionality
+  const createBackup = () => {
+    const backup = {
+      timestamp: new Date().toISOString(),
+      version: "1.0",
+      data: {
+        settings: systemSettings,
+        cities,
+        clients,
+        deliveries,
+        logbook: {
+          entries: logbookEntries,
+          fuelRecords,
+        },
+        shipments,
+        priceTables,
+        financialReports,
+      }
+    };
+
+    const backupData = JSON.stringify(backup, null, 2);
+    const blob = new Blob([backupData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.download = `velomax_backup_${date}.json`;
+    a.href = url;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Backup criado",
+      description: "O backup dos dados do sistema foi criado com sucesso."
+    });
+  };
+
+  const handleBackupFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setBackupFile(e.target.files[0]);
+    }
+  };
+
+  const restoreBackup = () => {
+    if (!backupFile) {
+      toast({
+        title: "Nenhum arquivo selecionado",
+        description: "Por favor, selecione um arquivo de backup para restaurar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        if (e.target?.result) {
+          const backup = JSON.parse(e.target.result as string);
+          
+          // Validate backup structure
+          if (!backup.data || !backup.timestamp || !backup.version) {
+            throw new Error("Formato de backup inválido");
+          }
+          
+          // Apply settings
+          if (backup.data.settings) {
+            localStorage.setItem('velomax_settings', JSON.stringify(backup.data.settings));
+          }
+          
+          // Apply cities
+          if (backup.data.cities) {
+            localStorage.setItem('velomax_cities', JSON.stringify(backup.data.cities));
+          }
+          
+          // Apply clients
+          if (backup.data.clients) {
+            localStorage.setItem('velomax_clients', JSON.stringify(backup.data.clients));
+          }
+          
+          // Apply deliveries
+          if (backup.data.deliveries) {
+            localStorage.setItem('velomax_deliveries', JSON.stringify(backup.data.deliveries));
+          }
+          
+          // Apply logbook entries and fuel records
+          if (backup.data.logbook) {
+            if (backup.data.logbook.entries) {
+              localStorage.setItem('velomax_logbook_entries', JSON.stringify(backup.data.logbook.entries));
+            }
+            if (backup.data.logbook.fuelRecords) {
+              localStorage.setItem('velomax_fuel_records', JSON.stringify(backup.data.logbook.fuelRecords));
+            }
+          }
+          
+          // Apply shipments
+          if (backup.data.shipments) {
+            localStorage.setItem('velomax_shipments', JSON.stringify(backup.data.shipments));
+          }
+          
+          // Apply price tables
+          if (backup.data.priceTables) {
+            localStorage.setItem('velomax_price_tables', JSON.stringify(backup.data.priceTables));
+          }
+          
+          // Apply financial reports
+          if (backup.data.financialReports) {
+            localStorage.setItem('velomax_financial_reports', JSON.stringify(backup.data.financialReports));
+          }
+          
+          toast({
+            title: "Backup restaurado",
+            description: "Os dados do sistema foram restaurados com sucesso. A página será recarregada."
+          });
+          
+          // Reload the page after a short delay to apply changes
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        }
+      } catch (error) {
+        console.error("Erro ao restaurar backup:", error);
+        toast({
+          title: "Erro na restauração",
+          description: "O arquivo de backup está corrompido ou em formato inválido.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    reader.readAsText(backupFile);
+    setIsRestoreDialogOpen(false);
+    setBackupFile(null);
   };
 
   const watchRole = watchUser('role');
@@ -457,9 +613,69 @@ const SettingsPage = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  <Separator />
+                  
+                  <CardTitle className="text-lg">Backup e Restauração</CardTitle>
+                  <CardDescription>
+                    Crie backups dos dados do sistema e restaure quando necessário.
+                  </CardDescription>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button 
+                      type="button"
+                      onClick={createBackup}
+                      className="flex gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Fazer Backup
+                    </Button>
+                    
+                    <Dialog open={isRestoreDialogOpen} onOpenChange={setIsRestoreDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="flex gap-2"
+                        >
+                          <UploadCloud className="h-4 w-4" />
+                          Restaurar Backup
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Restaurar Backup</DialogTitle>
+                          <DialogDescription>
+                            Selecione um arquivo de backup para restaurar. Isso substituirá todos os dados atuais.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="backupFile">Arquivo de Backup</Label>
+                            <Input 
+                              id="backupFile" 
+                              type="file" 
+                              accept=".json" 
+                              onChange={handleBackupFileChange}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                              Selecione um arquivo de backup .json criado anteriormente.
+                            </p>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setIsRestoreDialogOpen(false)}>Cancelar</Button>
+                          <Button onClick={restoreBackup}>Restaurar</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </CardContent>
                 <CardFooter>
-                  <Button type="submit">Salvar Configurações</Button>
+                  <Button type="submit" className="flex gap-2">
+                    <Save className="h-4 w-4" />
+                    Salvar Configurações
+                  </Button>
                 </CardFooter>
               </form>
             </Card>
@@ -563,225 +779,227 @@ const SettingsPage = () => {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmitUser(onSubmitUser)}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome Completo</Label>
-                    <Input 
-                      id="name" 
-                      {...registerUser('name', { required: true })} 
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Nome de Usuário</Label>
-                    <Input 
-                      id="username" 
-                      {...registerUser('username', { required: true })} 
-                      required
-                    />
-                  </div>
-                  
-                  {!editingUserId && (
+              <ScrollArea className="max-h-[70vh] overflow-y-auto pr-4">
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="password">Senha</Label>
+                      <Label htmlFor="name">Nome Completo</Label>
                       <Input 
-                        id="password" 
-                        type="password" 
-                        {...registerUser('password', { required: !editingUserId })}
-                        required={!editingUserId} 
+                        id="name" 
+                        {...registerUser('name', { required: true })} 
+                        required
                       />
                     </div>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Perfil</Label>
-                    <Select 
-                      value={watchUser('role')} 
-                      onValueChange={(value: 'admin' | 'manager' | 'user') => setUserValue('role', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o perfil" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="manager">Gerente</SelectItem>
-                        <SelectItem value="user">Usuário</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-4 mt-2">
-                    <Label>Permissões</Label>
                     
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permDeliveries">Entregas</Label>
-                        <Switch 
-                          id="permDeliveries" 
-                          checked={watchUser('permissions.deliveries')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.deliveries', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permShipments">Embarques</Label>
-                        <Switch 
-                          id="permShipments" 
-                          checked={watchUser('permissions.shipments')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.shipments', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permClients">Clientes</Label>
-                        <Switch 
-                          id="permClients" 
-                          checked={watchUser('permissions.clients')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.clients', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permCities">Cidades</Label>
-                        <Switch 
-                          id="permCities" 
-                          checked={watchUser('permissions.cities')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.cities', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permReports">Relatórios</Label>
-                        <Switch 
-                          id="permReports" 
-                          checked={watchUser('permissions.reports')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.reports', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permFinancial">Financeiro</Label>
-                        <Switch 
-                          id="permFinancial" 
-                          checked={watchUser('permissions.financial')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.financial', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permPriceTables">Tabelas de Preços</Label>
-                        <Switch 
-                          id="permPriceTables" 
-                          checked={watchUser('permissions.priceTables')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.priceTables', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permDashboard">Dashboard</Label>
-                        <Switch 
-                          id="permDashboard" 
-                          checked={watchUser('permissions.dashboard')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.dashboard', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permLogbook">Diário de Bordo</Label>
-                        <Switch 
-                          id="permLogbook" 
-                          checked={watchUser('permissions.logbook')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.logbook', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permEmployees">Funcionários</Label>
-                        <Switch 
-                          id="permEmployees" 
-                          checked={watchUser('permissions.employees')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.employees', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permVehicles">Veículos</Label>
-                        <Switch 
-                          id="permVehicles" 
-                          checked={watchUser('permissions.vehicles')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.vehicles', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permMaintenance">Manutenções</Label>
-                        <Switch 
-                          id="permMaintenance" 
-                          checked={watchUser('permissions.maintenance')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.maintenance', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="permSettings">Configurações</Label>
-                        <Switch 
-                          id="permSettings" 
-                          checked={watchUser('permissions.settings')}
-                          onCheckedChange={(checked) => 
-                            setUserValue('permissions.settings', checked)
-                          }
-                          disabled={watchRole === 'admin'}
-                        />
-                      </div>
+                      <Label htmlFor="username">Nome de Usuário</Label>
+                      <Input 
+                        id="username" 
+                        {...registerUser('username', { required: true })} 
+                        required
+                      />
                     </div>
                     
-                    {isAdminOrManager && (
-                      <div className="text-sm text-muted-foreground">
-                        Administradores possuem acesso completo a todas as funcionalidades do sistema.
+                    {!editingUserId && (
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Senha</Label>
+                        <Input 
+                          id="password" 
+                          type="password" 
+                          {...registerUser('password', { required: !editingUserId })}
+                          required={!editingUserId} 
+                        />
                       </div>
                     )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Perfil</Label>
+                      <Select 
+                        value={watchUser('role')} 
+                        onValueChange={(value: 'admin' | 'manager' | 'user') => setUserValue('role', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o perfil" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                          <SelectItem value="manager">Gerente</SelectItem>
+                          <SelectItem value="user">Usuário</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-4 mt-2">
+                      <Label>Permissões</Label>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permDeliveries">Entregas</Label>
+                          <Switch 
+                            id="permDeliveries" 
+                            checked={watchUser('permissions.deliveries')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.deliveries', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permShipments">Embarques</Label>
+                          <Switch 
+                            id="permShipments" 
+                            checked={watchUser('permissions.shipments')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.shipments', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permClients">Clientes</Label>
+                          <Switch 
+                            id="permClients" 
+                            checked={watchUser('permissions.clients')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.clients', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permCities">Cidades</Label>
+                          <Switch 
+                            id="permCities" 
+                            checked={watchUser('permissions.cities')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.cities', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permReports">Relatórios</Label>
+                          <Switch 
+                            id="permReports" 
+                            checked={watchUser('permissions.reports')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.reports', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permFinancial">Financeiro</Label>
+                          <Switch 
+                            id="permFinancial" 
+                            checked={watchUser('permissions.financial')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.financial', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permPriceTables">Tabelas de Preços</Label>
+                          <Switch 
+                            id="permPriceTables" 
+                            checked={watchUser('permissions.priceTables')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.priceTables', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permDashboard">Dashboard</Label>
+                          <Switch 
+                            id="permDashboard" 
+                            checked={watchUser('permissions.dashboard')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.dashboard', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permLogbook">Diário de Bordo</Label>
+                          <Switch 
+                            id="permLogbook" 
+                            checked={watchUser('permissions.logbook')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.logbook', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permEmployees">Funcionários</Label>
+                          <Switch 
+                            id="permEmployees" 
+                            checked={watchUser('permissions.employees')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.employees', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permVehicles">Veículos</Label>
+                          <Switch 
+                            id="permVehicles" 
+                            checked={watchUser('permissions.vehicles')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.vehicles', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permMaintenance">Manutenções</Label>
+                          <Switch 
+                            id="permMaintenance" 
+                            checked={watchUser('permissions.maintenance')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.maintenance', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="permSettings">Configurações</Label>
+                          <Switch 
+                            id="permSettings" 
+                            checked={watchUser('permissions.settings')}
+                            onCheckedChange={(checked) => 
+                              setUserValue('permissions.settings', checked)
+                            }
+                            disabled={watchRole === 'admin'}
+                          />
+                        </div>
+                      </div>
+                      
+                      {isAdminOrManager && (
+                        <div className="text-sm text-muted-foreground">
+                          Administradores possuem acesso completo a todas as funcionalidades do sistema.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <DialogFooter>
+              </ScrollArea>
+              <DialogFooter className="mt-4">
                 <Button type="submit">
                   {editingUserId ? 'Atualizar' : 'Adicionar'}
                 </Button>
