@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -38,28 +37,27 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
   const isManager = user?.role === 'manager';
   const canManageSystem = isAdmin || isManager;
   
-  // Define routes categorized by section
   const operationalRoutes = [
     {
       href: "/deliveries",
       label: "Entregas",
       icon: Package,
       active: pathname.includes("/deliveries"),
-      canAccess: user?.permissions?.deliveries ?? true // Default to true for backward compatibility
+      canAccess: user?.permissions?.deliveries ?? true
     },
     {
       href: "/shipments",
       label: "Embarques",
       icon: PackageOpen,
       active: pathname.includes("/shipments"),
-      canAccess: user?.permissions?.shipments ?? true // Default to true for backward compatibility
+      canAccess: user?.permissions?.shipments ?? true
     },
     {
       href: "/shipment-reports",
       label: "Relatórios de Embarques",
       icon: ChartBar,
       active: pathname.includes("/shipment-reports"),
-      canAccess: user?.permissions?.reports // Only users with report permissions
+      canAccess: user?.permissions?.reports
     }
   ];
 
@@ -100,14 +98,14 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Dashboard",
       icon: Home,
       active: pathname === "/dashboard",
-      canAccess: user?.permissions?.dashboard ?? true // Everyone should have access to dashboard by default
+      canAccess: user?.permissions?.dashboard ?? true
     },
     {
       href: "/logbook",
       label: "Diário de Bordo",
       icon: BookOpenCheck,
       active: pathname.includes("/logbook"),
-      canAccess: user?.permissions?.logbook ?? canManageSystem // Only admins and managers can access logbook by default
+      canAccess: user?.permissions?.logbook ?? canManageSystem
     },
     {
       href: "/clients",
@@ -146,7 +144,6 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
     }
   ];
 
-  // Filter routes based on user's role and access permissions
   const filterRoutes = (routes: any[]) => 
     routes.filter(route => route.canAccess === true);
 
@@ -154,7 +151,6 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
   const accessibleFinancialRoutes = filterRoutes(financialRoutes);
   const accessibleManagementRoutes = filterRoutes(managementRoutes);
   
-  // For mobile, we'll render a flat list
   if (isMobile) {
     const allRoutes = [
       ...accessibleOperationalRoutes,
@@ -185,7 +181,6 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
     );
   }
   
-  // For desktop, we'll use the NavigationMenu
   return (
     <NavigationMenu className={cn("flex", className)}>
       <NavigationMenuList className="flex gap-2">
