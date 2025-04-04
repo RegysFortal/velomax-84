@@ -54,7 +54,6 @@ export interface Shipment {
   updatedAt: string;
 }
 
-// Add a Delivery type to ensure packages is a recognized property
 export interface Delivery {
   id: string;
   clientId: string;

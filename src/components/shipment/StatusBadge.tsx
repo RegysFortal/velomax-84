@@ -33,10 +33,17 @@ export function StatusBadge({
       icon: CheckCircle2,
       label: "Retirada",
       className: "bg-green-100 text-green-800 border-green-200",
+    },
+    delivered_final: {
+      icon: CheckCircle2,
+      label: "Entregue",
+      className: "bg-green-100 text-green-800 border-green-200",
     }
-  }
+  };
   
-  const { icon: Icon, label, className: badgeClass } = config[status];
+  // If status is not in the config, default to in_transit
+  const statusConfig = config[status] || config.in_transit;
+  const { icon: Icon, label, className: badgeClass } = statusConfig;
   
   return (
     <span
