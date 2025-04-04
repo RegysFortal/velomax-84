@@ -249,6 +249,8 @@ const SettingsPage = () => {
 
   const onSubmitUser = async (data: UserFormData) => {
     try {
+      setIsAddUserDialogOpen(false); // Close dialog immediately to show loading state
+      
       if (editingUserId) {
         await updateUserProfile(editingUserId, {
           name: data.name,
@@ -277,10 +279,10 @@ const SettingsPage = () => {
       }
       
       resetUser();
-      setIsAddUserDialogOpen(false);
       setEditingUserId(null);
     } catch (error) {
       console.error("Erro ao salvar usuário:", error);
+      setIsAddUserDialogOpen(true); // Reopen dialog if there was an error
       toast({
         title: "Erro ao salvar",
         description: "Ocorreu um erro ao salvar as informações do usuário.",

@@ -210,27 +210,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUserProfile = async (userId: string, userData: Partial<User>) => {
-    return new Promise<void>((resolve, reject) => {
-      try {
-        setTimeout(() => {
-          const updatedUsers = users.map(u => 
-            u.id === userId ? { ...u, ...userData } : u
-          );
-          
-          setUsers(updatedUsers);
-          
-          if (user && user.id === userId) {
-            const updatedUser = { ...user, ...userData };
-            setUser(updatedUser);
-            localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
-          }
-          
-          resolve();
-        }, 800);
-      } catch (error) {
-        reject(error);
+    try {
+      setLoading(true);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Update users state with new data
+      const updatedUsers = users.map(u => 
+        u.id === userId ? { ...u, ...userData } : u
+      );
+      
+      setUsers(updatedUsers);
+      
+      // If the current user is being updated, also update the user state
+      if (user && user.id === userId) {
+        const updatedUser = { ...user, ...userData };
+        setUser(updatedUser);
+        localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
       }
-    });
+
+      // Update localStorage to persist changes
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers.map(u => ({
+        ...u,
+        password: u.password ? '[PROTECTED]' : undefined
+      }))));
+      
+      uiToast({
+        title: "Perfil atualizado",
+        description: "As informações do usuário foram atualizadas com sucesso."
+      });
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      uiToast({
+        title: "Erro ao atualizar",
+        description: "Ocorreu um erro ao atualizar as informações do usuário.",
+        variant: "destructive"
+      });
+      return Promise.reject(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateUserPassword = async (userId: string, currentPassword: string, newPassword: string) => {
