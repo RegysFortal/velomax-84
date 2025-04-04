@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, UserPermissions } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -19,19 +18,15 @@ type AuthContextType = {
   resetUserPassword: (userId: string, newPassword: string) => void;
 };
 
-// Enhanced permissions model with more granular access control
 const DEFAULT_PERMISSIONS: UserPermissions = {
-  // Operational permissions
   deliveries: true,
   shipments: true,
   
-  // Financial permissions
   financial: true,
   reports: true,
   priceTables: true,
   cities: true,
   
-  // Management permissions
   dashboard: true,
   logbook: false,
   clients: true,
@@ -60,17 +55,14 @@ const MANAGER_PERMISSIONS: UserPermissions = {
 };
 
 const USER_PERMISSIONS: UserPermissions = {
-  // Operational permissions
   deliveries: true,
   shipments: true,
   
-  // Financial permissions
   financial: false,
   reports: true,
   priceTables: false,
   cities: false,
   
-  // Management permissions
   dashboard: true,
   logbook: false,
   clients: false,
@@ -301,9 +293,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const newId = (Math.max(...users.map(u => parseInt(u.id))) + 1).toString();
         
+        let permissions = userData.permissions;
+        if (userData.role === 'admin') {
+          permissions = ADMIN_PERMISSIONS;
+        }
+        
         const newUser: User = {
           id: newId,
-          ...userData
+          ...userData,
+          permissions
         };
         
         setTimeout(() => {
