@@ -22,7 +22,6 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
@@ -46,14 +45,14 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Entregas",
       icon: Package,
       active: pathname.includes("/deliveries"),
-      canAccess: true // Everyone can access deliveries
+      canAccess: user?.permissions?.deliveries ?? true // Default to true for backward compatibility
     },
     {
       href: "/shipments",
       label: "Embarques",
       icon: PackageOpen,
       active: pathname.includes("/shipments"),
-      canAccess: true // Everyone can access shipments
+      canAccess: user?.permissions?.shipments ?? true // Default to true for backward compatibility
     },
     {
       href: "/shipment-reports",
@@ -101,14 +100,14 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Dashboard",
       icon: Home,
       active: pathname === "/dashboard",
-      canAccess: true // Everyone should have access to dashboard
+      canAccess: user?.permissions?.dashboard ?? true // Everyone should have access to dashboard by default
     },
     {
       href: "/logbook",
       label: "Diário de Bordo",
       icon: BookOpenCheck,
       active: pathname.includes("/logbook"),
-      canAccess: canManageSystem // Only admins and managers can access logbook
+      canAccess: user?.permissions?.logbook ?? canManageSystem // Only admins and managers can access logbook by default
     },
     {
       href: "/clients",
@@ -122,34 +121,34 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Funcionários",
       icon: UserCheck,
       active: pathname.includes("/employees"),
-      canAccess: canManageSystem
+      canAccess: user?.permissions?.employees ?? canManageSystem
     },
     {
       href: "/vehicles",
       label: "Veículos",
       icon: Truck,
       active: pathname.includes("/vehicles"),
-      canAccess: canManageSystem
+      canAccess: user?.permissions?.vehicles ?? canManageSystem
     },
     {
       href: "/maintenance",
       label: "Manutenções",
       icon: Wrench,
       active: pathname.includes("/maintenance"),
-      canAccess: canManageSystem
+      canAccess: user?.permissions?.maintenance ?? canManageSystem
     },
     {
       href: "/settings",
       label: "Configurações",
       icon: Settings,
       active: pathname.includes("/settings"),
-      canAccess: isAdmin
+      canAccess: user?.permissions?.settings ?? isAdmin
     }
   ];
 
   // Filter routes based on user's role and access permissions
   const filterRoutes = (routes: any[]) => 
-    routes.filter(route => route.canAccess === undefined || route.canAccess);
+    routes.filter(route => route.canAccess === true);
 
   const accessibleOperationalRoutes = filterRoutes(operationalRoutes);
   const accessibleFinancialRoutes = filterRoutes(financialRoutes);
@@ -259,7 +258,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
             )}>
               Gerência
             </NavigationMenuTrigger>
-            <NavigationMenuContent className="absolute z-50">
+            <NavigationMenuContent className="left-0 top-full data-[side=bottom]:top-0 data-[side=top]:bottom-0 absolute z-50">
               <div className="grid w-[200px] gap-1 p-2 bg-popover">
                 {accessibleManagementRoutes.map((route) => (
                   <Link

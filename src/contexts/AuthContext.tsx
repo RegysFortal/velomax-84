@@ -18,13 +18,64 @@ type AuthContextType = {
   resetUserPassword: (userId: string, newPassword: string) => void;
 };
 
-// Mock users for demo with default permissions
+// Enhanced permissions model with more granular access control
 const DEFAULT_PERMISSIONS: UserPermissions = {
-  clients: true,
-  cities: true,
-  reports: true,
+  // Operational permissions
+  deliveries: true,
+  shipments: true,
+  
+  // Financial permissions
   financial: true,
+  reports: true,
   priceTables: true,
+  cities: true,
+  
+  // Management permissions
+  dashboard: true,
+  logbook: false,
+  clients: true,
+  employees: false,
+  vehicles: false,
+  maintenance: false,
+  settings: false
+};
+
+const ADMIN_PERMISSIONS: UserPermissions = {
+  ...DEFAULT_PERMISSIONS,
+  logbook: true,
+  employees: true,
+  vehicles: true,
+  maintenance: true,
+  settings: true
+};
+
+const MANAGER_PERMISSIONS: UserPermissions = {
+  ...DEFAULT_PERMISSIONS,
+  logbook: true,
+  employees: true,
+  vehicles: true,
+  maintenance: true,
+  settings: false
+};
+
+const USER_PERMISSIONS: UserPermissions = {
+  // Operational permissions
+  deliveries: true,
+  shipments: true,
+  
+  // Limited financial permissions
+  financial: false,
+  reports: true,
+  priceTables: false,
+  cities: false,
+  
+  // Limited management permissions
+  dashboard: true,
+  logbook: false,
+  clients: false,
+  employees: false,
+  vehicles: false,
+  maintenance: false,
   settings: false
 };
 
@@ -35,10 +86,7 @@ const MOCK_USERS: User[] = [
     password: 'admin123', 
     role: 'admin', 
     name: 'Administrador',
-    permissions: {
-      ...DEFAULT_PERMISSIONS,
-      settings: true
-    }
+    permissions: ADMIN_PERMISSIONS
   },
   { 
     id: '2', 
@@ -46,10 +94,7 @@ const MOCK_USERS: User[] = [
     password: 'manager123', 
     role: 'manager', 
     name: 'Gerente',
-    permissions: {
-      ...DEFAULT_PERMISSIONS,
-      settings: false
-    }
+    permissions: MANAGER_PERMISSIONS
   },
   { 
     id: '3', 
@@ -57,14 +102,7 @@ const MOCK_USERS: User[] = [
     password: 'user123', 
     role: 'user', 
     name: 'Usuário Padrão',
-    permissions: {
-      clients: false,
-      cities: false,
-      reports: true,
-      financial: false,
-      priceTables: false,
-      settings: false
-    }
+    permissions: USER_PERMISSIONS
   },
 ];
 
@@ -77,7 +115,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast: uiToast } = useToast();
   
   useEffect(() => {
-    // Check for stored user on mount
     const storedUser = localStorage.getItem('velomax_user');
     if (storedUser) {
       try {
@@ -90,12 +127,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
-  // Store users in localStorage
   useEffect(() => {
     try {
       localStorage.setItem('velomax_users', JSON.stringify(users.map(u => ({
         ...u,
-        // Don't store passwords in clear text
         password: u.password ? '[PROTECTED]' : undefined
       }))));
     } catch (error) {
@@ -106,9 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, password: string) => {
     setLoading(true);
     
-    // In a real app, this would be an API call
     try {
-      // Simulating network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const foundUser = users.find(
@@ -124,7 +157,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Invalid credentials');
       }
       
-      // Create sanitized user object (without password)
       const authenticatedUser: User = {
         id: foundUser.id,
         username: foundUser.username,
@@ -164,7 +196,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     setUsers(updatedUsers);
     
-    // If the current user's permissions are being updated, update the current user state
     if (user && user.id === userId) {
       const updatedUser = { ...user, permissions };
       setUser(updatedUser);
@@ -180,7 +211,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const updateUserProfile = async (userId: string, userData: Partial<User>) => {
     return new Promise<void>((resolve, reject) => {
       try {
-        // Simulating network delay
         setTimeout(() => {
           const updatedUsers = users.map(u => 
             u.id === userId ? { ...u, ...userData } : u
@@ -188,7 +218,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           setUsers(updatedUsers);
           
-          // If the current user's profile is being updated, update the current user state
           if (user && user.id === userId) {
             const updatedUser = { ...user, ...userData };
             setUser(updatedUser);
@@ -206,7 +235,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const updateUserPassword = async (userId: string, currentPassword: string, newPassword: string) => {
     return new Promise<void>((resolve, reject) => {
       try {
-        // Find user
         const userToUpdate = users.find(u => u.id === userId);
         
         if (!userToUpdate) {
@@ -214,13 +242,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        // Verify current password
         if (userToUpdate.password !== currentPassword) {
           reject(new Error('Senha atual incorreta'));
           return;
         }
         
-        // Simulating network delay
         setTimeout(() => {
           const updatedUsers = users.map(u => 
             u.id === userId ? { ...u, password: newPassword } : u
@@ -238,22 +264,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const createUser = async (userData: Omit<User, 'id'>) => {
     return new Promise<User>((resolve, reject) => {
       try {
-        // Check if username already exists
         if (users.some(u => u.username === userData.username)) {
           reject(new Error('Nome de usuário já existe'));
           return;
         }
         
-        // Generate a new user ID
         const newId = (Math.max(...users.map(u => parseInt(u.id))) + 1).toString();
         
-        // Create new user
         const newUser: User = {
           id: newId,
           ...userData
         };
         
-        // Simulating network delay
         setTimeout(() => {
           setUsers(prev => [...prev, newUser]);
           toast.success("Usuário criado com sucesso");
@@ -266,7 +288,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteUser = (userId: string) => {
-    // Prevent deletion of the last admin
     const admins = users.filter(u => u.role === 'admin');
     if (admins.length === 1 && admins[0].id === userId) {
       uiToast({
