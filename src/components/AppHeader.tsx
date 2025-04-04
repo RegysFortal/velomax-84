@@ -31,9 +31,12 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 border-b bg-background">
       <div className="container flex h-16 items-center">
         <Link to="/" className="flex items-center space-x-2">
-          <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-velomax-blue to-velomax-red">
-            Velomax
-          </span>
+          <img 
+            src="/lovable-uploads/e65f8895-c8f1-4e81-a9d0-4e008d4fed5a.png" 
+            alt="Velomax Logo" 
+            className="h-10 w-auto"
+          />
+          <span className="font-bold text-xl text-navy-blue">Velomax</span>
         </Link>
         <MainNav className="mx-6" />
         <div className="ml-auto flex items-center space-x-4">
@@ -93,4 +96,4 @@ export function AppHeader() {
       </div>
     </header>
   );
-}
+};
