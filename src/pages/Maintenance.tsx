@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Car, Wrench, CarFront, History, Plus, Calendar, Tool } from 'lucide-react';
+import { Car, Wrench, CarFront, History, Plus, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -303,7 +302,6 @@ const Maintenance = () => {
                         onClick={() => {
                           setSelectedMaintenance(null);
                           setIsDialogOpen(true);
-                          // Pre-select the vehicle in the form
                           setSelectedMaintenance({ 
                             id: '', 
                             vehicleId: vehicle.id,
@@ -327,7 +325,6 @@ const Maintenance = () => {
                         onClick={() => {
                           setSelectedMaintenance(null);
                           setIsDialogOpen(true);
-                          // Pre-select the vehicle in the form and set type to "Troca de Pneu"
                           setSelectedMaintenance({ 
                             id: '', 
                             vehicleId: vehicle.id,
