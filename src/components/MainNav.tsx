@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -14,7 +15,8 @@ import {
   Wrench, 
   BookOpenCheck,
   PackageOpen,
-  ChartBar
+  ChartBar,
+  Menu
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -24,15 +26,25 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { useState } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MainNavProps {
   className?: string;
-  isMobile?: boolean;
 }
 
-export function MainNav({ className, isMobile = false }: MainNavProps) {
+export function MainNav({ className }: MainNavProps) {
   const { pathname } = useLocation();
   const { user } = useAuth();
+  const { isMobile } = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
   const canManageSystem = isAdmin || isManager;
@@ -151,33 +163,47 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
   const accessibleFinancialRoutes = filterRoutes(financialRoutes);
   const accessibleManagementRoutes = filterRoutes(managementRoutes);
   
+  // All accessible routes combined for mobile menu
+  const allRoutes = [
+    ...accessibleOperationalRoutes,
+    ...accessibleFinancialRoutes,
+    ...accessibleManagementRoutes
+  ];
+  
   if (isMobile) {
-    const allRoutes = [
-      ...accessibleOperationalRoutes,
-      ...accessibleFinancialRoutes,
-      ...accessibleManagementRoutes
-    ];
-    
     return (
-      <nav className={cn("flex flex-col", className)}>
-        {allRoutes.map((route) => (
-          <Link
-            key={route.href}
-            to={route.href}
-            className={cn(
-              "flex items-center px-2 py-2 text-base transition-colors hover:text-primary",
-              route.active
-                ? "font-medium text-primary"
-                : "text-muted-foreground"
-            )}
-          >
-            {route.icon && (
-              <route.icon className="h-5 w-5 mr-2" />
-            )}
-            {route.label}
-          </Link>
-        ))}
-      </nav>
+      <div className={cn("flex items-center", className)}>
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="Menu de navegação">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[80%] max-w-[280px] p-0">
+            <nav className="flex flex-col py-4">
+              <div className="px-4 mb-4 font-semibold text-lg">Menu</div>
+              {allRoutes.map((route) => (
+                <Link
+                  key={route.href}
+                  to={route.href}
+                  className={cn(
+                    "flex items-center px-4 py-3 text-base transition-colors hover:bg-accent",
+                    route.active
+                      ? "font-medium text-primary bg-accent/30"
+                      : "text-muted-foreground"
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {route.icon && (
+                    <route.icon className="h-5 w-5 mr-3" />
+                  )}
+                  {route.label}
+                </Link>
+              ))}
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </div>
     );
   }
   

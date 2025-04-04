@@ -16,6 +16,7 @@ export function ViewSizeToggle() {
             variant="outline" 
             size="icon" 
             onClick={toggleView}
+            aria-label={isMobile ? 'Alternar para visualização de desktop' : 'Alternar para visualização móvel'}
           >
             {isMobile ? <Monitor className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />}
           </Button>
