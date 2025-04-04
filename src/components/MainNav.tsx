@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -189,25 +190,27 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
             <NavigationMenuTrigger>
               Operacional
             </NavigationMenuTrigger>
-            <NavigationMenuContent className="absolute left-0 top-full w-[200px]">
-              <div className="grid w-[200px] gap-1 p-2">
-                {accessibleOperationalRoutes.map((route) => (
-                  <Link
-                    key={route.href}
-                    to={route.href}
-                    className={cn(
-                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                      route.active
-                        ? "font-medium text-primary bg-accent/50"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {route.icon && (
-                      <route.icon className="h-4 w-4 mr-2" />
-                    )}
-                    {route.label}
-                  </Link>
-                ))}
+            <NavigationMenuContent>
+              <div className="fixed top-[3rem] left-0 bg-popover rounded-md border shadow-md z-50 w-[200px]">
+                <div className="grid w-[200px] gap-1 p-2">
+                  {accessibleOperationalRoutes.map((route) => (
+                    <Link
+                      key={route.href}
+                      to={route.href}
+                      className={cn(
+                        "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                        route.active
+                          ? "font-medium text-primary bg-accent/50"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {route.icon && (
+                        <route.icon className="h-4 w-4 mr-2" />
+                      )}
+                      {route.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </NavigationMenuContent>
           </NavigationMenuItem>
@@ -218,25 +221,27 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
             <NavigationMenuTrigger>
               Financeiro
             </NavigationMenuTrigger>
-            <NavigationMenuContent className="absolute left-0 top-full w-[200px]">
-              <div className="grid w-[200px] gap-1 p-2">
-                {accessibleFinancialRoutes.map((route) => (
-                  <Link
-                    key={route.href}
-                    to={route.href}
-                    className={cn(
-                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                      route.active
-                        ? "font-medium text-primary bg-accent/50"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {route.icon && (
-                      <route.icon className="h-4 w-4 mr-2" />
-                    )}
-                    {route.label}
-                  </Link>
-                ))}
+            <NavigationMenuContent>
+              <div className="fixed top-[3rem] left-0 bg-popover rounded-md border shadow-md z-50 w-[200px]">
+                <div className="grid w-[200px] gap-1 p-2">
+                  {accessibleFinancialRoutes.map((route) => (
+                    <Link
+                      key={route.href}
+                      to={route.href}
+                      className={cn(
+                        "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                        route.active
+                          ? "font-medium text-primary bg-accent/50"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {route.icon && (
+                        <route.icon className="h-4 w-4 mr-2" />
+                      )}
+                      {route.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </NavigationMenuContent>
           </NavigationMenuItem>
@@ -247,25 +252,27 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
             <NavigationMenuTrigger>
               Gerência
             </NavigationMenuTrigger>
-            <NavigationMenuContent className="absolute left-0 top-full w-[200px]">
-              <div className="grid w-[200px] gap-1 p-2">
-                {accessibleManagementRoutes.map((route) => (
-                  <Link
-                    key={route.href}
-                    to={route.href}
-                    className={cn(
-                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                      route.active
-                        ? "font-medium text-primary bg-accent/50"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {route.icon && (
-                      <route.icon className="h-4 w-4 mr-2" />
-                    )}
-                    {route.label}
-                  </Link>
-                ))}
+            <NavigationMenuContent>
+              <div className="fixed top-[3rem] left-0 bg-popover rounded-md border shadow-md z-50 w-[200px]">
+                <div className="grid w-[200px] gap-1 p-2">
+                  {accessibleManagementRoutes.map((route) => (
+                    <Link
+                      key={route.href}
+                      to={route.href}
+                      className={cn(
+                        "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                        route.active
+                          ? "font-medium text-primary bg-accent/50"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {route.icon && (
+                        <route.icon className="h-4 w-4 mr-2" />
+                      )}
+                      {route.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </NavigationMenuContent>
           </NavigationMenuItem>
