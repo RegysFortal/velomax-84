@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Delivery, doorToDoorDeliveryTypes } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -37,6 +36,7 @@ const INITIAL_DELIVERIES: Delivery[] = [
     deliveryTime: '14:00',
     receiver: 'João Silva',
     weight: 5.5,
+    packages: 3,
     deliveryType: 'standard',
     cargoType: 'standard',
     cargoValue: 500,
@@ -53,6 +53,7 @@ const INITIAL_DELIVERIES: Delivery[] = [
     deliveryTime: '09:30',
     receiver: 'Farmácia Popular',
     weight: 2.3,
+    packages: 2,
     deliveryType: 'emergency',
     cargoType: 'perishable',
     cargoValue: 1200,
@@ -174,7 +175,7 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
     deliveryType: Delivery['deliveryType'],
     cargoType: Delivery['cargoType'],
     cargoValue: number = 0,
-    _distance?: number, // Now unused but kept for compatibility
+    _distance?: number,
     cityId?: string
   ): number => {
     try {
@@ -187,7 +188,7 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
       let baseRate = 0;
       let excessWeightRate = 0;
       let totalFreight = 0;
-      let weightLimit = 10; // Default weight limit
+      let weightLimit = 10;
       
       // Set base rate and excess weight rate based on delivery type
       switch (deliveryType) {
@@ -230,20 +231,17 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
         case 'tracked':
           baseRate = priceTable.minimumRate.trackedVehicle;
           excessWeightRate = priceTable.excessWeight.maxPerKg;
-          weightLimit = 100; // Higher weight limit for tracked vehicles
+          weightLimit = 100;
           break;
         case 'doorToDoorInterior':
           baseRate = priceTable.minimumRate.doorToDoorInterior;
           excessWeightRate = priceTable.excessWeight.maxPerKg;
-          weightLimit = 100; // Higher weight limit for door to door interior
+          weightLimit = 100;
           
-          // Additional calculation for door-to-door if city is provided
           if (cityId) {
             const city = cities.find(c => c.id === cityId);
             if (city) {
-              // For door-to-door, we use the city's distance but don't display it in the UI
               const distance = city.distance;
-              // Add distance-based charge
               totalFreight += distance * priceTable.doorToDoor.ratePerKm;
             }
           }
@@ -252,14 +250,12 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
           baseRate = priceTable.minimumRate.reshipment;
           excessWeightRate = priceTable.excessWeight.reshipmentPerKg;
           
-          // For reshipment, add 1% insurance on cargo value
-          const insuranceRate = 0.01; // 1%
+          const insuranceRate = 0.01;
           const insurance = cargoValue * insuranceRate;
           totalFreight += insurance;
           break;
       }
       
-      // Calculate freight based on weight
       if (weight <= weightLimit) {
         totalFreight += baseRate;
       } else {
@@ -267,9 +263,8 @@ export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
         totalFreight += baseRate + (excessWeight * excessWeightRate);
       }
       
-      // Apply cargo type multiplier if cargo is perishable
       if (cargoType === 'perishable') {
-        totalFreight *= 1.2; // 20% extra for perishable cargo
+        totalFreight *= 1.2;
       }
       
       return Math.max(totalFreight, 0);

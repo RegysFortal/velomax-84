@@ -59,6 +59,7 @@ const FormSchema = z.object({
     message: "Nome do recebedor é obrigatório",
   }),
   weight: z.number(),
+  packages: z.number(),
   deliveryType: z.string().min(1, {
     message: "Tipo de entrega é obrigatório",
   }),
@@ -92,6 +93,7 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
       deliveryTime: format(new Date(), 'HH:mm'),
       receiver: "",
       weight: 1,
+      packages: 1,
       deliveryType: "standard",
       cargoType: "standard",
       cargoValue: 0,
@@ -154,6 +156,7 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
       const formattedData = {
         ...data,
         weight: parseFloat(data.weight.toString()),
+        packages: parseInt(data.packages.toString()),
         cargoValue: data.cargoValue ? parseFloat(data.cargoValue.toString()) : 0,
         totalFreight: totalFreight,
         minuteNumber: data.minuteNumber,
@@ -187,6 +190,7 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
       const formattedData = {
         ...data,
         weight: parseFloat(data.weight.toString()),
+        packages: parseInt(data.packages.toString()),
         cargoValue: data.cargoValue ? parseFloat(data.cargoValue.toString()) : 0,
         totalFreight: totalFreight,
         minuteNumber: data.minuteNumber,
@@ -362,6 +366,26 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
                     <FormLabel>Peso (Kg)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" min="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="packages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Volumes</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        step="1" 
+                        min="1" 
+                        {...field} 
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
