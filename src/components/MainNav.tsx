@@ -46,7 +46,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Entregas",
       icon: Package,
       active: pathname.includes("/deliveries"),
-      canAccess: user?.permissions?.reports
+      canAccess: true // Everyone can access deliveries
     },
     {
       href: "/shipments",
@@ -60,7 +60,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Relatórios de Embarques",
       icon: ChartBar,
       active: pathname.includes("/shipment-reports"),
-      canAccess: true // Everyone can access shipment reports
+      canAccess: user?.permissions?.reports // Only users with report permissions
     }
   ];
 
@@ -101,13 +101,14 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       label: "Dashboard",
       icon: Home,
       active: pathname === "/dashboard",
+      canAccess: true // Everyone should have access to dashboard
     },
     {
       href: "/logbook",
       label: "Diário de Bordo",
       icon: BookOpenCheck,
       active: pathname.includes("/logbook"),
-      canAccess: true // Everyone can access logbook
+      canAccess: canManageSystem // Only admins and managers can access logbook
     },
     {
       href: "/clients",
