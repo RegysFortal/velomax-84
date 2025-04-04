@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useShipments } from '@/contexts/ShipmentsContext';
 import { AppLayout } from '@/components/AppLayout';
@@ -18,13 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent
-} from '@/components/ui/chart';
 import { 
   FileText, 
   Download, 
@@ -32,8 +26,6 @@ import {
   Truck, 
   AlertTriangle, 
   CheckCircle2, 
-  Timer, 
-  PackageOpen, 
   Calendar 
 } from 'lucide-react';
 import { StatusBadge } from '@/components/shipment/StatusBadge';
@@ -43,6 +35,9 @@ import { ShipmentStatus } from '@/types/shipment';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 export default function ShipmentReports() {
   const { shipments, loading } = useShipments();
@@ -87,12 +82,148 @@ export default function ShipmentReports() {
   const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName)));
   
   const generatePDF = () => {
-    // In a real implementation, this would use jsPDF or a similar library to generate a PDF
-    toast.success("Relatório gerado e baixado com sucesso!");
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    // Add title and date
+    doc.setFontSize(16);
+    doc.text("Relatório de Embarques", 14, 20);
+    
+    doc.setFontSize(10);
+    doc.text(`Período: ${format(new Date(startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 30);
+    
+    if (filterStatus !== 'all') {
+      const statusLabels: Record<ShipmentStatus, string> = {
+        'in_transit': 'Em Trânsito',
+        'retained': 'Retida',
+        'delivered': 'Retirada',
+        'delivered_final': 'Entregue'
+      };
+      doc.text(`Status: ${statusLabels[filterStatus]}`, 14, 35);
+    }
+    
+    if (filterCarrier) {
+      doc.text(`Transportadora: ${filterCarrier}`, 14, 40);
+    }
+    
+    if (filterMode !== 'all') {
+      doc.text(`Modo: ${filterMode === 'air' ? 'Aéreo' : 'Rodoviário'}`, 14, 45);
+    }
+    
+    // Summary section
+    doc.setFontSize(12);
+    doc.text("Resumo", 14, 55);
+    
+    doc.setFontSize(10);
+    doc.text(`Total de Embarques: ${filteredShipments.length}`, 14, 60);
+    doc.text(`Total de Volumes: ${filteredShipments.reduce((sum, s) => sum + s.packages, 0)}`, 14, 65);
+    doc.text(`Peso Total: ${filteredShipments.reduce((sum, s) => sum + s.weight, 0).toFixed(2)} kg`, 14, 70);
+    
+    // Create table
+    const tableColumn = [
+      "Empresa", 
+      "Conhecimento", 
+      "Transportadora", 
+      "Modo", 
+      "Volumes", 
+      "Peso (kg)", 
+      "Chegada", 
+      "Status"
+    ];
+    
+    const tableRows = filteredShipments.map((shipment) => [
+      shipment.companyName,
+      shipment.trackingNumber,
+      shipment.carrierName,
+      shipment.transportMode === 'air' ? 'Aéreo' : 'Rodoviário',
+      shipment.packages,
+      shipment.weight.toFixed(2),
+      shipment.arrivalDate ? format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não definida',
+      shipment.status === 'in_transit' ? 'Em Trânsito' : 
+        shipment.status === 'retained' ? 'Retida' : 
+        shipment.status === 'delivered' ? 'Retirada' : 'Entregue'
+    ]);
+    
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 80,
+      theme: 'striped',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [41, 128, 185] }
+    });
+    
+    // Add page number
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.text(
+        `Página ${i} de ${pageCount}`,
+        doc.internal.pageSize.getWidth() - 30,
+        doc.internal.pageSize.getHeight() - 10
+      );
+    }
+    
+    // Save the PDF
+    doc.save(`relatorio-embarques-${format(new Date(), 'yyyyMMdd')}.pdf`);
+    
+    toast.success("Relatório PDF gerado e baixado com sucesso!");
   };
   
   const exportToExcel = () => {
-    // In a real implementation, this would use xlsx or a similar library to generate an Excel file
+    const excelData = filteredShipments.map((shipment) => ({
+      'Empresa': shipment.companyName,
+      'Conhecimento': shipment.trackingNumber,
+      'Transportadora': shipment.carrierName,
+      'Modo': shipment.transportMode === 'air' ? 'Aéreo' : 'Rodoviário',
+      'Volumes': shipment.packages,
+      'Peso (kg)': shipment.weight.toFixed(2),
+      'Data de Chegada': shipment.arrivalDate ? format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não definida',
+      'Status': shipment.status === 'in_transit' ? 'Em Trânsito' : 
+               shipment.status === 'retained' ? 'Retida' : 
+               shipment.status === 'delivered' ? 'Retirada' : 'Entregue',
+      'Observações': shipment.observations || ''
+    }));
+    
+    // Add summary row
+    excelData.push({
+      'Empresa': '',
+      'Conhecimento': '',
+      'Transportadora': '',
+      'Modo': '',
+      'Volumes': filteredShipments.reduce((sum, s) => sum + s.packages, 0),
+      'Peso (kg)': filteredShipments.reduce((sum, s) => sum + s.weight, 0).toFixed(2),
+      'Data de Chegada': 'TOTAL',
+      'Status': '',
+      'Observações': ''
+    } as any);
+    
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Embarques");
+    
+    // Auto-size columns
+    const colWidths = [
+      { wch: 30 }, // Empresa
+      { wch: 15 }, // Conhecimento
+      { wch: 20 }, // Transportadora
+      { wch: 10 }, // Modo
+      { wch: 10 }, // Volumes
+      { wch: 10 }, // Peso
+      { wch: 15 }, // Data
+      { wch: 15 }, // Status
+      { wch: 40 }  // Observações
+    ];
+    
+    worksheet["!cols"] = colWidths;
+    
+    // Save the Excel file
+    XLSX.writeFile(workbook, `relatorio-embarques-${format(new Date(), 'yyyyMMdd')}.xlsx`);
+    
     toast.success("Dados exportados para Excel com sucesso!");
   };
   
@@ -129,7 +260,7 @@ export default function ShipmentReports() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Embarques</CardTitle>
-              <PackageOpen className="h-4 w-4 text-muted-foreground" />
+              <Truck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalShipments}</div>
