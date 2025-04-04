@@ -62,7 +62,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { User } from '@/types';
-import { PenLine, Trash2, UserPlus, LockKeyhole, Save, UploadCloud, Download } from 'lucide-react';
+import { PenLine, Trash2, UserPlus, LockKeyhole, Save, UploadCloud, Download, X, Check } from 'lucide-react';
 
 type UserFormData = {
   name: string;
@@ -247,34 +247,49 @@ const SettingsPage = () => {
     });
   };
 
-  const onSubmitUser = (data: UserFormData) => {
-    if (editingUserId) {
-      updateUserProfile(editingUserId, {
-        name: data.name,
-        username: data.username,
-        role: data.role,
-        permissions: data.permissions,
-      });
+  const onSubmitUser = async (data: UserFormData) => {
+    try {
+      if (editingUserId) {
+        await updateUserProfile(editingUserId, {
+          name: data.name,
+          username: data.username,
+          role: data.role,
+          permissions: data.permissions,
+        });
+        
+        toast({
+          title: "Usuário atualizado",
+          description: "As informações do usuário foram atualizadas com sucesso."
+        });
+      } else {
+        await createUser({
+          name: data.name,
+          username: data.username,
+          password: data.password,
+          role: data.role,
+          permissions: data.permissions,
+        });
+        
+        toast({
+          title: "Usuário adicionado",
+          description: "O novo usuário foi adicionado com sucesso."
+        });
+      }
       
+      resetUser();
+      setIsAddUserDialogOpen(false);
+      setEditingUserId(null);
+    } catch (error) {
+      console.error("Erro ao salvar usuário:", error);
       toast({
-        title: "Usuário atualizado",
-        description: "As informações do usuário foram atualizadas com sucesso."
-      });
-    } else {
-      createUser({
-        name: data.name,
-        username: data.username,
-        password: data.password,
-        role: data.role,
-        permissions: data.permissions,
-      });
-      
-      toast({
-        title: "Usuário adicionado",
-        description: "O novo usuário foi adicionado com sucesso."
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar as informações do usuário.",
+        variant: "destructive"
       });
     }
-    
+  };
+
+  const handleCancelEdit = () => {
     resetUser();
     setIsAddUserDialogOpen(false);
     setEditingUserId(null);
@@ -987,9 +1002,14 @@ const SettingsPage = () => {
                   </div>
                 </div>
               </ScrollArea>
-              <DialogFooter className="mt-4">
+              <DialogFooter className="mt-4 flex gap-2">
+                <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </Button>
                 <Button type="submit">
-                  {editingUserId ? 'Atualizar' : 'Adicionar'}
+                  <Check className="h-4 w-4 mr-2" />
+                  {editingUserId ? 'Salvar Alterações' : 'Adicionar Usuário'}
                 </Button>
               </DialogFooter>
             </form>
