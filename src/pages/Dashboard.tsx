@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { useLogbook } from '@/contexts/LogbookContext';
 import { useShipments } from '@/contexts/ShipmentsContext';
@@ -23,6 +22,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useClients } from '@/contexts/ClientsContext';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { ViewSizeToggle } from '@/components/ViewSizeToggle';
 
 const DashboardCard = ({ 
   title, 
@@ -80,8 +80,6 @@ const Dashboard = () => {
   const today = new Date();
   
   useEffect(() => {
-    // Since Delivery type does not have a 'status' property, let's consider all
-    // deliveries as active for now - this would need a proper implementation
     const activeDeliveries = deliveries.length;
     
     const currentMonth = today.getMonth();
@@ -149,11 +147,14 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Bem-vindo, {user?.name}! Aqui estão os dados do sistema.
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Bem-vindo, {user?.name}! Aqui estão os dados do sistema.
+            </p>
+          </div>
+          <ViewSizeToggle />
         </div>
         
         {overdueShipments.length > 0 && (
