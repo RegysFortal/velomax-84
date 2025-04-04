@@ -73,7 +73,12 @@ const FormSchema = z.object({
 
 interface FormData extends z.infer<typeof FormSchema> {}
 
-export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
+interface DeliveryFormProps {
+  delivery?: Delivery | null;
+  onComplete: () => void;
+}
+
+export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
   const { toast } = useToast();
   const { addDelivery, calculateFreight, isDoorToDoorDelivery, checkMinuteNumberExists } = useDeliveries();
   const { clients } = useClients();
@@ -172,7 +177,7 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
 
       addDelivery(formattedData);
       form.reset();
-      onSuccess();
+      onComplete();
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
@@ -206,7 +211,7 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
 
       addDelivery(formattedData);
       form.reset();
-      onSuccess();
+      onComplete();
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
@@ -474,7 +479,7 @@ export function DeliveryForm({ onSuccess }: { onSuccess: () => void }) {
             </Alert>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => onSuccess()}>
+              <Button type="button" variant="outline" onClick={() => onComplete()}>
                 Cancelar
               </Button>
               <Button type="submit">

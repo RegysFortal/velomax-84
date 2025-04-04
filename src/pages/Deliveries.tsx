@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, MoreVertical, Pencil, Trash2 } from 'lucide-react';
-import DeliveryForm from '@/components/delivery/DeliveryForm';
+import { DeliveryForm } from '@/components/delivery/DeliveryForm';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
