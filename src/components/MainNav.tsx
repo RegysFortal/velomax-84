@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -186,12 +185,12 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
     <NavigationMenu className={cn("flex", className)}>
       <NavigationMenuList className="flex gap-2">
         {accessibleOperationalRoutes.length > 0 && (
-          <NavigationMenuItem>
+          <NavigationMenuItem className="relative">
             <NavigationMenuTrigger>
               Operacional
             </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="fixed top-[3rem] left-0 bg-popover rounded-md border shadow-md z-50 w-[200px]">
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50">
+              <div className="bg-popover rounded-md border shadow-md w-[200px]">
                 <div className="grid w-[200px] gap-1 p-2">
                   {accessibleOperationalRoutes.map((route) => (
                     <Link
@@ -212,17 +211,17 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
                   ))}
                 </div>
               </div>
-            </NavigationMenuContent>
+            </div>
           </NavigationMenuItem>
         )}
 
         {accessibleFinancialRoutes.length > 0 && (
-          <NavigationMenuItem>
+          <NavigationMenuItem className="relative">
             <NavigationMenuTrigger>
               Financeiro
             </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="fixed top-[3rem] left-0 bg-popover rounded-md border shadow-md z-50 w-[200px]">
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50">
+              <div className="bg-popover rounded-md border shadow-md w-[200px]">
                 <div className="grid w-[200px] gap-1 p-2">
                   {accessibleFinancialRoutes.map((route) => (
                     <Link
@@ -243,17 +242,17 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
                   ))}
                 </div>
               </div>
-            </NavigationMenuContent>
+            </div>
           </NavigationMenuItem>
         )}
 
         {accessibleManagementRoutes.length > 0 && (
-          <NavigationMenuItem>
+          <NavigationMenuItem className="relative">
             <NavigationMenuTrigger>
               Gerência
             </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="fixed top-[3rem] left-0 bg-popover rounded-md border shadow-md z-50 w-[200px]">
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50">
+              <div className="bg-popover rounded-md border shadow-md w-[200px]">
                 <div className="grid w-[200px] gap-1 p-2">
                   {accessibleManagementRoutes.map((route) => (
                     <Link
@@ -274,7 +273,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
                   ))}
                 </div>
               </div>
-            </NavigationMenuContent>
+            </div>
           </NavigationMenuItem>
         )}
       </NavigationMenuList>
