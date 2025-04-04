@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -186,8 +185,8 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
     <NavigationMenu className={cn("flex", className)}>
       <NavigationMenuList className="flex gap-2">
         {accessibleOperationalRoutes.length > 0 && (
-          <NavigationMenuItem className="relative group">
-            <NavigationMenuTrigger>
+          <div className="relative group">
+            <NavigationMenuTrigger className="group-hover:bg-accent/50">
               Operacional
             </NavigationMenuTrigger>
             <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
@@ -213,12 +212,12 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
                 </div>
               </div>
             </div>
-          </NavigationMenuItem>
+          </div>
         )}
 
         {accessibleFinancialRoutes.length > 0 && (
-          <NavigationMenuItem className="relative group">
-            <NavigationMenuTrigger>
+          <div className="relative group">
+            <NavigationMenuTrigger className="group-hover:bg-accent/50">
               Financeiro
             </NavigationMenuTrigger>
             <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
@@ -244,12 +243,12 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
                 </div>
               </div>
             </div>
-          </NavigationMenuItem>
+          </div>
         )}
 
         {accessibleManagementRoutes.length > 0 && (
-          <NavigationMenuItem className="relative group">
-            <NavigationMenuTrigger>
+          <div className="relative group">
+            <NavigationMenuTrigger className="group-hover:bg-accent/50">
               Gerência
             </NavigationMenuTrigger>
             <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
@@ -275,7 +274,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
                 </div>
               </div>
             </div>
-          </NavigationMenuItem>
+          </div>
         )}
       </NavigationMenuList>
     </NavigationMenu>
