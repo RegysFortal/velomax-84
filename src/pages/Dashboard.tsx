@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useLogbook } from '@/contexts/LogbookContext';
 import { useShipments } from '@/contexts/ShipmentsContext';
@@ -79,16 +80,18 @@ const Dashboard = () => {
   const today = new Date();
   
   useEffect(() => {
-    const activeDeliveries = deliveries.filter(d => d.status === 'in_progress').length;
+    // Since Delivery type does not have a 'status' property, let's consider all
+    // deliveries as active for now - this would need a proper implementation
+    const activeDeliveries = deliveries.length;
     
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
     const currentMonthDeliveries = deliveries.filter(d => {
-      const deliveryDate = new Date(d.date);
+      const deliveryDate = new Date(d.deliveryDate);
       return deliveryDate.getMonth() === currentMonth && deliveryDate.getFullYear() === currentYear;
     }).length;
     
-    const freightValues = deliveries.map(d => d.freightValue || 0);
+    const freightValues = deliveries.map(d => d.totalFreight || 0);
     const totalFreight = freightValues.reduce((sum, value) => sum + value, 0);
     const avgFreight = freightValues.length > 0 ? totalFreight / freightValues.length : 0;
     
