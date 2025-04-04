@@ -1,3 +1,4 @@
+
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
   | "retained"    // Retida
@@ -64,7 +65,7 @@ export interface Delivery {
   receiver?: string;
   cityId?: string;
   weight: number;
-  packages: number; // Explicitly adding the packages property
+  packages: number; // Explicitly adding the packages property here
   cargoType: string;
   deliveryType: string;
   cargoValue: number;

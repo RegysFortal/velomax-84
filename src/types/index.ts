@@ -86,6 +86,7 @@ export interface Delivery {
   deliveryTime: string;
   receiver: string;
   weight: number;
+  packages: number; // Adding the packages property
   cityId?: string;
   deliveryType: 'standard' | 'emergency' | 'saturday' | 'exclusive' | 'difficultAccess' | 'metropolitanRegion' | 'sundayHoliday' | 'normalBiological' | 'infectiousBiological' | 'tracked' | 'doorToDoorInterior' | 'reshipment';
   cargoType: 'standard' | 'perishable';
