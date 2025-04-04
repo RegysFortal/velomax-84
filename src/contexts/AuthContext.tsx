@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, UserPermissions } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -37,12 +38,21 @@ const DEFAULT_PERMISSIONS: UserPermissions = {
 };
 
 const ADMIN_PERMISSIONS: UserPermissions = {
-  ...DEFAULT_PERMISSIONS,
+  deliveries: true,
+  shipments: true,
+  
+  financial: true,
+  reports: true,
+  priceTables: true,
+  cities: true,
+  
+  dashboard: true,
   logbook: true,
   employees: true,
   vehicles: true,
   maintenance: true,
-  settings: true
+  settings: true,
+  clients: true
 };
 
 const MANAGER_PERMISSIONS: UserPermissions = {
@@ -293,9 +303,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const newId = (Math.max(...users.map(u => parseInt(u.id))) + 1).toString();
         
-        let permissions = userData.permissions;
+        let permissions = { ...userData.permissions };
         if (userData.role === 'admin') {
-          permissions = ADMIN_PERMISSIONS;
+          permissions = { ...ADMIN_PERMISSIONS };
+        } else if (userData.role === 'manager') {
+          permissions = { ...MANAGER_PERMISSIONS };
+        } else {
+          permissions = { ...USER_PERMISSIONS, ...permissions };
         }
         
         const newUser: User = {

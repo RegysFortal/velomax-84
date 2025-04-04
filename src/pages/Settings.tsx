@@ -485,7 +485,7 @@ const SettingsPage = () => {
   };
 
   const watchRole = watchUser('role');
-  const isAdminOrManager = watchRole === 'admin' || watchRole === 'manager';
+  const isAdmin = watchRole === 'admin';
 
   return (
     <AppLayout>
@@ -849,11 +849,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permDeliveries">Entregas</Label>
                           <Switch 
                             id="permDeliveries" 
-                            checked={watchUser('permissions.deliveries')}
+                            checked={isAdmin || watchUser('permissions.deliveries')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.deliveries', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -861,11 +861,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permShipments">Embarques</Label>
                           <Switch 
                             id="permShipments" 
-                            checked={watchUser('permissions.shipments')}
+                            checked={isAdmin || watchUser('permissions.shipments')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.shipments', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -873,11 +873,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permClients">Clientes</Label>
                           <Switch 
                             id="permClients" 
-                            checked={watchUser('permissions.clients')}
+                            checked={isAdmin || watchUser('permissions.clients')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.clients', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -885,11 +885,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permCities">Cidades</Label>
                           <Switch 
                             id="permCities" 
-                            checked={watchUser('permissions.cities')}
+                            checked={isAdmin || watchUser('permissions.cities')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.cities', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -897,11 +897,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permReports">Relatórios</Label>
                           <Switch 
                             id="permReports" 
-                            checked={watchUser('permissions.reports')}
+                            checked={isAdmin || watchUser('permissions.reports')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.reports', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -909,11 +909,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permFinancial">Financeiro</Label>
                           <Switch 
                             id="permFinancial" 
-                            checked={watchUser('permissions.financial')}
+                            checked={isAdmin || watchUser('permissions.financial')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.financial', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -921,11 +921,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permPriceTables">Tabelas de Preços</Label>
                           <Switch 
                             id="permPriceTables" 
-                            checked={watchUser('permissions.priceTables')}
+                            checked={isAdmin || watchUser('permissions.priceTables')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.priceTables', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -933,11 +933,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permDashboard">Dashboard</Label>
                           <Switch 
                             id="permDashboard" 
-                            checked={watchUser('permissions.dashboard')}
+                            checked={isAdmin || watchUser('permissions.dashboard')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.dashboard', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -945,11 +945,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permLogbook">Diário de Bordo</Label>
                           <Switch 
                             id="permLogbook" 
-                            checked={watchUser('permissions.logbook')}
+                            checked={isAdmin || watchUser('permissions.logbook')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.logbook', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -957,11 +957,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permEmployees">Funcionários</Label>
                           <Switch 
                             id="permEmployees" 
-                            checked={watchUser('permissions.employees')}
+                            checked={isAdmin || watchUser('permissions.employees')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.employees', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -969,11 +969,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permVehicles">Veículos</Label>
                           <Switch 
                             id="permVehicles" 
-                            checked={watchUser('permissions.vehicles')}
+                            checked={isAdmin || watchUser('permissions.vehicles')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.vehicles', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -981,11 +981,11 @@ const SettingsPage = () => {
                           <Label htmlFor="permMaintenance">Manutenções</Label>
                           <Switch 
                             id="permMaintenance" 
-                            checked={watchUser('permissions.maintenance')}
+                            checked={isAdmin || watchUser('permissions.maintenance')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.maintenance', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                         
@@ -993,18 +993,18 @@ const SettingsPage = () => {
                           <Label htmlFor="permSettings">Configurações</Label>
                           <Switch 
                             id="permSettings" 
-                            checked={watchUser('permissions.settings')}
+                            checked={isAdmin || watchUser('permissions.settings')}
                             onCheckedChange={(checked) => 
                               setUserValue('permissions.settings', checked)
                             }
-                            disabled={watchRole === 'admin'}
+                            disabled={isAdmin}
                           />
                         </div>
                       </div>
                       
-                      {isAdminOrManager && (
-                        <div className="text-sm text-muted-foreground">
-                          Administradores possuem acesso completo a todas as funcionalidades do sistema.
+                      {isAdmin && (
+                        <div className="text-sm text-muted-foreground mt-2 p-2 bg-muted rounded-md">
+                          <strong>Nota:</strong> Administradores possuem acesso completo a todas as funcionalidades do sistema. As permissões são automaticamente habilitadas.
                         </div>
                       )}
                     </div>
