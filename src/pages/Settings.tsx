@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
@@ -61,11 +62,23 @@ type UserFormData = {
   password: string;
   role: 'admin' | 'manager' | 'user';
   permissions: {
+    // Operational permissions
+    deliveries: boolean;
+    shipments: boolean;
+    
+    // Financial permissions
     clients: boolean;
     cities: boolean;
     reports: boolean;
     financial: boolean;
     priceTables: boolean;
+    
+    // Management permissions
+    dashboard: boolean;
+    logbook: boolean;
+    employees: boolean;
+    vehicles: boolean;
+    maintenance: boolean;
     settings: boolean;
   };
 };
@@ -121,11 +134,23 @@ const SettingsPage = () => {
       password: '',
       role: 'user',
       permissions: {
+        // Operational permissions
+        deliveries: false,
+        shipments: false,
+        
+        // Financial permissions
         clients: false,
         cities: false,
         reports: false,
         financial: false,
         priceTables: false,
+        
+        // Management permissions
+        dashboard: true, // Default to true for dashboard
+        logbook: false,
+        employees: false,
+        vehicles: false,
+        maintenance: false,
         settings: false,
       },
     }
@@ -167,11 +192,19 @@ const SettingsPage = () => {
       setUserValue('role', userToEdit.role);
       
       if (userToEdit.permissions) {
+        // Set all permission values from the user
+        setUserValue('permissions.deliveries', userToEdit.permissions.deliveries);
+        setUserValue('permissions.shipments', userToEdit.permissions.shipments);
         setUserValue('permissions.clients', userToEdit.permissions.clients);
         setUserValue('permissions.cities', userToEdit.permissions.cities);
         setUserValue('permissions.reports', userToEdit.permissions.reports);
         setUserValue('permissions.financial', userToEdit.permissions.financial);
         setUserValue('permissions.priceTables', userToEdit.permissions.priceTables);
+        setUserValue('permissions.dashboard', userToEdit.permissions.dashboard);
+        setUserValue('permissions.logbook', userToEdit.permissions.logbook);
+        setUserValue('permissions.employees', userToEdit.permissions.employees);
+        setUserValue('permissions.vehicles', userToEdit.permissions.vehicles);
+        setUserValue('permissions.maintenance', userToEdit.permissions.maintenance);
         setUserValue('permissions.settings', userToEdit.permissions.settings);
       }
     }
@@ -227,11 +260,23 @@ const SettingsPage = () => {
       password: '',
       role: 'user',
       permissions: {
+        // Operational permissions
+        deliveries: false,
+        shipments: false,
+        
+        // Financial permissions
         clients: false,
         cities: false,
         reports: false,
         financial: false,
         priceTables: false,
+        
+        // Management permissions
+        dashboard: true, // Default to true for dashboard
+        logbook: false,
+        employees: false,
+        vehicles: false,
+        maintenance: false,
         settings: false,
       },
     });
@@ -561,6 +606,30 @@ const SettingsPage = () => {
                     
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
+                        <Label htmlFor="permDeliveries">Entregas</Label>
+                        <Switch 
+                          id="permDeliveries" 
+                          checked={watchUser('permissions.deliveries')}
+                          onCheckedChange={(checked) => 
+                            setUserValue('permissions.deliveries', checked)
+                          }
+                          disabled={watchRole === 'admin'}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="permShipments">Embarques</Label>
+                        <Switch 
+                          id="permShipments" 
+                          checked={watchUser('permissions.shipments')}
+                          onCheckedChange={(checked) => 
+                            setUserValue('permissions.shipments', checked)
+                          }
+                          disabled={watchRole === 'admin'}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
                         <Label htmlFor="permClients">Clientes</Label>
                         <Switch 
                           id="permClients" 
@@ -615,6 +684,66 @@ const SettingsPage = () => {
                           checked={watchUser('permissions.priceTables')}
                           onCheckedChange={(checked) => 
                             setUserValue('permissions.priceTables', checked)
+                          }
+                          disabled={watchRole === 'admin'}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="permDashboard">Dashboard</Label>
+                        <Switch 
+                          id="permDashboard" 
+                          checked={watchUser('permissions.dashboard')}
+                          onCheckedChange={(checked) => 
+                            setUserValue('permissions.dashboard', checked)
+                          }
+                          disabled={watchRole === 'admin'}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="permLogbook">Diário de Bordo</Label>
+                        <Switch 
+                          id="permLogbook" 
+                          checked={watchUser('permissions.logbook')}
+                          onCheckedChange={(checked) => 
+                            setUserValue('permissions.logbook', checked)
+                          }
+                          disabled={watchRole === 'admin'}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="permEmployees">Funcionários</Label>
+                        <Switch 
+                          id="permEmployees" 
+                          checked={watchUser('permissions.employees')}
+                          onCheckedChange={(checked) => 
+                            setUserValue('permissions.employees', checked)
+                          }
+                          disabled={watchRole === 'admin'}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="permVehicles">Veículos</Label>
+                        <Switch 
+                          id="permVehicles" 
+                          checked={watchUser('permissions.vehicles')}
+                          onCheckedChange={(checked) => 
+                            setUserValue('permissions.vehicles', checked)
+                          }
+                          disabled={watchRole === 'admin'}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="permMaintenance">Manutenções</Label>
+                        <Switch 
+                          id="permMaintenance" 
+                          checked={watchUser('permissions.maintenance')}
+                          onCheckedChange={(checked) => 
+                            setUserValue('permissions.maintenance', checked)
                           }
                           disabled={watchRole === 'admin'}
                         />
