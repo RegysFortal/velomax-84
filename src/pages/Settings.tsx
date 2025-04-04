@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -108,6 +108,7 @@ const SettingsPage = () => {
     confirmPassword: '',
   });
   const [systemSettings, setSystemSettings] = useState<SystemSettingsData>(defaultSettings);
+  const { toast } = useToast();
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<SystemSettingsData>({
     defaultValues: systemSettings
@@ -150,7 +151,7 @@ const SettingsPage = () => {
 
   const onSubmitSettings = (data: SystemSettingsData) => {
     updateSystemSettings(data);
-    useToast().toast({
+    toast({
       title: "Configurações atualizadas",
       description: "As configurações do sistema foram salvas com sucesso."
     });
