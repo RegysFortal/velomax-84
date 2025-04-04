@@ -185,96 +185,90 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
     <NavigationMenu className={cn("flex", className)}>
       <NavigationMenuList className="flex gap-2">
         {accessibleOperationalRoutes.length > 0 && (
-          <div className="relative group">
-            <NavigationMenuTrigger className="group-hover:bg-accent/50">
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="hover:bg-accent/50">
               Operacional
             </NavigationMenuTrigger>
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
-              <div className="bg-popover rounded-md border shadow-md w-[200px]">
-                <div className="grid w-[200px] gap-1 p-2">
-                  {accessibleOperationalRoutes.map((route) => (
-                    <Link
-                      key={route.href}
-                      to={route.href}
-                      className={cn(
-                        "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                        route.active
-                          ? "font-medium text-primary bg-accent/50"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {route.icon && (
-                        <route.icon className="h-4 w-4 mr-2" />
-                      )}
-                      {route.label}
-                    </Link>
-                  ))}
-                </div>
+            <NavigationMenuContent>
+              <div className="w-[200px] p-2">
+                {accessibleOperationalRoutes.map((route) => (
+                  <Link
+                    key={route.href}
+                    to={route.href}
+                    className={cn(
+                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                      route.active
+                        ? "font-medium text-primary bg-accent/50"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {route.icon && (
+                      <route.icon className="h-4 w-4 mr-2" />
+                    )}
+                    {route.label}
+                  </Link>
+                ))}
               </div>
-            </div>
-          </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
         )}
 
         {accessibleFinancialRoutes.length > 0 && (
-          <div className="relative group">
-            <NavigationMenuTrigger className="group-hover:bg-accent/50">
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="hover:bg-accent/50">
               Financeiro
             </NavigationMenuTrigger>
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
-              <div className="bg-popover rounded-md border shadow-md w-[200px]">
-                <div className="grid w-[200px] gap-1 p-2">
-                  {accessibleFinancialRoutes.map((route) => (
-                    <Link
-                      key={route.href}
-                      to={route.href}
-                      className={cn(
-                        "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                        route.active
-                          ? "font-medium text-primary bg-accent/50"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {route.icon && (
-                        <route.icon className="h-4 w-4 mr-2" />
-                      )}
-                      {route.label}
-                    </Link>
-                  ))}
-                </div>
+            <NavigationMenuContent>
+              <div className="w-[200px] p-2">
+                {accessibleFinancialRoutes.map((route) => (
+                  <Link
+                    key={route.href}
+                    to={route.href}
+                    className={cn(
+                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                      route.active
+                        ? "font-medium text-primary bg-accent/50"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {route.icon && (
+                      <route.icon className="h-4 w-4 mr-2" />
+                    )}
+                    {route.label}
+                  </Link>
+                ))}
               </div>
-            </div>
-          </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
         )}
 
         {accessibleManagementRoutes.length > 0 && (
-          <div className="relative group">
-            <NavigationMenuTrigger className="group-hover:bg-accent/50">
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="hover:bg-accent/50">
               Gerência
             </NavigationMenuTrigger>
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 z-50 hidden group-hover:block">
-              <div className="bg-popover rounded-md border shadow-md w-[200px]">
-                <div className="grid w-[200px] gap-1 p-2">
-                  {accessibleManagementRoutes.map((route) => (
-                    <Link
-                      key={route.href}
-                      to={route.href}
-                      className={cn(
-                        "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                        route.active
-                          ? "font-medium text-primary bg-accent/50"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {route.icon && (
-                        <route.icon className="h-4 w-4 mr-2" />
-                      )}
-                      {route.label}
-                    </Link>
-                  ))}
-                </div>
+            <NavigationMenuContent>
+              <div className="w-[200px] p-2">
+                {accessibleManagementRoutes.map((route) => (
+                  <Link
+                    key={route.href}
+                    to={route.href}
+                    className={cn(
+                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
+                      route.active
+                        ? "font-medium text-primary bg-accent/50"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {route.icon && (
+                      <route.icon className="h-4 w-4 mr-2" />
+                    )}
+                    {route.label}
+                  </Link>
+                ))}
               </div>
-            </div>
-          </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
         )}
       </NavigationMenuList>
     </NavigationMenu>
