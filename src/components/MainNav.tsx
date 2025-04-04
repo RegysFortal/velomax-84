@@ -103,6 +103,13 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       active: pathname === "/dashboard",
     },
     {
+      href: "/logbook",
+      label: "Diário de Bordo",
+      icon: BookOpenCheck,
+      active: pathname.includes("/logbook"),
+      canAccess: true // Everyone can access logbook
+    },
+    {
       href: "/clients",
       label: "Clientes",
       icon: Users,
@@ -115,13 +122,6 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       icon: UserCheck,
       active: pathname.includes("/employees"),
       canAccess: canManageSystem
-    },
-    {
-      href: "/logbook",
-      label: "Diário de Bordo",
-      icon: BookOpenCheck,
-      active: pathname.includes("/logbook"),
-      canAccess: true // Everyone can access logbook
     },
     {
       href: "/vehicles",
