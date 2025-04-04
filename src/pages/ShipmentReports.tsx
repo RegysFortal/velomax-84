@@ -63,6 +63,12 @@ export default function ShipmentReports() {
     const matchesMode = filterMode === 'all' || shipment.transportMode === filterMode;
     
     return matchesDateRange && matchesStatus && matchesCarrier && matchesMode;
+  }).sort((a, b) => {
+    // Sort by arrival date (newest first)
+    if (a.arrivalDate && b.arrivalDate) {
+      return new Date(b.arrivalDate).getTime() - new Date(a.arrivalDate).getTime();
+    }
+    return 0;
   });
   
   // Count shipments by status for chart
@@ -70,12 +76,14 @@ export default function ShipmentReports() {
     in_transit: filteredShipments.filter(s => s.status === 'in_transit').length,
     retained: filteredShipments.filter(s => s.status === 'retained').length,
     delivered: filteredShipments.filter(s => s.status === 'delivered').length,
+    delivered_final: filteredShipments.filter(s => s.status === 'delivered_final').length,
   };
   
   const chartData = [
     { name: 'Em Trânsito', value: statusCounts.in_transit },
     { name: 'Retida', value: statusCounts.retained },
-    { name: 'Entregue', value: statusCounts.delivered },
+    { name: 'Retirada', value: statusCounts.delivered },
+    { name: 'Entregue', value: statusCounts.delivered_final },
   ];
   
   // Get unique carriers for the filter
@@ -185,7 +193,8 @@ export default function ShipmentReports() {
       'Data de Chegada': shipment.arrivalDate ? format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não definida',
       'Status': shipment.status === 'in_transit' ? 'Em Trânsito' : 
                shipment.status === 'retained' ? 'Retida' : 
-               shipment.status === 'delivered' ? 'Retirada' : 'Entregue',
+               shipment.status === 'delivered' ? 'Retirada' : 
+               shipment.status === 'delivered_final' ? 'Entregue' : 'Desconhecido',
       'Observações': shipment.observations || ''
     }));
     
@@ -234,6 +243,14 @@ export default function ShipmentReports() {
   const retainedCount = statusCounts.retained;
   const retainedPercentage = totalShipments ? (retainedCount / totalShipments * 100).toFixed(1) : '0';
   
+  // Status translation map for display
+  const statusTranslation: Record<ShipmentStatus, string> = {
+    'in_transit': 'Em Trânsito',
+    'retained': 'Retida',
+    'delivered': 'Retirada',
+    'delivered_final': 'Entregue'
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col space-y-6">
@@ -371,6 +388,7 @@ export default function ShipmentReports() {
                         <SelectItem value="in_transit">Em Trânsito</SelectItem>
                         <SelectItem value="retained">Retida</SelectItem>
                         <SelectItem value="delivered">Retirada</SelectItem>
+                        <SelectItem value="delivered_final">Entregue</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
