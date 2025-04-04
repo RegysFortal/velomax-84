@@ -8,13 +8,26 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { LockIcon, UserIcon } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [forgotUsername, setForgotUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  const { login } = useAuth();
+  const { login, resetUserPassword, users } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -40,6 +53,64 @@ export const LoginForm = () => {
       // Toast is already shown in the login function
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!forgotUsername || !newPassword) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha o nome de usuário e a nova senha.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsResetting(true);
+    
+    try {
+      // Check if user exists
+      const userExists = users.some(user => user.username === forgotUsername);
+      
+      if (!userExists) {
+        toast({
+          title: "Usuário não encontrado",
+          description: "O nome de usuário informado não existe no sistema.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Find user ID
+      const userId = users.find(user => user.username === forgotUsername)?.id;
+      
+      if (!userId) {
+        throw new Error("ID de usuário não encontrado");
+      }
+
+      // Reset password
+      resetUserPassword(userId, newPassword);
+      
+      toast({
+        title: "Senha redefinida",
+        description: "Sua senha foi redefinida com sucesso. Faça login com a nova senha.",
+      });
+      
+      // Close dialog and clear fields
+      setIsDialogOpen(false);
+      setForgotUsername('');
+      setNewPassword('');
+    } catch (error) {
+      console.error('Password reset failed:', error);
+      toast({
+        title: "Erro ao redefinir senha",
+        description: "Ocorreu um erro ao tentar redefinir sua senha.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResetting(false);
     }
   };
   
@@ -83,7 +154,7 @@ export const LoginForm = () => {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex-col gap-4">
           <Button 
             type="submit" 
             className="w-full bg-velomax-blue hover:bg-blue-800"
@@ -91,6 +162,48 @@ export const LoginForm = () => {
           >
             {isSubmitting ? "Autenticando..." : "Entrar"}
           </Button>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="link" className="text-sm text-muted-foreground hover:text-primary">
+                Esqueci minha senha
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Recuperação de Senha</DialogTitle>
+                <DialogDescription>
+                  Preencha seu nome de usuário e uma nova senha
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleResetPassword} className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-username">Nome de Usuário</Label>
+                  <Input
+                    id="forgot-username"
+                    value={forgotUsername}
+                    onChange={(e) => setForgotUsername(e.target.value)}
+                    disabled={isResetting}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">Nova Senha</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={isResetting}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="submit" disabled={isResetting}>
+                    {isResetting ? "Redefinindo..." : "Redefinir Senha"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </CardFooter>
       </form>
     </Card>
