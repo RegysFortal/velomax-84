@@ -118,7 +118,7 @@ const defaultSettings: SystemSettingsData = {
 };
 
 const SettingsPage = () => {
-  const { user, updateUserProfile, users, createUser, deleteUser, resetUserPassword } = useAuth();
+  const { user, updateUserProfile, users, createUser, deleteUser, resetUserPassword, loading } = useAuth();
   const { theme, setTheme } = useTheme();
   const { cities } = useCities();
   const { clients } = useClients();
@@ -135,6 +135,7 @@ const SettingsPage = () => {
   const [isBackupDialogOpen, setIsBackupDialogOpen] = useState(false);
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
   const [backupFile, setBackupFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [passwordData, setPasswordData] = useState({
     userId: '',
     newPassword: '',
@@ -220,19 +221,9 @@ const SettingsPage = () => {
       setUserValue('role', userToEdit.role);
       
       if (userToEdit.permissions) {
-        setUserValue('permissions.deliveries', userToEdit.permissions.deliveries || false);
-        setUserValue('permissions.shipments', userToEdit.permissions.shipments || false);
-        setUserValue('permissions.clients', userToEdit.permissions.clients || false);
-        setUserValue('permissions.cities', userToEdit.permissions.cities || false);
-        setUserValue('permissions.reports', userToEdit.permissions.reports || false);
-        setUserValue('permissions.financial', userToEdit.permissions.financial || false);
-        setUserValue('permissions.priceTables', userToEdit.permissions.priceTables || false);
-        setUserValue('permissions.dashboard', userToEdit.permissions.dashboard || true);
-        setUserValue('permissions.logbook', userToEdit.permissions.logbook || false);
-        setUserValue('permissions.employees', userToEdit.permissions.employees || false);
-        setUserValue('permissions.vehicles', userToEdit.permissions.vehicles || false);
-        setUserValue('permissions.maintenance', userToEdit.permissions.maintenance || false);
-        setUserValue('permissions.settings', userToEdit.permissions.settings || false);
+        Object.entries(userToEdit.permissions).forEach(([key, value]) => {
+          setUserValue(`permissions.${key}` as any, value);
+        });
       }
     }
     
@@ -249,15 +240,19 @@ const SettingsPage = () => {
 
   const onSubmitUser = async (data: UserFormData) => {
     try {
-      setIsAddUserDialogOpen(false); // Close dialog immediately to show loading state
+      setIsSaving(true);
+      
+      setIsAddUserDialogOpen(false);
       
       if (editingUserId) {
-        await updateUserProfile(editingUserId, {
+        const userData = {
           name: data.name,
           username: data.username,
           role: data.role,
           permissions: data.permissions,
-        });
+        };
+        
+        await updateUserProfile(editingUserId, userData);
         
         toast({
           title: "Usuário atualizado",
@@ -282,12 +277,14 @@ const SettingsPage = () => {
       setEditingUserId(null);
     } catch (error) {
       console.error("Erro ao salvar usuário:", error);
-      setIsAddUserDialogOpen(true); // Reopen dialog if there was an error
+      setIsAddUserDialogOpen(true);
       toast({
         title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar as informações do usuário.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar as informações do usuário.",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -695,7 +692,7 @@ const SettingsPage = () => {
                     Adicione, edite ou remova usuários do sistema.
                   </CardDescription>
                 </div>
-                <Button onClick={handleOpenAddUserDialog}>
+                <Button onClick={handleOpenAddUserDialog} disabled={isSaving || loading}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   Novo Usuário
                 </Button>
@@ -726,6 +723,7 @@ const SettingsPage = () => {
                               variant="ghost" 
                               size="icon"
                               onClick={() => handleOpenChangePassword(user.id)}
+                              disabled={isSaving || loading}
                             >
                               <LockKeyhole className="h-4 w-4" />
                             </Button>
@@ -733,12 +731,13 @@ const SettingsPage = () => {
                               variant="ghost" 
                               size="icon"
                               onClick={() => handleEditUser(user.id)}
+                              disabled={isSaving || loading}
                             >
                               <PenLine className="h-4 w-4" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" disabled={isSaving || loading}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
@@ -771,7 +770,15 @@ const SettingsPage = () => {
           </TabsContent>
         </Tabs>
 
-        <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+        <Dialog open={isAddUserDialogOpen} onOpenChange={(open) => {
+          if (!isSaving && !loading) {
+            setIsAddUserDialogOpen(open);
+            if (!open) {
+              resetUser();
+              setEditingUserId(null);
+            }
+          }
+        }}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>
@@ -1005,13 +1012,25 @@ const SettingsPage = () => {
                 </div>
               </ScrollArea>
               <DialogFooter className="mt-4 flex gap-2">
-                <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCancelEdit} 
+                  disabled={isSaving || loading}
+                >
                   <X className="h-4 w-4 mr-2" />
                   Cancelar
                 </Button>
-                <Button type="submit">
-                  <Check className="h-4 w-4 mr-2" />
-                  {editingUserId ? 'Salvar Alterações' : 'Adicionar Usuário'}
+                <Button 
+                  type="submit" 
+                  disabled={isSaving || loading}
+                >
+                  {(isSaving || loading) ? 'Salvando...' : (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      {editingUserId ? 'Salvar Alterações' : 'Adicionar Usuário'}
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </form>

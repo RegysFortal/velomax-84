@@ -216,11 +216,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
       
+      // Find user to check if it exists
+      const userToUpdate = users.find(u => u.id === userId);
+      if (!userToUpdate) {
+        throw new Error('Usuário não encontrado');
+      }
+      
       // Update users state with new data
       const updatedUsers = users.map(u => 
         u.id === userId ? { ...u, ...userData } : u
       );
       
+      // Update users state
       setUsers(updatedUsers);
       
       // If the current user is being updated, also update the user state
@@ -246,7 +253,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error updating user profile:", error);
       uiToast({
         title: "Erro ao atualizar",
-        description: "Ocorreu um erro ao atualizar as informações do usuário.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao atualizar as informações do usuário.",
         variant: "destructive"
       });
       return Promise.reject(error);
