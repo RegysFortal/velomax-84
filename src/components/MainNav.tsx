@@ -259,7 +259,7 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
             )}>
               Gerência
             </NavigationMenuTrigger>
-            <NavigationMenuContent>
+            <NavigationMenuContent className="absolute z-50">
               <div className="grid w-[200px] gap-1 p-2 bg-popover">
                 {accessibleManagementRoutes.map((route) => (
                   <Link

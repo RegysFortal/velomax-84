@@ -30,7 +30,7 @@ const Login = () => {
           alt="Velomax Brasil Logo" 
           className="h-16 mx-auto mb-3" 
         />
-        <h1 className="text-3xl font-bold tracking-tight">Freight Keeper Pro</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Velomax Brasil</h1>
         <p className="text-muted-foreground mt-1">Sistema de Gerenciamento de Fretes</p>
       </div>
       

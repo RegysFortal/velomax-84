@@ -40,7 +40,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </main>
       <footer className="border-t py-4 text-center text-sm text-muted-foreground">
         <div className="container mx-auto">
-          © {new Date().getFullYear()} Velomax Brasil Freight Keeper Pro
+          By Reginaldo Cavalcante {new Date().getFullYear()}
         </div>
       </footer>
     </div>
