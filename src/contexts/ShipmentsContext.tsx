@@ -22,6 +22,7 @@ interface ShipmentsContextType {
   
   updateFiscalAction: (shipmentId: string, fiscalAction: Omit<FiscalAction, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FiscalAction>;
   clearFiscalAction: (shipmentId: string) => Promise<void>;
+  updateFiscalActionDetails: (shipmentId: string, updates: Partial<FiscalAction>) => Promise<FiscalAction | undefined>;
   
   updateStatus: (shipmentId: string, status: ShipmentStatus) => Promise<void>;
   
@@ -221,6 +222,31 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     return fiscalAction;
   };
   
+  const updateFiscalActionDetails = async (shipmentId: string, updates: Partial<FiscalAction>) => {
+    const now = new Date().toISOString();
+    
+    const updatedShipments = shipments.map(s => {
+      if (s.id === shipmentId && s.fiscalAction) {
+        const updatedFiscalAction = {
+          ...s.fiscalAction,
+          ...updates,
+          updatedAt: now
+        };
+        
+        return {
+          ...s,
+          fiscalAction: updatedFiscalAction,
+          updatedAt: now
+        };
+      }
+      return s;
+    });
+    
+    setShipments(updatedShipments);
+    const shipment = updatedShipments.find(s => s.id === shipmentId);
+    return shipment?.fiscalAction;
+  };
+  
   const clearFiscalAction = async (shipmentId: string) => {
     const now = new Date().toISOString();
     const updatedShipments = shipments.map(s => {
@@ -296,6 +322,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     deleteDocument,
     updateFiscalAction,
     clearFiscalAction,
+    updateFiscalActionDetails,
     updateStatus,
     getShipmentsByStatus,
     getShipmentsByCarrier,

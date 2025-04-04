@@ -1,4 +1,3 @@
-
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
   | "retained"    // Retida
@@ -9,10 +8,12 @@ export type TransportMode = "air" | "road";
 
 export interface FiscalAction {
   id: string;
+  actionNumber?: string; // Adding the fiscal action number field
   reason: string;
   amountToPay: number;
   paymentDate?: string;
   releaseDate?: string;
+  notes?: string; // Added for additional details
   createdAt: string;
   updatedAt: string;
 }
@@ -63,7 +64,7 @@ export interface Delivery {
   receiver?: string;
   cityId?: string;
   weight: number;
-  packages: number;
+  packages: number; // Explicitly adding the packages property
   cargoType: string;
   deliveryType: string;
   cargoValue: number;

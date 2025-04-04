@@ -1,45 +1,31 @@
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
+import { useEffect, useState } from 'react';
 import { 
-  Dialog, 
-  DialogContent,
-  DialogHeader,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { useShipments } from "@/contexts/ShipmentsContext";
-import { Shipment, ShipmentStatus } from "@/types/shipment";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription 
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { StatusBadge } from './StatusBadge';
+import { useShipments } from '@/contexts/ShipmentsContext';
+import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { 
+  Shipment, ShipmentStatus, Document, FiscalAction, Delivery
+} from '@/types/shipment';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { DocumentsList } from './DocumentsList';
+import { FiscalActionForm } from './FiscalActionForm';
+import { FiscalActionDetails } from './FiscalActionDetails';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 import { 
-  AlertTriangle,
-  CheckCircle2, 
-  File, 
-  FileText, 
-  Package, 
-  Truck, 
-  Calendar,
-  Weight, 
-  ClipboardList,
-  ShieldAlert,
-  Banknote,
-  Clock,
-  X
-} from 'lucide-react';
-import { toast } from "sonner";
-import { DocumentsList } from '@/components/shipment/DocumentsList';
-import { FiscalActionForm } from '@/components/shipment/FiscalActionForm';
-import { ShipmentDialog } from '@/components/shipment/ShipmentDialog';
-import { StatusBadge } from '@/components/shipment/StatusBadge';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  Popover, PopoverTrigger, PopoverContent 
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon, AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ShipmentDetailsProps {
   shipment: Shipment;
@@ -47,437 +33,358 @@ interface ShipmentDetailsProps {
   onClose: () => void;
 }
 
-export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProps) {
-  const { updateStatus, updateShipment } = useShipments();
+export function ShipmentDetails({ 
+  shipment, 
+  open, 
+  onClose 
+}: ShipmentDetailsProps) {
+  const { updateStatus, updateShipment, updateFiscalAction, clearFiscalAction, updateFiscalActionDetails } = useShipments();
   const { addDelivery } = useDeliveries();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isFiscalActionDialogOpen, setIsFiscalActionDialogOpen] = useState(false);
-  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<ShipmentStatus>(shipment.status);
+  const [activeTab, setActiveTab] = useState('details');
+  const [date, setDate] = useState<Date | undefined>();
+  const [showAddFiscalAction, setShowAddFiscalAction] = useState(false);
+  const [deliveryInfo, setDeliveryInfo] = useState({
+    receiverName: '',
+    date: new Date(),
+    time: format(new Date(), 'HH:mm')
+  });
   
-  const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [deliveryTime, setDeliveryTime] = useState(format(new Date(), 'HH:mm'));
-  const [receiverName, setReceiverName] = useState("");
-
-  const handleStatusChange = async (newStatus: ShipmentStatus) => {
-    if (newStatus === currentStatus) return;
-    
-    if (newStatus === "delivered" || newStatus === "delivered_final") {
-      setCurrentStatus(newStatus);
-      setIsStatusDialogOpen(true);
-      return;
+  useEffect(() => {
+    if (shipment.arrivalDate) {
+      setDate(new Date(shipment.arrivalDate));
     }
-    
-    try {
-      setCurrentStatus(newStatus);
-      await updateStatus(shipment.id, newStatus);
-      toast.success(`Status atualizado para ${getStatusLabel(newStatus)}`);
-    } catch (error) {
-      toast.error("Erro ao atualizar o status");
-      console.error(error);
-    }
-  };
+  }, [shipment.arrivalDate]);
   
-  const handleCompleteStatusChange = async () => {
+  const canBeDelivered = shipment.status === 'in_transit';
+  
+  const handleStatusChange = async (status: ShipmentStatus) => {
     try {
-      const statusData = {
-        status: currentStatus,
-        deliveryDate,
-        deliveryTime,
-        receiverName
-      };
+      await updateStatus(shipment.id, status);
       
-      await updateShipment(shipment.id, statusData);
-      
-      if (currentStatus === "delivered_final") {
-        const documentsWithMinuteNumbers = shipment.documents.filter(doc => doc.minuteNumber);
-        
-        if (documentsWithMinuteNumbers.length === 0) {
-          toast.warning("Nenhuma minuta encontrada para registro de entrega");
-        } else {
-          for (const doc of documentsWithMinuteNumbers) {
-            if (doc.minuteNumber) {
-              await addDelivery({
-                clientId: shipment.companyId,
-                minuteNumber: doc.minuteNumber,
-                deliveryDate,
-                deliveryTime,
-                receiver: receiverName,
-                weight: doc.weight || shipment.weight / shipment.documents.length,
-                packages: doc.packages || Math.ceil(shipment.packages / shipment.documents.length),
-                cargoType: 'standard',
-                deliveryType: 'standard',
-                cargoValue: 0,
-                totalFreight: 0,
-                customPricing: false,
-                discount: 0,
-                notes: `Gerado automaticamente do embarque ${shipment.trackingNumber}`
-              });
-            }
-          }
-          
-          toast.success("Entregas registradas com sucesso");
-        }
+      if (status === 'delivered' || status === 'delivered_final') {
+        // Force dialog to re-render with updated shipment
+        onClose();
       }
       
-      setIsStatusDialogOpen(false);
-      toast.success(`Status atualizado para ${getStatusLabel(currentStatus)}`);
+      toast.success('Status atualizado com sucesso');
     } catch (error) {
-      toast.error("Erro ao atualizar o status");
       console.error(error);
+      toast.error('Erro ao atualizar status');
     }
   };
   
-  const getStatusLabel = (status: ShipmentStatus) => {
-    switch (status) {
-      case 'in_transit': return 'Em Trânsito';
-      case 'retained': return 'Retida';
-      case 'delivered': return 'Retirada';
-      case 'delivered_final': return 'Entregue';
-      default: return status;
+  const handleDeliveryComplete = async () => {
+    try {
+      // Mark as delivered
+      await updateStatus(shipment.id, 'delivered');
+      
+      // Update delivery info
+      await updateShipment(shipment.id, {
+        receiverName: deliveryInfo.receiverName,
+        deliveryDate: format(deliveryInfo.date, 'yyyy-MM-dd'),
+        deliveryTime: deliveryInfo.time
+      });
+      
+      // Add to deliveries (optional, if tracking deliveries)
+      await addDelivery({
+        clientId: shipment.companyId,
+        minuteNumber: shipment.trackingNumber,
+        deliveryDate: format(deliveryInfo.date, 'yyyy-MM-dd'),
+        deliveryTime: deliveryInfo.time,
+        receiver: deliveryInfo.receiverName,
+        weight: shipment.weight,
+        packages: shipment.packages,
+        cargoType: 'standard',
+        deliveryType: 'standard',
+        cargoValue: 0,
+        totalFreight: 0,
+        customPricing: false,
+        discount: 0
+      });
+      
+      // Close dialog
+      onClose();
+      toast.success('Retirada registrada com sucesso');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao registrar retirada');
     }
   };
   
-  const getStatusIcon = (status: ShipmentStatus) => {
-    switch (status) {
-      case 'in_transit': return <Truck className="h-4 w-4" />;
-      case 'retained': return <AlertTriangle className="h-4 w-4" />;
-      case 'delivered': return <CheckCircle2 className="h-4 w-4" />;
-      case 'delivered_final': return <CheckCircle2 className="h-4 w-4" />;
-      default: return null;
+  const handleDeliveryDateChange = (date: Date | undefined) => {
+    if (date) {
+      setDeliveryInfo(prev => ({ ...prev, date }));
     }
   };
   
-  const isShipmentOverdue = (shipment: Shipment) => {
-    if (!shipment.arrivalDate) return false;
-    
-    const arrivalDate = new Date(shipment.arrivalDate);
-    const today = new Date();
-    
-    arrivalDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    
-    return arrivalDate < today && shipment.status !== 'delivered' && shipment.status !== 'delivered_final';
+  const handleUpdateFiscalAction = async (data: { actionNumber: string; reason: string; amountToPay: number }) => {
+    try {
+      await updateFiscalAction(shipment.id, {
+        actionNumber: data.actionNumber,
+        reason: data.reason,
+        amountToPay: data.amountToPay
+      });
+      
+      setShowAddFiscalAction(false);
+      toast.success('Ação fiscal criada com sucesso');
+      
+      // Force refresh
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao criar ação fiscal');
+    }
   };
   
-  const handleCloseEditDialog = () => {
-    setIsEditDialogOpen(false);
-    onClose();
-  };
-  
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Não definida';
-    return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+  const handleClearFiscalAction = async () => {
+    try {
+      await clearFiscalAction(shipment.id);
+      toast.success('Ação fiscal removida com sucesso');
+      
+      // Force dialog to re-render with updated shipment
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao remover ação fiscal');
+    }
   };
 
+  const handleUpdateFiscalActionDetails = async (updates: Partial<FiscalAction>) => {
+    try {
+      await updateFiscalActionDetails(shipment.id, updates);
+      toast.success('Detalhes da ação fiscal atualizados');
+      
+      // Force dialog to re-render with updated shipment
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao atualizar detalhes da ação fiscal');
+    }
+  };
+  
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[95vh]">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            <span className="text-xl font-semibold">Detalhes do Embarque</span>
-          </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-            <X className="h-4 w-4" />
-          </Button>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            <span>Detalhes do Embarque</span>
+            <StatusBadge status={shipment.status} className="ml-2" />
+          </DialogTitle>
+          <DialogDescription>
+            Conhecimento: {shipment.trackingNumber}
+          </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[calc(95vh-130px)] pr-4">
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between bg-muted p-3 rounded-md">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Status:</span>
-                <StatusBadge status={currentStatus} />
-                {shipment.isRetained && (
-                  <span className="inline-flex items-center rounded-full bg-red-100 text-red-800 border border-red-200 px-2 py-1 text-xs font-semibold">
-                    <ShieldAlert className="h-3 w-3 mr-1" />
-                    <span>Retida</span>
-                  </span>
-                )}
-                {isShipmentOverdue(shipment) && (
-                  <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-800 border border-amber-200 px-2 py-1 text-xs font-semibold">
-                    <Clock className="h-3 w-3 mr-1" />
-                    <span>Em atraso</span>
-                  </span>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Select value={currentStatus} onValueChange={(value: ShipmentStatus) => handleStatusChange(value)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Alterar status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="in_transit">
-                      <div className="flex items-center">
-                        <Truck className="mr-2 h-4 w-4" />
-                        <span>Em Trânsito</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="retained">
-                      <div className="flex items-center">
-                        <AlertTriangle className="mr-2 h-4 w-4" />
-                        <span>Retida</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="delivered">
-                      <div className="flex items-center">
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        <span>Retirada</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="delivered_final">
-                      <div className="flex items-center">
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        <span>Entregue</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Informações Básicas</h3>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Empresa:</span>
-                      <span className="text-sm">{shipment.companyName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <File className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Conhecimento:</span>
-                      <span className="text-sm">{shipment.trackingNumber}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Truck className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Transportadora:</span>
-                      <span className="text-sm">{shipment.carrierName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Weight className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Peso:</span>
-                      <span className="text-sm">{shipment.weight} kg</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Volumes:</span>
-                      <span className="text-sm">{shipment.packages}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Datas</h3>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Data de Chegada:</span>
-                      <span className="text-sm">{formatDate(shipment.arrivalDate)}</span>
-                    </div>
-                    {shipment.transportMode === 'air' && shipment.arrivalFlight && (
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Voo de Chegada:</span>
-                        <span className="text-sm">{shipment.arrivalFlight}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Cadastrado em:</span>
-                      <span className="text-sm">{formatDate(shipment.createdAt)}</span>
-                    </div>
-                    
-                    {shipment.deliveryDate && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Data de Retirada:</span>
-                        <span className="text-sm">
-                          {formatDate(shipment.deliveryDate)}
-                          {shipment.deliveryTime && ` às ${shipment.deliveryTime}`}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {shipment.receiverName && (
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Recebedor:</span>
-                        <span className="text-sm">{shipment.receiverName}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                {shipment.observations && (
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Observações</h3>
-                    <div className="mt-2 p-3 bg-muted rounded-md text-sm">
-                      <ClipboardList className="h-4 w-4 text-muted-foreground inline mr-2" />
-                      {shipment.observations}
-                    </div>
-                  </div>
-                )}
-                
-                {shipment.status === 'retained' && (
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-muted-foreground">Ação Fiscal</h3>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setIsFiscalActionDialogOpen(true)}
-                      >
-                        {shipment.fiscalAction ? "Editar Ação Fiscal" : "Registrar Ação Fiscal"}
-                      </Button>
-                    </div>
-                    
-                    {shipment.fiscalAction ? (
-                      <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-md space-y-2">
-                        <div>
-                          <span className="text-sm font-medium">Motivo:</span>
-                          <p className="text-sm mt-1">{shipment.fiscalAction.reason}</p>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Banknote className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">Valor a Pagar:</span>
-                          <span className="text-sm">
-                            {new Intl.NumberFormat('pt-BR', { 
-                              style: 'currency', 
-                              currency: 'BRL' 
-                            }).format(shipment.fiscalAction.amountToPay)}
-                          </span>
-                        </div>
-                        
-                        {shipment.fiscalAction.paymentDate && (
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Data de Pagamento:</span>
-                            <span className="text-sm">{formatDate(shipment.fiscalAction.paymentDate)}</span>
-                          </div>
-                        )}
-                        
-                        {shipment.fiscalAction.releaseDate && (
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Data de Liberação:</span>
-                            <span className="text-sm">{formatDate(shipment.fiscalAction.releaseDate)}</span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="mt-2 p-3 bg-muted rounded-md text-sm">
-                        <span>Nenhuma ação fiscal registrada para este embarque.</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Documentos</h3>
-                  <DocumentsList shipmentId={shipment.id} documents={shipment.documents} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </ScrollArea>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Fechar
-          </Button>
-          <Button onClick={() => setIsEditDialogOpen(true)}>
-            Editar Embarque
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-
-      {isEditDialogOpen && (
-        <ShipmentDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-        />
-      )}
-      
-      {isFiscalActionDialogOpen && (
-        <FiscalActionForm
-          shipmentId={shipment.id}
-          fiscalAction={shipment.fiscalAction}
-          open={isFiscalActionDialogOpen}
-          onOpenChange={setIsFiscalActionDialogOpen}
-        />
-      )}
-      
-      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <div className="text-lg font-semibold">
-              {currentStatus === 'delivered' ? 'Registrar Retirada' : 'Registrar Entrega'}
-            </div>
-          </DialogHeader>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="details">Detalhes</TabsTrigger>
+            <TabsTrigger value="documents">Documentos</TabsTrigger>
+            <TabsTrigger value="fiscal">Ação Fiscal</TabsTrigger>
+          </TabsList>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data</label>
-              <Input
-                type="date"
-                value={deliveryDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                required
-              />
+          <TabsContent value="details" className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-lg font-medium">Informações da Empresa</h3>
+                <p><span className="text-muted-foreground">Nome:</span> {shipment.companyName}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium">Informações do Embarque</h3>
+                <p><span className="text-muted-foreground">Transportadora:</span> {shipment.carrierName}</p>
+                <p><span className="text-muted-foreground">Modalidade:</span> {shipment.transportMode === 'air' ? 'Aéreo' : 'Rodoviário'}</p>
+                <p><span className="text-muted-foreground">Volumes:</span> {shipment.packages}</p>
+                <p><span className="text-muted-foreground">Peso:</span> {shipment.weight} kg</p>
+                {shipment.arrivalFlight && (
+                  <p><span className="text-muted-foreground">Voo:</span> {shipment.arrivalFlight}</p>
+                )}
+              </div>
+              
+              <div className="col-span-2">
+                <h3 className="text-lg font-medium">Datas</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-muted-foreground">Data de Chegada</p>
+                    <p>{shipment.arrivalDate ? format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informada'}</p>
+                  </div>
+                  
+                  {shipment.status === 'delivered' && (
+                    <div>
+                      <p className="text-muted-foreground">Data de Retirada</p>
+                      <p>{shipment.deliveryDate ? format(new Date(shipment.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informada'}</p>
+                    </div>
+                  )}
+
+                  {shipment.status === 'delivered_final' && (
+                    <div>
+                      <p className="text-muted-foreground">Data de Entrega</p>
+                      <p>{shipment.deliveryDate ? format(new Date(shipment.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informada'}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {shipment.status === 'delivered' && shipment.receiverName && (
+                <div>
+                  <p className="text-muted-foreground">Retirado por</p>
+                  <p>{shipment.receiverName}</p>
+                </div>
+              )}
+
+              {shipment.status === 'delivered_final' && shipment.receiverName && (
+                <div>
+                  <p className="text-muted-foreground">Recebedor</p>
+                  <p>{shipment.receiverName}</p>
+                </div>
+              )}
+              
+              {shipment.observations && (
+                <div className="col-span-2">
+                  <h3 className="text-lg font-medium">Observações</h3>
+                  <p className="text-sm">{shipment.observations}</p>
+                </div>
+              )}
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Hora</label>
-              <Input
-                type="time"
-                value={deliveryTime}
-                onChange={(e) => setDeliveryTime(e.target.value)}
-              />
-            </div>
+            {canBeDelivered && (
+              <>
+                <Separator className="my-4" />
+                <div className="bg-muted rounded-md p-4">
+                  <h3 className="text-lg font-medium mb-2">Registrar Retirada</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="receiverName">Retirado por</Label>
+                      <Input
+                        id="receiverName"
+                        value={deliveryInfo.receiverName}
+                        onChange={(e) => setDeliveryInfo(prev => ({ ...prev, receiverName: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Data de Retirada</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !deliveryInfo.date && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {deliveryInfo.date ? format(deliveryInfo.date, "P", { locale: ptBR }) : "Selecione uma data"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={deliveryInfo.date}
+                              onSelect={handleDeliveryDateChange}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="deliveryTime">Hora da Retirada</Label>
+                        <Input
+                          id="deliveryTime"
+                          type="time"
+                          value={deliveryInfo.time}
+                          onChange={(e) => setDeliveryInfo(prev => ({ ...prev, time: e.target.value }))}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      className="w-full" 
+                      onClick={handleDeliveryComplete}
+                      disabled={!deliveryInfo.receiverName.trim()}
+                    >
+                      Registrar Retirada
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nome do Recebedor</label>
-              <Input
-                value={receiverName}
-                onChange={(e) => setReceiverName(e.target.value)}
-                placeholder="Nome de quem recebeu"
-                required
-              />
+            <div className="flex justify-center space-x-2 mt-4">
+              {shipment.status === 'in_transit' && (
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleStatusChange('retained')}
+                >
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Marcar como Retida
+                </Button>
+              )}
+              
+              {shipment.status === 'delivered' && (
+                <Button 
+                  variant="default" 
+                  onClick={() => handleStatusChange('delivered_final')}
+                >
+                  Marcar como Entregue
+                </Button>
+              )}
+              
+              {shipment.status === 'retained' && (
+                <Button 
+                  variant="default" 
+                  onClick={() => handleStatusChange('in_transit')}
+                >
+                  Marcar como Em Trânsito
+                </Button>
+              )}
             </div>
-            
-            {currentStatus === 'delivered_final' && (
-              <div className="bg-blue-50 border border-blue-100 rounded-md p-3 text-sm">
-                <p className="font-semibold">Atenção</p>
-                <p className="mt-1">
-                  Documentos com números de minuta serão registrados automaticamente na lista de entregas.
+          </TabsContent>
+          
+          <TabsContent value="documents" className="space-y-4 pt-4">
+            <DocumentsList shipmentId={shipment.id} documents={shipment.documents} />
+          </TabsContent>
+          
+          <TabsContent value="fiscal" className="space-y-4 pt-4">
+            {shipment.fiscalAction ? (
+              <div className="space-y-4">
+                <FiscalActionDetails 
+                  fiscalAction={shipment.fiscalAction} 
+                  onUpdate={handleUpdateFiscalActionDetails} 
+                />
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleClearFiscalAction}
+                  >
+                    Remover Ação Fiscal
+                  </Button>
+                </div>
+              </div>
+            ) : showAddFiscalAction ? (
+              <FiscalActionForm 
+                onSubmit={handleUpdateFiscalAction} 
+                onCancel={() => setShowAddFiscalAction(false)} 
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center p-8">
+                <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+                <h3 className="text-lg font-medium mb-2">Nenhuma Ação Fiscal</h3>
+                <p className="text-muted-foreground text-center mb-4">
+                  Não há ação fiscal registrada para este embarque.
                 </p>
+                <Button onClick={() => setShowAddFiscalAction(true)}>
+                  Criar Ação Fiscal
+                </Button>
               </div>
             )}
-          </div>
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setIsStatusDialogOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleCompleteStatusChange}
-            >
-              {currentStatus === 'delivered' ? 'Registrar Retirada' : 'Registrar Entrega'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
     </Dialog>
   );
 }

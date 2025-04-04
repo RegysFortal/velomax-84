@@ -140,7 +140,7 @@ export default function Shipments() {
                         className={cn(
                           "cursor-pointer hover:bg-muted",
                           shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
-                          isOverdue && shipment.status !== 'retained' && "bg-amber-50 hover:bg-amber-100"
+                          isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100" // Changed from amber to red
                         )}
                         onClick={() => setSelectedShipment(shipment)}
                       >
@@ -154,7 +154,7 @@ export default function Shipments() {
                             <div className="flex items-center gap-1">
                               {format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })}
                               {isOverdue && (
-                                <span className="inline-flex h-2 w-2 rounded-full bg-amber-500" 
+                                <span className="inline-flex h-2 w-2 rounded-full bg-red-500" 
                                   title="Embarque em atraso" />
                               )}
                             </div>

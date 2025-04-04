@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -331,23 +330,6 @@ const DeliveryForm = ({
       <ScrollArea className="h-[60vh] pr-4">
         <div className="space-y-4">
           <div>
-            <Label htmlFor="minuteNumber">Número da Minuta</Label>
-            <Input
-              id="minuteNumber"
-              name="minuteNumber"
-              value={formData.minuteNumber}
-              onChange={handleChange}
-              required
-              className="mt-1"
-            />
-            {minuteNumberExists && !showDuplicateConfirm && (
-              <p className="text-sm text-red-500 mt-1">
-                Esta minuta já foi registrada para este cliente
-              </p>
-            )}
-          </div>
-
-          <div>
             <Label htmlFor="clientId">Cliente</Label>
             <Select 
               value={formData.clientId} 
@@ -365,6 +347,23 @@ const DeliveryForm = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="minuteNumber">Número da Minuta</Label>
+            <Input
+              id="minuteNumber"
+              name="minuteNumber"
+              value={formData.minuteNumber}
+              onChange={handleChange}
+              required
+              className="mt-1"
+            />
+            {minuteNumberExists && !showDuplicateConfirm && (
+              <p className="text-sm text-red-500 mt-1">
+                Esta minuta já foi registrada para este cliente
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
