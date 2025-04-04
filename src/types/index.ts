@@ -9,11 +9,23 @@ export interface User {
 }
 
 export interface UserPermissions {
-  clients: boolean;
-  cities: boolean;
-  reports: boolean;
+  // Operational permissions
+  deliveries: boolean;
+  shipments: boolean;
+  
+  // Financial permissions
   financial: boolean;
+  reports: boolean;
   priceTables: boolean;
+  cities: boolean;
+  
+  // Management permissions
+  dashboard: boolean;
+  logbook: boolean;
+  clients: boolean;
+  employees: boolean;
+  vehicles: boolean;
+  maintenance: boolean;
   settings: boolean;
 }
 

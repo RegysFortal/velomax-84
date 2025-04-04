@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, UserPermissions } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -63,13 +64,13 @@ const USER_PERMISSIONS: UserPermissions = {
   deliveries: true,
   shipments: true,
   
-  // Limited financial permissions
+  // Financial permissions
   financial: false,
   reports: true,
   priceTables: false,
   cities: false,
   
-  // Limited management permissions
+  // Management permissions
   dashboard: true,
   logbook: false,
   clients: false,
