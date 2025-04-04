@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -187,12 +186,10 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
       <NavigationMenuList className="flex gap-2">
         {accessibleOperationalRoutes.length > 0 && (
           <NavigationMenuItem>
-            <NavigationMenuTrigger className={cn(
-              accessibleOperationalRoutes.some(route => route.active) && "text-primary bg-accent"
-            )}>
+            <NavigationMenuTrigger>
               Operacional
             </NavigationMenuTrigger>
-            <NavigationMenuContent>
+            <NavigationMenuContent className="absolute left-0 top-full w-[200px]">
               <div className="grid w-[200px] gap-1 p-2">
                 {accessibleOperationalRoutes.map((route) => (
                   <Link
@@ -218,12 +215,10 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
 
         {accessibleFinancialRoutes.length > 0 && (
           <NavigationMenuItem>
-            <NavigationMenuTrigger className={cn(
-              accessibleFinancialRoutes.some(route => route.active) && "text-primary bg-accent"
-            )}>
+            <NavigationMenuTrigger>
               Financeiro
             </NavigationMenuTrigger>
-            <NavigationMenuContent>
+            <NavigationMenuContent className="absolute left-0 top-full w-[200px]">
               <div className="grid w-[200px] gap-1 p-2">
                 {accessibleFinancialRoutes.map((route) => (
                   <Link
@@ -249,12 +244,10 @@ export function MainNav({ className, isMobile = false }: MainNavProps) {
 
         {accessibleManagementRoutes.length > 0 && (
           <NavigationMenuItem>
-            <NavigationMenuTrigger className={cn(
-              accessibleManagementRoutes.some(route => route.active) && "text-primary bg-accent"
-            )}>
+            <NavigationMenuTrigger>
               Gerência
             </NavigationMenuTrigger>
-            <NavigationMenuContent className="left-0 w-[200px]">
+            <NavigationMenuContent className="absolute left-0 top-full w-[200px]">
               <div className="grid w-[200px] gap-1 p-2">
                 {accessibleManagementRoutes.map((route) => (
                   <Link
