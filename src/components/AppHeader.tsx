@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { MainNav } from '@/components/MainNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -36,7 +35,6 @@ export function AppHeader() {
             alt="Velomax Logo" 
             className="h-10 w-auto"
           />
-          <span className="font-bold text-xl text-navy-blue">Velomax</span>
         </Link>
         <MainNav className="mx-6" />
         <div className="ml-auto flex items-center space-x-4">
