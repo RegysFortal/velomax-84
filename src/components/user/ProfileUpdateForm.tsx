@@ -39,6 +39,7 @@ export const ProfileUpdateForm = () => {
       toast.success('Perfil atualizado com sucesso');
     } catch (error) {
       toast.error('Ocorreu um erro ao atualizar o perfil');
+      console.error('Error updating profile:', error);
     } finally {
       setIsSubmitting(false);
     }
