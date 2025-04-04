@@ -19,6 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useEffect, useState } from 'react';
+import { useClients } from '@/contexts/ClientsContext';
+import { useDeliveries } from '@/contexts/DeliveriesContext';
 
 const DashboardCard = ({ 
   title, 
@@ -56,6 +59,17 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { employees } = useLogbook();
   const { shipments } = useShipments();
+  const { clients } = useClients();
+  const { deliveries } = useDeliveries();
+  const [stats, setStats] = useState({
+    clients: 0,
+    deliveries: 0,
+    activeDeliveries: 0,
+    currentMonthDeliveries: 0,
+    avgFreight: 'R$ 0,00',
+    totalFreight: 'R$ 0,00'
+  });
+  
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
   const hasClientAccess = user?.permissions?.clients;
@@ -63,6 +77,35 @@ const Dashboard = () => {
   const hasReportsAccess = user?.permissions?.reports;
   
   const today = new Date();
+  
+  useEffect(() => {
+    const activeDeliveries = deliveries.filter(d => d.status === 'in_progress').length;
+    
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const currentMonthDeliveries = deliveries.filter(d => {
+      const deliveryDate = new Date(d.date);
+      return deliveryDate.getMonth() === currentMonth && deliveryDate.getFullYear() === currentYear;
+    }).length;
+    
+    const freightValues = deliveries.map(d => d.freightValue || 0);
+    const totalFreight = freightValues.reduce((sum, value) => sum + value, 0);
+    const avgFreight = freightValues.length > 0 ? totalFreight / freightValues.length : 0;
+    
+    const formatter = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+    
+    setStats({
+      clients: clients.length,
+      deliveries: deliveries.length,
+      activeDeliveries,
+      currentMonthDeliveries,
+      avgFreight: formatter.format(avgFreight),
+      totalFreight: formatter.format(totalFreight)
+    });
+  }, [clients, deliveries, today]);
   
   const birthdaysToday = employees.filter(employee => {
     if (!employee.dateOfBirth) return false;
@@ -98,15 +141,6 @@ const Dashboard = () => {
     retained: retainedShipments.length,
     delivered: shipments.filter(s => s.status === 'delivered').length,
     overdue: overdueShipments.length
-  };
-  
-  const stats = {
-    clients: 32,
-    deliveries: 178,
-    activeDeliveries: 24,
-    currentMonthDeliveries: 45,
-    avgFreight: 'R$ 84,35',
-    totalFreight: 'R$ 3.795,75'
   };
   
   return (
