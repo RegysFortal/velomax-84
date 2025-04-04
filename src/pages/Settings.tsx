@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -111,6 +111,7 @@ const defaultSettings: SystemSettingsData = {
 
 const SettingsPage = () => {
   const { user, updateUserProfile, users, createUser, deleteUser, resetUserPassword } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
@@ -169,9 +170,17 @@ const SettingsPage = () => {
     }
   }, [reset]);
 
+  useEffect(() => {
+    setValue('theme', theme);
+  }, [theme, setValue]);
+
   const updateSystemSettings = (data: SystemSettingsData) => {
     setSystemSettings(data);
     localStorage.setItem('velomax_settings', JSON.stringify(data));
+
+    if (data.theme !== theme) {
+      setTheme(data.theme as any);
+    }
   };
 
   const onSubmitSettings = (data: SystemSettingsData) => {
@@ -192,7 +201,6 @@ const SettingsPage = () => {
       setUserValue('role', userToEdit.role);
       
       if (userToEdit.permissions) {
-        // Set all permission values from the user
         setUserValue('permissions.deliveries', userToEdit.permissions.deliveries);
         setUserValue('permissions.shipments', userToEdit.permissions.shipments);
         setUserValue('permissions.clients', userToEdit.permissions.clients);
@@ -434,7 +442,10 @@ const SettingsPage = () => {
                     <Label htmlFor="theme">Tema do Sistema</Label>
                     <Select 
                       value={watch('theme')} 
-                      onValueChange={(value) => setValue('theme', value)}
+                      onValueChange={(value) => {
+                        setValue('theme', value);
+                        setTheme(value as any);
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tema" />
