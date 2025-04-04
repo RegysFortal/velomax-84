@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
@@ -124,7 +123,7 @@ const SettingsPage = () => {
   const { cities } = useCities();
   const { clients } = useClients();
   const { deliveries } = useDeliveries();
-  const { logbookEntries, fuelRecords } = useLogbook();
+  const { entries, fuelRecords } = useLogbook();
   const { shipments } = useShipments();
   const { priceTables } = usePriceTables();
   const { financialReports } = useFinancial();
@@ -346,7 +345,6 @@ const SettingsPage = () => {
     });
   };
 
-  // Backup functionality
   const createBackup = () => {
     const backup = {
       timestamp: new Date().toISOString(),
@@ -357,7 +355,7 @@ const SettingsPage = () => {
         clients,
         deliveries,
         logbook: {
-          entries: logbookEntries,
+          entries: entries,
           fuelRecords,
         },
         shipments,
@@ -407,32 +405,26 @@ const SettingsPage = () => {
         if (e.target?.result) {
           const backup = JSON.parse(e.target.result as string);
           
-          // Validate backup structure
           if (!backup.data || !backup.timestamp || !backup.version) {
             throw new Error("Formato de backup inválido");
           }
           
-          // Apply settings
           if (backup.data.settings) {
             localStorage.setItem('velomax_settings', JSON.stringify(backup.data.settings));
           }
           
-          // Apply cities
           if (backup.data.cities) {
             localStorage.setItem('velomax_cities', JSON.stringify(backup.data.cities));
           }
           
-          // Apply clients
           if (backup.data.clients) {
             localStorage.setItem('velomax_clients', JSON.stringify(backup.data.clients));
           }
           
-          // Apply deliveries
           if (backup.data.deliveries) {
             localStorage.setItem('velomax_deliveries', JSON.stringify(backup.data.deliveries));
           }
           
-          // Apply logbook entries and fuel records
           if (backup.data.logbook) {
             if (backup.data.logbook.entries) {
               localStorage.setItem('velomax_logbook_entries', JSON.stringify(backup.data.logbook.entries));
@@ -442,17 +434,14 @@ const SettingsPage = () => {
             }
           }
           
-          // Apply shipments
           if (backup.data.shipments) {
             localStorage.setItem('velomax_shipments', JSON.stringify(backup.data.shipments));
           }
           
-          // Apply price tables
           if (backup.data.priceTables) {
             localStorage.setItem('velomax_price_tables', JSON.stringify(backup.data.priceTables));
           }
           
-          // Apply financial reports
           if (backup.data.financialReports) {
             localStorage.setItem('velomax_financial_reports', JSON.stringify(backup.data.financialReports));
           }
@@ -462,7 +451,6 @@ const SettingsPage = () => {
             description: "Os dados do sistema foram restaurados com sucesso. A página será recarregada."
           });
           
-          // Reload the page after a short delay to apply changes
           setTimeout(() => {
             window.location.reload();
           }, 1500);
