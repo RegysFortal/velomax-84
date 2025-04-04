@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
-import AppLayout from '@/components/AppLayout';
+import { AppLayout } from '@/components/AppLayout';
 
 const Deliveries = () => {
   const [formData, setFormData] = useState<Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>>({
