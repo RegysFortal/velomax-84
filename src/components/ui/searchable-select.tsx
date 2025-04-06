@@ -64,7 +64,12 @@ export function SearchableSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" ref={popoverRef}>
+      <PopoverContent 
+        className="w-full p-0" 
+        ref={popoverRef}
+        align="start"
+        sideOffset={4}
+      >
         <Command>
           <CommandInput placeholder={`Procurar ${placeholder.toLowerCase()}`} className="h-9" />
           <CommandList>

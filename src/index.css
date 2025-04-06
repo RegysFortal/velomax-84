@@ -93,4 +93,9 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Add this to fix the Radix UI dropdown portals */
+  div[data-radix-popper-content-wrapper] {
+    z-index: 9999 !important;
+  }
 }
