@@ -113,6 +113,9 @@ export interface FinancialReport {
   totalExpenses: number;
   profit: number;
   status: FinancialReportStatus;
+  clientId?: string;
+  totalDeliveries?: number;
+  totalFreight?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -144,7 +147,18 @@ export interface PriceTable {
   };
   doorToDoor: {
     ratePerKm: number;
+    maxWeight?: number;
   };
+  waitingHour?: {
+    first: number;
+    additional: number;
+  };
+  insurance?: {
+    rate: number;
+    minValue: number;
+  };
+  allowCustomPricing?: boolean;
+  defaultDiscount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -155,11 +169,15 @@ export interface Vehicle {
   plate: string;
   model: string;
   brand: string;
-  year: number;
+  make: string;
+  year: string;
   status: 'active' | 'maintenance' | 'inactive';
   type: 'car' | 'motorcycle' | 'truck' | 'van';
   capacity?: number;
   fuelType: 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric';
+  currentOdometer: number;
+  lastOilChange: number;
+  nextOilChangeKm: number;
   lastMaintenance?: string;
   nextMaintenance?: string;
   createdAt: string;
@@ -169,12 +187,23 @@ export interface Vehicle {
 export interface Employee {
   id: string;
   name: string;
+  role: 'driver' | 'assistant' | 'admin';
   position: string;
+  cpf?: string;
+  rg?: string;
+  dateOfBirth?: string;
   licenseNumber?: string;
   licenseType?: string;
   licenseExpiration?: string;
+  licenseCategory?: string;
+  licenseValidity?: string;
+  driverLicense?: string;
   phone: string;
   email?: string;
+  address?: string;
+  motherName?: string;
+  fatherName?: string;
+  employeeSince?: string;
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
@@ -184,7 +213,9 @@ export interface LogbookEntry {
   id: string;
   vehicleId: string;
   driverId: string;
+  assistantId?: string;
   departureDate: string;
+  date: string;
   departureTime: string;
   departureOdometer: number;
   returnDate?: string;
