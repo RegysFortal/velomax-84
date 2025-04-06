@@ -1,4 +1,3 @@
-
 // Import the necessary files
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -67,6 +66,7 @@ const Settings = () => {
   const { user, updateUserProfile, updateUserPassword } = useAuth();
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('profile');
+  const [passwordUpdating, setPasswordUpdating] = useState(false);
 
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordFormSchema),
@@ -77,18 +77,23 @@ const Settings = () => {
     },
   });
 
-  const handleUpdatePassword = async (data: PasswordFormData) => {
+  const handlePasswordUpdate = async (data: z.infer<typeof passwordFormSchema>) => {
+    setPasswordUpdating(true);
     try {
       await updateUserPassword(data.currentPassword, data.newPassword);
-      toast('Senha atualizada com sucesso!', {
-        description: 'Sua senha foi atualizada com segurança.',
+      toast({
+        title: "Senha atualizada",
+        description: "Sua senha foi atualizada com sucesso."
       });
       passwordForm.reset();
     } catch (error) {
-      toast('Erro ao atualizar senha', {
-        description: 'Verifique a senha atual.',
-        variant: 'destructive'
+      console.error("Error updating password:", error);
+      toast({
+        title: "Erro ao atualizar senha",
+        description: "Ocorreu um erro ao atualizar sua senha."
       });
+    } finally {
+      setPasswordUpdating(false);
     }
   };
 

@@ -27,6 +27,10 @@ type LogbookContextType = {
   addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateVehicle: (id: string, vehicle: Partial<Vehicle>) => void;
   deleteVehicle: (id: string) => void;
+  addMaintenance: (record: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateMaintenance: (id: string, record: Partial<Maintenance>) => void;
+  getMaintenance: (id: string) => Maintenance | undefined;
+  deleteMaintenance: (id: string) => void;
   loading: boolean;
 };
 
@@ -264,7 +268,6 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Simulate loading data
     setTimeout(() => {
       setLoading(false);
     }, 500);
@@ -299,7 +302,6 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Get methods for different records
   const getLogbookEntryById = (id: string) => {
     return entries.find((entry) => entry.id === id);
   };
@@ -411,7 +413,47 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       description: "O veículo foi removido com sucesso.",
     });
   };
+
+  const addMaintenance = (record: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newRecord: Maintenance = {
+      id: Math.random().toString(36).substring(2, 15),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...record,
+    };
+    setMaintenanceRecords([...maintenanceRecords, newRecord]);
+    toast({
+      title: "Nova manutenção adicionada",
+      description: "O registro de manutenção foi adicionado com sucesso.",
+    });
+  };
+
+  const updateMaintenance = (id: string, record: Partial<Maintenance>) => {
+    const updatedRecords = maintenanceRecords.map(r => {
+      if (r.id === id) {
+        return { ...r, ...record, updatedAt: new Date().toISOString() };
+      }
+      return r;
+    });
+    setMaintenanceRecords(updatedRecords);
+    toast({
+      title: "Manutenção atualizada",
+      description: "O registro de manutenção foi atualizado com sucesso.",
+    });
+  };
+
+  const getMaintenance = (id: string) => {
+    return maintenanceRecords.find((record) => record.id === id);
+  };
   
+  const deleteMaintenance = (id: string) => {
+    setMaintenanceRecords(maintenanceRecords.filter(record => record.id !== id));
+    toast({
+      title: "Manutenção removida",
+      description: "O registro de manutenção foi removido com sucesso.",
+    });
+  };
+
   return (
     <LogbookContext.Provider value={{
       entries,
@@ -433,6 +475,10 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       addVehicle,
       updateVehicle,
       deleteVehicle,
+      addMaintenance,
+      updateMaintenance,
+      getMaintenance,
+      deleteMaintenance,
       loading,
     }}>
       {children}

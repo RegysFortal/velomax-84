@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -209,6 +208,8 @@ export interface TireMaintenance {
   cost?: number;
   mileage?: number;
   description?: string;
+  provider?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -225,6 +226,7 @@ export interface Vehicle {
   currentOdometer: number;
   lastOilChange: number;
   nextOilChangeKm: number;
+  capacity: number;
   status?: 'active' | 'maintenance' | 'inactive';
   renavam?: string;
   chassis?: string;
@@ -276,7 +278,7 @@ export interface FuelRecord {
   liters: number;
   pricePerLiter: number;
   totalCost: number;
-  fuelType: string;
+  fuelType: 'gasoline' | 'diesel' | 'ethanol' | 'other';
   isFull: boolean;
   station?: string;
   notes?: string;
