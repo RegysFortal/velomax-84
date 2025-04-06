@@ -49,6 +49,10 @@ const Deliveries = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
+  
+  // Debug to check clients
+  console.log('Available clients:', clients);
+  console.log('Deliveries with client IDs:', deliveries.map(d => ({ deliveryId: d.id, clientId: d.clientId })));
 
   const filteredDeliveries = deliveries.filter(delivery => {
     const client = clients.find(c => c.id === delivery.clientId);
@@ -96,6 +100,12 @@ const Deliveries = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingDelivery(null);
+  };
+
+  // Function to get client display name safely
+  const getClientDisplayName = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    return client ? (client.tradingName || client.name) : 'Cliente não encontrado';
   };
 
   return (
@@ -164,11 +174,11 @@ const Deliveries = () => {
               <TableBody>
                 {filteredDeliveries.length > 0 ? (
                   filteredDeliveries.map((delivery) => {
-                    const client = clients.find(c => c.id === delivery.clientId);
+                    const clientName = getClientDisplayName(delivery.clientId);
                     return (
                       <TableRow key={delivery.id}>
                         <TableCell>{delivery.minuteNumber}</TableCell>
-                        <TableCell>{client?.tradingName || 'Cliente não encontrado'}</TableCell>
+                        <TableCell>{clientName}</TableCell>
                         <TableCell>{delivery.deliveryDate}</TableCell>
                         <TableCell>{delivery.deliveryTime}</TableCell>
                         <TableCell>{delivery.receiver}</TableCell>
