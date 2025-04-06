@@ -334,6 +334,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Usuário não encontrado");
       }
       
+      if (userData.permissions) {
+        userData.permissions = {
+          deliveries: userData.permissions.deliveries ?? users[userIndex].permissions.deliveries,
+          shipments: userData.permissions.shipments ?? users[userIndex].permissions.shipments,
+          clients: userData.permissions.clients ?? users[userIndex].permissions.clients,
+          cities: userData.permissions.cities ?? users[userIndex].permissions.cities,
+          reports: userData.permissions.reports ?? users[userIndex].permissions.reports,
+          financial: userData.permissions.financial ?? users[userIndex].permissions.financial,
+          priceTables: userData.permissions.priceTables ?? users[userIndex].permissions.priceTables,
+          dashboard: userData.permissions.dashboard ?? users[userIndex].permissions.dashboard,
+          logbook: userData.permissions.logbook ?? users[userIndex].permissions.logbook,
+          employees: userData.permissions.employees ?? users[userIndex].permissions.employees,
+          vehicles: userData.permissions.vehicles ?? users[userIndex].permissions.vehicles,
+          maintenance: userData.permissions.maintenance ?? users[userIndex].permissions.maintenance,
+          settings: userData.permissions.settings ?? users[userIndex].permissions.settings,
+        };
+      }
+      
       const updatedUser = {
         ...users[userIndex],
         ...userData,
@@ -454,11 +472,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Nome de usuário já está em uso");
       }
       
+      const permissions = {
+        deliveries: userData.permissions?.deliveries ?? false,
+        shipments: userData.permissions?.shipments ?? false,
+        clients: userData.permissions?.clients ?? false,
+        cities: userData.permissions?.cities ?? false,
+        reports: userData.permissions?.reports ?? false,
+        financial: userData.permissions?.financial ?? false,
+        priceTables: userData.permissions?.priceTables ?? false,
+        dashboard: userData.permissions?.dashboard ?? true,
+        logbook: userData.permissions?.logbook ?? false,
+        employees: userData.permissions?.employees ?? false,
+        vehicles: userData.permissions?.vehicles ?? false,
+        maintenance: userData.permissions?.maintenance ?? false,
+        settings: userData.permissions?.settings ?? false,
+      };
+      
       const newUser: User = {
         id: uuidv4(),
         ...userData,
+        permissions,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        updatedAt: userData.updatedAt || new Date().toISOString(),
       };
       
       const updatedUsers = [...users, newUser];

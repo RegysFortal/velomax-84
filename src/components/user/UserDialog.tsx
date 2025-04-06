@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,7 +31,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/components/ui/use-toast';
 
-// Schema for user form
 const userFormSchema = z.object({
   name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
   username: z.string().min(3, { message: 'O nome de usuário deve ter pelo menos 3 caracteres' }),
@@ -180,7 +178,6 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
     setIsSubmitting(true);
     try {
       if (isCreating) {
-        // If creating a new user, the password is required
         if (!data.password) {
           toast({
             title: "Senha obrigatória",
@@ -191,7 +188,6 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           return;
         }
 
-        // Make sure all the permissions are properly defined as required by the User type
         const completePermissions = {
           deliveries: data.permissions.deliveries || false,
           shipments: data.permissions.shipments || false,
@@ -218,7 +214,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           position: data.position,
           phone: data.phone,
           permissions: completePermissions,
-          updatedAt: new Date().toISOString(), // Adding the required updatedAt field
+          updatedAt: new Date().toISOString(),
         });
 
         toast({
@@ -226,7 +222,6 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           description: `O usuário ${newUser.name} foi criado com sucesso.`,
         });
       } else if (user) {
-        // If updating a user, ensure all permissions are properly defined
         const updatedPermissions = {
           deliveries: data.permissions.deliveries || false,
           shipments: data.permissions.shipments || false,
@@ -243,7 +238,6 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           settings: data.permissions.settings || false,
         };
 
-        // Create an updated user object with only the fields we want to update
         const updatedUser: Partial<User> = {
           name: data.name,
           username: data.username,
@@ -253,9 +247,9 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           position: data.position,
           phone: data.phone,
           permissions: updatedPermissions,
+          updatedAt: new Date().toISOString(),
         };
 
-        // Only include password if it's provided
         if (data.password) {
           updatedUser.password = data.password;
         }
