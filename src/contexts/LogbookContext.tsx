@@ -10,6 +10,21 @@ import {
 } from "@/types";
 import { toast } from "sonner";
 
+interface TireMaintenance {
+  id: string;
+  vehicleId: string;
+  maintenanceType: 'replacement' | 'puncture' | 'purchase';
+  date: string;
+  tirePosition?: string;
+  tireSize?: string;
+  brand?: string;
+  cost?: number;
+  mileage?: number;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface LogbookContextType {
   entries: LogbookEntry[];
   vehicles: Vehicle[];
@@ -19,41 +34,34 @@ interface LogbookContextType {
   tireMaintenance: TireMaintenance[];
   loading: boolean;
   
-  // Operações de entradas do diário
   addLogbookEntry: (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt'>) => Promise<LogbookEntry>;
   updateLogbookEntry: (id: string, entry: Partial<LogbookEntry>) => Promise<LogbookEntry>;
   deleteLogbookEntry: (id: string) => Promise<void>;
   getLogbookEntryById: (id: string) => LogbookEntry | undefined;
   
-  // Operações de veículos
   addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Vehicle>;
   updateVehicle: (id: string, vehicle: Partial<Vehicle>) => Promise<Vehicle>;
   deleteVehicle: (id: string) => Promise<void>;
   getVehicleById: (id: string) => Vehicle | undefined;
   
-  // Operações de funcionários
   addEmployee: (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Employee>;
   updateEmployee: (id: string, employee: Partial<Employee>) => Promise<Employee>;
   deleteEmployee: (id: string) => Promise<void>;
   getEmployeeById: (id: string) => Employee | undefined;
   
-  // Operações de abastecimentos
   addFuelRecord: (record: Omit<FuelRecord, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FuelRecord>;
   updateFuelRecord: (id: string, record: Partial<FuelRecord>) => Promise<FuelRecord>;
   deleteFuelRecord: (id: string) => Promise<void>;
   getFuelRecordById: (id: string) => FuelRecord | undefined;
   
-  // Operações de manutenções
   addMaintenance: (maintenance: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Maintenance>;
   updateMaintenance: (id: string, maintenance: Partial<Maintenance>) => Promise<Maintenance>;
   deleteMaintenance: (id: string) => Promise<void>;
   getMaintenanceById: (id: string) => Maintenance | undefined;
   
-  // Operações de manutenção de pneus
-  addTireMaintenance: (tire: Omit<TireMaintenance, 'id' | 'createdAt' | 'updatedAt'>) => Promise<TireMaintenance>;
-  updateTireMaintenance: (id: string, tire: Partial<TireMaintenance>) => Promise<TireMaintenance>;
+  addTireMaintenance: (maintenance: TireMaintenance) => Promise<void>;
+  updateTireMaintenance: (id: string, data: Partial<Omit<TireMaintenance, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
   deleteTireMaintenance: (id: string) => Promise<void>;
-  getTireMaintenanceById: (id: string) => TireMaintenance | undefined;
 }
 
 const LogbookContext = createContext<LogbookContextType | undefined>(undefined);
@@ -62,7 +70,6 @@ interface LogbookProviderProps {
   children: ReactNode;
 }
 
-// Mock data para inicialização
 const mockVehicles: Vehicle[] = [
   {
     id: "1",
@@ -134,7 +141,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
   const [tireMaintenance, setTireMaintenance] = useState<TireMaintenance[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Carregar dados do localStorage na inicialização
   useEffect(() => {
     const loadData = () => {
       try {
@@ -143,14 +149,13 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
         const storedEmployees = localStorage.getItem("logbook_employees");
         const storedFuelRecords = localStorage.getItem("logbook_fuel_records");
         const storedMaintenances = localStorage.getItem("logbook_maintenances");
-        const storedTireMaintenance = localStorage.getItem("logbook_tire_maintenance");
+        const storedTireMaintenance = localStorage.getItem("velomax_tire_maintenance");
         
         if (storedEntries) setEntries(JSON.parse(storedEntries));
         if (storedVehicles) setVehicles(JSON.parse(storedVehicles));
         else setVehicles(mockVehicles);
         if (storedEmployees) {
           const parsedEmployees = JSON.parse(storedEmployees);
-          // Migrate old employees data structure if needed
           const migratedEmployees = parsedEmployees.map((emp: any) => {
             if (emp.documentId && !emp.employeeSince) {
               return {
@@ -178,7 +183,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     loadData();
   }, []);
   
-  // Salvar dados no localStorage quando houver mudanças
   useEffect(() => {
     if (!loading) {
       localStorage.setItem("logbook_entries", JSON.stringify(entries));
@@ -186,11 +190,10 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
       localStorage.setItem("logbook_employees", JSON.stringify(employees));
       localStorage.setItem("logbook_fuel_records", JSON.stringify(fuelRecords));
       localStorage.setItem("logbook_maintenances", JSON.stringify(maintenances));
-      localStorage.setItem("logbook_tire_maintenance", JSON.stringify(tireMaintenance));
+      localStorage.setItem("velomax_tire_maintenance", JSON.stringify(tireMaintenance));
     }
   }, [entries, vehicles, employees, fuelRecords, maintenances, tireMaintenance, loading]);
   
-  // Operações de entradas do diário
   const addLogbookEntry = async (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const newEntry: LogbookEntry = {
@@ -202,7 +205,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     
     setEntries(prev => [...prev, newEntry]);
     
-    // Atualizar odômetro do veículo
     if (entry.vehicleId) {
       const vehicle = vehicles.find(v => v.id === entry.vehicleId);
       if (vehicle && entry.departureOdometer > vehicle.currentOdometer) {
@@ -222,7 +224,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
       if (e.id === id) {
         const updatedEntry = { ...e, ...entry, updatedAt: new Date().toISOString() };
         
-        // Atualizar odômetro do veículo se necessário
         if (updatedEntry.vehicleId && (updatedEntry.departureOdometer || updatedEntry.returnOdometer)) {
           const vehicle = vehicles.find(v => v.id === updatedEntry.vehicleId);
           
@@ -258,7 +259,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     return entries.find(e => e.id === id);
   };
 
-  // Operações de veículos
   const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const newVehicle: Vehicle = {
@@ -298,7 +298,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     return vehicles.find(v => v.id === id);
   };
   
-  // Operações de funcionários
   const addEmployee = async (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const newEmployee: Employee = {
@@ -338,7 +337,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     return employees.find(e => e.id === id);
   };
   
-  // Operações de abastecimentos
   const addFuelRecord = async (record: Omit<FuelRecord, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const newRecord: FuelRecord = {
@@ -350,9 +348,7 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     
     setFuelRecords(prev => [...prev, newRecord]);
     
-    // Atualizar o odômetro do veículo se necessário
-    const vehicle = vehicles.find(v => v.id === record.vehicleId);
-    if (vehicle && record.odometer > vehicle.currentOdometer) {
+    if (record.vehicleId && record.odometer > vehicles.find(v => v.id === record.vehicleId)?.currentOdometer!) {
       updateVehicle(record.vehicleId, { currentOdometer: record.odometer });
     }
     
@@ -364,7 +360,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
       if (r.id === id) {
         const updatedRecord = { ...r, ...record, updatedAt: new Date().toISOString() };
         
-        // Atualizar o odômetro do veículo se necessário
         if (updatedRecord.vehicleId && updatedRecord.odometer) {
           const vehicle = vehicles.find(v => v.id === updatedRecord.vehicleId);
           if (vehicle && updatedRecord.odometer > vehicle.currentOdometer) {
@@ -395,7 +390,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     return fuelRecords.find(r => r.id === id);
   };
 
-  // Operações de manutenções
   const addMaintenance = async (maintenance: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const newMaintenance: Maintenance = {
@@ -407,13 +401,10 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     
     setMaintenances(prev => [...prev, newMaintenance]);
     
-    // Atualizar o odômetro do veículo se necessário
-    const vehicle = vehicles.find(v => v.id === maintenance.vehicleId);
-    if (vehicle && maintenance.odometer > vehicle.currentOdometer) {
+    if (maintenance.vehicleId && maintenance.odometer > vehicles.find(v => v.id === maintenance.vehicleId)?.currentOdometer!) {
       updateVehicle(maintenance.vehicleId, { currentOdometer: maintenance.odometer });
     }
     
-    // Se for troca de óleo, atualizar o lastOilChange do veículo
     if (maintenance.type.toLowerCase().includes("óleo") || maintenance.description.toLowerCase().includes("oleo")) {
       updateVehicle(maintenance.vehicleId, { 
         lastOilChange: maintenance.odometer,
@@ -429,14 +420,12 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
       if (m.id === id) {
         const updatedMaintenance = { ...m, ...maintenance, updatedAt: new Date().toISOString() };
         
-        // Atualizar o odômetro do veículo se necessário
         if (updatedMaintenance.vehicleId && updatedMaintenance.odometer) {
           const vehicle = vehicles.find(v => v.id === updatedMaintenance.vehicleId);
           if (vehicle && updatedMaintenance.odometer > vehicle.currentOdometer) {
             updateVehicle(updatedMaintenance.vehicleId, { currentOdometer: updatedMaintenance.odometer });
           }
           
-          // Se for troca de óleo, atualizar o lastOilChange do veículo
           if (updatedMaintenance.type.toLowerCase().includes("óleo") || updatedMaintenance.description.toLowerCase().includes("oleo")) {
             updateVehicle(updatedMaintenance.vehicleId, { 
               lastOilChange: updatedMaintenance.odometer,
@@ -468,63 +457,31 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     return maintenances.find(m => m.id === id);
   };
   
-  // Operações de manutenção de pneus
-  const addTireMaintenance = async (tire: Omit<TireMaintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
-    const newTire: TireMaintenance = {
-      ...tire,
-      id: uuidv4(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    
-    setTireMaintenance(prev => [...prev, newTire]);
-    
-    // Atualizar o odômetro do veículo se necessário
-    const vehicle = vehicles.find(v => v.id === tire.vehicleId);
-    if (vehicle && tire.odometer > vehicle.currentOdometer) {
-      updateVehicle(tire.vehicleId, { currentOdometer: tire.odometer });
-    }
-    
-    return newTire;
+  const addTireMaintenance = async (maintenance: TireMaintenance) => {
+    setTireMaintenance(prev => [...prev, maintenance]);
   };
-  
-  const updateTireMaintenance = async (id: string, tire: Partial<TireMaintenance>) => {
-    const updatedTires = tireMaintenance.map(t => {
-      if (t.id === id) {
-        const updatedTire = { ...t, ...tire, updatedAt: new Date().toISOString() };
-        
-        // Atualizar o odômetro do veículo se necessário
-        if (updatedTire.vehicleId && updatedTire.odometer) {
-          const vehicle = vehicles.find(v => v.id === updatedTire.vehicleId);
-          if (vehicle && updatedTire.odometer > vehicle.currentOdometer) {
-            updateVehicle(updatedTire.vehicleId, { currentOdometer: updatedTire.odometer });
-          }
-        }
-        
-        return updatedTire;
-      }
-      return t;
-    });
-    
-    setTireMaintenance(updatedTires);
-    const updatedTire = updatedTires.find(t => t.id === id);
-    
-    if (!updatedTire) {
-      throw new Error("Tire maintenance record not found");
-    }
-    
-    return updatedTire;
+
+  const updateTireMaintenance = async (
+    id: string, 
+    data: Partial<Omit<TireMaintenance, 'id' | 'createdAt' | 'updatedAt'>>
+  ) => {
+    setTireMaintenance(prev => 
+      prev.map(item => 
+        item.id === id 
+          ? { 
+              ...item, 
+              ...data, 
+              updatedAt: new Date().toISOString() 
+            } 
+          : item
+      )
+    );
   };
-  
+
   const deleteTireMaintenance = async (id: string) => {
-    setTireMaintenance(prev => prev.filter(t => t.id !== id));
+    setTireMaintenance(prev => prev.filter(item => item.id !== id));
   };
-  
-  const getTireMaintenanceById = (id: string) => {
-    return tireMaintenance.find(t => t.id === id);
-  };
-  
+
   const contextValue: LogbookContextType = {
     entries,
     vehicles,
@@ -556,7 +513,6 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     addTireMaintenance,
     updateTireMaintenance,
     deleteTireMaintenance,
-    getTireMaintenanceById,
   };
   
   return (

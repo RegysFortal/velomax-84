@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,8 @@ const Vehicles = () => {
     brand: '',
     type: 'car' as 'car' | 'motorcycle' | 'truck' | 'van',
     fuelType: 'flex' as 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric',
+    renavam: '',
+    chassis: '',
   });
   const { toast } = useToast();
 
@@ -72,6 +75,8 @@ const Vehicles = () => {
         brand: editingVehicle.brand,
         type: editingVehicle.type,
         fuelType: editingVehicle.fuelType,
+        renavam: editingVehicle.renavam || '',
+        chassis: editingVehicle.chassis || '',
       });
     } else {
       resetForm();
@@ -161,6 +166,8 @@ const Vehicles = () => {
       brand: '',
       type: 'car',
       fuelType: 'flex',
+      renavam: '',
+      chassis: '',
     });
   };
 
@@ -195,6 +202,7 @@ const Vehicles = () => {
                   <TableHead>Ano</TableHead>
                   <TableHead>Marca</TableHead>
                   <TableHead>Odômetro</TableHead>
+                  <TableHead>Renavam</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -206,6 +214,7 @@ const Vehicles = () => {
                     <TableCell>{vehicle.year}</TableCell>
                     <TableCell>{vehicle.make}</TableCell>
                     <TableCell>{vehicle.currentOdometer} km</TableCell>
+                    <TableCell>{vehicle.renavam || '-'}</TableCell>
                     <TableCell className="flex gap-2">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(vehicle)}>
                         <Edit className="h-4 w-4" />
@@ -222,7 +231,7 @@ const Vehicles = () => {
         </Card>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>{editingVehicle ? 'Editar Veículo' : 'Adicionar Veículo'}</DialogTitle>
               <DialogDescription>
@@ -275,6 +284,28 @@ const Vehicles = () => {
                     value={formData.make}
                     onChange={handleChange}
                     required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="renavam">RENAVAM</Label>
+                  <Input
+                    type="text"
+                    id="renavam"
+                    name="renavam"
+                    value={formData.renavam}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="chassis">Chassi</Label>
+                  <Input
+                    type="text"
+                    id="chassis"
+                    name="chassis"
+                    value={formData.chassis}
+                    onChange={handleChange}
                   />
                 </div>
               </div>

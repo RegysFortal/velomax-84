@@ -1,129 +1,38 @@
-// Add the username and permissions properties to the User interface
 export interface User {
   id: string;
   name: string;
-  username: string;
   email: string;
+  password?: string;
   role: 'admin' | 'manager' | 'user';
   createdAt: string;
-  lastLogin?: string;
-  permissions?: {
-    // Operational permissions
-    deliveries: boolean;
-    shipments: boolean;
-    
-    // Financial permissions
-    clients: boolean;
-    cities: boolean;
-    reports: boolean;
-    financial: boolean;
-    priceTables: boolean;
-    
-    // Management permissions
-    dashboard: boolean;
-    logbook: boolean;
-    employees: boolean;
-    vehicles: boolean;
-    maintenance: boolean;
-    settings: boolean;
-  };
-}
-
-// City related types
-export interface City {
-  id: string;
-  name: string;
-  distance: number;
-  createdAt: string;
   updatedAt: string;
+  department?: string;
+  position?: string;
+  phone?: string;
 }
 
-// Client related types
 export interface Client {
   id: string;
   name: string;
-  tradingName?: string;
-  street: string;
-  number: string;
-  complement?: string;
-  neighborhood: string;
+  tradingName: string;
+  document: string;
+  address: string;
   city: string;
   state: string;
   zipCode: string;
-  contact: string;
   phone: string;
   email: string;
+  contact: string;
+  notes: string;
   priceTableId: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Delivery related types
-export type DeliveryType = 
-  | 'standard'
-  | 'emergency'
-  | 'exclusive'
-  | 'saturday'
-  | 'sundayHoliday'
-  | 'difficultAccess'
-  | 'metropolitanRegion'
-  | 'doorToDoorInterior'
-  | 'reshipment'
-  | 'normalBiological'
-  | 'infectiousBiological'
-  | 'tracked';
-
-export type CargoType = 'standard' | 'perishable';
-
-export const doorToDoorDeliveryTypes: DeliveryType[] = [
-  'doorToDoorInterior'
-];
-
-export interface Delivery {
-  id: string;
-  minuteNumber: string;
-  clientId: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  receiver: string;
-  weight: number;
-  packages: number;
-  deliveryType: DeliveryType;
-  cargoType: CargoType;
-  cargoValue?: number;
-  totalFreight: number;
-  cityId?: string;
-  notes?: string;
-  occurrence?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Financial related types
-export type FinancialReportStatus = 'open' | 'closed';
-
-export interface FinancialReport {
-  id: string;
-  title: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
-  totalRevenue: number;
-  totalExpenses: number;
-  profit: number;
-  status: FinancialReportStatus;
-  clientId?: string;
-  totalDeliveries?: number;
-  totalFreight?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Price table related types
 export interface PriceTable {
   id: string;
   name: string;
-  description?: string;
+  description: string;
   minimumRate: {
     standardDelivery: number;
     emergencyCollection: number;
@@ -146,114 +55,104 @@ export interface PriceTable {
   };
   doorToDoor: {
     ratePerKm: number;
-    maxWeight?: number;
   };
-  waitingHour?: {
-    fiorino: number;
-    medium: number;
-    large: number;
-  };
-  insurance?: {
-    standard: number;
-    perishable: number;
-  };
-  allowCustomPricing?: boolean;
-  defaultDiscount?: number;
   createdAt: string;
   updatedAt: string;
 }
 
-// Logbook related types
-export interface Vehicle {
-  id: string;
-  plate: string;
-  model: string;
-  brand: string;
-  make: string;
-  year: string;
-  status: 'active' | 'maintenance' | 'inactive';
-  type: 'car' | 'motorcycle' | 'truck' | 'van';
-  capacity?: number;
-  fuelType: 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric';
-  currentOdometer: number;
-  lastOilChange: number;
-  nextOilChangeKm: number;
-  lastMaintenance?: string;
-  nextMaintenance?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Employee {
+export interface City {
   id: string;
   name: string;
-  role: 'driver' | 'assistant' | 'admin';
-  position: string;
-  cpf?: string;
-  rg?: string;
-  dateOfBirth?: string;
-  licenseNumber?: string;
-  licenseType?: string;
-  licenseExpiration?: string;
-  licenseCategory?: string;
-  licenseValidity?: string;
-  driverLicense?: string;
-  phone: string;
-  email?: string;
-  address?: string;
-  motherName?: string;
-  fatherName?: string;
-  employeeSince?: string;
-  status: 'active' | 'inactive';
+  state: string;
+  distance: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface LogbookEntry {
+export interface Delivery {
   id: string;
-  vehicleId: string;
-  driverId: string;
-  assistantId?: string;
-  departureDate: string;
-  date: string;
-  departureTime: string;
-  departureOdometer: number;
-  returnDate?: string;
-  returnTime?: string;
-  returnOdometer?: number;
-  route?: string;
-  notes?: string;
-  status: 'ongoing' | 'completed';
+  minuteNumber: string;
+  clientId: string;
+  deliveryDate: string;
+  deliveryTime: string;
+  receiver: string;
+  weight: number;
+  packages: number;
+  deliveryType: 'standard' | 'emergency' | 'exclusive' | 'saturday' | 'sundayHoliday' | 'difficultAccess' | 'metropolitanRegion' | 'doorToDoorInterior' | 'reshipment' | 'normalBiological' | 'infectiousBiological' | 'tracked';
+  cargoType: 'standard' | 'perishable';
+  cargoValue?: number;
+  totalFreight: number;
+  notes: string;
+  occurrence?: string;
+  createdAt: string;
+  updatedAt: string;
+  cityId?: string;
+}
+
+export const doorToDoorDeliveryTypes: Delivery['deliveryType'][] = [
+  'doorToDoorInterior',
+];
+
+export interface FinancialReport {
+  id: string;
+  clientId: string;
+  startDate: string;
+  endDate: string;
+  totalDeliveries: number;
+  totalFreight: number;
+  status: 'open' | 'closed';
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FuelRecord {
+export interface ActivityLog {
+  id?: string;
+  timestamp?: string;
+  userId?: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  entityName: string;
+  details?: string;
+}
+
+export interface Shipment {
   id: string;
-  vehicleId: string;
-  date: string;
-  odometer: number;
-  liters: number;
-  fuelType: 'gasoline' | 'diesel' | 'ethanol' | 'flex';
-  totalCost: number;
-  pricePerLiter: number;
+  companyId: string;
+  carrierName: string;
+  trackingNumber: string;
+  shippingDate: string;
+  arrivalDate: string;
+  origin: string;
+  destination: string;
+  weight: number;
+  volume: number;
+  status: ShipmentStatus;
+  isRetained: boolean;
   notes?: string;
+  documents: Document[];
+  fiscalAction?: FiscalAction;
   createdAt: string;
   updatedAt: string;
 }
 
-// Update Maintenance type to add more maintenance types
-export interface Maintenance {
+export type ShipmentStatus = "pending" | "inTransit" | "retained" | "delivered" | "returned" | "canceled";
+
+export interface Document {
   id: string;
-  vehicleId: string;
-  type: 'preventive' | 'corrective' | 'emergency' | 'oil-change' | 'tire-change' | 'other';
-  description: string;
-  date: string;
-  cost: number;
-  odometer: number;
-  status: 'scheduled' | 'in_progress' | 'completed';
-  technician?: string;
-  notes?: string;
+  filename: string;
+  url: string;
+  type: "invoice" | "packingList" | "other";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FiscalAction {
+  id: string;
+  reason: string;
+  details: string;
+  requiresAction: boolean;
+  actionTaken?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -261,14 +160,31 @@ export interface Maintenance {
 export interface TireMaintenance {
   id: string;
   vehicleId: string;
+  maintenanceType: 'replacement' | 'puncture' | 'purchase';
   date: string;
-  position: string;
-  brand: string;
-  model: string;
-  cost: number;
-  odometer: number;
-  type: 'new' | 'rotation' | 'repair';
-  notes?: string;
+  tirePosition?: string;
+  tireSize?: string;
+  brand?: string;
+  cost?: number;
+  mileage?: number;
+  description?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Vehicle {
+  id: string;
+  plate: string;
+  model: string;
+  year: string;
+  make: string;
+  brand: string;
+  type: 'car' | 'motorcycle' | 'truck' | 'van';
+  fuelType: 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric';
+  currentOdometer: number;
+  lastOilChange: number;
+  nextOilChangeKm: number;
+  status?: 'active' | 'maintenance' | 'inactive';
+  renavam?: string;  // Added for RENAVAM
+  chassis?: string;   // Added for chassis
 }

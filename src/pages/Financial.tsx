@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +24,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const FinancialPage = () => {
+  const navigate = useNavigate();
   const { financialReports, closeReport, deleteFinancialReport } = useFinancial();
   const { clients } = useClients();
   const [currentTab, setCurrentTab] = useState("open");
@@ -39,6 +41,10 @@ const FinancialPage = () => {
   
   const handleCloseReport = (reportId: string) => {
     closeReport(reportId);
+  };
+
+  const handleViewReport = () => {
+    navigate('/reports');
   };
   
   return (
@@ -142,6 +148,14 @@ const FinancialPage = () => {
                           <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleViewReport}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Ver Relatório
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"

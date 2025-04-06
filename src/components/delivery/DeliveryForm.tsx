@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form';
@@ -256,7 +255,10 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                   <FormControl>
                     <ClientSearchSelect
                       value={field.value}
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        console.log("Client selected:", value);
+                      }}
                       placeholder="Selecione um cliente"
                     />
                   </FormControl>
@@ -378,6 +380,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -413,6 +416,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -461,6 +465,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
