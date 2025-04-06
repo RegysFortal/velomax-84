@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -81,7 +82,7 @@ interface DeliveryFormProps {
 
 export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
   const { toast } = useToast();
-  const { addDelivery, calculateFreight, isDoorToDoorDelivery, checkMinuteNumberExists } = useDeliveries();
+  const { addDelivery, updateDelivery, calculateFreight, isDoorToDoorDelivery, checkMinuteNumberExists } = useDeliveries();
   const { clients } = useClients();
   const { cities } = useCities();
   const [showCitySelect, setShowCitySelect] = useState(false);
@@ -89,22 +90,23 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
   const [totalFreight, setTotalFreight] = useState(0);
   const [minuteNumberDuplicate, setMinuteNumberDuplicate] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const isEditMode = !!delivery;
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      clientId: "",
-      minuteNumber: format(new Date(), 'yyyyMMddHHmmss'),
-      deliveryDate: format(new Date(), 'yyyy-MM-dd'),
-      deliveryTime: format(new Date(), 'HH:mm'),
-      receiver: "",
-      weight: 1,
-      packages: 1,
-      deliveryType: "standard",
-      cargoType: "standard",
-      cargoValue: 0,
-      notes: "",
-      cityId: "",
+      clientId: delivery?.clientId || "",
+      minuteNumber: delivery?.minuteNumber || format(new Date(), 'yyyyMMddHHmmss'),
+      deliveryDate: delivery?.deliveryDate || format(new Date(), 'yyyy-MM-dd'),
+      deliveryTime: delivery?.deliveryTime || format(new Date(), 'HH:mm'),
+      receiver: delivery?.receiver || "",
+      weight: delivery?.weight || 1,
+      packages: delivery?.packages || 1,
+      deliveryType: delivery?.deliveryType || "standard",
+      cargoType: delivery?.cargoType || "standard",
+      cargoValue: delivery?.cargoValue || 0,
+      notes: delivery?.notes || "",
+      cityId: delivery?.cityId || "",
     },
   });
 
@@ -115,6 +117,13 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
   const watchMinuteNumber = form.watch('minuteNumber');
   const watchCargoValue = form.watch('cargoValue');
   const watchCityId = form.watch('cityId');
+
+  // Initialize total freight when editing
+  useEffect(() => {
+    if (isEditMode && delivery?.totalFreight) {
+      setTotalFreight(delivery.totalFreight);
+    }
+  }, [isEditMode, delivery]);
 
   useEffect(() => {
     if (watchDeliveryType) {
@@ -128,10 +137,15 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
 
   useEffect(() => {
     if (watchMinuteNumber && watchClient) {
-      const isDuplicate = checkMinuteNumberExists(watchMinuteNumber, watchClient);
-      setMinuteNumberDuplicate(isDuplicate);
+      // Only check for duplicates if it's a new delivery or if the minute number has changed
+      if (!isEditMode || (delivery && watchMinuteNumber !== delivery.minuteNumber)) {
+        const isDuplicate = checkMinuteNumberExists(watchMinuteNumber, watchClient);
+        setMinuteNumberDuplicate(isDuplicate);
+      } else {
+        setMinuteNumberDuplicate(false);
+      }
     }
-  }, [watchMinuteNumber, watchClient, checkMinuteNumberExists]);
+  }, [watchMinuteNumber, watchClient, checkMinuteNumberExists, isEditMode, delivery]);
 
   useEffect(() => {
     if (watchClient && watchWeight && watchDeliveryType && watchCargoType) {
@@ -153,7 +167,7 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
   }, [watchClient, watchWeight, watchDeliveryType, watchCargoType, watchCargoValue, watchCityId, calculateFreight]);
 
   const onSubmit = (data: FormData) => {
-    if (minuteNumberDuplicate && !dialogOpen) {
+    if (minuteNumberDuplicate && !dialogOpen && !isEditMode) {
       setDialogOpen(true);
       return;
     }
@@ -176,13 +190,26 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
         customPricing: false
       };
 
-      addDelivery(formattedData);
+      if (isEditMode && delivery) {
+        updateDelivery(delivery.id, formattedData);
+        toast({
+          title: "Entrega atualizada",
+          description: "A entrega foi atualizada com sucesso.",
+        });
+      } else {
+        addDelivery(formattedData);
+        toast({
+          title: "Entrega registrada",
+          description: `A entrega ${data.minuteNumber} foi registrada com sucesso.`,
+        });
+      }
+      
       form.reset();
       onComplete();
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
-        title: "Erro ao registrar entrega",
+        title: isEditMode ? "Erro ao atualizar entrega" : "Erro ao registrar entrega",
         description: "Ocorreu um erro ao salvar a entrega. Tente novamente.",
         variant: "destructive",
       });
@@ -370,7 +397,13 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
                   <FormItem>
                     <FormLabel>Peso (Kg)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min="0" {...field} />
+                      <Input 
+                        type="number" 
+                        step="0.01" 
+                        min="0" 
+                        {...field} 
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -427,7 +460,13 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
                     <FormItem>
                       <FormLabel>Valor da Carga (R$)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" min="0" {...field} />
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          min="0" 
+                          {...field} 
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -483,7 +522,7 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
                 Cancelar
               </Button>
               <Button type="submit">
-                Registrar Entrega
+                {isEditMode ? 'Atualizar Entrega' : 'Registrar Entrega'}
               </Button>
             </div>
           </form>
@@ -512,3 +551,4 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
     </>
   );
 }
+
