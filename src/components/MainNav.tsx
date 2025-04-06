@@ -18,21 +18,9 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 
-// Organize menu items by categories
+// Reorganized menu items by categories
 const NavStructure = {
   Operacional: [
-    {
-      title: "Dashboard",
-      href: "/dashboard",
-      icon: "dashboard",
-      roles: ["admin", "user", "manager"]
-    },
-    {
-      title: "Clientes",
-      href: "/clients",
-      icon: "clients",
-      roles: ["admin", "user", "manager"]
-    },
     {
       title: "Entregas",
       href: "/deliveries",
@@ -46,21 +34,9 @@ const NavStructure = {
       roles: ["admin", "user", "manager"]
     },
     {
-      title: "Relatórios",
-      href: "/reports",
-      icon: "reports",
-      roles: ["admin", "user", "manager"]
-    },
-    {
       title: "Relatórios de Embarques",
       href: "/shipment-reports",
       icon: "shipment-reports",
-      roles: ["admin", "user", "manager"]
-    },
-    {
-      title: "Logbook",
-      href: "/logbook",
-      icon: "logbook",
       roles: ["admin", "user", "manager"]
     },
   ],
@@ -72,29 +48,53 @@ const NavStructure = {
       roles: ["admin", "manager"]
     },
     {
+      title: "Relatórios",
+      href: "/reports",
+      icon: "reports",
+      roles: ["admin", "user", "manager"]
+    },
+    {
       title: "Tabelas de Preços",
       href: "/price-tables",
       icon: "price-tables",
       roles: ["admin", "manager"]
     },
-  ],
-  Gerencia: [
     {
       title: "Cidades",
       href: "/cities",
       icon: "cities",
       roles: ["admin", "manager"]
     },
+  ],
+  Gerencia: [
     {
-      title: "Veículos",
-      href: "/vehicles",
-      icon: "vehicles",
-      roles: ["admin", "manager"]
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: "dashboard",
+      roles: ["admin", "user", "manager"]
+    },
+    {
+      title: "Diário de Bordo",
+      href: "/logbook",
+      icon: "logbook",
+      roles: ["admin", "user", "manager"]
+    },
+    {
+      title: "Clientes",
+      href: "/clients",
+      icon: "clients",
+      roles: ["admin", "user", "manager"]
     },
     {
       title: "Colaboradores",
       href: "/employees",
       icon: "employees",
+      roles: ["admin", "manager"]
+    },
+    {
+      title: "Veículos",
+      href: "/vehicles",
+      icon: "vehicles",
       roles: ["admin", "manager"]
     },
     {
