@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useLogbook } from '@/contexts/LogbookContext';
 import { toast } from "sonner";
+import { TireMaintenance } from '@/types';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,7 +54,7 @@ const tireMaintenanceSchema = z.object({
 type TireMaintenanceFormValues = z.infer<typeof tireMaintenanceSchema>;
 
 interface TireMaintenanceFormProps {
-  maintenance?: any;
+  maintenance?: TireMaintenance;
   onComplete: () => void;
   onCancel: () => void;
 }
@@ -108,7 +109,15 @@ export function TireMaintenanceForm({ maintenance, onComplete, onCancel }: TireM
       } else {
         await addTireMaintenance({
           id: uuidv4(),
-          ...formattedData,
+          vehicleId: formattedData.vehicleId,
+          maintenanceType: formattedData.maintenanceType,
+          date: formattedData.date,
+          tirePosition: formattedData.tirePosition,
+          tireSize: formattedData.tireSize,
+          brand: formattedData.brand,
+          cost: formattedData.cost,
+          mileage: formattedData.mileage,
+          description: formattedData.description,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });

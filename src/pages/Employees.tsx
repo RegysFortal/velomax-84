@@ -63,19 +63,19 @@ const getDepartmentLabel = (department: string | undefined) => {
 };
 
 export default function Employees() {
-  const { users, currentUser } = useAuth();
+  const { users, user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Filter users based on search term
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = users.filter(u => {
     const searchText = searchTerm.toLowerCase();
     return (
-      user.name.toLowerCase().includes(searchText) ||
-      user.email.toLowerCase().includes(searchText) ||
-      (user.position && user.position.toLowerCase().includes(searchText)) ||
-      (user.department && user.department.toLowerCase().includes(searchText))
+      u.name.toLowerCase().includes(searchText) ||
+      u.email.toLowerCase().includes(searchText) ||
+      (u.position && u.position.toLowerCase().includes(searchText)) ||
+      (u.department && u.department.toLowerCase().includes(searchText))
     );
   });
 
@@ -135,19 +135,19 @@ export default function Employees() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{getRoleBadge(user.role)}</TableCell>
-                    <TableCell>{getDepartmentLabel(user.department)}</TableCell>
-                    <TableCell>{user.position || '-'}</TableCell>
+                {filteredUsers.map((u) => (
+                  <TableRow key={u.id}>
+                    <TableCell className="font-medium">{u.name}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell>{getRoleBadge(u.role)}</TableCell>
+                    <TableCell>{getDepartmentLabel(u.department)}</TableCell>
+                    <TableCell>{u.position || '-'}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleEditClick(user)}
-                        disabled={currentUser?.id === user.id} // Prevent editing current user
+                        onClick={() => handleEditClick(u)}
+                        disabled={user?.id === u.id} // Prevent editing current user
                       >
                         <Edit className="h-4 w-4" />
                       </Button>

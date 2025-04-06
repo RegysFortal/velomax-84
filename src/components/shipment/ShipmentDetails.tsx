@@ -96,7 +96,8 @@ export function ShipmentDetails({
         cargoType: 'standard',
         deliveryType: 'standard',
         cargoValue: 0,
-        totalFreight: 0
+        totalFreight: 0,
+        notes: '',
       });
       
       // Close dialog

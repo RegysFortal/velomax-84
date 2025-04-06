@@ -38,6 +38,9 @@ const ReportsPage = () => {
   const [endDate, setEndDate] = useState<string>(
     format(new Date(), 'yyyy-MM-dd')
   );
+  const [selectedClient, setSelectedClient] = useState<string>('');
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const existingReportDeliveries = financialReports
     .filter(report => report.status === 'open')
@@ -255,6 +258,32 @@ const ReportsPage = () => {
         description: "É necessário filtrar por um cliente específico para criar um relatório financeiro.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      setIsGenerating(true);
+      
+      const reportData = {
+        clientId: selectedClient,
+        startDate: dateRange.from?.toISOString().split('T')[0] || '',
+        endDate: dateRange.to?.toISOString().split('T')[0] || '',
+        totalDeliveries: 0,
+        totalFreight: 0,
+        status: 'open' as const,
+      };
+      
+      await generateReport(reportData);
+      
+      toast.success('Relatório gerado com sucesso');
+      setIsReportDialogOpen(false);
+      resetReportForm();
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast.error('Erro ao gerar relatório');
+    } finally {
+      setIsGenerating(false);
     }
   };
 

@@ -1,7 +1,9 @@
+
 export interface User {
   id: string;
   name: string;
   email: string;
+  username?: string;
   password?: string;
   role: 'admin' | 'manager' | 'user';
   createdAt: string;
@@ -9,6 +11,22 @@ export interface User {
   department?: string;
   position?: string;
   phone?: string;
+  permissions?: {
+    deliveries: boolean;
+    shipments: boolean;
+    clients: boolean;
+    cities: boolean;
+    reports: boolean;
+    financial: boolean;
+    priceTables: boolean;
+    dashboard: boolean;
+    logbook: boolean;
+    employees: boolean;
+    vehicles: boolean;
+    maintenance: boolean;
+    settings: boolean;
+  };
+  lastLogin?: string;
 }
 
 export interface Client {
@@ -27,6 +45,11 @@ export interface Client {
   priceTableId: string;
   createdAt: string;
   updatedAt: string;
+  // Add these missing properties
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
 }
 
 export interface PriceTable {
@@ -55,7 +78,20 @@ export interface PriceTable {
   };
   doorToDoor: {
     ratePerKm: number;
+    maxWeight?: number;
   };
+  // Add missing properties
+  waitingHour?: {
+    fiorino: number;
+    medium: number;
+    large: number;
+  };
+  insurance?: {
+    standard: number;
+    perishable: number;
+  };
+  allowCustomPricing?: boolean;
+  defaultDiscount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -87,6 +123,8 @@ export interface Delivery {
   createdAt: string;
   updatedAt: string;
   cityId?: string;
+  customPricing?: boolean;
+  discount?: number;
 }
 
 export const doorToDoorDeliveryTypes: Delivery['deliveryType'][] = [
@@ -103,6 +141,7 @@ export interface FinancialReport {
   status: 'open' | 'closed';
   createdAt: string;
   updatedAt: string;
+  title?: string;
 }
 
 export interface ActivityLog {
@@ -185,6 +224,70 @@ export interface Vehicle {
   lastOilChange: number;
   nextOilChangeKm: number;
   status?: 'active' | 'maintenance' | 'inactive';
-  renavam?: string;  // Added for RENAVAM
-  chassis?: string;   // Added for chassis
+  renavam?: string;
+  chassis?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Add missing types for the LogbookContext
+export interface LogbookEntry {
+  id: string;
+  date: string;
+  vehicleId: string;
+  driverId: string;
+  startOdometer: number;
+  endOdometer: number;
+  tripDistance: number;
+  departureTime: string;
+  arrivalTime: string;
+  destination: string;
+  purpose: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  position: string;
+  departmentId: string;
+  email: string;
+  phone: string;
+  hireDate: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FuelRecord {
+  id: string;
+  vehicleId: string;
+  date: string;
+  odometer: number;
+  liters: number;
+  pricePerLiter: number;
+  totalCost: number;
+  fuelType: string;
+  isFull: boolean;
+  station?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Maintenance {
+  id: string;
+  vehicleId: string;
+  maintenanceType: string;
+  date: string;
+  odometer: number;
+  description: string;
+  cost: number;
+  provider?: string;
+  invoiceNumber?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }

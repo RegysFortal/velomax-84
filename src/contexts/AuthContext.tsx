@@ -7,10 +7,12 @@ import { useToast } from '@/hooks/use-toast';
 interface AuthContextType {
   user: User | null;
   users: User[];
+  currentUser: User | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateUserProfile: (userData: Partial<User>) => Promise<boolean>;
+  updateUser: (userId: string, userData: Partial<User>) => Promise<boolean>;
   createUser: (userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => Promise<User>;
   deleteUser: (userId: string) => boolean;
   resetUserPassword: (userId: string, newPassword: string) => boolean;
@@ -45,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: 'admin@velomax.com',
             role: 'admin',
             createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
             permissions: {
               deliveries: true,
               shipments: true,
@@ -195,6 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const updatedUser = {
         ...users[userIndex],
         ...userData,
+        updatedAt: new Date().toISOString()
       };
       
       const updatedUsers = [...users];
@@ -203,8 +207,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
       
       setUsers(updatedUsers);
-      setUser(updatedUser);
-      localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
+      
+      if (user && user.id === user.id) {
+        setUser(updatedUser);
+        localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
+      }
       
       try {
         const logActivity = (activity: any) => {
@@ -234,6 +241,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       console.error("Error updating user profile:", error);
+      throw error;
+    }
+  };
+
+  const updateUser = async (userId: string, userData: Partial<User>) => {
+    try {
+      const userIndex = users.findIndex(u => u.id === userId);
+      
+      if (userIndex === -1) {
+        throw new Error("Usuário não encontrado");
+      }
+      
+      const updatedUser = {
+        ...users[userIndex],
+        ...userData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      const updatedUsers = [...users];
+      updatedUsers[userIndex] = updatedUser;
+      
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      
+      setUsers(updatedUsers);
+      
+      if (user && user.id === userId) {
+        setUser(updatedUser);
+        localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
+      }
+      
+      if (user) {
+        try {
+          const logActivity = (activity: any) => {
+            const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+            const newLog = {
+              id: uuidv4(),
+              timestamp: new Date().toISOString(),
+              userId: user.id,
+              userName: user.name,
+              ...activity
+            };
+            logs.push(newLog);
+            localStorage.setItem('activity_logs', JSON.stringify(logs));
+          };
+
+          logActivity({
+            action: 'update',
+            entityType: 'user',
+            entityId: userId,
+            entityName: updatedUser.name,
+            details: 'Perfil de usuário atualizado'
+          });
+        } catch (error) {
+          console.error('Failed to log activity:', error);
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating user:", error);
       throw error;
     }
   };
@@ -310,6 +377,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: uuidv4(),
         ...userData,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       
       const updatedUsers = [...users, newUser];
@@ -451,10 +519,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     users,
+    currentUser: user,
     loading,
     login,
     logout,
     updateUserProfile,
+    updateUser,
     createUser,
     deleteUser,
     resetUserPassword,

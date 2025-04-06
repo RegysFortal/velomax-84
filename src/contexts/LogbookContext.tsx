@@ -1,533 +1,376 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { 
-  LogbookEntry, 
-  Vehicle, 
-  Employee, 
-  FuelRecord, 
-  Maintenance, 
-  TireMaintenance 
-} from "@/types";
-import { toast } from "sonner";
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import {
+  Vehicle,
+  LogbookEntry,
+  Employee,
+  FuelRecord,
+  Maintenance,
+  TireMaintenance as TireMaintenanceType
+} from '@/types';
 
-interface TireMaintenance {
-  id: string;
-  vehicleId: string;
-  maintenanceType: 'replacement' | 'puncture' | 'purchase';
-  date: string;
-  tirePosition?: string;
-  tireSize?: string;
-  brand?: string;
-  cost?: number;
-  mileage?: number;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
+// Define the context type
 interface LogbookContextType {
-  entries: LogbookEntry[];
   vehicles: Vehicle[];
+  addVehicle: (vehicle: Omit<Vehicle, 'id'>) => void;
+  updateVehicle: (id: string, data: Partial<Vehicle>) => void;
+  deleteVehicle: (id: string) => void;
+  getVehicle: (id: string) => Vehicle | undefined;
+  
+  logbookEntries: LogbookEntry[];
+  addLogbookEntry: (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateLogbookEntry: (id: string, data: Partial<LogbookEntry>) => void;
+  deleteLogbookEntry: (id: string) => void;
+  
   employees: Employee[];
+  addEmployee: (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateEmployee: (id: string, data: Partial<Employee>) => void;
+  deleteEmployee: (id: string) => void;
+  
   fuelRecords: FuelRecord[];
-  maintenances: Maintenance[];
-  tireMaintenance: TireMaintenance[];
-  loading: boolean;
+  addFuelRecord: (record: Omit<FuelRecord, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateFuelRecord: (id: string, data: Partial<FuelRecord>) => void;
+  deleteFuelRecord: (id: string) => void;
   
-  addLogbookEntry: (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt'>) => Promise<LogbookEntry>;
-  updateLogbookEntry: (id: string, entry: Partial<LogbookEntry>) => Promise<LogbookEntry>;
-  deleteLogbookEntry: (id: string) => Promise<void>;
-  getLogbookEntryById: (id: string) => LogbookEntry | undefined;
+  maintenanceRecords: Maintenance[];
+  addMaintenanceRecord: (record: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateMaintenanceRecord: (id: string, data: Partial<Maintenance>) => void;
+  deleteMaintenanceRecord: (id: string) => void;
   
-  addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Vehicle>;
-  updateVehicle: (id: string, vehicle: Partial<Vehicle>) => Promise<Vehicle>;
-  deleteVehicle: (id: string) => Promise<void>;
-  getVehicleById: (id: string) => Vehicle | undefined;
-  
-  addEmployee: (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Employee>;
-  updateEmployee: (id: string, employee: Partial<Employee>) => Promise<Employee>;
-  deleteEmployee: (id: string) => Promise<void>;
-  getEmployeeById: (id: string) => Employee | undefined;
-  
-  addFuelRecord: (record: Omit<FuelRecord, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FuelRecord>;
-  updateFuelRecord: (id: string, record: Partial<FuelRecord>) => Promise<FuelRecord>;
-  deleteFuelRecord: (id: string) => Promise<void>;
-  getFuelRecordById: (id: string) => FuelRecord | undefined;
-  
-  addMaintenance: (maintenance: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Maintenance>;
-  updateMaintenance: (id: string, maintenance: Partial<Maintenance>) => Promise<Maintenance>;
-  deleteMaintenance: (id: string) => Promise<void>;
-  getMaintenanceById: (id: string) => Maintenance | undefined;
-  
-  addTireMaintenance: (maintenance: TireMaintenance) => Promise<void>;
-  updateTireMaintenance: (id: string, data: Partial<Omit<TireMaintenance, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
-  deleteTireMaintenance: (id: string) => Promise<void>;
+  tireMaintenance: TireMaintenanceType[];
+  addTireMaintenance: (maintenance: TireMaintenanceType) => void;
+  updateTireMaintenance: (id: string, data: Partial<TireMaintenanceType>) => void;
+  deleteTireMaintenance: (id: string) => void;
 }
 
+// Create the context
 const LogbookContext = createContext<LogbookContextType | undefined>(undefined);
 
-interface LogbookProviderProps {
-  children: ReactNode;
-}
-
-const mockVehicles: Vehicle[] = [
+// Sample initial data
+const INITIAL_VEHICLES: Vehicle[] = [
   {
-    id: "1",
-    plate: "ABC-1234",
-    model: "Fiorino",
-    year: "2020",
-    make: "Fiat",
-    brand: "Fiat",
-    status: "active",
-    type: "car",
-    fuelType: "flex",
+    id: 'v1',
+    plate: 'ABC1234',
+    model: 'Fiorino',
+    make: 'Fiat',
+    brand: 'Fiat',
+    year: '2020',
+    type: 'van',
+    fuelType: 'flex',
     currentOdometer: 45000,
     lastOilChange: 42000,
     nextOilChangeKm: 47000,
+    status: 'active',
+    renavam: '12345678901',
+    chassis: 'ABCDEF1234567890',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
   {
-    id: "2",
-    plate: "DEF-5678",
-    model: "Saveiro",
-    year: "2019",
-    make: "Volkswagen",
-    brand: "Volkswagen",
-    status: "active",
-    type: "car",
-    fuelType: "flex",
-    currentOdometer: 62000,
-    lastOilChange: 60000,
-    nextOilChangeKm: 65000,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-];
-
-const mockEmployees: Employee[] = [
-  {
-    id: "1",
-    name: "João Silva",
-    role: "driver",
-    position: "Motorista",
-    employeeSince: "2021-01-15",
-    dateOfBirth: "1985-05-12",
-    phone: "(11) 98765-4321",
-    status: "active",
+    id: 'v2',
+    plate: 'XYZ5678',
+    model: 'Strada',
+    make: 'Fiat',
+    brand: 'Fiat',
+    year: '2021',
+    type: 'car',
+    fuelType: 'flex',
+    currentOdometer: 32000,
+    lastOilChange: 30000,
+    nextOilChangeKm: 35000,
+    status: 'active',
+    renavam: '98765432109',
+    chassis: 'ZYXWVU0987654321',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
   {
-    id: "2",
-    name: "Maria Souza",
-    role: "assistant",
-    position: "Assistente",
-    employeeSince: "2022-03-20",
-    dateOfBirth: "1990-07-25",
-    phone: "(11) 91234-5678",
-    status: "active",
+    id: 'v3',
+    plate: 'DEF9012',
+    model: 'Master',
+    make: 'Renault',
+    brand: 'Renault',
+    year: '2019',
+    type: 'van',
+    fuelType: 'diesel',
+    currentOdometer: 78000,
+    lastOilChange: 75000,
+    nextOilChangeKm: 85000,
+    status: 'maintenance',
+    renavam: '45678901234',
+    chassis: 'LMNOPQ7654321098',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  }
+  },
 ];
 
-export function LogbookProvider({ children }: LogbookProviderProps) {
-  const [entries, setEntries] = useState<LogbookEntry[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
+export const LogbookProvider = ({ children }: { children: ReactNode }) => {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [logbookEntries, setLogbookEntries] = useState<LogbookEntry[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [fuelRecords, setFuelRecords] = useState<FuelRecord[]>([]);
-  const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
-  const [tireMaintenance, setTireMaintenance] = useState<TireMaintenance[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>([]);
+  const [tireMaintenance, setTireMaintenance] = useState<TireMaintenanceType[]>([]);
   
   useEffect(() => {
+    // Load data from localStorage or use initial data
     const loadData = () => {
       try {
-        const storedEntries = localStorage.getItem("logbook_entries");
-        const storedVehicles = localStorage.getItem("logbook_vehicles");
-        const storedEmployees = localStorage.getItem("logbook_employees");
-        const storedFuelRecords = localStorage.getItem("logbook_fuel_records");
-        const storedMaintenances = localStorage.getItem("logbook_maintenances");
-        const storedTireMaintenance = localStorage.getItem("velomax_tire_maintenance");
-        
-        if (storedEntries) setEntries(JSON.parse(storedEntries));
-        if (storedVehicles) setVehicles(JSON.parse(storedVehicles));
-        else setVehicles(mockVehicles);
-        if (storedEmployees) {
-          const parsedEmployees = JSON.parse(storedEmployees);
-          const migratedEmployees = parsedEmployees.map((emp: any) => {
-            if (emp.documentId && !emp.employeeSince) {
-              return {
-                ...emp,
-                employeeSince: new Date().toISOString().split('T')[0],
-              };
-            }
-            return emp;
-          });
-          setEmployees(migratedEmployees);
+        const storedVehicles = localStorage.getItem('velomax_vehicles');
+        if (storedVehicles) {
+          setVehicles(JSON.parse(storedVehicles));
+        } else {
+          setVehicles(INITIAL_VEHICLES);
+          localStorage.setItem('velomax_vehicles', JSON.stringify(INITIAL_VEHICLES));
         }
-        else setEmployees(mockEmployees);
-        if (storedFuelRecords) setFuelRecords(JSON.parse(storedFuelRecords));
-        if (storedMaintenances) setMaintenances(JSON.parse(storedMaintenances));
-        if (storedTireMaintenance) setTireMaintenance(JSON.parse(storedTireMaintenance));
         
+        const storedEntries = localStorage.getItem('velomax_logbook_entries');
+        if (storedEntries) {
+          setLogbookEntries(JSON.parse(storedEntries));
+        }
+        
+        const storedEmployees = localStorage.getItem('velomax_logbook_employees');
+        if (storedEmployees) {
+          setEmployees(JSON.parse(storedEmployees));
+        }
+        
+        const storedFuelRecords = localStorage.getItem('velomax_fuel_records');
+        if (storedFuelRecords) {
+          setFuelRecords(JSON.parse(storedFuelRecords));
+        }
+        
+        const storedMaintenanceRecords = localStorage.getItem('velomax_maintenance_records');
+        if (storedMaintenanceRecords) {
+          setMaintenanceRecords(JSON.parse(storedMaintenanceRecords));
+        }
+        
+        const storedTireMaintenance = localStorage.getItem('velomax_tire_maintenance');
+        if (storedTireMaintenance) {
+          setTireMaintenance(JSON.parse(storedTireMaintenance));
+        }
       } catch (error) {
-        console.error("Error loading data:", error);
-        toast.error("Erro ao carregar dados");
-      } finally {
-        setLoading(false);
+        console.error('Error loading logbook data:', error);
       }
     };
     
     loadData();
   }, []);
   
+  // Save data to localStorage whenever it changes
   useEffect(() => {
-    if (!loading) {
-      localStorage.setItem("logbook_entries", JSON.stringify(entries));
-      localStorage.setItem("logbook_vehicles", JSON.stringify(vehicles));
-      localStorage.setItem("logbook_employees", JSON.stringify(employees));
-      localStorage.setItem("logbook_fuel_records", JSON.stringify(fuelRecords));
-      localStorage.setItem("logbook_maintenances", JSON.stringify(maintenances));
-      localStorage.setItem("velomax_tire_maintenance", JSON.stringify(tireMaintenance));
-    }
-  }, [entries, vehicles, employees, fuelRecords, maintenances, tireMaintenance, loading]);
+    localStorage.setItem('velomax_vehicles', JSON.stringify(vehicles));
+  }, [vehicles]);
   
-  const addLogbookEntry = async (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
-    const newEntry: LogbookEntry = {
-      ...entry,
-      id: uuidv4(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    
-    setEntries(prev => [...prev, newEntry]);
-    
-    if (entry.vehicleId) {
-      const vehicle = vehicles.find(v => v.id === entry.vehicleId);
-      if (vehicle && entry.departureOdometer > vehicle.currentOdometer) {
-        updateVehicle(entry.vehicleId, { currentOdometer: entry.departureOdometer });
-      }
-      
-      if (entry.returnOdometer && entry.returnOdometer > vehicle?.currentOdometer!) {
-        updateVehicle(entry.vehicleId, { currentOdometer: entry.returnOdometer });
-      }
-    }
-    
-    return newEntry;
-  };
+  useEffect(() => {
+    localStorage.setItem('velomax_logbook_entries', JSON.stringify(logbookEntries));
+  }, [logbookEntries]);
   
-  const updateLogbookEntry = async (id: string, entry: Partial<LogbookEntry>) => {
-    const updatedEntries = entries.map(e => {
-      if (e.id === id) {
-        const updatedEntry = { ...e, ...entry, updatedAt: new Date().toISOString() };
-        
-        if (updatedEntry.vehicleId && (updatedEntry.departureOdometer || updatedEntry.returnOdometer)) {
-          const vehicle = vehicles.find(v => v.id === updatedEntry.vehicleId);
-          
-          if (updatedEntry.departureOdometer && updatedEntry.departureOdometer > vehicle?.currentOdometer!) {
-            updateVehicle(updatedEntry.vehicleId, { currentOdometer: updatedEntry.departureOdometer });
-          }
-          
-          if (updatedEntry.returnOdometer && updatedEntry.returnOdometer > vehicle?.currentOdometer!) {
-            updateVehicle(updatedEntry.vehicleId, { currentOdometer: updatedEntry.returnOdometer });
-          }
-        }
-        
-        return updatedEntry;
-      }
-      return e;
-    });
-    
-    setEntries(updatedEntries);
-    const updatedEntry = updatedEntries.find(e => e.id === id);
-    
-    if (!updatedEntry) {
-      throw new Error("Entry not found");
-    }
-    
-    return updatedEntry;
-  };
+  useEffect(() => {
+    localStorage.setItem('velomax_logbook_employees', JSON.stringify(employees));
+  }, [employees]);
   
-  const deleteLogbookEntry = async (id: string) => {
-    setEntries(prev => prev.filter(e => e.id !== id));
-  };
+  useEffect(() => {
+    localStorage.setItem('velomax_fuel_records', JSON.stringify(fuelRecords));
+  }, [fuelRecords]);
   
-  const getLogbookEntryById = (id: string) => {
-    return entries.find(e => e.id === id);
-  };
-
-  const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
+  useEffect(() => {
+    localStorage.setItem('velomax_maintenance_records', JSON.stringify(maintenanceRecords));
+  }, [maintenanceRecords]);
+  
+  useEffect(() => {
+    localStorage.setItem('velomax_tire_maintenance', JSON.stringify(tireMaintenance));
+  }, [tireMaintenance]);
+  
+  // Vehicle functions
+  const addVehicle = (vehicle: Omit<Vehicle, 'id'>) => {
     const newVehicle: Vehicle = {
       ...vehicle,
       id: uuidv4(),
-      createdAt: now,
-      updatedAt: now,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    
     setVehicles(prev => [...prev, newVehicle]);
-    return newVehicle;
   };
   
-  const updateVehicle = async (id: string, vehicle: Partial<Vehicle>) => {
-    const updatedVehicles = vehicles.map(v => {
-      if (v.id === id) {
-        return { ...v, ...vehicle, updatedAt: new Date().toISOString() };
-      }
-      return v;
-    });
-    
-    setVehicles(updatedVehicles);
-    const updatedVehicle = updatedVehicles.find(v => v.id === id);
-    
-    if (!updatedVehicle) {
-      throw new Error("Vehicle not found");
-    }
-    
-    return updatedVehicle;
+  const updateVehicle = (id: string, data: Partial<Vehicle>) => {
+    setVehicles(prev => 
+      prev.map(vehicle => 
+        vehicle.id === id 
+          ? { ...vehicle, ...data, updatedAt: new Date().toISOString() } 
+          : vehicle
+      )
+    );
   };
   
-  const deleteVehicle = async (id: string) => {
-    setVehicles(prev => prev.filter(v => v.id !== id));
+  const deleteVehicle = (id: string) => {
+    setVehicles(prev => prev.filter(vehicle => vehicle.id !== id));
   };
   
-  const getVehicleById = (id: string) => {
-    return vehicles.find(v => v.id === id);
+  const getVehicle = (id: string) => {
+    return vehicles.find(vehicle => vehicle.id === id);
   };
   
-  const addEmployee = async (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
+  // Logbook entry functions
+  const addLogbookEntry = (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newEntry: LogbookEntry = {
+      ...entry,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setLogbookEntries(prev => [...prev, newEntry]);
+  };
+  
+  const updateLogbookEntry = (id: string, data: Partial<LogbookEntry>) => {
+    setLogbookEntries(prev => 
+      prev.map(entry => 
+        entry.id === id 
+          ? { ...entry, ...data, updatedAt: new Date().toISOString() } 
+          : entry
+      )
+    );
+  };
+  
+  const deleteLogbookEntry = (id: string) => {
+    setLogbookEntries(prev => prev.filter(entry => entry.id !== id));
+  };
+  
+  // Employee functions
+  const addEmployee = (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newEmployee: Employee = {
       ...employee,
       id: uuidv4(),
-      createdAt: now,
-      updatedAt: now,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    
     setEmployees(prev => [...prev, newEmployee]);
-    return newEmployee;
   };
   
-  const updateEmployee = async (id: string, employee: Partial<Employee>) => {
-    const updatedEmployees = employees.map(e => {
-      if (e.id === id) {
-        return { ...e, ...employee, updatedAt: new Date().toISOString() };
-      }
-      return e;
-    });
-    
-    setEmployees(updatedEmployees);
-    const updatedEmployee = updatedEmployees.find(e => e.id === id);
-    
-    if (!updatedEmployee) {
-      throw new Error("Employee not found");
-    }
-    
-    return updatedEmployee;
+  const updateEmployee = (id: string, data: Partial<Employee>) => {
+    setEmployees(prev => 
+      prev.map(employee => 
+        employee.id === id 
+          ? { ...employee, ...data, updatedAt: new Date().toISOString() } 
+          : employee
+      )
+    );
   };
   
-  const deleteEmployee = async (id: string) => {
-    setEmployees(prev => prev.filter(e => e.id !== id));
+  const deleteEmployee = (id: string) => {
+    setEmployees(prev => prev.filter(employee => employee.id !== id));
   };
   
-  const getEmployeeById = (id: string) => {
-    return employees.find(e => e.id === id);
-  };
-  
-  const addFuelRecord = async (record: Omit<FuelRecord, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
+  // Fuel record functions
+  const addFuelRecord = (record: Omit<FuelRecord, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newRecord: FuelRecord = {
       ...record,
       id: uuidv4(),
-      createdAt: now,
-      updatedAt: now,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    
     setFuelRecords(prev => [...prev, newRecord]);
-    
-    if (record.vehicleId && record.odometer > vehicles.find(v => v.id === record.vehicleId)?.currentOdometer!) {
-      updateVehicle(record.vehicleId, { currentOdometer: record.odometer });
-    }
-    
-    return newRecord;
   };
   
-  const updateFuelRecord = async (id: string, record: Partial<FuelRecord>) => {
-    const updatedRecords = fuelRecords.map(r => {
-      if (r.id === id) {
-        const updatedRecord = { ...r, ...record, updatedAt: new Date().toISOString() };
-        
-        if (updatedRecord.vehicleId && updatedRecord.odometer) {
-          const vehicle = vehicles.find(v => v.id === updatedRecord.vehicleId);
-          if (vehicle && updatedRecord.odometer > vehicle.currentOdometer) {
-            updateVehicle(updatedRecord.vehicleId, { currentOdometer: updatedRecord.odometer });
-          }
-        }
-        
-        return updatedRecord;
-      }
-      return r;
-    });
-    
-    setFuelRecords(updatedRecords);
-    const updatedRecord = updatedRecords.find(r => r.id === id);
-    
-    if (!updatedRecord) {
-      throw new Error("Fuel record not found");
-    }
-    
-    return updatedRecord;
+  const updateFuelRecord = (id: string, data: Partial<FuelRecord>) => {
+    setFuelRecords(prev => 
+      prev.map(record => 
+        record.id === id 
+          ? { ...record, ...data, updatedAt: new Date().toISOString() } 
+          : record
+      )
+    );
   };
   
-  const deleteFuelRecord = async (id: string) => {
-    setFuelRecords(prev => prev.filter(r => r.id !== id));
+  const deleteFuelRecord = (id: string) => {
+    setFuelRecords(prev => prev.filter(record => record.id !== id));
   };
   
-  const getFuelRecordById = (id: string) => {
-    return fuelRecords.find(r => r.id === id);
-  };
-
-  const addMaintenance = async (maintenance: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
-    const newMaintenance: Maintenance = {
-      ...maintenance,
+  // Maintenance record functions
+  const addMaintenanceRecord = (record: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newRecord: Maintenance = {
+      ...record,
       id: uuidv4(),
-      createdAt: now,
-      updatedAt: now,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    
-    setMaintenances(prev => [...prev, newMaintenance]);
-    
-    if (maintenance.vehicleId && maintenance.odometer > vehicles.find(v => v.id === maintenance.vehicleId)?.currentOdometer!) {
-      updateVehicle(maintenance.vehicleId, { currentOdometer: maintenance.odometer });
-    }
-    
-    if (maintenance.type.toLowerCase().includes("óleo") || maintenance.description.toLowerCase().includes("oleo")) {
-      updateVehicle(maintenance.vehicleId, { 
-        lastOilChange: maintenance.odometer,
-        nextOilChangeKm: maintenance.odometer + 5000 // Próxima troca em +5000km
-      });
-    }
-    
-    return newMaintenance;
+    setMaintenanceRecords(prev => [...prev, newRecord]);
   };
   
-  const updateMaintenance = async (id: string, maintenance: Partial<Maintenance>) => {
-    const updatedMaintenances = maintenances.map(m => {
-      if (m.id === id) {
-        const updatedMaintenance = { ...m, ...maintenance, updatedAt: new Date().toISOString() };
-        
-        if (updatedMaintenance.vehicleId && updatedMaintenance.odometer) {
-          const vehicle = vehicles.find(v => v.id === updatedMaintenance.vehicleId);
-          if (vehicle && updatedMaintenance.odometer > vehicle.currentOdometer) {
-            updateVehicle(updatedMaintenance.vehicleId, { currentOdometer: updatedMaintenance.odometer });
-          }
-          
-          if (updatedMaintenance.type.toLowerCase().includes("óleo") || updatedMaintenance.description.toLowerCase().includes("oleo")) {
-            updateVehicle(updatedMaintenance.vehicleId, { 
-              lastOilChange: updatedMaintenance.odometer,
-              nextOilChangeKm: updatedMaintenance.odometer + 5000 // Próxima troca em +5000km
-            });
-          }
-        }
-        
-        return updatedMaintenance;
-      }
-      return m;
-    });
-    
-    setMaintenances(updatedMaintenances);
-    const updatedMaintenance = updatedMaintenances.find(m => m.id === id);
-    
-    if (!updatedMaintenance) {
-      throw new Error("Maintenance record not found");
-    }
-    
-    return updatedMaintenance;
+  const updateMaintenanceRecord = (id: string, data: Partial<Maintenance>) => {
+    setMaintenanceRecords(prev => 
+      prev.map(record => 
+        record.id === id 
+          ? { ...record, ...data, updatedAt: new Date().toISOString() } 
+          : record
+      )
+    );
   };
   
-  const deleteMaintenance = async (id: string) => {
-    setMaintenances(prev => prev.filter(m => m.id !== id));
+  const deleteMaintenanceRecord = (id: string) => {
+    setMaintenanceRecords(prev => prev.filter(record => record.id !== id));
   };
   
-  const getMaintenanceById = (id: string) => {
-    return maintenances.find(m => m.id === id);
-  };
-  
-  const addTireMaintenance = async (maintenance: TireMaintenance) => {
+  // Tire maintenance functions
+  const addTireMaintenance = (maintenance: TireMaintenanceType) => {
     setTireMaintenance(prev => [...prev, maintenance]);
   };
-
-  const updateTireMaintenance = async (
-    id: string, 
-    data: Partial<Omit<TireMaintenance, 'id' | 'createdAt' | 'updatedAt'>>
-  ) => {
+  
+  const updateTireMaintenance = (id: string, data: Partial<TireMaintenanceType>) => {
     setTireMaintenance(prev => 
       prev.map(item => 
         item.id === id 
-          ? { 
-              ...item, 
-              ...data, 
-              updatedAt: new Date().toISOString() 
-            } 
+          ? { ...item, ...data, updatedAt: new Date().toISOString() } 
           : item
       )
     );
   };
-
-  const deleteTireMaintenance = async (id: string) => {
+  
+  const deleteTireMaintenance = (id: string) => {
     setTireMaintenance(prev => prev.filter(item => item.id !== id));
-  };
-
-  const contextValue: LogbookContextType = {
-    entries,
-    vehicles,
-    employees,
-    fuelRecords,
-    maintenances,
-    tireMaintenance,
-    loading,
-    addLogbookEntry,
-    updateLogbookEntry,
-    deleteLogbookEntry,
-    getLogbookEntryById,
-    addVehicle,
-    updateVehicle,
-    deleteVehicle,
-    getVehicleById,
-    addEmployee,
-    updateEmployee,
-    deleteEmployee,
-    getEmployeeById,
-    addFuelRecord,
-    updateFuelRecord,
-    deleteFuelRecord,
-    getFuelRecordById,
-    addMaintenance,
-    updateMaintenance,
-    deleteMaintenance,
-    getMaintenanceById,
-    addTireMaintenance,
-    updateTireMaintenance,
-    deleteTireMaintenance,
   };
   
   return (
-    <LogbookContext.Provider value={contextValue}>
+    <LogbookContext.Provider value={{
+      vehicles,
+      addVehicle,
+      updateVehicle,
+      deleteVehicle,
+      getVehicle,
+      
+      logbookEntries,
+      addLogbookEntry,
+      updateLogbookEntry,
+      deleteLogbookEntry,
+      
+      employees,
+      addEmployee,
+      updateEmployee,
+      deleteEmployee,
+      
+      fuelRecords,
+      addFuelRecord,
+      updateFuelRecord,
+      deleteFuelRecord,
+      
+      maintenanceRecords,
+      addMaintenanceRecord,
+      updateMaintenanceRecord,
+      deleteMaintenanceRecord,
+      
+      tireMaintenance,
+      addTireMaintenance,
+      updateTireMaintenance,
+      deleteTireMaintenance,
+    }}>
       {children}
     </LogbookContext.Provider>
   );
-}
+};
 
 export const useLogbook = () => {
   const context = useContext(LogbookContext);
-  
-  if (context === undefined) {
-    throw new Error("useLogbook must be used within a LogbookProvider");
+  if (!context) {
+    throw new Error('useLogbook must be used within a LogbookProvider');
   }
-  
   return context;
 };
