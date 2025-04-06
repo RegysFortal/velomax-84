@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -67,28 +67,30 @@ export function SearchableSelect({
       <PopoverContent className="w-full p-0" ref={popoverRef}>
         <Command>
           <CommandInput placeholder={`Procurar ${placeholder.toLowerCase()}`} className="h-9" />
-          <CommandEmpty>{emptyMessage}</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-auto">
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.label}
-                onSelect={() => {
-                  onValueChange(option.value);
-                  setOpen(false);
-                }}
-                className="flex items-center justify-between"
-              >
-                <div>
-                  <div>{option.label}</div>
-                  {option.description && (
-                    <div className="text-xs text-muted-foreground">{option.description}</div>
-                  )}
-                </div>
-                {value === option.value && <Check className="h-4 w-4" />}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <CommandList>
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandGroup className="max-h-64 overflow-auto">
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.label}
+                  onSelect={() => {
+                    onValueChange(option.value);
+                    setOpen(false);
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div>
+                    <div>{option.label}</div>
+                    {option.description && (
+                      <div className="text-xs text-muted-foreground">{option.description}</div>
+                    )}
+                  </div>
+                  {value === option.value && <Check className="h-4 w-4" />}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
