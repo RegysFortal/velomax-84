@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { MainNav } from '@/components/MainNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -61,7 +60,7 @@ export function AppHeader() {
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{user.name}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
+                    {user.username}
                   </p>
                 </div>
               </DropdownMenuLabel>

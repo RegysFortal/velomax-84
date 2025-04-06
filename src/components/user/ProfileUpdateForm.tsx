@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -53,14 +52,14 @@ export const ProfileUpdateForm = () => {
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Nome de Usuário</Label>
             <Input
-              id="email"
-              value={user?.email || ''}
+              id="username"
+              value={user?.username || ''}
               disabled
               className="bg-muted"
             />
-            <p className="text-sm text-muted-foreground">O email não pode ser alterado</p>
+            <p className="text-sm text-muted-foreground">O nome de usuário não pode ser alterado</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Nome</Label>

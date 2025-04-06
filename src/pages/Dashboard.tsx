@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -86,7 +87,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Entregas',
-        data: Object.values(deliveriesByDate),
+        data: Object.values(deliveriesByDate).map(value => Number(value)),
         backgroundColor: 'rgba(59, 130, 246, 0.5)',
         borderColor: 'rgb(59, 130, 246)',
         borderWidth: 1,
@@ -107,7 +108,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Faturamento',
-        data: Object.values(revenueByClient).slice(0, 5),
+        data: Object.values(revenueByClient).slice(0, 5).map(value => Number(value)),
         backgroundColor: [
           'rgba(255, 99, 132, 0.5)',
           'rgba(54, 162, 235, 0.5)',

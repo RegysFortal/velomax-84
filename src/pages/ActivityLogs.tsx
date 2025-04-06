@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
@@ -139,55 +138,9 @@ const ActivityLogs = () => {
   };
 
   const renderEntityType = (entityType: EntityType) => {
-    let label = '';
-
-    switch (entityType) {
-      case 'user':
-        label = 'Usuário';
-        break;
-      case 'client':
-        label = 'Cliente';
-        break;
-      case 'delivery':
-        label = 'Entrega';
-        break;
-      case 'shipment':
-        label = 'Embarque';
-        break;
-      case 'vehicle':
-        label = 'Veículo';
-        break;
-      case 'employee':
-        label = 'Funcionário';
-        break;
-      case 'price_table':
-        label = 'Tabela de Preços';
-        break;
-      case 'city':
-        label = 'Cidade';
-        break;
-      case 'maintenance':
-        label = 'Manutenção';
-        break;
-      case 'tire':
-        label = 'Pneu';
-        break;
-      case 'report':
-        label = 'Relatório';
-        break;
-      case 'system':
-        label = 'Sistema';
-        break;
-      default:
-        // Fix for the Type 'never' error - ensure entityType is treated as a string
-        if (entityType && typeof entityType === 'string') {
-          label = `${entityType.charAt(0).toUpperCase()}${entityType.slice(1).replace('_', ' ')}`;
-        } else {
-          label = 'Desconhecido';
-        }
-    }
-
-    return label;
+    if (typeof entityType !== 'string') return entityType;
+    
+    return entityType.charAt(0).toUpperCase() + entityType.slice(1).replace('_', ' ');
   };
 
   return (
