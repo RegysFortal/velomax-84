@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
@@ -26,13 +27,6 @@ import {
   FileText,
   Info
 } from 'lucide-react';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Popover,
   PopoverContent,
@@ -44,7 +38,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ActivityAction, ActivityLog, EntityType, BadgeVariant } from '@/types/activity';
 
 const ActivityLogs = () => {
-  const { activityLogs, fetchActivityLogs } = useActivityLog();
+  const { logs } = useActivityLog();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<keyof ActivityLog | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -57,15 +51,11 @@ const ActivityLogs = () => {
   const [toDate, setToDate] = useState<Date | undefined>();
 
   useEffect(() => {
-    fetchActivityLogs();
-  }, [fetchActivityLogs]);
-
-  useEffect(() => {
-    let logs = [...activityLogs];
+    let currentLogs = [...logs];
 
     // Apply date range filter
     if (fromDate && toDate) {
-      logs = logs.filter(log => {
+      currentLogs = currentLogs.filter(log => {
         const logDate = parseISO(log.timestamp);
         return logDate >= fromDate && logDate <= toDate;
       });
@@ -73,7 +63,7 @@ const ActivityLogs = () => {
 
     // Apply search filter
     if (searchQuery) {
-      logs = logs.filter(log =>
+      currentLogs = currentLogs.filter(log =>
         log.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.entityType.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,7 +75,7 @@ const ActivityLogs = () => {
 
     // Apply sorting
     if (sortColumn) {
-      logs.sort((a, b) => {
+      currentLogs.sort((a, b) => {
         const aValue = a[sortColumn] || '';
         const bValue = b[sortColumn] || '';
 
@@ -99,9 +89,9 @@ const ActivityLogs = () => {
       });
     }
 
-    setFilteredLogs(logs);
+    setFilteredLogs(currentLogs);
     setPage(1); // Reset page on filter change
-  }, [activityLogs, searchQuery, sortColumn, sortDirection, fromDate, toDate]);
+  }, [logs, searchQuery, sortColumn, sortDirection, fromDate, toDate]);
 
   const handleSort = (column: keyof ActivityLog) => {
     if (sortColumn === column) {
@@ -116,37 +106,37 @@ const ActivityLogs = () => {
   const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
 
   const renderActionBadge = (action: ActivityAction) => {
-  let variant: BadgeVariant = 'default';
-  let label = '';
+    let variant: BadgeVariant = 'default';
+    let label = '';
 
-  switch (action) {
-    case 'create':
-      variant = 'success';
-      label = 'Criação';
-      break;
-    case 'update':
-      variant = 'secondary';
-      label = 'Atualização';
-      break;
-    case 'delete':
-      variant = 'destructive';
-      label = 'Exclusão';
-      break;
-    case 'login':
-      variant = 'default';
-      label = 'Login';
-      break;
-    case 'logout':
-      variant = 'outline';
-      label = 'Logout';
-      break;
-    default:
-      variant = 'outline';
-      label = action.charAt(0).toUpperCase() + action.slice(1).replace('_', ' ');
-  }
+    switch (action) {
+      case 'create':
+        variant = 'success';
+        label = 'Criação';
+        break;
+      case 'update':
+        variant = 'secondary';
+        label = 'Atualização';
+        break;
+      case 'delete':
+        variant = 'destructive';
+        label = 'Exclusão';
+        break;
+      case 'login':
+        variant = 'default';
+        label = 'Login';
+        break;
+      case 'logout':
+        variant = 'outline';
+        label = 'Logout';
+        break;
+      default:
+        variant = 'outline';
+        label = action.charAt(0).toUpperCase() + action.slice(1).replace('_', ' ');
+    }
 
-  return <BadgeExtended variant={variant}>{label}</BadgeExtended>;
-};
+    return <BadgeExtended variant={variant}>{label}</BadgeExtended>;
+  };
 
   const renderEntityType = (entityType: EntityType) => {
     let label = '';

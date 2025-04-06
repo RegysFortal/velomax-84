@@ -42,8 +42,8 @@ const App = () => {
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <ActivityLogProvider>
+        <ActivityLogProvider>
+          <AuthProvider>
             <PriceTablesProvider>
               <ClientsProvider>
                 <CitiesProvider>
@@ -80,8 +80,8 @@ const App = () => {
                 </CitiesProvider>
               </ClientsProvider>
             </PriceTablesProvider>
-          </ActivityLogProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </ActivityLogProvider>
       </BrowserRouter>
     </TooltipProvider>
   );

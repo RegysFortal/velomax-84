@@ -1,16 +1,20 @@
 
 import React from 'react';
-import { Badge as OriginalBadge } from './badge';
+import { Badge } from './badge';
 import { cn } from '@/lib/utils';
 import { BadgeVariant } from '@/types/activity';
+import { BadgeProps } from '@radix-ui/react-accessible-icon';
 
-interface BadgeExtendedProps extends React.ComponentProps<typeof OriginalBadge> {
+interface BadgeExtendedProps {
   variant?: BadgeVariant;
+  className?: string;
+  children: React.ReactNode;
 }
 
 export function BadgeExtended({ 
   variant = "default", 
   className, 
+  children,
   ...props 
 }: BadgeExtendedProps) {
   const extendedClassNames = cn(
@@ -18,11 +22,19 @@ export function BadgeExtended({
     className
   );
 
+  // Create standard variant for Badge component
+  let badgeVariant: "default" | "destructive" | "outline" | "secondary" = "default";
+  if (variant === "destructive" || variant === "outline" || variant === "secondary") {
+    badgeVariant = variant;
+  }
+
   return (
-    <OriginalBadge 
-      variant={variant === "success" ? "default" : variant} 
+    <Badge 
+      variant={badgeVariant} 
       className={extendedClassNames} 
       {...props} 
-    />
+    >
+      {children}
+    </Badge>
   );
 }

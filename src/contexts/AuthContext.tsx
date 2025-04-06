@@ -1,9 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { useActivityLog } from './ActivityLogContext';
+import { toast } from 'sonner';
 
 export interface User {
   id: string;
@@ -57,9 +56,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const navigate = useNavigate();
-  const { addLog } = useActivityLog();
+  
+  // Check if ActivityLogContext is available
+  let addActivityLog: any = null;
+  try {
+    // Dynamically try to import from ActivityLogContext
+    const ActivityLogContext = require('./ActivityLogContext');
+    const { useActivityLog } = ActivityLogContext;
+    
+    try {
+      const activityLogContext = useActivityLog();
+      if (activityLogContext && activityLogContext.addLog) {
+        addActivityLog = activityLogContext.addLog;
+      }
+    } catch (error) {
+      console.log('ActivityLogContext not available yet, will log activities later');
+    }
+  } catch (error) {
+    console.log('Could not import ActivityLogContext');
+  }
+  
+  // Function to safely log activities
+  const logActivity = (params: any) => {
+    if (addActivityLog) {
+      try {
+        addActivityLog(params);
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+    } else {
+      // Queue activity logs for when the context becomes available
+      console.log('Activity logging not available yet, activity will not be logged:', params);
+    }
+  };
   
   useEffect(() => {
     // Check for existing user session in localStorage
@@ -132,7 +163,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userWithoutPassword);
       
       // Log login activity
-      addLog({
+      logActivity({
         action: 'login',
         entityType: 'user',
         entityId: userWithoutPassword.id,
@@ -140,14 +171,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         details: `Login bem-sucedido: ${userWithoutPassword.email}`
       });
       
-      toast({
+      uiToast({
         title: 'Login Realizado',
         description: `Bem-vindo, ${foundUser.name}!`,
       });
       
       navigate('/dashboard');
     } catch (error: any) {
-      toast({
+      uiToast({
         title: 'Erro ao fazer login',
         description: error.message || 'Ocorreu um erro ao tentar fazer login.',
         variant: 'destructive',
@@ -159,7 +190,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     // Log logout activity before clearing user
     if (user) {
-      addLog({
+      logActivity({
         action: 'logout',
         entityType: 'user',
         entityId: user.id,
@@ -169,7 +200,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     setUser(null);
-    toast({
+    uiToast({
       title: 'Logout Realizado',
       description: 'Você foi desconectado com sucesso.',
     });
@@ -214,7 +245,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userWithoutPassword);
       
       // Log register activity
-      addLog({
+      logActivity({
         action: 'register',
         entityType: 'user',
         entityId: newUser.id,
@@ -222,14 +253,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         details: `Novo usuário registrado: ${newUser.email}`
       });
       
-      toast({
+      uiToast({
         title: 'Registro Concluído',
         description: 'Sua conta foi criada com sucesso!',
       });
       
       navigate('/dashboard');
     } catch (error: any) {
-      toast({
+      uiToast({
         title: 'Erro ao registrar',
         description: error.message || 'Ocorreu um erro ao tentar registrar.',
         variant: 'destructive',
@@ -263,7 +294,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Log profile update activity
-      addLog({
+      logActivity({
         action: 'update',
         entityType: 'user',
         entityId: user.id,
@@ -271,12 +302,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         details: `Perfil atualizado: ${Object.keys(data).join(', ')}`
       });
       
-      toast({
+      uiToast({
         title: 'Perfil Atualizado',
         description: 'Suas informações foram atualizadas com sucesso!',
       });
     } catch (error: any) {
-      toast({
+      uiToast({
         title: 'Erro ao atualizar perfil',
         description: error.message || 'Ocorreu um erro ao tentar atualizar o perfil.',
         variant: 'destructive',
@@ -316,7 +347,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUsers(updatedUsers);
       
       // Log password update activity
-      addLog({
+      logActivity({
         action: 'update',
         entityType: 'user',
         entityId: user.id,
@@ -324,12 +355,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         details: 'Senha atualizada'
       });
       
-      toast({
+      uiToast({
         title: 'Senha Atualizada',
         description: 'Sua senha foi alterada com sucesso!',
       });
     } catch (error: any) {
-      toast({
+      uiToast({
         title: 'Erro ao atualizar senha',
         description: error.message || 'Ocorreu um erro ao tentar atualizar a senha.',
         variant: 'destructive',
@@ -369,7 +400,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUsers(updatedUsers);
       
       // Log password reset activity
-      addLog({
+      logActivity({
         action: 'password_reset',
         entityType: 'user',
         entityId: userId,
@@ -377,12 +408,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         details: `Senha redefinida pelo administrador ${user.name}`
       });
       
-      toast({
+      uiToast({
         title: 'Senha Redefinida',
         description: `A senha do usuário ${targetUser.name} foi redefinida com sucesso!`,
       });
     } catch (error: any) {
-      toast({
+      uiToast({
         title: 'Erro ao redefinir senha',
         description: error.message || 'Ocorreu um erro ao tentar redefinir a senha.',
         variant: 'destructive',
@@ -431,7 +462,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUsers(updatedUsers);
       
       // Log user creation
-      addLog({
+      logActivity({
         action: 'create',
         entityType: 'user',
         entityId: newUser.id,
@@ -439,12 +470,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         details: `Novo usuário criado com função: ${role}`
       });
       
-      toast({
+      uiToast({
         title: 'Usuário Criado',
         description: `O usuário ${name} foi criado com sucesso!`,
       });
     } catch (error: any) {
-      toast({
+      uiToast({
         title: 'Erro ao criar usuário',
         description: error.message || 'Ocorreu um erro ao tentar criar o usuário.',
         variant: 'destructive',
@@ -490,7 +521,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUsers(updatedUsers);
       
       // Log user deletion
-      addLog({
+      logActivity({
         action: 'delete',
         entityType: 'user',
         entityId: userId,
@@ -498,12 +529,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         details: `Usuário excluído pelo administrador ${user.name}`
       });
       
-      toast({
+      uiToast({
         title: 'Usuário Excluído',
         description: `O usuário ${targetUser.name} foi excluído com sucesso!`,
       });
     } catch (error: any) {
-      toast({
+      uiToast({
         title: 'Erro ao excluir usuário',
         description: error.message || 'Ocorreu um erro ao tentar excluir o usuário.',
         variant: 'destructive',
