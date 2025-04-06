@@ -22,7 +22,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -41,6 +40,7 @@ import {
 } from 'lucide-react';
 import { toast } from "sonner";
 import { DeliveryForm } from '@/components/delivery/DeliveryForm';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
@@ -104,22 +104,27 @@ const Deliveries = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Entregas</h1>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingDelivery(null)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Nova Entrega
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px]">
+            <Button onClick={() => {
+              setEditingDelivery(null);
+              setIsDialogOpen(true);
+            }}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Nova Entrega
+            </Button>
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
               <DialogHeader>
                 <DialogTitle>
                   {editingDelivery ? 'Editar Entrega' : 'Nova Entrega'}
                 </DialogTitle>
               </DialogHeader>
-              <DeliveryForm 
-                delivery={editingDelivery} 
-                onComplete={handleCloseDialog} 
-              />
+              <ScrollArea className="max-h-[calc(90vh-130px)]">
+                <div className="pr-4">
+                  <DeliveryForm 
+                    delivery={editingDelivery} 
+                    onComplete={handleCloseDialog} 
+                  />
+                </div>
+              </ScrollArea>
             </DialogContent>
           </Dialog>
         </div>

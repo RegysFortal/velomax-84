@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import { toast } from "sonner";
 import { useClients } from "@/contexts/ClientsContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { ClientSearchSelect } from "@/components/client/ClientSearchSelect";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -81,7 +83,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     
     try {
       // Validate form
-      if (!companyId.trim() || !companyName.trim() || !carrierName.trim() || !trackingNumber.trim()) {
+      if (!companyId.trim() || !carrierName.trim() || !trackingNumber.trim()) {
         toast.error("Preencha todos os campos obrigatórios");
         return;
       }
@@ -100,10 +102,14 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
         return;
       }
       
+      // Get company name from the selected client
+      const selectedClient = clients.find(c => c.id === companyId);
+      const clientName = selectedClient ? selectedClient.name : "";
+      
       // Build shipment object with all required fields
       const shipmentData = {
         companyId: companyId.trim(),
-        companyName: companyName.trim(),
+        companyName: clientName,
         transportMode,
         carrierName: carrierName.trim(),
         trackingNumber: trackingNumber.trim(),
@@ -146,38 +152,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       console.error(error);
     }
   };
-  
-  const handleCompanySelect = (selectedId: string) => {
-    const selectedClient = clients.find(client => client.id === selectedId);
-    
-    if (selectedClient) {
-      setCompanyId(selectedClient.id);
-      setCompanyName(selectedClient.name);
-    }
-  };
 
-  const getCarrierOptions = () => {
-    if (transportMode === "air") {
-      return (
-        <>
-          <SelectItem value="GOL">GOL</SelectItem>
-          <SelectItem value="LATAM">LATAM</SelectItem>
-          <SelectItem value="AZUL">AZUL</SelectItem>
-        </>
-      );
-    }
-    return (
-      <SelectItem value="custom">Outra transportadora</SelectItem>
-    );
-  };
-  
-  // Format client options for the searchable select
-  const clientOptions = clients.map(client => ({
-    value: client.id,
-    label: client.tradingName,
-    description: client.name
-  }));
-  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl max-h-[95vh]">
@@ -190,12 +165,16 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
                 <label htmlFor="companyName" className="text-sm font-medium">Empresa</label>
-                <SearchableSelect 
-                  options={clientOptions}
+                <ClientSearchSelect 
                   value={companyId}
-                  onValueChange={handleCompanySelect}
+                  onValueChange={(value) => {
+                    setCompanyId(value);
+                    const client = clients.find(c => c.id === value);
+                    if (client) {
+                      setCompanyName(client.name);
+                    }
+                  }}
                   placeholder="Selecione uma empresa"
-                  emptyMessage="Nenhuma empresa encontrada"
                 />
               </div>
               

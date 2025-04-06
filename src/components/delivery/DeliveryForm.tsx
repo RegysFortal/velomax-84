@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form';
@@ -255,10 +256,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                   <FormControl>
                     <ClientSearchSelect
                       value={field.value}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        console.log("Client selected:", value);
-                      }}
+                      onValueChange={field.onChange}
                       placeholder="Selecione um cliente"
                     />
                   </FormControl>
@@ -387,7 +385,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                       <SelectValue placeholder="Selecione o tipo de entrega" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="max-h-80">
                     <SelectItem value="standard">Normal</SelectItem>
                     <SelectItem value="emergency">Emergencial</SelectItem>
                     <SelectItem value="exclusive">Exclusivo</SelectItem>
@@ -472,7 +470,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                         <SelectValue placeholder="Selecione a cidade" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-80">
                       {cities.map((city) => (
                         <SelectItem key={city.id} value={city.id}>
                           {city.name} - {city.distance}km
