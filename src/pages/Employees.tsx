@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: "Nome deve ter pelo menos 2 caracteres.",
   }),
-  role: z.enum(['driver', 'assistant'], {
+  role: z.enum(['driver', 'assistant', 'admin'], {
     required_error: "Selecione uma função.",
   }),
   employeeSince: z.string({
@@ -107,7 +108,7 @@ const Employees = () => {
     if (editingEmployee) {
       form.reset({
         name: editingEmployee.name,
-        role: editingEmployee.role === 'admin' ? 'driver' : editingEmployee.role,
+        role: editingEmployee.role === 'admin' ? 'admin' : editingEmployee.role,
         employeeSince: editingEmployee.employeeSince || "",
         dateOfBirth: editingEmployee.dateOfBirth || "",
         rg: editingEmployee.rg || "",
@@ -167,9 +168,21 @@ const Employees = () => {
         });
       } else {
         await addEmployee({
-          ...values,
+          name: values.name, // Ensure name is provided
+          role: values.role,
           status: 'active',
           position: values.role === 'driver' ? 'Motorista' : 'Assistente',
+          address: values.address,
+          employeeSince: values.employeeSince,
+          dateOfBirth: values.dateOfBirth,
+          rg: values.rg,
+          cpf: values.cpf,
+          driverLicense: values.driverLicense,
+          licenseCategory: values.licenseCategory,
+          licenseValidity: values.licenseValidity,
+          phone: values.phone,
+          motherName: values.motherName,
+          fatherName: values.fatherName,
         });
         toast({
           title: "Funcionário adicionado",
@@ -267,7 +280,7 @@ const Employees = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Função</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione uma função" />

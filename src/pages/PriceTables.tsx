@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useFinancial } from '@/contexts/FinancialContext';
+import { usePriceTables } from '@/contexts/PriceTablesContext';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { PriceTable } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -80,8 +81,51 @@ interface PriceTableFormData {
   defaultDiscount: number;
 }
 
+// Helper function for creating an empty price table
+const createEmptyPriceTable = (): PriceTableFormData => {
+  return {
+    name: '',
+    description: '',
+    minimumRate: {
+      standardDelivery: 0,
+      emergencyCollection: 0,
+      saturdayCollection: 0,
+      exclusiveVehicle: 0,
+      scheduledDifficultAccess: 0,
+      metropolitanRegion: 0,
+      sundayHoliday: 0,
+      normalBiological: 0,
+      infectiousBiological: 0,
+      trackedVehicle: 0,
+      doorToDoorInterior: 0,
+      reshipment: 0,
+    },
+    excessWeight: {
+      minPerKg: 0,
+      maxPerKg: 0,
+      biologicalPerKg: 0,
+      reshipmentPerKg: 0,
+    },
+    doorToDoor: {
+      ratePerKm: 0,
+      maxWeight: 0,
+    },
+    waitingHour: {
+      fiorino: 0,
+      medium: 0,
+      large: 0,
+    },
+    insurance: {
+      standard: 0,
+      perishable: 0,
+    },
+    allowCustomPricing: false,
+    defaultDiscount: 0,
+  };
+};
+
 const PriceTables = () => {
-  const { priceTables, addPriceTable, updatePriceTable, deletePriceTable } = useFinancial();
+  const { priceTables, addPriceTable, updatePriceTable, deletePriceTable } = usePriceTables();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPriceTable, setEditingPriceTable] = useState<PriceTable | null>(null);
   const [formData, setFormData] = useState<PriceTableFormData>(createEmptyPriceTable());
@@ -189,11 +233,9 @@ const PriceTables = () => {
     } else if (name === 'defaultDiscount') {
       setFormData(prev => ({
         ...prev,
-        defaultDiscount: type === 'number' ? parseFloat(value) : value,
+        defaultDiscount: type === 'number' ? parseFloat(value) : parseFloat(value),
       }));
-    }
-    
-    else {
+    } else {
       setFormData(prev => ({
         ...prev,
         [name]: value,
@@ -297,48 +339,6 @@ const PriceTables = () => {
     }
     
     return null;
-  };
-
-  const createEmptyPriceTable = () => {
-    return {
-      name: '',
-      description: '',
-      minimumRate: {
-        standardDelivery: 0,
-        emergencyCollection: 0,
-        saturdayCollection: 0,
-        exclusiveVehicle: 0,
-        scheduledDifficultAccess: 0,
-        metropolitanRegion: 0,
-        sundayHoliday: 0,
-        normalBiological: 0,
-        infectiousBiological: 0,
-        trackedVehicle: 0,
-        doorToDoorInterior: 0,
-        reshipment: 0,
-      },
-      excessWeight: {
-        minPerKg: 0,
-        maxPerKg: 0,
-        biologicalPerKg: 0,
-        reshipmentPerKg: 0,
-      },
-      doorToDoor: {
-        ratePerKm: 0,
-        maxWeight: 0,
-      },
-      waitingHour: {
-        fiorino: 0,
-        medium: 0,
-        large: 0,
-      },
-      insurance: {
-        standard: 0,
-        perishable: 0,
-      },
-      allowCustomPricing: false,
-      defaultDiscount: 0,
-    };
   };
 
   return (
