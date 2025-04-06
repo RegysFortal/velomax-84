@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
@@ -67,6 +68,7 @@ import { PenLine, Trash2, UserPlus, LockKeyhole, Save, UploadCloud, Download, X,
 type UserFormData = {
   name: string;
   username: string;
+  email?: string; // Added email field
   password: string;
   role: 'admin' | 'manager' | 'user';
   permissions: {
@@ -136,6 +138,7 @@ const Settings = () => {
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
   const [backupFile, setBackupFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [passwordData, setPasswordData] = useState({
     userId: '',
     newPassword: '',
@@ -147,6 +150,7 @@ const Settings = () => {
     name: '',
     username: '',
     email: '',
+    password: '',
     role: 'user',
     permissions: {
       // Operational permissions
@@ -289,6 +293,7 @@ const Settings = () => {
         const newUser = {
           name: data.name,
           username: data.username,
+          email: data.email || '', // Provide email with default empty string
           role: data.role,
           permissions: data.permissions,
         };
@@ -515,41 +520,27 @@ const Settings = () => {
   const watchRole = watchUser('role');
   const isAdmin = watchRole === 'admin';
 
-  const createUser = async (userData: { 
-    name: string; 
-    username: string; 
-    email: string;
-    role: 'admin' | 'manager' | 'user';
-    permissions: {
-      deliveries: boolean;
-      shipments: boolean;
-      clients: boolean;
-      cities: boolean;
-      reports: boolean;
-      financial: boolean;
-      priceTables: boolean;
-      dashboard: boolean;
-      logbook: boolean;
-      employees: boolean;
-      vehicles: boolean;
-      maintenance: boolean;
-      settings: boolean;
-    }
-  }) => {
+  // Renamed from createUser to handleAddNewUser to avoid name collision
+  const handleAddNewUser = async (userData: UserFormData) => {
     setIsCreatingUser(true);
     
     try {
-      const newUser = {
-        id: `user-${Date.now()}`,
-        ...userData,
-        createdAt: new Date().toISOString(),
+      // Prepare user data with required email field
+      const newUserData = {
+        name: userData.name,
+        username: userData.username,
+        email: userData.email || '', // Ensure email is provided
+        role: userData.role,
+        permissions: userData.permissions,
       };
       
-      setUsers(prev => [...prev, newUser]);
+      await createUser(newUserData);
+      
       setNewUserData({
         name: '',
         username: '',
         email: '',
+        password: '',
         role: 'user',
         permissions: {
           deliveries: false,
@@ -908,6 +899,15 @@ const Settings = () => {
                         id="username" 
                         {...registerUser('username', { required: true })} 
                         required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        {...registerUser('email')}
                       />
                     </div>
                     
@@ -1365,7 +1365,7 @@ const Settings = () => {
                 Cancelar
               </Button>
               <Button
-                onClick={() => createUser(newUserData)}
+                onClick={() => handleAddNewUser(newUserData)}
                 disabled={isCreatingUser || !newUserData.name || !newUserData.username || !newUserData.email}
               >
                 {isCreatingUser ? "Criando..." : "Criar usuário"}
