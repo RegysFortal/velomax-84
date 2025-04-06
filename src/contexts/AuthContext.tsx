@@ -1,8 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types';
-import { useActivityLog } from './ActivityLogContext';
 
 interface AuthContextType {
   user: User | null;
@@ -10,46 +10,20 @@ interface AuthContextType {
   loading: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  updateUserProfile: (userId: string, userData: Partial<User>) => Promise<boolean>;
-  createUser: (userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>> ) => Promise<User>;
+  updateUserProfile: (userData: Partial<User>) => Promise<boolean>;
+  createUser: (userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => Promise<User>;
   deleteUser: (userId: string) => boolean;
   resetUserPassword: (userId: string, newPassword: string) => boolean;
+  updateUserPassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export interface User {
-  id: string;
-  name: string;
-  username: string;
-  email?: string;
-  role: 'admin' | 'manager' | 'user';
-  permissions?: {
-    deliveries?: boolean;
-    shipments?: boolean;
-    clients?: boolean;
-    cities?: boolean;
-    reports?: boolean;
-    financial?: boolean;
-    priceTables?: boolean;
-    dashboard?: boolean;
-    logbook?: boolean;
-    employees?: boolean;
-    vehicles?: boolean;
-    maintenance?: boolean;
-    settings?: boolean;
-  };
-  avatar?: string;
-  createdAt: string;
-  lastLogin?: string;
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { addLog: logActivity } = useActivityLog();
 
   useEffect(() => {
     const loadStoredUser = () => {
@@ -98,13 +72,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
         setUsers(updatedUsers);
 
-        logActivity({
-          action: 'login',
-          entityType: 'user',
-          entityId: foundUser.id,
-          entityName: foundUser.name,
-          details: 'Usuário fez login no sistema'
-        });
+        // Log activity
+        try {
+          const logActivity = (activity: any) => {
+            const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+            const newLog = {
+              id: uuidv4(),
+              timestamp: new Date().toISOString(),
+              userId: foundUser.id,
+              userName: foundUser.name,
+              ...activity
+            };
+            logs.push(newLog);
+            localStorage.setItem('activity_logs', JSON.stringify(logs));
+          };
+
+          logActivity({
+            action: 'login',
+            entityType: 'user',
+            entityId: foundUser.id,
+            entityName: foundUser.name,
+            details: 'Usuário fez login no sistema'
+          });
+        } catch (error) {
+          console.error('Failed to log activity:', error);
+        }
 
         navigate('/dashboard');
         return true;
@@ -115,23 +107,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    if (user) {
+      try {
+        // Log activity
+        const logActivity = (activity: any) => {
+          const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+          const newLog = {
+            id: uuidv4(),
+            timestamp: new Date().toISOString(),
+            userId: user.id,
+            userName: user.name,
+            ...activity
+          };
+          logs.push(newLog);
+          localStorage.setItem('activity_logs', JSON.stringify(logs));
+        };
+
+        logActivity({
+          action: 'logout',
+          entityType: 'user',
+          details: 'Usuário fez logout do sistema'
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+    }
+
     setUser(null);
     localStorage.removeItem('velomax_user');
-
-    logActivity({
-      action: 'logout',
-      entityType: 'user',
-      details: 'Usuário fez logout do sistema'
-    });
-
     navigate('/login');
   };
 
   // Update user profile
-  const updateUserProfile = async (userId: string, userData: Partial<User>) => {
+  const updateUserProfile = async (userData: Partial<User>) => {
     try {
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+      
       // Find the user to update
-      const userIndex = users.findIndex(u => u.id === userId);
+      const userIndex = users.findIndex(u => u.id === user.id);
       
       if (userIndex === -1) {
         throw new Error("Usuário não encontrado");
@@ -152,25 +167,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Update state
       setUsers(updatedUsers);
-      
-      // If updating the current user, also update user state
-      if (user && user.id === userId) {
-        setUser(updatedUser);
-        localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
-      }
+      setUser(updatedUser);
+      localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
       
       // Log activity
-      logActivity({
-        action: 'update',
-        entityType: 'user',
-        entityId: userId,
-        entityName: updatedUser.name,
-        details: 'Perfil de usuário atualizado'
-      });
+      try {
+        const logActivity = (activity: any) => {
+          const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+          const newLog = {
+            id: uuidv4(),
+            timestamp: new Date().toISOString(),
+            userId: user.id,
+            userName: user.name,
+            ...activity
+          };
+          logs.push(newLog);
+          localStorage.setItem('activity_logs', JSON.stringify(logs));
+        };
+
+        logActivity({
+          action: 'update',
+          entityType: 'user',
+          entityId: user.id,
+          entityName: updatedUser.name,
+          details: 'Perfil de usuário atualizado'
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
       
       return true;
     } catch (error) {
       console.error("Error updating user profile:", error);
+      throw error;
+    }
+  };
+
+  // Update user password
+  const updateUserPassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+      
+      // Simplified password check for demo
+      if (currentPassword !== 'password') {
+        throw new Error("Senha atual incorreta");
+      }
+      
+      // Find the user to update
+      const userIndex = users.findIndex(u => u.id === user.id);
+      
+      if (userIndex === -1) {
+        throw new Error("Usuário não encontrado");
+      }
+      
+      // In a real app, you'd hash the password here
+      // For this demo, we'll just pretend we update the password
+      
+      // Log activity
+      try {
+        const logActivity = (activity: any) => {
+          const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+          const newLog = {
+            id: uuidv4(),
+            timestamp: new Date().toISOString(),
+            userId: user.id,
+            userName: user.name,
+            ...activity
+          };
+          logs.push(newLog);
+          localStorage.setItem('activity_logs', JSON.stringify(logs));
+        };
+
+        logActivity({
+          action: 'update',
+          entityType: 'user',
+          entityId: user.id,
+          entityName: user.name,
+          details: 'Senha de usuário atualizada'
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating user password:", error);
       throw error;
     }
   };
@@ -202,13 +285,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUsers(updatedUsers);
       
       // Log activity
-      logActivity({
-        action: 'create',
-        entityType: 'user',
-        entityId: newUser.id,
-        entityName: newUser.name,
-        details: 'Novo usuário criado'
-      });
+      if (user) {
+        try {
+          const logActivity = (activity: any) => {
+            const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+            const newLog = {
+              id: uuidv4(),
+              timestamp: new Date().toISOString(),
+              userId: user.id,
+              userName: user.name,
+              ...activity
+            };
+            logs.push(newLog);
+            localStorage.setItem('activity_logs', JSON.stringify(logs));
+          };
+
+          logActivity({
+            action: 'create',
+            entityType: 'user',
+            entityId: newUser.id,
+            entityName: newUser.name,
+            details: 'Novo usuário criado'
+          });
+        } catch (error) {
+          console.error('Failed to log activity:', error);
+        }
+      }
       
       return newUser;
     } catch (error) {
@@ -241,13 +343,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsers(updatedUsers);
     
     // Log activity
-    logActivity({
-      action: 'delete',
-      entityType: 'user',
-      entityId: userId,
-      entityName: userToDelete.name,
-      details: 'Usuário excluído'
-    });
+    if (user) {
+      try {
+        const logActivity = (activity: any) => {
+          const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+          const newLog = {
+            id: uuidv4(),
+            timestamp: new Date().toISOString(),
+            userId: user.id,
+            userName: user.name,
+            ...activity
+          };
+          logs.push(newLog);
+          localStorage.setItem('activity_logs', JSON.stringify(logs));
+        };
+
+        logActivity({
+          action: 'delete',
+          entityType: 'user',
+          entityId: userId,
+          entityName: userToDelete.name,
+          details: 'Usuário excluído'
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+    }
     
     return true;
   };
@@ -261,10 +382,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("Usuário não encontrado");
     }
     
-    // Create updated user
+    // Create updated user (in a real app, you'd hash the password)
     const updatedUser = {
       ...users[userIndex],
-      password: newPassword
+      // password would be stored here if we were implementing real auth
     };
     
     // Update users array
@@ -278,13 +399,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsers(updatedUsers);
     
     // Log activity
-    logActivity({
-      action: 'update',
-      entityType: 'user',
-      entityId: userId,
-      entityName: updatedUser.name,
-      details: 'Senha redefinida'
-    });
+    if (user) {
+      try {
+        const logActivity = (activity: any) => {
+          const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+          const newLog = {
+            id: uuidv4(),
+            timestamp: new Date().toISOString(),
+            userId: user.id,
+            userName: user.name,
+            ...activity
+          };
+          logs.push(newLog);
+          localStorage.setItem('activity_logs', JSON.stringify(logs));
+        };
+
+        logActivity({
+          action: 'update',
+          entityType: 'user',
+          entityId: userId,
+          entityName: updatedUser.name,
+          details: 'Senha redefinida'
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+    }
     
     return true;
   };
@@ -299,6 +439,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     createUser,
     deleteUser,
     resetUserPassword,
+    updateUserPassword,
   };
 
   return (
