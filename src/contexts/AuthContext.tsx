@@ -17,12 +17,16 @@ export interface User {
 
 interface AuthContextProps {
   user: User | null;
+  users: User[];
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<void>;
   updateUserProfile: (data: Partial<User>) => Promise<void>;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  resetUserPassword: (userId: string, newPassword: string) => Promise<void>;
+  createUser: (name: string, email: string, password: string, role: 'admin' | 'user' | 'manager') => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -51,6 +55,7 @@ const INITIAL_USERS = [
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -76,6 +81,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const storedUsers = localStorage.getItem('velomax_users');
       if (!storedUsers) {
         localStorage.setItem('velomax_users', JSON.stringify(INITIAL_USERS));
+        setUsers(INITIAL_USERS);
+      } else {
+        try {
+          setUsers(JSON.parse(storedUsers));
+        } catch (e) {
+          console.error('Failed to parse stored users:', e);
+          localStorage.setItem('velomax_users', JSON.stringify(INITIAL_USERS));
+          setUsers(INITIAL_USERS);
+        }
       }
     };
     
@@ -240,11 +254,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Update user in localStorage
       const storedUsers = localStorage.getItem('velomax_users');
       if (storedUsers) {
-        const users = JSON.parse(storedUsers);
-        const updatedUsers = users.map((u: any) => 
+        const allUsers = JSON.parse(storedUsers);
+        const updatedUsers = allUsers.map((u: any) => 
           u.id === user.id ? { ...u, ...data, updatedAt: new Date().toISOString() } : u
         );
         localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+        setUsers(updatedUsers);
       }
       
       // Log profile update activity
@@ -285,19 +300,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Erro ao verificar senha atual');
       }
       
-      const users = JSON.parse(storedUsers);
-      const currentUser = users.find((u: any) => u.id === user.id);
+      const allUsers = JSON.parse(storedUsers);
+      const currentUser = allUsers.find((u: any) => u.id === user.id);
       
       if (!currentUser || currentUser.password !== currentPassword) {
         throw new Error('Senha atual incorreta');
       }
       
       // Update password
-      const updatedUsers = users.map((u: any) => 
+      const updatedUsers = allUsers.map((u: any) => 
         u.id === user.id ? { ...u, password: newPassword, updatedAt: new Date().toISOString() } : u
       );
       
       localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
       
       // Log password update activity
       addLog({
@@ -322,16 +338,194 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
+  // New function for admin to reset a user's password
+  const resetUserPassword = async (userId: string, newPassword: string) => {
+    try {
+      if (!user || user.role !== 'admin') {
+        throw new Error('Permissão negada');
+      }
+      
+      // Simulate API request
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedUsers = localStorage.getItem('velomax_users');
+      if (!storedUsers) {
+        throw new Error('Erro ao buscar usuários');
+      }
+      
+      const allUsers = JSON.parse(storedUsers);
+      const targetUser = allUsers.find((u: any) => u.id === userId);
+      
+      if (!targetUser) {
+        throw new Error('Usuário não encontrado');
+      }
+      
+      // Update password
+      const updatedUsers = allUsers.map((u: any) => 
+        u.id === userId ? { ...u, password: newPassword, updatedAt: new Date().toISOString() } : u
+      );
+      
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
+      
+      // Log password reset activity
+      addLog({
+        action: 'password_reset',
+        entityType: 'user',
+        entityId: userId,
+        entityName: targetUser.name,
+        details: `Senha redefinida pelo administrador ${user.name}`
+      });
+      
+      toast({
+        title: 'Senha Redefinida',
+        description: `A senha do usuário ${targetUser.name} foi redefinida com sucesso!`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao redefinir senha',
+        description: error.message || 'Ocorreu um erro ao tentar redefinir a senha.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+  
+  // New function to create a user (admin only)
+  const createUser = async (name: string, email: string, password: string, role: 'admin' | 'user' | 'manager') => {
+    try {
+      if (!user || user.role !== 'admin') {
+        throw new Error('Permissão negada');
+      }
+      
+      // Validate inputs
+      if (!name || !email || !password || !role) {
+        throw new Error('Todos os campos são obrigatórios');
+      }
+      
+      // Simulate API request
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedUsers = localStorage.getItem('velomax_users');
+      const allUsers = storedUsers ? JSON.parse(storedUsers) : [];
+      
+      // Check if email already exists
+      if (allUsers.some((u: any) => u.email.toLowerCase() === email.toLowerCase())) {
+        throw new Error('Este e-mail já está em uso');
+      }
+      
+      // Create new user
+      const newUser = {
+        id: `user-${uuidv4()}`,
+        name,
+        email,
+        password,
+        role,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Add to users list
+      const updatedUsers = [...allUsers, newUser];
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
+      
+      // Log user creation
+      addLog({
+        action: 'create',
+        entityType: 'user',
+        entityId: newUser.id,
+        entityName: newUser.name,
+        details: `Novo usuário criado com função: ${role}`
+      });
+      
+      toast({
+        title: 'Usuário Criado',
+        description: `O usuário ${name} foi criado com sucesso!`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao criar usuário',
+        description: error.message || 'Ocorreu um erro ao tentar criar o usuário.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+  
+  // New function to delete a user (admin only)
+  const deleteUser = async (userId: string) => {
+    try {
+      if (!user || user.role !== 'admin') {
+        throw new Error('Permissão negada');
+      }
+      
+      if (userId === user.id) {
+        throw new Error('Você não pode excluir seu próprio usuário');
+      }
+      
+      // Simulate API request
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedUsers = localStorage.getItem('velomax_users');
+      if (!storedUsers) {
+        throw new Error('Erro ao buscar usuários');
+      }
+      
+      const allUsers = JSON.parse(storedUsers);
+      const targetUser = allUsers.find((u: any) => u.id === userId);
+      
+      if (!targetUser) {
+        throw new Error('Usuário não encontrado');
+      }
+      
+      // Remove user
+      const updatedUsers = allUsers.filter((u: any) => u.id !== userId);
+      
+      if (updatedUsers.length === 0 || !updatedUsers.some((u: any) => u.role === 'admin')) {
+        throw new Error('Não é possível excluir o último administrador');
+      }
+      
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
+      
+      // Log user deletion
+      addLog({
+        action: 'delete',
+        entityType: 'user',
+        entityId: userId,
+        entityName: targetUser.name,
+        details: `Usuário excluído pelo administrador ${user.name}`
+      });
+      
+      toast({
+        title: 'Usuário Excluído',
+        description: `O usuário ${targetUser.name} foi excluído com sucesso!`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao excluir usuário',
+        description: error.message || 'Ocorreu um erro ao tentar excluir o usuário.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+  
   return (
     <AuthContext.Provider
       value={{
         user,
+        users,
         loading,
         login,
         logout,
         register,
         updateUserProfile,
         updateUserPassword,
+        resetUserPassword,
+        createUser,
+        deleteUser,
       }}
     >
       {children}

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription 
@@ -97,9 +96,7 @@ export function ShipmentDetails({
         cargoType: 'standard',
         deliveryType: 'standard',
         cargoValue: 0,
-        totalFreight: 0,
-        customPricing: false,
-        discount: 0
+        totalFreight: 0
       });
       
       // Close dialog

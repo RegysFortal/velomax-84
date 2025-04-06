@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
@@ -25,7 +24,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, Filter, Trash2, User, FileText, Database } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { ActivityAction, EntityType } from '@/types/activity';
+import { ActivityAction, EntityType, BadgeVariant } from '@/types/activity';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 
@@ -44,7 +43,6 @@ export default function ActivityLogs() {
 
   const isAdmin = user?.role === 'admin';
   
-  // If not admin, redirect or show access denied
   if (!isAdmin) {
     return (
       <AppLayout>
@@ -58,9 +56,7 @@ export default function ActivityLogs() {
     );
   }
 
-  // Filter logs based on selected filters
   const filteredLogs = logs.filter(log => {
-    // Date range filter
     const logDate = new Date(log.timestamp);
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -70,17 +66,14 @@ export default function ActivityLogs() {
       return false;
     }
     
-    // Action filter
     if (actionFilter !== 'all' && log.action !== actionFilter) {
       return false;
     }
     
-    // Entity filter
     if (entityFilter !== 'all' && log.entityType !== entityFilter) {
       return false;
     }
     
-    // Search term
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       const userNameMatch = log.userName.toLowerCase().includes(searchLower);
@@ -95,7 +88,6 @@ export default function ActivityLogs() {
     return true;
   });
 
-  // Action display names
   const getActionDisplay = (action: ActivityAction): string => {
     const actionMap: Record<ActivityAction, string> = {
       login: 'Login',
@@ -113,7 +105,6 @@ export default function ActivityLogs() {
     return actionMap[action] || action;
   };
 
-  // Entity display names
   const getEntityDisplay = (entityType: EntityType): string => {
     const entityMap: Record<EntityType, string> = {
       user: 'Usuário',
@@ -132,8 +123,7 @@ export default function ActivityLogs() {
     return entityMap[entityType] || entityType;
   };
   
-  // Badge color based on action
-  const getActionBadgeVariant = (action: ActivityAction) => {
+  const getActionBadgeVariant = (action: ActivityAction): BadgeVariant => {
     switch (action) {
       case 'create':
         return 'default';

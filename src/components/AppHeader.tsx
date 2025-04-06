@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { MainNav } from '@/components/MainNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -36,7 +37,7 @@ export function AppHeader() {
             className="h-10 w-auto"
           />
         </Link>
-        <MainNav className="mx-6" />
+        <MainNav />
         <div className="ml-auto flex items-center space-x-4">
           <ThemeToggle />
           <DropdownMenu>
@@ -60,7 +61,7 @@ export function AppHeader() {
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{user.name}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    {user.username}
+                    {user.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -71,8 +72,7 @@ export function AppHeader() {
                   <span>Perfil</span>
                 </Link>
               </DropdownMenuItem>
-              {(user.role === 'admin' || 
-                (user.permissions && user.permissions.settings)) && (
+              {(user.role === 'admin') && (
                 <DropdownMenuItem asChild>
                   <Link to="/settings" className="flex items-center cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />

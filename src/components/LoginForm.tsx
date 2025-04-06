@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,7 +26,7 @@ export const LoginForm = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  const { login, resetUserPassword, users } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -71,31 +70,11 @@ export const LoginForm = () => {
     setIsResetting(true);
     
     try {
-      // Check if user exists
-      const userExists = users.some(user => user.username === forgotUsername);
-      
-      if (!userExists) {
-        toast({
-          title: "Usuário não encontrado",
-          description: "O nome de usuário informado não existe no sistema.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Find user ID
-      const userId = users.find(user => user.username === forgotUsername)?.id;
-      
-      if (!userId) {
-        throw new Error("ID de usuário não encontrado");
-      }
-
-      // Reset password
-      resetUserPassword(userId, newPassword);
-      
+      // For now, show a message about contacting admin
       toast({
-        title: "Senha redefinida",
-        description: "Sua senha foi redefinida com sucesso. Faça login com a nova senha.",
+        title: "Recurso temporariamente indisponível",
+        description: "Por favor, entre em contato com o administrador do sistema para redefinir sua senha.",
+        variant: "default"
       });
       
       // Close dialog and clear fields

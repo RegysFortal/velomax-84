@@ -38,3 +38,6 @@ export type EntityType =
   | 'tire'
   | 'report'
   | 'system';
+
+// Define BadgeVariant including the 'success' option
+export type BadgeVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'success';

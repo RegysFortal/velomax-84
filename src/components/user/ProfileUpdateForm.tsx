@@ -35,7 +35,7 @@ export const ProfileUpdateForm = () => {
     setIsSubmitting(true);
 
     try {
-      await updateUserProfile(user.id, { name });
+      await updateUserProfile({ name });
       toast.success('Perfil atualizado com sucesso');
     } catch (error) {
       toast.error('Ocorreu um erro ao atualizar o perfil');
@@ -53,14 +53,14 @@ export const ProfileUpdateForm = () => {
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Nome de Usuário</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              value={user?.username || ''}
+              id="email"
+              value={user?.email || ''}
               disabled
               className="bg-muted"
             />
-            <p className="text-sm text-muted-foreground">O nome de usuário não pode ser alterado</p>
+            <p className="text-sm text-muted-foreground">O email não pode ser alterado</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Nome</Label>

@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const NavItems = [
   {
@@ -102,10 +102,10 @@ const NavItems = [
   },
 ];
 
-export function MainNav() {
+export function MainNav({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
-  const isMobile = useMobile();
+  const { isMobile } = useIsMobile();
   const userRole = user?.role || 'user';
   
   // Filter nav items based on user role
@@ -128,7 +128,7 @@ export function MainNav() {
           </SheetContent>
         </Sheet>
       ) : (
-        <nav className="hidden md:flex flex-row items-center gap-6 text-sm">
+        <nav className={cn("hidden md:flex flex-row items-center gap-6 text-sm", className)}>
           {filteredNavItems.map((item) => (
             <NavLink
               key={item.href}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,7 @@ export const PasswordUpdateForm = () => {
     setIsSubmitting(true);
 
     try {
-      await updateUserPassword(user.id, currentPassword, newPassword);
+      await updateUserPassword(currentPassword, newPassword);
       toast.success('Senha atualizada com sucesso');
       
       // Reset form
