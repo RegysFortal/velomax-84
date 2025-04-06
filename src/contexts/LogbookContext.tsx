@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -6,7 +7,7 @@ import {
   Employee,
   FuelRecord,
   Maintenance,
-  TireMaintenance as TireMaintenanceType
+  TireMaintenance
 } from '@/types';
 
 // Define the context type
@@ -21,6 +22,7 @@ interface LogbookContextType {
   addLogbookEntry: (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateLogbookEntry: (id: string, data: Partial<LogbookEntry>) => void;
   deleteLogbookEntry: (id: string) => void;
+  getLogbookEntryById: (id: string) => LogbookEntry | undefined;
   
   employees: Employee[];
   addEmployee: (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -31,16 +33,19 @@ interface LogbookContextType {
   addFuelRecord: (record: Omit<FuelRecord, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateFuelRecord: (id: string, data: Partial<FuelRecord>) => void;
   deleteFuelRecord: (id: string) => void;
+  getFuelRecordById: (id: string) => FuelRecord | undefined;
   
   maintenanceRecords: Maintenance[];
   addMaintenanceRecord: (record: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateMaintenanceRecord: (id: string, data: Partial<Maintenance>) => void;
   deleteMaintenanceRecord: (id: string) => void;
   
-  tireMaintenance: TireMaintenanceType[];
-  addTireMaintenance: (maintenance: TireMaintenanceType) => void;
-  updateTireMaintenance: (id: string, data: Partial<TireMaintenanceType>) => void;
+  tireMaintenance: TireMaintenance[];
+  addTireMaintenance: (maintenance: TireMaintenance) => void;
+  updateTireMaintenance: (id: string, data: Partial<TireMaintenance>) => void;
   deleteTireMaintenance: (id: string) => void;
+  
+  loading?: boolean;
 }
 
 // Create the context
@@ -110,7 +115,8 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [fuelRecords, setFuelRecords] = useState<FuelRecord[]>([]);
   const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>([]);
-  const [tireMaintenance, setTireMaintenance] = useState<TireMaintenanceType[]>([]);
+  const [tireMaintenance, setTireMaintenance] = useState<TireMaintenance[]>([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     // Load data from localStorage or use initial data
@@ -148,8 +154,11 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
         if (storedTireMaintenance) {
           setTireMaintenance(JSON.parse(storedTireMaintenance));
         }
+        
+        setLoading(false);
       } catch (error) {
         console.error('Error loading logbook data:', error);
+        setLoading(false);
       }
     };
     
@@ -221,6 +230,10 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
     setLogbookEntries(prev => [...prev, newEntry]);
   };
   
+  const getLogbookEntryById = (id: string) => {
+    return logbookEntries.find(entry => entry.id === id);
+  };
+  
   const updateLogbookEntry = (id: string, data: Partial<LogbookEntry>) => {
     setLogbookEntries(prev => 
       prev.map(entry => 
@@ -271,6 +284,10 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
     setFuelRecords(prev => [...prev, newRecord]);
   };
   
+  const getFuelRecordById = (id: string) => {
+    return fuelRecords.find(record => record.id === id);
+  };
+  
   const updateFuelRecord = (id: string, data: Partial<FuelRecord>) => {
     setFuelRecords(prev => 
       prev.map(record => 
@@ -311,11 +328,11 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
   };
   
   // Tire maintenance functions
-  const addTireMaintenance = (maintenance: TireMaintenanceType) => {
+  const addTireMaintenance = (maintenance: TireMaintenance) => {
     setTireMaintenance(prev => [...prev, maintenance]);
   };
   
-  const updateTireMaintenance = (id: string, data: Partial<TireMaintenanceType>) => {
+  const updateTireMaintenance = (id: string, data: Partial<TireMaintenance>) => {
     setTireMaintenance(prev => 
       prev.map(item => 
         item.id === id 
@@ -341,6 +358,7 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       addLogbookEntry,
       updateLogbookEntry,
       deleteLogbookEntry,
+      getLogbookEntryById,
       
       employees,
       addEmployee,
@@ -351,6 +369,7 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       addFuelRecord,
       updateFuelRecord,
       deleteFuelRecord,
+      getFuelRecordById,
       
       maintenanceRecords,
       addMaintenanceRecord,
@@ -361,6 +380,8 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       addTireMaintenance,
       updateTireMaintenance,
       deleteTireMaintenance,
+      
+      loading,
     }}>
       {children}
     </LogbookContext.Provider>

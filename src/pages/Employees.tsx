@@ -147,7 +147,7 @@ export default function Employees() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEditClick(u)}
-                        disabled={user?.id === u.id} // Prevent editing current user
+                        disabled={u.id === user?.id} // Prevent editing current user
                       >
                         <Edit className="h-4 w-4" />
                       </Button>

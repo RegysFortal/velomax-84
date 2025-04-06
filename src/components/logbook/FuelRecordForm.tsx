@@ -1,4 +1,3 @@
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -104,7 +103,10 @@ const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) 
           liters: data.liters,
           pricePerLiter: data.pricePerLiter,
           totalCost,
-          fuelType: 'flex' // Default fuel type
+          fuelType: 'flex', // Default fuel type
+          isFull: true, // Default value for isFull
+          station: '',  // Default value for station
+          notes: ''  // Default value for notes
         });
       }
       

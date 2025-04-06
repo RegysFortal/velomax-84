@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts/ClientsContext';
 import { useFinancial } from '@/contexts/FinancialContext';
@@ -25,12 +25,13 @@ import { cn } from '@/lib/utils';
 import { Delivery } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
+import { toast } from 'sonner';
 
 const ReportsPage = () => {
   const { deliveries } = useDeliveries();
   const { clients } = useClients();
   const { addFinancialReport, financialReports } = useFinancial();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const [clientFilter, setClientFilter] = useState<string>('');
   const [startDate, setStartDate] = useState<string>(
     format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd')
@@ -41,6 +42,7 @@ const ReportsPage = () => {
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   const existingReportDeliveries = financialReports
     .filter(report => report.status === 'open')
@@ -224,7 +226,7 @@ const ReportsPage = () => {
     if (clientFilter && clientFilter !== 'all') {
       const client = clients.find(c => c.id === clientFilter);
       if (!client) {
-        toast({
+        uiToast({
           title: "Cliente não encontrado",
           description: "Não foi possível encontrar o cliente selecionado.",
           variant: "destructive"
@@ -248,17 +250,27 @@ const ReportsPage = () => {
         totalDeliveries: deliveryCount,
       });
       
-      toast({
+      uiToast({
         title: "Relatório financeiro criado",
         description: "O relatório foi salvo e está disponível na seção Financeiro.",
       });
     } else {
-      toast({
+      uiToast({
         title: "Selecione um cliente",
         description: "É necessário filtrar por um cliente específico para criar um relatório financeiro.",
         variant: "destructive"
       });
     }
+  };
+
+  const resetReportForm = () => {
+    setSelectedClient('');
+    setDateRange({ from: null, to: null });
+  };
+
+  const generateReport = async (reportData: any) => {
+    console.log('Generating report with data:', reportData);
+    return true;
   };
 
   const handleGenerateReport = async () => {

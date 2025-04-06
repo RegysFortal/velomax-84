@@ -3,7 +3,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  username?: string;
+  username: string;
   password?: string;
   role: 'admin' | 'manager' | 'user';
   createdAt: string;
@@ -45,7 +45,6 @@ export interface Client {
   priceTableId: string;
   createdAt: string;
   updatedAt: string;
-  // Add these missing properties
   street?: string;
   number?: string;
   complement?: string;
@@ -80,7 +79,6 @@ export interface PriceTable {
     ratePerKm: number;
     maxWeight?: number;
   };
-  // Add missing properties
   waitingHour?: {
     fiorino: number;
     medium: number;
@@ -142,6 +140,10 @@ export interface FinancialReport {
   createdAt: string;
   updatedAt: string;
   title?: string;
+  description?: string;
+  totalRevenue?: number;
+  totalExpenses?: number;
+  profit?: number;
 }
 
 export interface ActivityLog {
@@ -230,20 +232,24 @@ export interface Vehicle {
   updatedAt?: string;
 }
 
-// Add missing types for the LogbookContext
 export interface LogbookEntry {
   id: string;
-  date: string;
   vehicleId: string;
   driverId: string;
-  startOdometer: number;
-  endOdometer: number;
-  tripDistance: number;
+  assistantId?: string;
+  date: string;
+  departureDate?: string;
   departureTime: string;
-  arrivalTime: string;
-  destination: string;
-  purpose: string;
+  departureOdometer: number;
+  returnTime?: string;
+  endOdometer?: number;
+  startOdometer?: number;
+  tripDistance?: number;
+  arrivalTime?: string;
+  destination?: string;
+  purpose?: string;
   notes?: string;
+  status?: 'ongoing' | 'completed';
   createdAt: string;
   updatedAt: string;
 }
@@ -253,6 +259,7 @@ export interface Employee {
   name: string;
   position: string;
   departmentId: string;
+  role?: string;
   email: string;
   phone: string;
   hireDate: string;

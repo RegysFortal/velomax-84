@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -17,6 +18,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
   {
     id: 'table-a',
     name: 'Tabela A',
+    description: 'Tabela padrão para clientes convencionais',
     minimumRate: {
       standardDelivery: 36.00,
       saturdayCollection: 72.00,
@@ -58,6 +60,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
   {
     id: 'table-b',
     name: 'Tabela B',
+    description: 'Tabela para clientes preferenciais',
     minimumRate: {
       standardDelivery: 40.00,
       saturdayCollection: 80.00,
@@ -99,6 +102,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
   {
     id: 'table-c',
     name: 'Tabela C',
+    description: 'Tabela para clientes corporativos',
     minimumRate: {
       standardDelivery: 45.00,
       saturdayCollection: 90.00,
@@ -140,6 +144,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
   {
     id: 'table-d',
     name: 'Tabela D',
+    description: 'Tabela para clientes especiais',
     minimumRate: {
       standardDelivery: 50.00,
       saturdayCollection: 100.00,

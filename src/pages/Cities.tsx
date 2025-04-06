@@ -1,22 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -25,195 +9,284 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { City } from '@/types';
 import { useCities } from '@/contexts/CitiesContext';
-import { Edit, Trash2 } from 'lucide-react';
-import { toast } from "sonner";
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "O nome da cidade deve ter pelo menos 2 caracteres.",
+  }),
+  state: z.string().length(2, {
+    message: "O estado deve ter 2 caracteres.",
+  }),
+  distance: z.coerce.number().min(0, {
+    message: "A distância deve ser um número positivo.",
+  }),
+});
 
 export default function Cities() {
-  const { cities, addCity, updateCity, deleteCity } = useCities();
-  const [newCity, setNewCity] = useState({ name: '', distance: '' });
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [showEditForm, setShowEditForm] = useState(false);
-
-  const handleAddCity = () => {
-    const formattedCityData = {
-      name: newCity.name,
-      state: 'CE', // Adding default state, you may want to make this dynamic
-      distance: parseFloat(newCity.distance),
-    };
-
-    addCity(formattedCityData);
-    setNewCity({ name: '', distance: '' });
-    setShowAddForm(false);
-  };
-
-  const handleEditCity = (city) => {
-    setSelectedCity({ ...city });
-    setShowEditForm(true);
-  };
-
-  const handleUpdateCity = () => {
-    if (!selectedCity) return;
-    updateCity(selectedCity.id, {
-      name: selectedCity.name,
-      distance: parseFloat(selectedCity.distance),
+  const { cities, addCity, updateCity, deleteCity, getCity, loading } = useCities();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedCity, setSelectedCity] = useState<City | undefined>(undefined);
+  
+  const { reset, ...form } = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      state: "",
+      distance: 0,
+    },
+  });
+  
+  const handleAddCity = (data: { name: string; state: string; distance: number }) => {
+    addCity({
+      name: data.name,
+      state: data.state,
+      distance: data.distance
     });
-    setShowEditForm(false);
-    setSelectedCity(null);
+    setIsAddDialogOpen(false);
+    reset();
   };
-
-  const handleDeleteCity = (id) => {
-    if (window.confirm('Tem certeza que deseja excluir esta cidade?')) {
-      deleteCity(id);
-      toast.success("Cidade excluída com sucesso");
+  
+  const handleEditClick = (city: City) => {
+    setSelectedCity(city);
+    form.setValue("name", city.name);
+    form.setValue("state", city.state);
+    form.setValue("distance", city.distance);
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleUpdateCity = (data: { name: string; state: string; distance: number }) => {
+    if (selectedCity) {
+      updateCity(selectedCity.id, {
+        name: data.name,
+        state: data.state,
+        distance: data.distance
+      });
+      setIsEditDialogOpen(false);
+      reset();
+    }
+  };
+  
+  const handleDeleteClick = (city: City) => {
+    if (window.confirm(`Tem certeza que deseja excluir a cidade "${city.name}"?`)) {
+      deleteCity(city.id);
     }
   };
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Cidades</h1>
-          <Button onClick={() => setShowAddForm(true)}>Adicionar Cidade</Button>
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Cidades</h1>
+            <p className="text-muted-foreground">
+              Gerencie as cidades disponíveis para entregas.
+            </p>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar cidade
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Adicionar cidade</DialogTitle>
+                <DialogDescription>
+                  Adicione uma nova cidade à lista.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleAddCity)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome da cidade" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estado</FormLabel>
+                        <FormControl>
+                          <Input placeholder="UF" maxLength={2} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="distance"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Distância (km)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Distância da cidade"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">Adicionar</Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
-
         <Card>
           <CardHeader>
             <CardTitle>Lista de Cidades</CardTitle>
             <CardDescription>
-              Gerencie as cidades disponíveis para entregas.
+              Total de {cities.length} cidades cadastradas
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Distância (km)</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {cities.map((city) => (
-                  <TableRow key={city.id}>
-                    <TableCell>{city.name}</TableCell>
-                    <TableCell>{city.distance} km</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditCity(city)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteCity(city.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
+            <ScrollArea className="h-[calc(100vh-350px)]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Distância</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {cities.map((city) => (
+                    <TableRow key={city.id}>
+                      <TableCell className="font-medium">{city.name}</TableCell>
+                      <TableCell>{city.state}</TableCell>
+                      <TableCell>{city.distance} km</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(city)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(city)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </CardContent>
         </Card>
-
-        {/* Add City Dialog */}
-        <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+        
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Adicionar Nova Cidade</DialogTitle>
+              <DialogTitle>Editar cidade</DialogTitle>
               <DialogDescription>
-                Adicione uma nova cidade para calcular as taxas de entrega.
+                Edite os dados da cidade.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="name" className="text-right">
-                  Nome
-                </label>
-                <Input
-                  id="name"
-                  value={newCity.name}
-                  onChange={(e) =>
-                    setNewCity({ ...newCity, name: e.target.value })
-                  }
-                  className="col-span-3"
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleUpdateCity)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome da cidade" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="distance" className="text-right">
-                  Distância (km)
-                </label>
-                <Input
-                  id="distance"
-                  value={newCity.distance}
-                  onChange={(e) =>
-                    setNewCity({ ...newCity, distance: e.target.value })
-                  }
-                  className="col-span-3"
+                <FormField
+                  control={form.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estado</FormLabel>
+                      <FormControl>
+                        <Input placeholder="UF" maxLength={2} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button variant="secondary" onClick={() => setShowAddForm(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleAddCity}>Adicionar</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit City Dialog */}
-        <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Editar Cidade</DialogTitle>
-              <DialogDescription>
-                Edite os detalhes da cidade selecionada.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="editName" className="text-right">
-                  Nome
-                </label>
-                <Input
-                  id="editName"
-                  value={selectedCity?.name || ''}
-                  onChange={(e) =>
-                    setSelectedCity({ ...selectedCity, name: e.target.value })
-                  }
-                  className="col-span-3"
+                <FormField
+                  control={form.control}
+                  name="distance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Distância (km)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Distância da cidade"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="editDistance" className="text-right">
-                  Distância (km)
-                </label>
-                <Input
-                  id="editDistance"
-                  value={selectedCity?.distance || ''}
-                  onChange={(e) =>
-                    setSelectedCity({
-                      ...selectedCity,
-                      distance: e.target.value,
-                    })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button variant="secondary" onClick={() => setShowEditForm(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleUpdateCity}>Atualizar</Button>
-            </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">Atualizar</Button>
+                </div>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>

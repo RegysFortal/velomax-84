@@ -1,4 +1,3 @@
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,7 +45,7 @@ const formSchema = z.object({
     invalid_type_error: "Insira um número válido",
   }).positive(),
   returnTime: z.string().optional(),
-  returnOdometer: z.coerce.number().positive().optional(),
+  endOdometer: z.coerce.number().positive().optional(),
   notes: z.string().max(300).optional(),
 });
 
@@ -70,10 +69,8 @@ const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProp
   // Se temos um ID, busca a entrada para edição
   const existingEntry = entryId ? getLogbookEntryById(entryId) : undefined;
 
-  // Motoristas (apenas funcionários com role = 'driver')
+  // Filtramos os funcionários pelo papel (usando a propriedade role)
   const drivers = employees.filter(emp => emp.role === 'driver');
-  
-  // Assistentes (apenas funcionários com role = 'assistant')
   const assistants = employees.filter(emp => emp.role === 'assistant');
 
   const form = useForm<FormValues>({
@@ -86,7 +83,7 @@ const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProp
       departureTime: existingEntry.departureTime,
       departureOdometer: existingEntry.departureOdometer,
       returnTime: existingEntry.returnTime || "",
-      returnOdometer: existingEntry.returnOdometer || undefined,
+      endOdometer: existingEntry.endOdometer || undefined,
       notes: existingEntry.notes || "",
     } : {
       vehicleId: "",
@@ -96,7 +93,7 @@ const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProp
       departureTime: format(new Date(), "HH:mm"),
       departureOdometer: 0,
       returnTime: "",
-      returnOdometer: undefined,
+      endOdometer: undefined,
       notes: "",
     }
   });
@@ -106,21 +103,21 @@ const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProp
       if (existingEntry) {
         await updateLogbookEntry(existingEntry.id, {
           ...data,
-          returnOdometer: data.returnOdometer || undefined,
+          endOdometer: data.endOdometer || undefined,
         });
       } else {
         await addLogbookEntry({
           vehicleId: data.vehicleId,
           driverId: data.driverId,
-          assistantId: data.assistantId || undefined,
           date: data.date,
           departureDate: data.date, // Use the same date for departureDate
           departureTime: data.departureTime,
           departureOdometer: data.departureOdometer,
           returnTime: data.returnTime || undefined,
-          returnOdometer: data.returnOdometer || undefined,
+          endOdometer: data.endOdometer || undefined,
           notes: data.notes || "",
-          status: data.returnTime ? 'completed' : 'ongoing' // Set status based on return time
+          status: data.returnTime ? 'completed' : 'ongoing', // Set status based on return time
+          startOdometer: data.departureOdometer // Set start odometer to departure odometer
         });
       }
       onSuccess();
@@ -270,7 +267,7 @@ const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProp
 
           <FormField
             control={form.control}
-            name="returnOdometer"
+            name="endOdometer"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Odômetro retorno (km)</FormLabel>
