@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
@@ -496,8 +495,8 @@ export const LineChart = React.forwardRef<HTMLDivElement, ChartProps>(
               dataKey={dataset.label}
               stroke={Array.isArray(dataset.borderColor) ? dataset.borderColor[0] : (dataset.borderColor || "#3b82f6")}
               strokeWidth={2}
-              dot={{ r: 4, fill: "#fff", stroke: dataset.borderColor || "#3b82f6", strokeWidth: 2 }}
-              activeDot={{ r: 6, fill: dataset.borderColor || "#3b82f6", stroke: "#fff", strokeWidth: 2 }}
+              dot={{ r: 4, fill: "#fff", stroke: Array.isArray(dataset.borderColor) ? dataset.borderColor[0] : (dataset.borderColor || "#3b82f6"), strokeWidth: 2 }}
+              activeDot={{ r: 6, fill: Array.isArray(dataset.borderColor) ? dataset.borderColor[0] : (dataset.borderColor || "#3b82f6"), stroke: "#fff", strokeWidth: 2 }}
             />
           ))}
         </RechartsPrimitive.LineChart>

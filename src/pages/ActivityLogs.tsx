@@ -179,7 +179,7 @@ const ActivityLogs = () => {
         label = 'Sistema';
         break;
       default:
-        label = entityType.charAt(0).toUpperCase() + entityType.slice(1).replace('_', ' ');
+        label = entityType ? `${entityType.charAt(0).toUpperCase()}${entityType.slice(1).replace('_', ' ')}` : 'Desconhecido';
     }
 
     return label;

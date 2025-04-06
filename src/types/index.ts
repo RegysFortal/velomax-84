@@ -1,10 +1,27 @@
 export interface User {
   id: string;
-  username: string;
-  role: 'admin' | 'manager' | 'user';
   name: string;
-  permissions?: UserPermissions;
-  password?: string; // Add password property for internal use
+  username: string;
+  email?: string;
+  role: 'admin' | 'manager' | 'user';
+  permissions?: {
+    deliveries?: boolean;
+    shipments?: boolean;
+    clients?: boolean;
+    cities?: boolean;
+    reports?: boolean;
+    financial?: boolean;
+    priceTables?: boolean;
+    dashboard?: boolean;
+    logbook?: boolean;
+    employees?: boolean;
+    vehicles?: boolean;
+    maintenance?: boolean;
+    settings?: boolean;
+  };
+  avatar?: string;
+  createdAt: string;
+  lastLogin?: string;
 }
 
 export interface UserPermissions {
