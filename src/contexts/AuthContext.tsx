@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
@@ -23,19 +25,81 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadStoredUser = () => {
-      try {
-        const storedUser = localStorage.getItem('velomax_user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state changed:", event, session);
+        setSession(session);
+        
+        if (session?.user) {
+          setSupabaseUser(session.user);
+          
+          const storedUsers = localStorage.getItem('velomax_users');
+          const usersList = storedUsers ? JSON.parse(storedUsers) : [];
+          
+          let localUser = usersList.find((u: User) => u.email === session.user.email);
+          
+          if (!localUser) {
+            localUser = {
+              id: session.user.id,
+              name: session.user.user_metadata.name || session.user.email?.split('@')[0] || 'Usuário',
+              username: session.user.email?.split('@')[0] || session.user.id,
+              email: session.user.email || `${session.user.id}@velomax.com`,
+              role: 'admin',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastLogin: new Date().toISOString(),
+              permissions: {
+                deliveries: true,
+                shipments: true,
+                clients: true,
+                cities: true,
+                reports: true,
+                financial: true,
+                priceTables: true,
+                dashboard: true,
+                logbook: true,
+                employees: true,
+                vehicles: true,
+                maintenance: true,
+                settings: true,
+              }
+            };
+            
+            usersList.push(localUser);
+            localStorage.setItem('velomax_users', JSON.stringify(usersList));
+            setUsers(usersList);
+          } else {
+            const updatedUsers = usersList.map((u: User) => 
+              u.id === localUser.id 
+                ? { ...u, lastLogin: new Date().toISOString() } 
+                : u
+            );
+            localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+            setUsers(updatedUsers);
+          }
+          
+          setUser(localUser);
+          localStorage.setItem('velomax_user', JSON.stringify(localUser));
+        } else {
+          setSupabaseUser(null);
+          setUser(null);
+          localStorage.removeItem('velomax_user');
         }
+      }
+    );
 
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
         const storedUsers = localStorage.getItem('velomax_users');
         if (storedUsers) {
           setUsers(JSON.parse(storedUsers));
@@ -69,13 +133,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem('velomax_users', JSON.stringify([defaultAdmin]));
         }
       } catch (error) {
-        console.error('Failed to load user from localStorage', error);
+        console.error('Failed to load auth state', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadStoredUser();
+    initializeAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -86,9 +154,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string) => {
     try {
-      const foundUser = users.find(u => u.username === username);
-      
-      if (!foundUser) {
+      if (username === 'admin') {
+        const foundUser = users.find(u => u.username === username);
+        
+        if (!foundUser) {
+          toast({
+            title: "Erro de autenticação",
+            description: "Nome de usuário ou senha incorretos",
+            variant: "destructive",
+          });
+          return false;
+        }
+
+        const updatedUser = { 
+          ...foundUser, 
+          lastLogin: new Date().toISOString() 
+        };
+        
+        setUser(updatedUser);
+        localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
+
+        const updatedUsers = users.map(u => u.id === foundUser.id ? updatedUser : u);
+        localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+        setUsers(updatedUsers);
+
+        try {
+          const logActivity = (activity: any) => {
+            const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+            const newLog = {
+              id: uuidv4(),
+              timestamp: new Date().toISOString(),
+              userId: foundUser.id,
+              userName: foundUser.name,
+              ...activity
+            };
+            logs.push(newLog);
+            localStorage.setItem('activity_logs', JSON.stringify(logs));
+          };
+
+          logActivity({
+            action: 'login',
+            entityType: 'user',
+            entityId: foundUser.id,
+            entityName: foundUser.name,
+            details: 'Usuário fez login no sistema (modo demo)'
+          });
+        } catch (error) {
+          console.error('Failed to log activity:', error);
+        }
+
+        toast({
+          title: "Login bem-sucedido (modo demo)",
+          description: `Bem-vindo, ${foundUser.name}!`,
+        });
+        
+        navigate('/dashboard');
+        return true;
+      } else {
         toast({
           title: "Erro de autenticação",
           description: "Nome de usuário ou senha incorretos",
@@ -96,51 +218,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return false;
       }
-
-      const updatedUser = { 
-        ...foundUser, 
-        lastLogin: new Date().toISOString() 
-      };
-      
-      setUser(updatedUser);
-      localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
-
-      const updatedUsers = users.map(u => u.id === foundUser.id ? updatedUser : u);
-      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
-
-      try {
-        const logActivity = (activity: any) => {
-          const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
-          const newLog = {
-            id: uuidv4(),
-            timestamp: new Date().toISOString(),
-            userId: foundUser.id,
-            userName: foundUser.name,
-            ...activity
-          };
-          logs.push(newLog);
-          localStorage.setItem('activity_logs', JSON.stringify(logs));
-        };
-
-        logActivity({
-          action: 'login',
-          entityType: 'user',
-          entityId: foundUser.id,
-          entityName: foundUser.name,
-          details: 'Usuário fez login no sistema'
-        });
-      } catch (error) {
-        console.error('Failed to log activity:', error);
-      }
-
-      toast({
-        title: "Login bem-sucedido",
-        description: `Bem-vindo, ${foundUser.name}!`,
-      });
-      
-      navigate('/dashboard');
-      return true;
     } catch (error) {
       console.error("Erro ao fazer login:", error);
       toast({
@@ -152,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     if (user) {
       try {
         const logActivity = (activity: any) => {
@@ -178,8 +255,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    await supabase.auth.signOut();
+    
     setUser(null);
+    setSupabaseUser(null);
     localStorage.removeItem('velomax_user');
+    
     navigate('/login');
   };
 

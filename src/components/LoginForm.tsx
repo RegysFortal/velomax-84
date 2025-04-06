@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 export const LoginForm = () => {
   const [username, setUsername] = useState('');
@@ -47,10 +48,44 @@ export const LoginForm = () => {
     setIsSubmitting(true);
     
     try {
-      await login(username, password);
+      // Use the username as the email, appending a domain if necessary
+      const email = username.includes('@') ? username : `${username}@velomax.com`;
+      
+      // Login via Supabase using email and password
+      console.log(`Attempting login with email: ${email}`);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+      
+      if (error) {
+        console.error("Supabase login error:", error);
+        
+        // For demo version, if the user enters admin, use the mock login
+        if (username === 'admin') {
+          console.log("Falling back to mock admin login for demo version");
+          await login(username, password);
+          return;
+        }
+        
+        throw error;
+      }
+      
+      if (data.user) {
+        console.log("Login successful with Supabase");
+        toast({
+          title: "Login bem-sucedido",
+          description: `Bem-vindo, ${data.user.email}!`,
+        });
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Login failed:', error);
-      // O toast já é mostrado na função login
+      toast({
+        title: "Erro de autenticação",
+        description: "Nome de usuário ou senha incorretos",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -59,10 +94,10 @@ export const LoginForm = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!forgotUsername || !newPassword) {
+    if (!forgotUsername) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha o nome de usuário e a nova senha.",
+        title: "Campo obrigatório",
+        description: "Preencha o nome de usuário.",
         variant: "destructive"
       });
       return;
@@ -71,22 +106,28 @@ export const LoginForm = () => {
     setIsResetting(true);
     
     try {
-      // Por enquanto, mostrar mensagem sobre contatar o administrador
+      const email = forgotUsername.includes('@') ? forgotUsername : `${forgotUsername}@velomax.com`;
+      
+      // We use Supabase's password reset functionality
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      
+      if (error) throw error;
+      
       toast({
-        title: "Recurso temporariamente indisponível",
-        description: "Por favor, entre em contato com o administrador do sistema para redefinir sua senha.",
+        title: "Email enviado",
+        description: "Instruções para redefinir sua senha foram enviadas para o seu email.",
         variant: "default"
       });
       
-      // Fechar diálogo e limpar campos
       setIsDialogOpen(false);
       setForgotUsername('');
-      setNewPassword('');
     } catch (error) {
       console.error('Password reset failed:', error);
       toast({
         title: "Erro ao redefinir senha",
-        description: "Ocorreu um erro ao tentar redefinir sua senha.",
+        description: "Ocorreu um erro ao tentar redefinir sua senha. Contate o administrador.",
         variant: "destructive"
       });
     } finally {
@@ -106,7 +147,7 @@ export const LoginForm = () => {
         <CardContent className="space-y-4">
           <Alert className="bg-blue-50 border-blue-200">
             <AlertDescription className="text-sm text-blue-700">
-              Para acessar o sistema, use o usuário <strong>admin</strong> com qualquer senha.
+              Para acessar o sistema, você precisa de uma conta válida. O usuário <strong>admin</strong> está disponível para demonstração.
             </AlertDescription>
           </Alert>
 
@@ -159,12 +200,12 @@ export const LoginForm = () => {
               <DialogHeader>
                 <DialogTitle>Recuperação de Senha</DialogTitle>
                 <DialogDescription>
-                  Preencha seu nome de usuário e uma nova senha
+                  Informe seu nome de usuário ou email para receber instruções de redefinição.
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleResetPassword} className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="forgot-username">Nome de Usuário</Label>
+                  <Label htmlFor="forgot-username">Nome de Usuário ou Email</Label>
                   <Input
                     id="forgot-username"
                     value={forgotUsername}
@@ -172,19 +213,9 @@ export const LoginForm = () => {
                     disabled={isResetting}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">Nova Senha</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    disabled={isResetting}
-                  />
-                </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isResetting}>
-                    {isResetting ? "Redefinindo..." : "Redefinir Senha"}
+                    {isResetting ? "Enviando..." : "Enviar Instruções"}
                   </Button>
                 </DialogFooter>
               </form>
