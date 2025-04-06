@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { MainNav } from '@/components/MainNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ViewSizeToggle } from '@/components/ViewSizeToggle';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -39,6 +40,7 @@ export function AppHeader() {
         </Link>
         <MainNav />
         <div className="ml-auto flex items-center space-x-4">
+          <ViewSizeToggle />
           <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

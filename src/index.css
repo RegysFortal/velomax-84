@@ -94,8 +94,13 @@
     @apply bg-background text-foreground;
   }
 
-  /* Add this to fix the Radix UI dropdown portals */
+  /* Fix para os portais de dropdown do Radix UI */
   div[data-radix-popper-content-wrapper] {
+    z-index: 9999 !important;
+  }
+  
+  /* Garante que os menus suspensos apareçam corretamente */
+  .radix-dropdown, [data-state="open"] {
     z-index: 9999 !important;
   }
 }

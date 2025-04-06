@@ -17,7 +17,7 @@ export function ViewSizeToggle() {
             size="icon" 
             onClick={toggleView}
             aria-label={isMobile ? 'Alternar para visualização de desktop' : 'Alternar para visualização móvel'}
-            className={isForced ? "bg-primary text-primary-foreground" : ""}
+            className={isForced ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
           >
             {isMobile ? <Monitor className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />}
           </Button>
