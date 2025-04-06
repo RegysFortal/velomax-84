@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +22,7 @@ import { format } from 'date-fns';
 import { toast } from "sonner";
 import { useClients } from "@/contexts/ClientsContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -171,6 +171,13 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     );
   };
   
+  // Format client options for the searchable select
+  const clientOptions = clients.map(client => ({
+    value: client.id,
+    label: client.tradingName,
+    description: client.name
+  }));
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl max-h-[95vh]">
@@ -183,22 +190,13 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
                 <label htmlFor="companyName" className="text-sm font-medium">Empresa</label>
-                <Select 
-                  value={companyId} 
+                <SearchableSelect 
+                  options={clientOptions}
+                  value={companyId}
                   onValueChange={handleCompanySelect}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma empresa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map(client => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.tradingName} ({client.name})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Selecione uma empresa"
+                  emptyMessage="Nenhuma empresa encontrada"
+                />
               </div>
               
               <div className="space-y-2">
@@ -316,7 +314,6 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                 />
               </div>
               
-              {/* Status field moved to the bottom as the last field */}
               <div className="space-y-2 md:col-span-2 pt-4 border-t border-gray-200">
                 <label htmlFor="status" className="text-sm font-medium">Status</label>
                 <Select value={status} onValueChange={(val: ShipmentStatus) => setStatus(val)}>
@@ -331,7 +328,6 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                 </Select>
               </div>
               
-              {/* Show fiscal action fields conditionally when status is "retained" */}
               {status === "retained" && (
                 <div className="space-y-4 border p-4 rounded-md bg-red-50 md:col-span-2">
                   <h3 className="font-medium">Detalhes da Retenção</h3>

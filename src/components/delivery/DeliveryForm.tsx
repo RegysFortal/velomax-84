@@ -37,6 +37,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Delivery } from '@/types';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 type DeliveryType = 'standard' | 'emergency' | 'saturday' | 'exclusive' | 'difficultAccess' | 
                    'metropolitanRegion' | 'sundayHoliday' | 'normalBiological' | 
@@ -222,6 +223,13 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
     }
   };
 
+  // Format client options for the searchable select
+  const clientOptions = clients.map(client => ({
+    value: client.id,
+    label: client.tradingName,
+    description: client.name
+  }));
+
   return (
     <>
       <ScrollArea className="h-[calc(100vh-200px)]">
@@ -234,23 +242,15 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
                     <FormLabel>Cliente</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o cliente" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.tradingName} ({client.name})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableSelect
+                        options={clientOptions}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Selecione o cliente"
+                        emptyMessage="Nenhum cliente encontrado"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
