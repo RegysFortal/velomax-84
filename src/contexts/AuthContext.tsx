@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { toast } from 'sonner';
+import { useActivityLog } from './ActivityLogContext';
 
 export interface User {
   id: string;
@@ -59,30 +60,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast: uiToast } = useToast();
   const navigate = useNavigate();
   
-  // Check if ActivityLogContext is available
-  let addActivityLog: any = null;
+  // Access ActivityLogContext
+  let activityLog = null;
   try {
-    // Dynamically try to import from ActivityLogContext
-    const ActivityLogContext = require('./ActivityLogContext');
-    const { useActivityLog } = ActivityLogContext;
-    
-    try {
-      const activityLogContext = useActivityLog();
-      if (activityLogContext && activityLogContext.addLog) {
-        addActivityLog = activityLogContext.addLog;
-      }
-    } catch (error) {
-      console.log('ActivityLogContext not available yet, will log activities later');
-    }
+    activityLog = useActivityLog();
   } catch (error) {
-    console.log('Could not import ActivityLogContext');
+    console.log('ActivityLogContext not available yet');
   }
   
   // Function to safely log activities
   const logActivity = (params: any) => {
-    if (addActivityLog) {
+    if (activityLog) {
       try {
-        addActivityLog(params);
+        activityLog.addLog({ 
+          ...params,
+          userId: user?.id,
+          userName: user?.name
+        });
       } catch (error) {
         console.error('Failed to log activity:', error);
       }

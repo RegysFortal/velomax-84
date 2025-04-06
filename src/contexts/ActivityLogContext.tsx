@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ActivityLog, ActivityAction, EntityType } from "@/types/activity";
-import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
 
 interface ActivityLogContextType {
@@ -13,6 +12,8 @@ interface ActivityLogContextType {
     entityId?: string;
     entityName?: string;
     details?: string;
+    userId?: string;
+    userName?: string;
   }) => void;
   getLogsByUser: (userId: string) => ActivityLog[];
   getLogsByAction: (action: ActivityAction) => ActivityLog[];
@@ -26,7 +27,6 @@ const ActivityLogContext = createContext<ActivityLogContextType | undefined>(und
 export function ActivityLogProvider({ children }: { children: ReactNode }) {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
   
   useEffect(() => {
     const loadLogs = () => {
@@ -56,23 +56,45 @@ export function ActivityLogProvider({ children }: { children: ReactNode }) {
     entityType,
     entityId,
     entityName,
-    details
+    details,
+    userId,
+    userName
   }: {
     action: ActivityAction;
     entityType: EntityType;
     entityId?: string;
     entityName?: string;
     details?: string;
+    userId?: string;
+    userName?: string;
   }) => {
-    if (!user) {
-      console.warn("Cannot log activity without a logged in user");
+    // If userId and userName are not provided, try to get them from localStorage
+    let logUserId = userId;
+    let logUserName = userName;
+    
+    if (!logUserId || !logUserName) {
+      try {
+        const storedUser = localStorage.getItem('velomax_user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          logUserId = logUserId || user.id;
+          logUserName = logUserName || user.name;
+        }
+      } catch (e) {
+        console.error('Failed to get user from localStorage:', e);
+      }
+    }
+    
+    // If we still don't have a user, log a warning
+    if (!logUserId || !logUserName) {
+      console.warn("Cannot log activity without a user");
       return;
     }
     
     const newLog: ActivityLog = {
       id: uuidv4(),
-      userId: user.id,
-      userName: user.name,
+      userId: logUserId,
+      userName: logUserName,
       action,
       entityType,
       entityId,

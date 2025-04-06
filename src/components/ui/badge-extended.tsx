@@ -3,7 +3,6 @@ import React from 'react';
 import { Badge } from './badge';
 import { cn } from '@/lib/utils';
 import { BadgeVariant } from '@/types/activity';
-import { BadgeProps } from '@radix-ui/react-accessible-icon';
 
 interface BadgeExtendedProps {
   variant?: BadgeVariant;
