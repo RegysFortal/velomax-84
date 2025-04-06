@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
@@ -138,7 +137,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/login');
   };
 
-  // Update user profile
   const updateUserProfile = async (userData: Partial<User>) => {
     try {
       if (!user) {
@@ -203,8 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Update user password
-  const updateUserPassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  const updateUserPassword = async (currentPassword: string, newPassword: string) => {
     try {
       if (!user) {
         throw new Error("Usuário não autenticado");
@@ -258,7 +255,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Create a new user
   const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => {
     try {
       // Check if username already exists
@@ -319,7 +315,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Delete user
   const deleteUser = (userId: string) => {
     // Find user to delete
     const userToDelete = users.find(u => u.id === userId);
@@ -373,7 +368,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  // Reset user password
   const resetUserPassword = (userId: string, newPassword: string) => {
     // Find the user to update
     const userIndex = users.findIndex(u => u.id === userId);

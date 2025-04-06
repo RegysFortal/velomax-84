@@ -252,20 +252,21 @@ const SettingsPage = () => {
           permissions: data.permissions,
         };
         
-        await updateUserProfile(editingUserId, userData);
+        await updateUserProfile(userData);
         
         toast({
           title: "Usuário atualizado",
           description: "As informações do usuário foram atualizadas com sucesso."
         });
       } else {
-        await createUser({
+        const newUser = {
           name: data.name,
           username: data.username,
-          password: data.password,
           role: data.role,
           permissions: data.permissions,
-        });
+        };
+        
+        await createUser(newUser);
         
         toast({
           title: "Usuário adicionado",

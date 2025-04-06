@@ -179,7 +179,12 @@ const ActivityLogs = () => {
         label = 'Sistema';
         break;
       default:
-        label = entityType ? `${entityType.charAt(0).toUpperCase()}${entityType.slice(1).replace('_', ' ')}` : 'Desconhecido';
+        // Fix for the Type 'never' error - ensure entityType is treated as a string
+        if (entityType && typeof entityType === 'string') {
+          label = `${entityType.charAt(0).toUpperCase()}${entityType.slice(1).replace('_', ' ')}`;
+        } else {
+          label = 'Desconhecido';
+        }
     }
 
     return label;

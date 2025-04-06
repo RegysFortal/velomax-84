@@ -1,254 +1,29 @@
+// Add the username and permissions properties to the User interface
 export interface User {
   id: string;
   name: string;
   username: string;
-  email?: string;
   role: 'admin' | 'manager' | 'user';
-  permissions?: {
-    deliveries?: boolean;
-    shipments?: boolean;
-    clients?: boolean;
-    cities?: boolean;
-    reports?: boolean;
-    financial?: boolean;
-    priceTables?: boolean;
-    dashboard?: boolean;
-    logbook?: boolean;
-    employees?: boolean;
-    vehicles?: boolean;
-    maintenance?: boolean;
-    settings?: boolean;
-  };
-  avatar?: string;
   createdAt: string;
   lastLogin?: string;
-}
-
-export interface UserPermissions {
-  // Operational permissions
-  deliveries: boolean;
-  shipments: boolean;
-  
-  // Financial permissions
-  financial: boolean;
-  reports: boolean;
-  priceTables: boolean;
-  cities: boolean;
-  
-  // Management permissions
-  dashboard: boolean;
-  logbook: boolean;
-  clients: boolean;
-  employees: boolean;
-  vehicles: boolean;
-  maintenance: boolean;
-  settings: boolean;
-}
-
-export interface Client {
-  id: string;
-  name: string; // Manteremos o nome do campo para compatibilidade, mas será a razão social
-  tradingName: string; // Nome fantasia
-  street: string;
-  number: string;
-  complement?: string;
-  neighborhood: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  contact: string;
-  phone: string;
-  email: string;
-  priceTableId: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PriceTable {
-  id: string;
-  name: string;
-  minimumRate: {
-    standardDelivery: number;
-    saturdayCollection: number;
-    emergencyCollection: number;
-    exclusiveVehicle: number;
-    scheduledDifficultAccess: number;
-    normalBiological: number;
-    infectiousBiological: number;
-    sundayHoliday: number;
-    metropolitanRegion: number;
-    nightExclusiveVehicle: number;
-    trackedVehicle: number;
-    reshipment: number;
-    doorToDoorInterior: number;
+  permissions?: {
+    // Operational permissions
+    deliveries: boolean;
+    shipments: boolean;
+    
+    // Financial permissions
+    clients: boolean;
+    cities: boolean;
+    reports: boolean;
+    financial: boolean;
+    priceTables: boolean;
+    
+    // Management permissions
+    dashboard: boolean;
+    logbook: boolean;
+    employees: boolean;
+    vehicles: boolean;
+    maintenance: boolean;
+    settings: boolean;
   };
-  excessWeight: {
-    minPerKg: number;
-    maxPerKg: number;
-    biologicalPerKg: number;
-    reshipmentPerKg: number;
-  };
-  doorToDoor: {
-    ratePerKm: number;
-    maxWeight: number;
-  };
-  waitingHour: {
-    fiorino: number;
-    medium: number;
-    large: number;
-  };
-  insurance: {
-    standard: number;
-    perishable: number;
-  };
-  allowCustomPricing: boolean;
-  defaultDiscount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Delivery {
-  id: string;
-  minuteNumber: string;
-  clientId: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  receiver: string;
-  weight: number;
-  packages: number;
-  deliveryType: 'standard' | 'emergency' | 'exclusive' | 'saturday' | 'sundayHoliday' | 'difficultAccess' | 'metropolitanRegion' | 'doorToDoorInterior' | 'reshipment' | 'normalBiological' | 'infectiousBiological' | 'tracked';
-  cargoType: 'standard' | 'perishable';
-  cargoValue?: number;
-  totalFreight: number;
-  notes?: string;
-  occurrence?: string; // New field for delivery occurrence
-  createdAt: string;
-  updatedAt: string;
-  distance?: number;
-  cityId?: string;
-}
-
-// Door to door delivery types array
-export const doorToDoorDeliveryTypes = [
-  'doorToDoorInterior'
-];
-
-export interface City {
-  id: string;
-  name: string;
-  distance: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface FinancialReport {
-  id: string;
-  clientId: string;
-  startDate: string;
-  endDate: string;
-  totalFreight: number;
-  totalDeliveries: number;
-  status: 'open' | 'closed';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type SortDirection = 'asc' | 'desc';
-
-// Novas interfaces para o diário de bordo
-export interface Vehicle {
-  id: string;
-  plate: string;
-  model: string;
-  year: string;
-  make: string;
-  currentOdometer: number;
-  lastOilChange: number;
-  nextOilChangeKm: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Employee {
-  id: string;
-  name: string;
-  role: 'driver' | 'assistant';
-  dateOfBirth?: string;
-  rg?: string;
-  cpf?: string;
-  driverLicense?: string;
-  licenseCategory?: string;
-  licenseValidity?: string;
-  address?: string;
-  phone: string;
-  motherName?: string;
-  fatherName?: string;
-  employeeSince: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TireMaintenance {
-  id: string;
-  vehicleId: string;
-  tirePosition: 'frontLeft' | 'frontRight' | 'rearLeft' | 'rearRight' | 'spare';
-  changeDate: string;
-  brand: string;
-  model: string;
-  odometerKm: number;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Maintenance {
-  id: string;
-  vehicleId: string;
-  date: string;
-  type: string;
-  description: string;
-  cost: number;
-  odometerKm: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface FuelRecord {
-  id: string;
-  vehicleId: string;
-  date: string;
-  odometerKm: number;
-  liters: number;
-  pricePerLiter: number;
-  totalCost: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface LogbookEntry {
-  id: string;
-  date: string;
-  vehicleId: string;
-  driverId: string;
-  assistantId?: string;
-  departureTime: string;
-  returnTime?: string;
-  departureOdometer: number;
-  returnOdometer?: number;
-  fuelRecordId?: string;
-  maintenanceId?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PriceOverride {
-  id: string;
-  clientId: string;
-  deliveryId?: string;
-  customPrice?: number;
-  discount?: number;
-  reason?: string;
-  createdAt: string;
-  updatedAt: string;
 }
