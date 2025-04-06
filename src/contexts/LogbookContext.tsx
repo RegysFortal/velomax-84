@@ -70,6 +70,10 @@ const mockVehicles: Vehicle[] = [
     model: "Fiorino",
     year: "2020",
     make: "Fiat",
+    brand: "Fiat",
+    status: "active",
+    type: "car",
+    fuelType: "flex",
     currentOdometer: 45000,
     lastOilChange: 42000,
     nextOilChangeKm: 47000,
@@ -82,6 +86,10 @@ const mockVehicles: Vehicle[] = [
     model: "Saveiro",
     year: "2019",
     make: "Volkswagen",
+    brand: "Volkswagen",
+    status: "active",
+    type: "car",
+    fuelType: "flex",
     currentOdometer: 62000,
     lastOilChange: 60000,
     nextOilChangeKm: 65000,
@@ -95,9 +103,11 @@ const mockEmployees: Employee[] = [
     id: "1",
     name: "João Silva",
     role: "driver",
+    position: "Motorista",
     employeeSince: "2021-01-15",
     dateOfBirth: "1985-05-12",
     phone: "(11) 98765-4321",
+    status: "active",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -105,9 +115,11 @@ const mockEmployees: Employee[] = [
     id: "2",
     name: "Maria Souza",
     role: "assistant",
+    position: "Assistente",
     employeeSince: "2022-03-20",
     dateOfBirth: "1990-07-25",
     phone: "(11) 91234-5678",
+    status: "active",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
@@ -340,8 +352,8 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     
     // Atualizar o odômetro do veículo se necessário
     const vehicle = vehicles.find(v => v.id === record.vehicleId);
-    if (vehicle && record.odometerKm > vehicle.currentOdometer) {
-      updateVehicle(record.vehicleId, { currentOdometer: record.odometerKm });
+    if (vehicle && record.odometer > vehicle.currentOdometer) {
+      updateVehicle(record.vehicleId, { currentOdometer: record.odometer });
     }
     
     return newRecord;
@@ -353,10 +365,10 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
         const updatedRecord = { ...r, ...record, updatedAt: new Date().toISOString() };
         
         // Atualizar o odômetro do veículo se necessário
-        if (updatedRecord.vehicleId && updatedRecord.odometerKm) {
+        if (updatedRecord.vehicleId && updatedRecord.odometer) {
           const vehicle = vehicles.find(v => v.id === updatedRecord.vehicleId);
-          if (vehicle && updatedRecord.odometerKm > vehicle.currentOdometer) {
-            updateVehicle(updatedRecord.vehicleId, { currentOdometer: updatedRecord.odometerKm });
+          if (vehicle && updatedRecord.odometer > vehicle.currentOdometer) {
+            updateVehicle(updatedRecord.vehicleId, { currentOdometer: updatedRecord.odometer });
           }
         }
         
@@ -397,15 +409,15 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     
     // Atualizar o odômetro do veículo se necessário
     const vehicle = vehicles.find(v => v.id === maintenance.vehicleId);
-    if (vehicle && maintenance.odometerKm > vehicle.currentOdometer) {
-      updateVehicle(maintenance.vehicleId, { currentOdometer: maintenance.odometerKm });
+    if (vehicle && maintenance.odometer > vehicle.currentOdometer) {
+      updateVehicle(maintenance.vehicleId, { currentOdometer: maintenance.odometer });
     }
     
     // Se for troca de óleo, atualizar o lastOilChange do veículo
-    if (maintenance.type.toLowerCase().includes("óleo") || maintenance.type.toLowerCase().includes("oleo")) {
+    if (maintenance.type.toLowerCase().includes("óleo") || maintenance.description.toLowerCase().includes("oleo")) {
       updateVehicle(maintenance.vehicleId, { 
-        lastOilChange: maintenance.odometerKm,
-        nextOilChangeKm: maintenance.odometerKm + 5000 // Próxima troca em +5000km
+        lastOilChange: maintenance.odometer,
+        nextOilChangeKm: maintenance.odometer + 5000 // Próxima troca em +5000km
       });
     }
     
@@ -418,17 +430,17 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
         const updatedMaintenance = { ...m, ...maintenance, updatedAt: new Date().toISOString() };
         
         // Atualizar o odômetro do veículo se necessário
-        if (updatedMaintenance.vehicleId && updatedMaintenance.odometerKm) {
+        if (updatedMaintenance.vehicleId && updatedMaintenance.odometer) {
           const vehicle = vehicles.find(v => v.id === updatedMaintenance.vehicleId);
-          if (vehicle && updatedMaintenance.odometerKm > vehicle.currentOdometer) {
-            updateVehicle(updatedMaintenance.vehicleId, { currentOdometer: updatedMaintenance.odometerKm });
+          if (vehicle && updatedMaintenance.odometer > vehicle.currentOdometer) {
+            updateVehicle(updatedMaintenance.vehicleId, { currentOdometer: updatedMaintenance.odometer });
           }
           
           // Se for troca de óleo, atualizar o lastOilChange do veículo
-          if (updatedMaintenance.type.toLowerCase().includes("óleo") || updatedMaintenance.type.toLowerCase().includes("oleo")) {
+          if (updatedMaintenance.type.toLowerCase().includes("óleo") || updatedMaintenance.description.toLowerCase().includes("oleo")) {
             updateVehicle(updatedMaintenance.vehicleId, { 
-              lastOilChange: updatedMaintenance.odometerKm,
-              nextOilChangeKm: updatedMaintenance.odometerKm + 5000 // Próxima troca em +5000km
+              lastOilChange: updatedMaintenance.odometer,
+              nextOilChangeKm: updatedMaintenance.odometer + 5000 // Próxima troca em +5000km
             });
           }
         }
@@ -470,8 +482,8 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
     
     // Atualizar o odômetro do veículo se necessário
     const vehicle = vehicles.find(v => v.id === tire.vehicleId);
-    if (vehicle && tire.odometerKm > vehicle.currentOdometer) {
-      updateVehicle(tire.vehicleId, { currentOdometer: tire.odometerKm });
+    if (vehicle && tire.odometer > vehicle.currentOdometer) {
+      updateVehicle(tire.vehicleId, { currentOdometer: tire.odometer });
     }
     
     return newTire;
@@ -483,10 +495,10 @@ export function LogbookProvider({ children }: LogbookProviderProps) {
         const updatedTire = { ...t, ...tire, updatedAt: new Date().toISOString() };
         
         // Atualizar o odômetro do veículo se necessário
-        if (updatedTire.vehicleId && updatedTire.odometerKm) {
+        if (updatedTire.vehicleId && updatedTire.odometer) {
           const vehicle = vehicles.find(v => v.id === updatedTire.vehicleId);
-          if (vehicle && updatedTire.odometerKm > vehicle.currentOdometer) {
-            updateVehicle(updatedTire.vehicleId, { currentOdometer: updatedTire.odometerKm });
+          if (vehicle && updatedTire.odometer > vehicle.currentOdometer) {
+            updateVehicle(updatedTire.vehicleId, { currentOdometer: updatedTire.odometer });
           }
         }
         

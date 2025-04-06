@@ -114,11 +114,13 @@ const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProp
           driverId: data.driverId,
           assistantId: data.assistantId || undefined,
           date: data.date,
+          departureDate: data.date, // Use the same date for departureDate
           departureTime: data.departureTime,
           departureOdometer: data.departureOdometer,
           returnTime: data.returnTime || undefined,
           returnOdometer: data.returnOdometer || undefined,
-          notes: data.notes || ""
+          notes: data.notes || "",
+          status: data.returnTime ? 'completed' : 'ongoing' // Set status based on return time
         });
       }
       onSuccess();

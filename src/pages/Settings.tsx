@@ -488,6 +488,51 @@ const SettingsPage = () => {
   const watchRole = watchUser('role');
   const isAdmin = watchRole === 'admin';
 
+  const createUser = async (formData: FormData) => {
+    const name = formData.get("name") as string;
+    const username = formData.get("username") as string;
+    const email = formData.get("email") as string;
+    const role = formData.get("role") as "admin" | "manager" | "user";
+    const permissions = {
+      deliveries: formData.get("perm-deliveries") === "on",
+      shipments: formData.get("perm-shipments") === "on",
+      clients: formData.get("perm-clients") === "on",
+      cities: formData.get("perm-cities") === "on",
+      reports: formData.get("perm-reports") === "on",
+      financial: formData.get("perm-financial") === "on",
+      priceTables: formData.get("perm-price-tables") === "on",
+      dashboard: formData.get("perm-dashboard") === "on",
+      logbook: formData.get("perm-logbook") === "on",
+      employees: formData.get("perm-employees") === "on",
+      vehicles: formData.get("perm-vehicles") === "on",
+      maintenance: formData.get("perm-maintenance") === "on",
+      settings: formData.get("perm-settings") === "on",
+    };
+    
+    try {
+      await addUser({
+        name,
+        username,
+        email,
+        role,
+        permissions
+      });
+      
+      toast({
+        title: "Usuário criado",
+        description: `O usuário ${username} foi criado com sucesso.`,
+      });
+      
+      setIsAddUserDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Erro ao criar usuário",
+        description: "Ocorreu um erro ao criar o usuário. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">

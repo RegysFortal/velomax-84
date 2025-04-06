@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -28,7 +27,6 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       infectiousBiological: 99.00,
       sundayHoliday: 308.00,
       metropolitanRegion: 165.00,
-      nightExclusiveVehicle: 0.00,
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 200.00,
@@ -70,7 +68,6 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       infectiousBiological: 110.00,
       sundayHoliday: 330.00,
       metropolitanRegion: 180.00,
-      nightExclusiveVehicle: 0.00,
       trackedVehicle: 460.00,
       reshipment: 180.00,
       doorToDoorInterior: 220.00,
@@ -112,7 +109,6 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       infectiousBiological: 200.00,
       sundayHoliday: 360.00,
       metropolitanRegion: 165.00,
-      nightExclusiveVehicle: 0.00,
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 240.00,
@@ -154,7 +150,6 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       infectiousBiological: 215.00,
       sundayHoliday: 390.00,
       metropolitanRegion: 165.00,
-      nightExclusiveVehicle: 0.00,
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 260.00,
@@ -297,7 +292,7 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
     cargoType: 'standard' | 'perishable'
   ) => {
     const table = getPriceTable(priceTableId);
-    if (!table) return 0;
+    if (!table || !table.insurance) return 0;
     
     // For reshipment, always apply 1% insurance regardless of cargo type
     if (isReshipment) {

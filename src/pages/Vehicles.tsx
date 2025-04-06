@@ -1,18 +1,16 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useLogbook } from '@/contexts/LogbookContext';
-import { Vehicle } from '@/types';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -23,112 +21,141 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
-import { Edit, Plus, Search, Truck } from 'lucide-react';
-
-const formSchema = z.object({
-  plate: z.string().min(7, "A placa deve ter no mínimo 7 caracteres"),
-  model: z.string().min(2, "O modelo deve ter no mínimo 2 caracteres"),
-  year: z.string().min(4, "O ano deve ter 4 dígitos"),
-  make: z.string().min(2, "A marca deve ter no mínimo 2 caracteres"),
-  currentOdometer: z.coerce.number().nonnegative(),
-  lastOilChange: z.coerce.number().nonnegative(),
-  nextOilChangeKm: z.coerce.number().nonnegative(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useLogbook } from '@/contexts/LogbookContext';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Vehicle } from '@/types';
 
 const Vehicles = () => {
-  const { vehicles, addVehicle, updateVehicle } = useLogbook();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { vehicles, addVehicle, updateVehicle, deleteVehicle } = useLogbook();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [formData, setFormData] = useState({
+    plate: '',
+    model: '',
+    year: '',
+    make: '',
+    currentOdometer: 0,
+    lastOilChange: 0,
+    nextOilChangeKm: 5000,
+  });
   const { toast } = useToast();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  useEffect(() => {
+    if (editingVehicle) {
+      setFormData({
+        plate: editingVehicle.plate,
+        model: editingVehicle.model,
+        year: editingVehicle.year,
+        make: editingVehicle.make,
+        currentOdometer: editingVehicle.currentOdometer,
+        lastOilChange: editingVehicle.lastOilChange,
+        nextOilChangeKm: editingVehicle.nextOilChangeKm,
+      });
+    } else {
+      resetForm();
+    }
+  }, [editingVehicle]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      if (editingVehicle) {
+        await updateVehicle(editingVehicle.id, {
+          ...formData,
+          status: formData.status || 'active',
+        });
+        toast({
+          title: "Veículo atualizado",
+          description: `O veículo ${formData.plate} foi atualizado com sucesso.`
+        });
+      } else {
+        // Add minimal required fields for a new vehicle
+        await addVehicle({
+          ...formData,
+          status: 'active',
+          brand: formData.make, // Set brand to same as make
+          type: 'car', // Default type
+          fuelType: 'flex', // Default fuel type
+        });
+        toast({
+          title: "Veículo adicionado",
+          description: `O veículo ${formData.plate} foi adicionado com sucesso.`
+        });
+      }
+      setDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error("Erro ao salvar veículo:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o veículo.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteVehicle(id);
+      toast({
+        title: "Veículo removido",
+        description: "O veículo foi removido com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao remover veículo:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao remover o veículo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (vehicle: Vehicle) => {
+    setEditingVehicle(vehicle);
+    setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setEditingVehicle(null);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setFormData({
       plate: '',
       model: '',
       year: '',
       make: '',
       currentOdometer: 0,
       lastOilChange: 0,
-      nextOilChangeKm: 0,
-    },
-  });
-
-  // Filtrar veículos com base no termo de pesquisa
-  const filteredVehicles = vehicles.filter(
-    vehicle =>
-      vehicle.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.make.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleEdit = (vehicle: Vehicle) => {
-    setEditingVehicle(vehicle);
-    form.reset({
-      plate: vehicle.plate,
-      model: vehicle.model,
-      year: vehicle.year,
-      make: vehicle.make,
-      currentOdometer: vehicle.currentOdometer,
-      lastOilChange: vehicle.lastOilChange,
-      nextOilChangeKm: vehicle.nextOilChangeKm,
+      nextOilChangeKm: 5000,
     });
-    setIsAddDialogOpen(true);
-  };
-
-  const onCloseDialog = () => {
-    setIsAddDialogOpen(false);
-    setEditingVehicle(null);
-    form.reset();
-  };
-
-  const onSubmit = async (data: FormValues) => {
-    try {
-      if (editingVehicle) {
-        await updateVehicle(editingVehicle.id, data);
-        toast({
-          title: "Veículo atualizado",
-          description: `As informações de ${data.plate} foram atualizadas.`,
-        });
-      } else {
-        // Ensure all required properties are explicitly passed
-        await addVehicle({
-          plate: data.plate,
-          model: data.model,
-          year: data.year,
-          make: data.make,
-          currentOdometer: data.currentOdometer,
-          lastOilChange: data.lastOilChange,
-          nextOilChangeKm: data.nextOilChangeKm
-        });
-        toast({
-          title: "Veículo adicionado",
-          description: `${data.plate} foi adicionado com sucesso.`,
-        });
-      }
-      onCloseDialog();
-    } catch (error) {
-      console.error("Erro ao salvar veículo:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar o veículo.",
-        variant: "destructive",
-      });
-    }
   };
 
   return (
@@ -138,220 +165,148 @@ const Vehicles = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Veículos</h1>
             <p className="text-muted-foreground">
-              Gerenciamento de veículos da frota.
+              Gerencie a frota de veículos da sua empresa.
             </p>
           </div>
-
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo veículo
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingVehicle ? "Editar veículo" : "Adicionar novo veículo"}
-                </DialogTitle>
-                <DialogDescription>
-                  Preencha os dados do veículo e clique em salvar.
-                </DialogDescription>
-              </DialogHeader>
-
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="plate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Placa</FormLabel>
-                          <FormControl>
-                            <Input placeholder="ABC-1234" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="model"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Modelo</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Fiorino" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="make"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Marca</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Fiat" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="year"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ano</FormLabel>
-                          <FormControl>
-                            <Input placeholder="2020" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="currentOdometer"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Odômetro atual (km)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min="0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="lastOilChange"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Km da última troca de óleo</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min="0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="nextOilChangeKm"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Km para próxima troca de óleo</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min="0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <DialogFooter className="gap-2 sm:gap-0">
-                    <Button type="button" variant="outline" onClick={onCloseDialog}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit">
-                      {editingVehicle ? "Atualizar" : "Salvar"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => { setDialogOpen(true); setEditingVehicle(null); }}>
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Veículo
+          </Button>
         </div>
 
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Pesquisar por placa, modelo ou marca..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-        </div>
-
-        {filteredVehicles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center">
-            <Truck className="h-10 w-10 text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">
-              {searchTerm ? "Nenhum veículo encontrado." : "Nenhum veículo cadastrado."}
-            </p>
-            <Button variant="outline" className="mt-4" onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar novo veículo
-            </Button>
-          </div>
-        ) : (
-          <div className="border rounded-md">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-md font-medium">
+              Lista de Veículos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Placa</TableHead>
                   <TableHead>Modelo</TableHead>
-                  <TableHead>Marca</TableHead>
                   <TableHead>Ano</TableHead>
+                  <TableHead>Marca</TableHead>
                   <TableHead>Odômetro</TableHead>
-                  <TableHead>Última troca de óleo</TableHead>
-                  <TableHead>Próxima troca em</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVehicles.map((vehicle) => (
+                {vehicles.map((vehicle) => (
                   <TableRow key={vehicle.id}>
                     <TableCell className="font-medium">{vehicle.plate}</TableCell>
                     <TableCell>{vehicle.model}</TableCell>
-                    <TableCell>{vehicle.make}</TableCell>
                     <TableCell>{vehicle.year}</TableCell>
+                    <TableCell>{vehicle.make}</TableCell>
                     <TableCell>{vehicle.currentOdometer} km</TableCell>
-                    <TableCell>{vehicle.lastOilChange} km</TableCell>
-                    <TableCell>
-                      <span className={vehicle.nextOilChangeKm - vehicle.currentOdometer < 1000 ? "text-red-500 font-medium" : ""}>
-                        {vehicle.nextOilChangeKm - vehicle.currentOdometer} km
-                      </span>
-                    </TableCell>
-                    <TableCell>
+                    <TableCell className="flex gap-2">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(vehicle)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
-                        <Search className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(vehicle.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{editingVehicle ? 'Editar Veículo' : 'Adicionar Veículo'}</DialogTitle>
+              <DialogDescription>
+                Preencha os campos abaixo para {editingVehicle ? 'atualizar' : 'adicionar'} um veículo.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="plate">Placa</Label>
+                  <Input
+                    type="text"
+                    id="plate"
+                    name="plate"
+                    value={formData.plate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="model">Modelo</Label>
+                  <Input
+                    type="text"
+                    id="model"
+                    name="model"
+                    value={formData.model}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="year">Ano</Label>
+                  <Input
+                    type="text"
+                    id="year"
+                    name="year"
+                    value={formData.year}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="make">Marca</Label>
+                  <Input
+                    type="text"
+                    id="make"
+                    name="make"
+                    value={formData.make}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="currentOdometer">Odômetro Atual</Label>
+                  <Input
+                    type="number"
+                    id="currentOdometer"
+                    name="currentOdometer"
+                    value={formData.currentOdometer}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastOilChange">Última Troca de Óleo (km)</Label>
+                  <Input
+                    type="number"
+                    id="lastOilChange"
+                    name="lastOilChange"
+                    value={formData.lastOilChange}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  {editingVehicle ? 'Salvar' : 'Adicionar'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );

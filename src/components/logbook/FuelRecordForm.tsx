@@ -31,7 +31,7 @@ const formSchema = z.object({
   date: z.string({
     required_error: "Insira a data",
   }),
-  odometerKm: z.coerce.number({
+  odometer: z.coerce.number({
     required_error: "Insira o odômetro atual",
     invalid_type_error: "Insira um número válido",
   }).positive(),
@@ -69,13 +69,13 @@ const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) 
     defaultValues: existingRecord ? {
       vehicleId: existingRecord.vehicleId,
       date: existingRecord.date,
-      odometerKm: existingRecord.odometerKm,
+      odometer: existingRecord.odometer,
       liters: existingRecord.liters,
       pricePerLiter: existingRecord.pricePerLiter,
     } : {
       vehicleId: "",
       date: format(new Date(), "yyyy-MM-dd"),
-      odometerKm: 0,
+      odometer: 0,
       liters: 0,
       pricePerLiter: 0,
     }
@@ -100,10 +100,11 @@ const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) 
         await addFuelRecord({
           vehicleId: data.vehicleId,
           date: data.date,
-          odometerKm: data.odometerKm,
+          odometer: data.odometer,
           liters: data.liters,
           pricePerLiter: data.pricePerLiter,
-          totalCost
+          totalCost,
+          fuelType: 'flex' // Default fuel type
         });
       }
       
@@ -158,7 +159,7 @@ const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) 
 
           <FormField
             control={form.control}
-            name="odometerKm"
+            name="odometer"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Odômetro (km)</FormLabel>

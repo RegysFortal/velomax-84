@@ -150,12 +150,13 @@ export interface PriceTable {
     maxWeight?: number;
   };
   waitingHour?: {
-    first: number;
-    additional: number;
+    fiorino: number;
+    medium: number;
+    large: number;
   };
   insurance?: {
-    rate: number;
-    minValue: number;
+    standard: number;
+    perishable: number;
   };
   allowCustomPricing?: boolean;
   defaultDiscount?: number;

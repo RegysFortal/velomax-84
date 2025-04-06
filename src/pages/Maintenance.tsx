@@ -55,10 +55,11 @@ const MaintenanceRegistrationForm = ({
   const [formData, setFormData] = useState({
     vehicleId: maintenance?.vehicleId || '',
     date: maintenance?.date || format(new Date(), 'yyyy-MM-dd'),
-    type: maintenance?.type || '',
+    type: maintenance?.type || 'preventive',
     description: maintenance?.description || '',
     cost: maintenance?.cost.toString() || '',
-    odometerKm: maintenance?.odometerKm.toString() || '',
+    odometer: maintenance?.odometer.toString() || '',
+    status: maintenance?.status || 'scheduled',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -77,10 +78,11 @@ const MaintenanceRegistrationForm = ({
       const maintenanceData = {
         vehicleId: formData.vehicleId,
         date: formData.date,
-        type: formData.type,
+        type: formData.type as 'preventive' | 'corrective' | 'emergency',
         description: formData.description,
         cost: parseFloat(formData.cost),
-        odometerKm: parseInt(formData.odometerKm),
+        odometer: parseInt(formData.odometer),
+        status: formData.status as 'scheduled' | 'in_progress' | 'completed',
       };
       
       if (maintenance) {
@@ -147,23 +149,29 @@ const MaintenanceRegistrationForm = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="type">Tipo de Manutenção</Label>
-          <Input
-            id="type"
-            name="type"
-            placeholder="Ex: Troca de óleo, Revisão, Reparo, etc."
+          <Select
             value={formData.type}
-            onChange={handleChange}
+            onValueChange={(value) => handleSelectChange('type', value)}
             required
-          />
+          >
+            <SelectTrigger id="type">
+              <SelectValue placeholder="Selecione o tipo de manutenção" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="preventive">Preventiva</SelectItem>
+              <SelectItem value="corrective">Corretiva</SelectItem>
+              <SelectItem value="emergency">Emergencial</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="odometerKm">Odômetro (km)</Label>
+          <Label htmlFor="odometer">Odômetro (km)</Label>
           <Input
-            id="odometerKm"
-            name="odometerKm"
+            id="odometer"
+            name="odometer"
             type="number"
-            value={formData.odometerKm}
+            value={formData.odometer}
             onChange={handleChange}
             required
           />
@@ -183,17 +191,37 @@ const MaintenanceRegistrationForm = ({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="cost">Custo (R$)</Label>
-        <Input
-          id="cost"
-          name="cost"
-          type="number"
-          step="0.01"
-          value={formData.cost}
-          onChange={handleChange}
-          required
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="cost">Custo (R$)</Label>
+          <Input
+            id="cost"
+            name="cost"
+            type="number"
+            step="0.01"
+            value={formData.cost}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            value={formData.status}
+            onValueChange={(value) => handleSelectChange('status', value)}
+            required
+          >
+            <SelectTrigger id="status">
+              <SelectValue placeholder="Selecione o status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="scheduled">Agendada</SelectItem>
+              <SelectItem value="in_progress">Em andamento</SelectItem>
+              <SelectItem value="completed">Concluída</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <DialogFooter>
@@ -309,7 +337,7 @@ const Maintenance = () => {
                             type: '',
                             description: '',
                             cost: 0,
-                            odometerKm: vehicle.currentOdometer,
+                            odometer: vehicle.currentOdometer,
                             createdAt: '',
                             updatedAt: ''
                           });
@@ -332,7 +360,7 @@ const Maintenance = () => {
                             type: 'Troca de Pneu',
                             description: '',
                             cost: 0,
-                            odometerKm: vehicle.currentOdometer,
+                            odometer: vehicle.currentOdometer,
                             createdAt: '',
                             updatedAt: ''
                           });
@@ -392,7 +420,7 @@ const Maintenance = () => {
                               <TableCell>{maintenance.date}</TableCell>
                               <TableCell>{maintenance.type}</TableCell>
                               <TableCell className="max-w-[200px] truncate">{maintenance.description}</TableCell>
-                              <TableCell>{maintenance.odometerKm} km</TableCell>
+                              <TableCell>{maintenance.odometer} km</TableCell>
                               <TableCell>R$ {maintenance.cost.toFixed(2)}</TableCell>
                               <TableCell className="text-right">
                                 <Button variant="ghost" size="sm" onClick={() => handleEdit(maintenance)}>
@@ -465,7 +493,7 @@ const Maintenance = () => {
                                     type: 'Troca de Óleo',
                                     description: 'Troca de óleo periódica.',
                                     cost: 0,
-                                    odometerKm: vehicle.currentOdometer,
+                                    odometer: vehicle.currentOdometer,
                                     createdAt: '',
                                     updatedAt: ''
                                   });
@@ -569,7 +597,7 @@ const Maintenance = () => {
                             <TableCell>{maintenance.date}</TableCell>
                             <TableCell>{maintenance.type}</TableCell>
                             <TableCell className="max-w-[200px] truncate">{maintenance.description}</TableCell>
-                            <TableCell>{maintenance.odometerKm} km</TableCell>
+                            <TableCell>{maintenance.odometer} km</TableCell>
                             <TableCell>R$ {maintenance.cost.toFixed(2)}</TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" onClick={() => handleEdit(maintenance)}>

@@ -241,6 +241,40 @@ const ReportsPage = () => {
     }
   };
 
+  const handleCreateInvoice = async () => {
+    if (!selectedClient) return;
+    
+    try {
+      await addFinancialReport({
+        title: `Faturamento ${selectedClient.name} - ${format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}`,
+        description: `Relatório financeiro para ${selectedClient.name}`,
+        clientId: selectedClient.id,
+        startDate: startOfMonth(selectedMonth).toISOString(),
+        endDate: endOfMonth(selectedMonth).toISOString(),
+        totalRevenue: totalFreightAmount,
+        totalExpenses: 0,
+        profit: totalFreightAmount,
+        totalFreight: totalFreightAmount,
+        totalDeliveries: clientDeliveries.length,
+        status: 'open'
+      });
+      
+      toast({
+        title: "Relatório criado",
+        description: "O relatório financeiro foi criado com sucesso.",
+      });
+      
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro ao criar relatório",
+        description: "Ocorreu um erro ao criar o relatório financeiro.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
