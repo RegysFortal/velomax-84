@@ -1,97 +1,114 @@
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserRound, MailIcon, AtSign } from 'lucide-react';
 import { toast } from 'sonner';
 
-export const ProfileUpdateForm = () => {
-  const [name, setName] = useState('');
+const profileFormSchema = z.object({
+  name: z.string().min(2, {
+    message: 'O nome deve ter pelo menos 2 caracteres.',
+  }),
+  email: z.string().email({
+    message: 'Digite um e-mail válido.',
+  }),
+});
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+export function ProfileUpdateForm() {
+  const { user, updateProfile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { user, updateUserProfile } = useAuth();
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      name: user?.name || '',
+      email: user?.email || '',
+    },
+  });
 
-  useEffect(() => {
-    if (user) {
-      setName(user.name);
-    }
-  }, [user]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!user) {
-      toast.error('Usuário não autenticado');
-      return;
-    }
-
-    if (!name.trim()) {
-      toast.error('O nome é obrigatório');
-      return;
-    }
-
+  const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
-
     try {
-      await updateUserProfile({ name });
-      toast.success('Perfil atualizado com sucesso');
+      await updateProfile({
+        name: data.name,
+        email: data.email,
+      });
+      toast.success('Perfil atualizado com sucesso!');
     } catch (error) {
-      toast.error('Ocorreu um erro ao atualizar o perfil');
       console.error('Error updating profile:', error);
+      toast.error('Erro ao atualizar perfil');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Informações Pessoais</CardTitle>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="username">Nome de Usuário</Label>
-            <Input
-              id="username"
-              value={user?.username || ''}
-              disabled
-              className="bg-muted"
-            />
-            <p className="text-sm text-muted-foreground">O nome de usuário não pode ser alterado</p>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Avatar className="h-16 w-16">
+          <AvatarImage src="" alt={user?.name} />
+          <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+            {user?.name ? user.name.charAt(0).toUpperCase() : <UserRound />}
+          </AvatarFallback>
+        </Avatar>
+        <div className="space-y-1">
+          <h3 className="font-medium text-lg">{user?.name}</h3>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <AtSign className="mr-1 h-4 w-4" />
+            {user?.email}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome</Label>
-            <Input
-              id="name"
-              placeholder="Digite seu nome completo"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">Função</Label>
-            <Input
-              id="role"
-              value={user?.role === 'admin' ? 'Administrador' : user?.role === 'manager' ? 'Gerente' : 'Usuário'}
-              disabled
-              className="bg-muted"
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Atualizando..." : "Atualizar Perfil"}
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome</FormLabel>
+                <FormControl>
+                  <Input placeholder="Seu nome" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>E-mail</FormLabel>
+                <FormControl>
+                  <Input placeholder="seu.email@exemplo.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Atualizando...' : 'Atualizar perfil'}
           </Button>
-        </CardFooter>
-      </form>
-    </Card>
+        </form>
+      </Form>
+    </div>
   );
-};
+}

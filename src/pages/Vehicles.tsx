@@ -58,6 +58,7 @@ const Vehicles = () => {
     fuelType: 'flex' as 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric',
     renavam: '',
     chassis: '',
+    capacity: 0,
   });
   const { toast } = useToast();
 
@@ -77,6 +78,7 @@ const Vehicles = () => {
         fuelType: editingVehicle.fuelType,
         renavam: editingVehicle.renavam || '',
         chassis: editingVehicle.chassis || '',
+        capacity: editingVehicle.capacity || 0,
       });
     } else {
       resetForm();
@@ -168,6 +170,7 @@ const Vehicles = () => {
       fuelType: 'flex',
       renavam: '',
       chassis: '',
+      capacity: 0,
     });
   };
 
@@ -394,6 +397,30 @@ const Vehicles = () => {
                     id="lastOilChange"
                     name="lastOilChange"
                     value={formData.lastOilChange}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="nextOilChangeKm">Próxima Troca de Óleo (km)</Label>
+                  <Input
+                    type="number"
+                    id="nextOilChangeKm"
+                    name="nextOilChangeKm"
+                    value={formData.nextOilChangeKm}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="capacity">Capacidade (kg)</Label>
+                  <Input
+                    type="number"
+                    id="capacity"
+                    name="capacity"
+                    value={formData.capacity}
                     onChange={handleChange}
                     required
                   />

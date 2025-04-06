@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -39,7 +40,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { LogbookEntry } from '@/types';
 import { useLogbook } from '@/contexts/LogbookContext';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -216,7 +216,7 @@ const Logbook = () => {
                             <TableCell>{entry.departureTime}</TableCell>
                             <TableCell>{entry.departureOdometer} km</TableCell>
                             <TableCell>{entry.returnTime || "---"}</TableCell>
-                            <TableCell>{entry.returnOdometer ? `${entry.returnOdometer} km` : "---"}</TableCell>
+                            <TableCell>{entry.endOdometer ? `${entry.endOdometer} km` : "---"}</TableCell>
                             <TableCell>
                               <Button variant="ghost" size="icon">
                                 <Search className="h-4 w-4" />
@@ -311,7 +311,7 @@ const Logbook = () => {
                     <div key={employee.id} className="flex items-center justify-between border-b pb-2">
                       <div>
                         <p className="font-medium">{employee.name}</p>
-                        <p className="text-sm text-muted-foreground">{employee.role === 'driver' ? 'Motorista' : 'Ajudante'}</p>
+                        <p className="text-sm text-muted-foreground">{employee.position === 'driver' ? 'Motorista' : 'Ajudante'}</p>
                       </div>
                       <div>
                         <span className={cn(

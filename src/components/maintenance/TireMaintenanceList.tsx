@@ -30,7 +30,7 @@ import { TireMaintenanceForm } from './TireMaintenanceForm';
 import { toast } from "sonner";
 
 export function TireMaintenanceList() {
-  const { vehicles, tireMaintenance, deleteTireMaintenance } = useLogbook();
+  const { vehicles, tireMaintenanceRecords, deleteTireMaintenance } = useLogbook();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMaintenance, setEditingMaintenance] = useState<any>(null);
 
@@ -124,14 +124,14 @@ export function TireMaintenanceList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tireMaintenance.length === 0 ? (
+            {tireMaintenanceRecords.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-4">
                   Nenhum registro encontrado
                 </TableCell>
               </TableRow>
             ) : (
-              tireMaintenance.map((record) => (
+              tireMaintenanceRecords.map((record) => (
                 <TableRow key={record.id}>
                   <TableCell>{getVehicleData(record.vehicleId)}</TableCell>
                   <TableCell>

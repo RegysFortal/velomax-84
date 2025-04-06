@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,7 +74,7 @@ const LogbookEntryForm = ({
     getLogbookEntryById 
   } = useLogbook();
 
-  // Filter employees by their role
+  // Filter employees by their position
   const drivers = employees.filter(employee => 
     employee.position === 'driver' || employee.position === 'Driver'
   );

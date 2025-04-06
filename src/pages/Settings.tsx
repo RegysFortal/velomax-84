@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
+
+// Import the necessary files
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AppLayout } from '@/components/AppLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -26,6 +26,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -33,349 +37,135 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
-import { Plus, User, Settings as SettingsIcon, ShieldCheck } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Password, UserRound, MailIcon, ShieldCheck, AtSign } from 'lucide-react';
+import { toast } from 'sonner';
+import { ProfileUpdateForm } from '@/components/user/ProfileUpdateForm';
+import { PasswordUpdateForm } from '@/components/user/PasswordUpdateForm';
 
-const initialUserState = {
-  name: '',
-  username: '',
-  email: '',
-  role: 'user',
-};
-
-const userSchema = z.object({
-  name: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres." }),
-  username: z.string().min(3, { message: "Nome de usuário deve ter pelo menos 3 caracteres." }),
-  email: z.string().email({ message: "Email inválido." }),
-  role: z.enum(['admin', 'manager', 'user'], {
-    required_error: "Selecione uma função."
-  }),
-});
-
-type UserFormValues = z.infer<typeof userSchema>;
-
-const getPermissionsFromRole = (role: string) => {
-  switch (role) {
-    case 'admin':
-      return {
-        deliveries: true,
-        shipments: true,
-        clients: true,
-        cities: true,
-        reports: true,
-        financial: true,
-        priceTables: true,
-        dashboard: true,
-        logbook: true,
-        employees: true,
-        vehicles: true,
-        maintenance: true,
-        settings: true,
-      };
-    case 'manager':
-      return {
-        deliveries: true,
-        shipments: true,
-        clients: true,
-        cities: true,
-        reports: true,
-        financial: true,
-        priceTables: true,
-        dashboard: true,
-        logbook: true,
-        employees: false,
-        vehicles: false,
-        maintenance: false,
-        settings: false,
-      };
-    default:
-      return {
-        deliveries: true,
-        shipments: true,
-        clients: true,
-        cities: false,
-        reports: false,
-        financial: false,
-        priceTables: false,
-        dashboard: true,
-        logbook: false,
-        employees: false,
-        vehicles: false,
-        maintenance: false,
-        settings: false,
-      };
-  }
-};
-
-export default function Settings() {
-  const [activeTab, setActiveTab] = useState('general');
-  const [newUser, setNewUser] = useState(initialUserState);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
-  const { user, users, updateUserProfile, createUser, updatePassword, deleteUser } = useAuth();
-  const { toast } = useToast();
-
-  const form = useForm<UserFormValues>({
-    resolver: zodResolver(userSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      username: '',
-      role: 'user',
-    },
+// Password form schema
+const passwordFormSchema = z
+  .object({
+    currentPassword: z.string().min(1, {
+      message: 'A senha atual é obrigatória.',
+    }),
+    newPassword: z.string().min(8, {
+      message: 'A nova senha deve ter pelo menos 8 caracteres.',
+    }),
+    confirmPassword: z.string().min(8, {
+      message: 'A confirmação da senha deve ter pelo menos 8 caracteres.',
+    }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'As senhas não conferem.',
+    path: ['confirmPassword'],
   });
 
-  useEffect(() => {
-    if (user) {
-      setNewUser({
-        name: user.name,
-        username: user.username || '',
-        email: user.email,
-        role: user.role,
-      });
-    }
-  }, [user]);
+type PasswordFormData = z.infer<typeof passwordFormSchema>;
 
-  const isFormValid = () => {
-    try {
-      userSchema.parse(newUser);
-      return true;
-    } catch (error) {
-      console.error("Form validation error:", error);
-      toast({
-        title: "Erro de validação",
-        description: "Por favor, preencha todos os campos corretamente.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
+const Settings = () => {
+  const { user, updateProfile, updatePassword } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState('profile');
 
-  const handleCreateUser = async () => {
-    if (!isFormValid()) return;
-
-    try {
-      setIsSubmitting(true);
-      
-      const userData = {
-        name: newUser.name,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role as 'admin' | 'manager' | 'user',
-        permissions: getPermissionsFromRole(newUser.role),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      await createUser(userData);
-      
-      toast.success('Usuário criado com sucesso');
-      setNewUser(initialUserState);
-      setActiveTab('general');
-    } catch (error) {
-      console.error('Error creating user:', error);
-      toast.error('Erro ao criar usuário');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handlePermissionChange = async (permission: string, value: boolean) => {
-    if (!user) return;
-
-    try {
-      setIsSubmitting(true);
-      const updatedPermissions = {
-        ...user.permissions,
-        [permission]: value,
-      };
-
-      await updateUserProfile({ permissions: updatedPermissions });
-      toast.success('Permissões atualizadas com sucesso');
-    } catch (error) {
-      console.error('Error updating permissions:', error);
-      toast.error('Erro ao atualizar permissões');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const passwordForm = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
 
   const handleUpdatePassword = async (data: PasswordFormData) => {
     try {
       await updatePassword(data.currentPassword, data.newPassword);
-      toast({
-        title: "Senha atualizada",
-        description: "Sua senha foi atualizada com sucesso.",
-      });
+      toast.success('Senha atualizada com sucesso!');
       passwordForm.reset();
     } catch (error) {
-      toast({
-        title: "Erro ao atualizar senha",
-        description: "Não foi possível atualizar sua senha. Verifique se a senha atual está correta.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteUser = async (id: string) => {
-    try {
-      await deleteUser(id);
-      toast({
-        title: "Usuário excluído",
-        description: "O usuário foi excluído com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao excluir usuário",
-        description: "Não foi possível excluir o usuário.",
-        variant: "destructive",
-      });
+      toast.error('Erro ao atualizar senha. Verifique a senha atual.');
     }
   };
 
   return (
     <AppLayout>
-      <div className="flex flex-col gap-6">
+      <div className="flex-1 space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
           <p className="text-muted-foreground">
-            Gerencie as configurações da sua conta e da empresa.
+            Gerencie suas preferências e informações de perfil.
           </p>
         </div>
-        <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="general">Geral</TabsTrigger>
-            <TabsTrigger value="security">Segurança</TabsTrigger>
-            {user?.role === 'admin' && (
-              <TabsTrigger value="users">Usuários</TabsTrigger>
-            )}
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3 md:w-auto">
+            <TabsTrigger value="profile">Perfil</TabsTrigger>
+            <TabsTrigger value="account">Conta</TabsTrigger>
+            <TabsTrigger value="appearance">Aparência</TabsTrigger>
           </TabsList>
-          <TabsContent value="general" className="space-y-6 pt-6">
-            <ProfileUpdateForm />
+          
+          <TabsContent value="profile" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações de Perfil</CardTitle>
+                <CardDescription>
+                  Atualize suas informações pessoais e preferências de contato.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProfileUpdateForm />
+              </CardContent>
+            </Card>
           </TabsContent>
-          <TabsContent value="security" className="space-y-6 pt-6">
-            <PasswordUpdateForm />
+          
+          <TabsContent value="account" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Senha e Segurança</CardTitle>
+                <CardDescription>
+                  Altere sua senha e gerencie as configurações de segurança da sua conta.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PasswordUpdateForm />
+              </CardContent>
+            </Card>
           </TabsContent>
-          {user?.role === 'admin' && (
-            <TabsContent value="users" className="space-y-6 pt-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle>Gerenciar Usuários</CardTitle>
-                  <Dialog open={showCreateUserDialog} onOpenChange={setShowCreateUserDialog}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline">Criar Novo Usuário</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Criar Novo Usuário</DialogTitle>
-                        <DialogDescription>
-                          Crie um novo usuário para acessar o sistema.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <Form {...form}>
-                        <div className="grid gap-4 py-4">
-                          <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Nome</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Nome completo" {...field} value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="username"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Nome de Usuário</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Nome de usuário" {...field} value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Email</FormLabel>
-                                <FormControl>
-                                  <Input type="email" placeholder="Email" {...field} value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="role"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Função</FormLabel>
-                                <Select onValueChange={(value) => setNewUser({ ...newUser, role: value })} defaultValue={newUser.role}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecione uma função" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="admin">Administrador</SelectItem>
-                                    <SelectItem value="manager">Gerente</SelectItem>
-                                    <SelectItem value="user">Usuário</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <Button type="submit" onClick={handleCreateUser} disabled={isSubmitting}>
-                          {isSubmitting ? 'Criando...' : 'Criar Usuário'}
-                        </Button>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4">
-                    {users.map((existingUser) => (
-                      <div key={existingUser.id} className="border rounded-md p-4">
-                        <div className="font-bold">{existingUser.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {existingUser.email} | {existingUser.role}
-                        </div>
-                      </div>
-                    ))}
+          
+          <TabsContent value="appearance" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Aparência</CardTitle>
+                <CardDescription>
+                  Personalize a aparência do sistema conforme sua preferência.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="theme">Tema</Label>
+                    <Select value={theme} onValueChange={setTheme}>
+                      <SelectTrigger id="theme">
+                        <SelectValue placeholder="Selecione um tema" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Claro</SelectItem>
+                        <SelectItem value="dark">Escuro</SelectItem>
+                        <SelectItem value="system">Sistema</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Escolha entre tema claro, escuro ou siga as preferências do seu sistema.
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
   );
-}
+};
+
+export default Settings;

@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,7 +85,7 @@ const FuelRecordForm = ({
       liters: initialData?.liters || 0,
       pricePerLiter: initialData?.pricePerLiter || 0,
       totalCost: initialData?.totalCost || 0,
-      fuelType: initialData?.fuelType || 'gasoline',
+      fuelType: (initialData?.fuelType as 'gasoline' | 'diesel' | 'ethanol' | 'other') || 'gasoline',
       isFull: initialData?.isFull || true,
       station: initialData?.station || '',
       notes: initialData?.notes || '',
@@ -101,7 +102,7 @@ const FuelRecordForm = ({
         form.setValue("liters", record.liters);
         form.setValue("pricePerLiter", record.pricePerLiter);
         form.setValue("totalCost", record.totalCost);
-        form.setValue("fuelType", record.fuelType);
+        form.setValue("fuelType", record.fuelType as 'gasoline' | 'diesel' | 'ethanol' | 'other');
         form.setValue("isFull", record.isFull);
         form.setValue("station", record.station);
         form.setValue("notes", record.notes || "");
@@ -150,7 +151,7 @@ const FuelRecordForm = ({
                 <SelectContent>
                   {vehicles.map((vehicle) => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.model} - {vehicle.licensePlate}
+                      {vehicle.model} - {vehicle.plate}
                     </SelectItem>
                   ))}
                 </SelectContent>

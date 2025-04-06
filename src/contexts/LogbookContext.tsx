@@ -1,11 +1,12 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Vehicle } from '@/types';
-import { LogbookEntry } from '@/types';
 import { Employee } from '@/types';
 import { FuelRecord } from '@/types';
 import { Maintenance } from '@/types';
 import { TireMaintenance } from '@/types';
+import { LogbookEntry } from '@/types';
 
 type LogbookContextType = {
   entries: LogbookEntry[];
@@ -23,6 +24,10 @@ type LogbookContextType = {
   addTireMaintenance: (record: Omit<TireMaintenance, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateTireMaintenance: (id: string, record: Partial<TireMaintenance>) => void;
   getTireMaintenanceById: (id: string) => TireMaintenance | undefined;
+  deleteTireMaintenance: (id: string) => void;
+  addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateVehicle: (id: string, vehicle: Partial<Vehicle>) => void;
+  deleteVehicle: (id: string) => void;
   loading: boolean;
 };
 
@@ -38,13 +43,13 @@ const initialData = {
       date: "2024-01-20",
       destination: "São Paulo",
       purpose: "Entrega de mercadorias",
-      returnTime: "17:00",
-      endOdometer: 15500,
-      tripDistance: 500,
+      returnTime: null,
+      endOdometer: null,
+      tripDistance: null,
       notes: "Viagem sem problemas",
       createdAt: "2024-01-20T08:00:00.000Z",
       updatedAt: "2024-01-20T17:00:00.000Z",
-      status: "completed",
+      status: "completed" as "completed" | "ongoing",
     },
     {
       id: "2",
@@ -62,7 +67,7 @@ const initialData = {
       notes: "Em rota",
       createdAt: "2024-01-21T09:00:00.000Z",
       updatedAt: "2024-01-21T09:00:00.000Z",
-      status: "ongoing",
+      status: "ongoing" as "completed" | "ongoing",
     },
   ],
   vehicles: [
@@ -74,6 +79,14 @@ const initialData = {
       capacity: 50000,
       createdAt: "2024-01-15T10:00:00.000Z",
       updatedAt: "2024-01-15T10:00:00.000Z",
+      year: "2020",
+      make: "Volvo",
+      brand: "Volvo",
+      fuelType: "diesel",
+      currentOdometer: 15500,
+      lastOilChange: 15000,
+      nextOilChangeKm: 20000,
+      status: "active",
     },
     {
       id: "102",
@@ -83,6 +96,14 @@ const initialData = {
       capacity: 2000,
       createdAt: "2024-01-16T11:00:00.000Z",
       updatedAt: "2024-01-16T11:00:00.000Z",
+      year: "2021",
+      make: "Mercedes",
+      brand: "Mercedes-Benz",
+      fuelType: "diesel",
+      currentOdometer: 25000,
+      lastOilChange: 24000,
+      nextOilChangeKm: 29000,
+      status: "active",
     },
   ],
   employees: [
@@ -94,6 +115,9 @@ const initialData = {
       email: "joao.silva@example.com",
       createdAt: "2024-01-10T12:00:00.000Z",
       updatedAt: "2024-01-10T12:00:00.000Z",
+      departmentId: "1",
+      hireDate: "2023-01-01",
+      isActive: true,
     },
     {
       id: "202",
@@ -103,6 +127,9 @@ const initialData = {
       email: "maria.souza@example.com",
       createdAt: "2024-01-11T13:00:00.000Z",
       updatedAt: "2024-01-11T13:00:00.000Z",
+      departmentId: "1",
+      hireDate: "2023-02-01",
+      isActive: true,
     },
     {
       id: "301",
@@ -112,6 +139,9 @@ const initialData = {
       email: "carlos.pereira@example.com",
       createdAt: "2024-01-12T14:00:00.000Z",
       updatedAt: "2024-01-12T14:00:00.000Z",
+      departmentId: "2",
+      hireDate: "2023-03-01",
+      isActive: true,
     },
     {
       id: "302",
@@ -121,6 +151,9 @@ const initialData = {
       email: "ana.oliveira@example.com",
       createdAt: "2024-01-13T15:00:00.000Z",
       updatedAt: "2024-01-13T15:00:00.000Z",
+      departmentId: "2",
+      hireDate: "2023-04-01",
+      isActive: true,
     },
   ],
   fuelRecords: [
@@ -132,7 +165,7 @@ const initialData = {
       liters: 50,
       pricePerLiter: 5.50,
       totalCost: 275,
-      fuelType: "gasoline",
+      fuelType: "gasoline" as "gasoline" | "diesel" | "ethanol" | "other",
       isFull: true,
       station: "Posto Ipiranga",
       notes: "Abastecimento normal",
@@ -147,7 +180,7 @@ const initialData = {
       liters: 40,
       pricePerLiter: 5.50,
       totalCost: 220,
-      fuelType: "diesel",
+      fuelType: "diesel" as "gasoline" | "diesel" | "ethanol" | "other",
       isFull: false,
       station: "Posto Shell",
       notes: "Abastecimento de emergência",
@@ -166,6 +199,8 @@ const initialData = {
       notes: "Óleo e filtro trocados",
       createdAt: "2024-01-18T18:00:00.000Z",
       updatedAt: "2024-01-18T18:00:00.000Z",
+      maintenanceType: "oil_change",
+      odometer: 14500,
     },
     {
       id: "502",
@@ -177,6 +212,8 @@ const initialData = {
       notes: "Pastilhas e discos verificados",
       createdAt: "2024-01-19T19:00:00.000Z",
       updatedAt: "2024-01-19T19:00:00.000Z",
+      maintenanceType: "brakes",
+      odometer: 24000,
     },
   ],
   tireMaintenanceRecords: [
@@ -184,27 +221,33 @@ const initialData = {
       id: "601",
       vehicleId: "101",
       date: "2024-01-17",
-      tirePosition: "Dianteira Esquerda",
-      tireBrand: "Michelin",
-      tireModel: "Energy XM2",
+      tirePosition: "frontLeft",
+      brand: "Michelin",
+      tireSize: "295/80R22.5",
       cost: 450,
       provider: "Pneulândia",
       notes: "Pneu novo",
       createdAt: "2024-01-17T20:00:00.000Z",
       updatedAt: "2024-01-17T20:00:00.000Z",
+      maintenanceType: "replacement",
+      mileage: 14000,
+      description: "Substituição preventiva",
     },
     {
       id: "602",
       vehicleId: "102",
       date: "2024-01-18",
-      tirePosition: "Traseira Direita",
-      tireBrand: "Pirelli",
-      tireModel: "P7",
+      tirePosition: "rearRight",
+      brand: "Pirelli",
+      tireSize: "225/70R15C",
       cost: 400,
       provider: "Pneubom",
       notes: "Pneu remoldado",
       createdAt: "2024-01-18T21:00:00.000Z",
       updatedAt: "2024-01-18T21:00:00.000Z",
+      maintenanceType: "puncture",
+      mileage: 23500,
+      description: "Reparo de furo",
     },
   ],
 };
@@ -326,6 +369,50 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
     return tireMaintenanceRecords.find((record) => record.id === id);
   };
   
+  const deleteTireMaintenance = (id: string) => {
+    setTireMaintenanceRecords(tireMaintenanceRecords.filter(record => record.id !== id));
+    toast({
+      title: "Registro de manutenção de pneus removido",
+      description: "O registro de manutenção de pneus foi removido com sucesso.",
+    });
+  };
+
+  const addVehicle = (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newVehicle: Vehicle = {
+      id: Math.random().toString(36).substring(2, 15),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...vehicle,
+    };
+    setVehicles([...vehicles, newVehicle]);
+    toast({
+      title: "Novo veículo adicionado",
+      description: "O veículo foi adicionado com sucesso.",
+    });
+  };
+
+  const updateVehicle = (id: string, vehicle: Partial<Vehicle>) => {
+    const updatedVehicles = vehicles.map(v => {
+      if (v.id === id) {
+        return { ...v, ...vehicle, updatedAt: new Date().toISOString() };
+      }
+      return v;
+    });
+    setVehicles(updatedVehicles);
+    toast({
+      title: "Veículo atualizado",
+      description: "O veículo foi atualizado com sucesso.",
+    });
+  };
+
+  const deleteVehicle = (id: string) => {
+    setVehicles(vehicles.filter(vehicle => vehicle.id !== id));
+    toast({
+      title: "Veículo removido",
+      description: "O veículo foi removido com sucesso.",
+    });
+  };
+  
   return (
     <LogbookContext.Provider value={{
       entries,
@@ -343,6 +430,10 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       addTireMaintenance,
       updateTireMaintenance,
       getTireMaintenanceById,
+      deleteTireMaintenance,
+      addVehicle,
+      updateVehicle,
+      deleteVehicle,
       loading,
     }}>
       {children}

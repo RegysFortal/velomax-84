@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -108,7 +107,6 @@ export function TireMaintenanceForm({ maintenance, onComplete, onCancel }: TireM
         toast.success("Manutenção de pneu atualizada com sucesso");
       } else {
         await addTireMaintenance({
-          id: uuidv4(),
           vehicleId: formattedData.vehicleId,
           maintenanceType: formattedData.maintenanceType,
           date: formattedData.date,
@@ -118,8 +116,6 @@ export function TireMaintenanceForm({ maintenance, onComplete, onCancel }: TireM
           cost: formattedData.cost,
           mileage: formattedData.mileage,
           description: formattedData.description,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         });
         toast.success("Manutenção de pneu registrada com sucesso");
       }
