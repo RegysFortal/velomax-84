@@ -1,8 +1,11 @@
+import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { LogbookEntry, Employee } from '@/types';
 import { useLogbook } from '@/contexts/LogbookContext';
-import { DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -19,277 +22,308 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Textarea } from '@/components/ui/textarea';
 
-// Schema de validação do formulário
 const formSchema = z.object({
-  vehicleId: z.string({
-    required_error: "Selecione um veículo",
+  vehicleId: z.string().min(1, {
+    message: "Selecione um veículo.",
   }),
-  driverId: z.string({
-    required_error: "Selecione um motorista",
+  driverId: z.string().min(1, {
+    message: "Selecione um motorista.",
   }),
   assistantId: z.string().optional(),
-  date: z.string({
-    required_error: "Insira a data",
+  date: z.string().min(1, {
+    message: "Selecione uma data.",
   }),
-  departureTime: z.string({
-    required_error: "Insira a hora de saída",
+  departureTime: z.string().min(1, {
+    message: "Informe a hora de saída.",
   }),
-  departureOdometer: z.coerce.number({
-    required_error: "Insira o odômetro de saída",
-    invalid_type_error: "Insira um número válido",
-  }).positive(),
+  departureOdometer: z.coerce.number().min(0, {
+    message: "Informe a km de saída.",
+  }),
+  destination: z.string().min(2, {
+    message: "Informe o destino.",
+  }),
+  purpose: z.string().min(2, {
+    message: "Informe o propósito da viagem.",
+  }),
   returnTime: z.string().optional(),
-  endOdometer: z.coerce.number().positive().optional(),
-  notes: z.string().max(300).optional(),
+  endOdometer: z.coerce.number().optional(),
+  notes: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
-
 interface LogbookEntryFormProps {
+  initialData?: LogbookEntry;
   entryId?: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProps) => {
+const LogbookEntryForm = ({ 
+  initialData, 
+  entryId, 
+  onSuccess, 
+  onCancel 
+}: LogbookEntryFormProps) => {
   const { 
-    vehicles,
-    employees,
-    getLogbookEntryById,
-    addLogbookEntry,
-    updateLogbookEntry
+    vehicles, 
+    employees, 
+    addLogbookEntry, 
+    updateLogbookEntry, 
+    getLogbookEntryById 
   } = useLogbook();
 
-  // Se temos um ID, busca a entrada para edição
-  const existingEntry = entryId ? getLogbookEntryById(entryId) : undefined;
+  // Filter employees by their role
+  const drivers = employees.filter(employee => 
+    employee.position === 'driver' || employee.position === 'Driver'
+  );
+  
+  const assistants = employees.filter(employee => 
+    employee.position === 'assistant' || employee.position === 'Assistant'
+  );
 
-  // Filtramos os funcionários pelo papel (usando a propriedade role)
-  const drivers = employees.filter(emp => emp.role === 'driver');
-  const assistants = employees.filter(emp => emp.role === 'assistant');
-
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: existingEntry ? {
-      vehicleId: existingEntry.vehicleId,
-      driverId: existingEntry.driverId,
-      assistantId: existingEntry.assistantId || "",
-      date: existingEntry.date,
-      departureTime: existingEntry.departureTime,
-      departureOdometer: existingEntry.departureOdometer,
-      returnTime: existingEntry.returnTime || "",
-      endOdometer: existingEntry.endOdometer || undefined,
-      notes: existingEntry.notes || "",
-    } : {
-      vehicleId: "",
-      driverId: "",
-      assistantId: "",
-      date: format(new Date(), "yyyy-MM-dd"),
-      departureTime: format(new Date(), "HH:mm"),
-      departureOdometer: 0,
-      returnTime: "",
-      endOdometer: undefined,
-      notes: "",
-    }
+    defaultValues: {
+      vehicleId: initialData?.vehicleId || "",
+      driverId: initialData?.driverId || "",
+      assistantId: initialData?.assistantId || "",
+      date: initialData?.date || new Date().toISOString().split('T')[0],
+      departureTime: initialData?.departureTime || "",
+      departureOdometer: initialData?.departureOdometer || 0,
+      destination: initialData?.destination || "",
+      purpose: initialData?.purpose || "",
+      returnTime: initialData?.returnTime || "",
+      endOdometer: initialData?.endOdometer || undefined,
+      notes: initialData?.notes || "",
+    },
   });
 
-  const onSubmit = async (data: FormValues) => {
-    try {
-      if (existingEntry) {
-        await updateLogbookEntry(existingEntry.id, {
-          ...data,
-          endOdometer: data.endOdometer || undefined,
-        });
-      } else {
-        await addLogbookEntry({
-          vehicleId: data.vehicleId,
-          driverId: data.driverId,
-          date: data.date,
-          departureDate: data.date, // Use the same date for departureDate
-          departureTime: data.departureTime,
-          departureOdometer: data.departureOdometer,
-          returnTime: data.returnTime || undefined,
-          endOdometer: data.endOdometer || undefined,
-          notes: data.notes || "",
-          status: data.returnTime ? 'completed' : 'ongoing', // Set status based on return time
-          startOdometer: data.departureOdometer // Set start odometer to departure odometer
-        });
+  useEffect(() => {
+    if (entryId) {
+      const entry = getLogbookEntryById(entryId);
+      if (entry) {
+        form.setValue("vehicleId", entry.vehicleId);
+        form.setValue("driverId", entry.driverId);
+        form.setValue("assistantId", entry.assistantId || "");
+        form.setValue("date", entry.date);
+        form.setValue("departureTime", entry.departureTime);
+        form.setValue("departureOdometer", entry.departureOdometer);
+        form.setValue("destination", entry.destination);
+        form.setValue("purpose", entry.purpose);
+        form.setValue("returnTime", entry.returnTime || "");
+        form.setValue("endOdometer", entry.endOdometer || undefined);
+        form.setValue("notes", entry.notes || "");
       }
-      onSuccess();
-    } catch (error) {
-      console.error("Erro ao salvar registro:", error);
     }
+  }, [entryId, getLogbookEntryById, form]);
+
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    if (entryId) {
+      // Update existing entry
+      updateLogbookEntry(entryId, {
+        vehicleId: data.vehicleId,
+        driverId: data.driverId,
+        assistantId: data.assistantId === "" ? undefined : data.assistantId,
+        departureTime: data.departureTime,
+        departureOdometer: Number(data.departureOdometer),
+        date: data.date,
+        destination: data.destination,
+        purpose: data.purpose,
+        returnTime: data.returnTime === "" ? undefined : data.returnTime,
+        endOdometer: data.endOdometer ? Number(data.endOdometer) : undefined,
+        notes: data.notes,
+        status: data.returnTime ? 'completed' : 'ongoing',
+      });
+    } else {
+      // Add new entry
+      addLogbookEntry({
+        vehicleId: data.vehicleId,
+        driverId: data.driverId,
+        assistantId: data.assistantId === "" ? undefined : data.assistantId,
+        departureTime: data.departureTime,
+        departureOdometer: Number(data.departureOdometer),
+        date: data.date,
+        destination: data.destination,
+        purpose: data.purpose,
+        returnTime: data.returnTime === "" ? undefined : data.returnTime,
+        endOdometer: data.endOdometer ? Number(data.endOdometer) : undefined,
+        tripDistance: data.endOdometer && Number(data.endOdometer) > Number(data.departureOdometer) ? 
+          Number(data.endOdometer) - Number(data.departureOdometer) : undefined,
+        notes: data.notes,
+        status: data.returnTime ? 'completed' : 'ongoing',
+      });
+    }
+    onSuccess();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="vehicleId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Veículo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um veículo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {vehicles.map(vehicle => (
-                      <SelectItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.plate} - {vehicle.model} ({vehicle.make})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="driverId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Motorista</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um motorista" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {drivers.map(driver => (
-                      <SelectItem key={driver.id} value={driver.id}>
-                        {driver.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="assistantId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Ajudante (opcional)</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um ajudante" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
-                    {assistants.map(assistant => (
-                      <SelectItem key={assistant.id} value={assistant.id}>
-                        {assistant.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data</FormLabel>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="vehicleId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Veículo</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um veículo" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="departureTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hora de saída</FormLabel>
+                <SelectContent>
+                  {vehicles.map((vehicle) => (
+                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.plate} - {vehicle.model}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="driverId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Motorista</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <Input type="time" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um motorista" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="departureOdometer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Odômetro saída (km)</FormLabel>
+                <SelectContent>
+                  {drivers.map((driver) => (
+                    <SelectItem key={driver.id} value={driver.id}>
+                      {driver.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="assistantId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Ajudante</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <Input type="number" min="0" step="1" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um ajudante" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="returnTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hora de retorno (opcional)</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Preencha apenas quando o veículo retornar
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endOdometer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Odômetro retorno (km)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    step="1" 
-                    {...field} 
-                    value={field.value || ''} 
-                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : '')}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Preencha apenas quando o veículo retornar
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
+                <SelectContent>
+                  <SelectItem value="">Nenhum</SelectItem>
+                  {assistants.map((assistant) => (
+                    <SelectItem key={assistant.id} value={assistant.id}>
+                      {assistant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Data</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="departureTime"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hora de Saída</FormLabel>
+              <FormControl>
+                <Input type="time" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="departureOdometer"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Km de Saída</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="0" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="destination"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Destino</FormLabel>
+              <FormControl>
+                <Input placeholder="Para onde o veículo está indo?" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="purpose"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Propósito</FormLabel>
+              <FormControl>
+                <Input placeholder="Qual o objetivo da viagem?" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="returnTime"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hora de Retorno</FormLabel>
+              <FormControl>
+                <Input type="time" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="endOdometer"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Km de Retorno</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="0" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="notes"
@@ -297,24 +331,20 @@ const LogbookEntryForm = ({ entryId, onSuccess, onCancel }: LogbookEntryFormProp
             <FormItem>
               <FormLabel>Observações</FormLabel>
               <FormControl>
-                <Textarea placeholder="Observações sobre a viagem..." {...field} />
+                <Textarea placeholder="Alguma observação?" {...field} />
               </FormControl>
-              <FormDescription>
-                Máximo de 300 caracteres
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <DialogFooter className="gap-2 sm:gap-0">
+        <div className="flex justify-end gap-2 mt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
           <Button type="submit">
-            {existingEntry ? 'Atualizar registro' : 'Criar registro'}
+            {entryId ? 'Atualizar' : 'Registrar'}
           </Button>
-        </DialogFooter>
+        </div>
       </form>
     </Form>
   );

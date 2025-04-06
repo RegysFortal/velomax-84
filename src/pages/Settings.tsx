@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -12,15 +10,17 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,21 +33,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
+import { Plus, User, Settings as SettingsIcon, ShieldCheck } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { ProfileUpdateForm } from '@/components/user/ProfileUpdateForm';
-import { PasswordUpdateForm } from '@/components/user/PasswordUpdateForm';
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { User } from '@/types';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const initialUserState = {
   name: '',
@@ -125,7 +129,7 @@ export default function Settings() {
   const [newUser, setNewUser] = useState(initialUserState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
-  const { user, users, updateUserProfile, createUser } = useAuth();
+  const { user, users, updateUserProfile, createUser, updatePassword, deleteUser } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<UserFormValues>({
@@ -176,7 +180,7 @@ export default function Settings() {
         email: newUser.email,
         role: newUser.role as 'admin' | 'manager' | 'user',
         permissions: getPermissionsFromRole(newUser.role),
-        updatedAt: new Date().toISOString(), // Adding the updatedAt property
+        updatedAt: new Date().toISOString(),
       };
       
       await createUser(userData);
@@ -209,6 +213,39 @@ export default function Settings() {
       toast.error('Erro ao atualizar permissões');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdatePassword = async (data: PasswordFormData) => {
+    try {
+      await updatePassword(data.currentPassword, data.newPassword);
+      toast({
+        title: "Senha atualizada",
+        description: "Sua senha foi atualizada com sucesso.",
+      });
+      passwordForm.reset();
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar senha",
+        description: "Não foi possível atualizar sua senha. Verifique se a senha atual está correta.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    try {
+      await deleteUser(id);
+      toast({
+        title: "Usuário excluído",
+        description: "O usuário foi excluído com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir usuário",
+        description: "Não foi possível excluir o usuário.",
+        variant: "destructive",
+      });
     }
   };
 

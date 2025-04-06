@@ -1,11 +1,16 @@
+import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { FuelRecord } from '@/types';
 import { useLogbook } from '@/contexts/LogbookContext';
-import { DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,107 +23,118 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 
-// Schema de validação do formulário
 const formSchema = z.object({
-  vehicleId: z.string({
-    required_error: "Selecione um veículo",
+  vehicleId: z.string().min(1, {
+    message: "Selecione um veículo.",
   }),
-  date: z.string({
-    required_error: "Insira a data",
+  date: z.string().min(1, {
+    message: "Selecione uma data.",
   }),
-  odometer: z.coerce.number({
-    required_error: "Insira o odômetro atual",
-    invalid_type_error: "Insira um número válido",
-  }).positive(),
-  liters: z.coerce.number({
-    required_error: "Insira a quantidade de litros",
-    invalid_type_error: "Insira um número válido",
-  }).positive(),
-  pricePerLiter: z.coerce.number({
-    required_error: "Insira o preço por litro",
-    invalid_type_error: "Insira um número válido",
-  }).positive(),
+  odometer: z.coerce.number().min(0, {
+    message: "O hodômetro deve ser um número positivo.",
+  }),
+  liters: z.coerce.number().min(0, {
+    message: "O número de litros deve ser um número positivo.",
+  }),
+  pricePerLiter: z.coerce.number().min(0, {
+    message: "O preço por litro deve ser um número positivo.",
+  }),
+  totalCost: z.coerce.number().min(0, {
+    message: "O custo total deve ser um número positivo.",
+  }),
+  fuelType: z.enum(['gasoline', 'diesel', 'ethanol', 'other'], {
+    required_error: "Selecione um tipo de combustível.",
+  }),
+  isFull: z.boolean().default(true),
+  station: z.string().min(2, {
+    message: "O nome do posto deve ter pelo menos 2 caracteres.",
+  }),
+  notes: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
-
 interface FuelRecordFormProps {
+  initialData?: FuelRecord;
   recordId?: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) => {
+const FuelRecordForm = ({ 
+  initialData, 
+  recordId, 
+  onSuccess, 
+  onCancel 
+}: FuelRecordFormProps) => {
   const { 
-    vehicles,
-    getFuelRecordById,
-    addFuelRecord,
-    updateFuelRecord
+    vehicles, 
+    addFuelRecord, 
+    updateFuelRecord, 
+    getFuelRecordById 
   } = useLogbook();
 
-  // Se temos um ID, busca o registro para edição
-  const existingRecord = recordId ? getFuelRecordById(recordId) : undefined;
-
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: existingRecord ? {
-      vehicleId: existingRecord.vehicleId,
-      date: existingRecord.date,
-      odometer: existingRecord.odometer,
-      liters: existingRecord.liters,
-      pricePerLiter: existingRecord.pricePerLiter,
-    } : {
-      vehicleId: "",
-      date: format(new Date(), "yyyy-MM-dd"),
-      odometer: 0,
-      liters: 0,
-      pricePerLiter: 0,
-    }
+    defaultValues: {
+      vehicleId: initialData?.vehicleId || '',
+      date: initialData?.date || new Date().toISOString().split('T')[0],
+      odometer: initialData?.odometer || 0,
+      liters: initialData?.liters || 0,
+      pricePerLiter: initialData?.pricePerLiter || 0,
+      totalCost: initialData?.totalCost || 0,
+      fuelType: initialData?.fuelType || 'gasoline',
+      isFull: initialData?.isFull || true,
+      station: initialData?.station || '',
+      notes: initialData?.notes || '',
+    },
   });
 
-  // Calcular o valor total do abastecimento
-  const watchLiters = form.watch('liters');
-  const watchPricePerLiter = form.watch('pricePerLiter');
-  const totalValue = (watchLiters || 0) * (watchPricePerLiter || 0);
-
-  const onSubmit = async (data: FormValues) => {
-    try {
-      // Calcular o valor total
-      const totalCost = data.liters * data.pricePerLiter;
-      
-      if (existingRecord) {
-        await updateFuelRecord(existingRecord.id, {
-          ...data,
-          totalCost
-        });
-      } else {
-        await addFuelRecord({
-          vehicleId: data.vehicleId,
-          date: data.date,
-          odometer: data.odometer,
-          liters: data.liters,
-          pricePerLiter: data.pricePerLiter,
-          totalCost,
-          fuelType: 'flex', // Default fuel type
-          isFull: true, // Default value for isFull
-          station: '',  // Default value for station
-          notes: ''  // Default value for notes
-        });
+  useEffect(() => {
+    if (recordId) {
+      const record = getFuelRecordById(recordId);
+      if (record) {
+        form.setValue("vehicleId", record.vehicleId);
+        form.setValue("date", record.date);
+        form.setValue("odometer", record.odometer);
+        form.setValue("liters", record.liters);
+        form.setValue("pricePerLiter", record.pricePerLiter);
+        form.setValue("totalCost", record.totalCost);
+        form.setValue("fuelType", record.fuelType);
+        form.setValue("isFull", record.isFull);
+        form.setValue("station", record.station);
+        form.setValue("notes", record.notes || "");
       }
-      
-      onSuccess();
-    } catch (error) {
-      console.error("Erro ao salvar registro de abastecimento:", error);
     }
+  }, [recordId, getFuelRecordById, form]);
+
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    const fuelData = {
+      vehicleId: data.vehicleId,
+      date: data.date,
+      odometer: Number(data.odometer),
+      liters: Number(data.liters),
+      pricePerLiter: Number(data.pricePerLiter),
+      totalCost: Number(data.totalCost),
+      fuelType: data.fuelType,
+      isFull: data.isFull,
+      station: data.station,
+      notes: data.notes,
+    };
+
+    if (recordId) {
+      updateFuelRecord(recordId, fuelData);
+    } else {
+      addFuelRecord(fuelData);
+    }
+    onSuccess();
+    form.reset();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="vehicleId"
@@ -132,9 +148,9 @@ const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) 
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {vehicles.map(vehicle => (
+                  {vehicles.map((vehicle) => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.plate} - {vehicle.model} ({vehicle.brand})
+                      {vehicle.model} - {vehicle.licensePlate}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -143,92 +159,148 @@ const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) 
             </FormItem>
           )}
         />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data do abastecimento</FormLabel>
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Data</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="odometer"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hodômetro</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="Hodômetro" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="liters"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Litros</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="Litros" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="pricePerLiter"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Preço por Litro</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="Preço por Litro" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="totalCost"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Custo Total</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="Custo Total" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="fuelType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo de Combustível</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um tipo" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="odometer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Odômetro (km)</FormLabel>
-                <FormControl>
-                  <Input type="number" min="0" step="1" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="liters"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Litros abastecidos</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    step="0.01"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="pricePerLiter"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Preço por litro (R$)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    step="0.01"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="bg-muted p-4 rounded-md">
-          <div className="flex justify-between">
-            <span className="font-medium">Total do abastecimento:</span>
-            <span className="font-bold">R$ {totalValue.toFixed(2)}</span>
-          </div>
-        </div>
-
-        <DialogFooter className="gap-2 sm:gap-0">
+                <SelectContent>
+                  <SelectItem value="gasoline">Gasolina</SelectItem>
+                  <SelectItem value="diesel">Diesel</SelectItem>
+                  <SelectItem value="ethanol">Etanol</SelectItem>
+                  <SelectItem value="other">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="isFull"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center space-x-2 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormLabel>Tanque Cheio?</FormLabel>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="station"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Posto</FormLabel>
+              <FormControl>
+                <Input placeholder="Nome do Posto" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notas</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Informações adicionais"
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-end gap-2 mt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
           <Button type="submit">
-            {existingRecord ? 'Atualizar registro' : 'Registrar abastecimento'}
+            {recordId ? 'Atualizar' : 'Registrar'}
           </Button>
-        </DialogFooter>
+        </div>
       </form>
     </Form>
   );

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ export default function Cities() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedCity, setSelectedCity] = useState<City | undefined>(undefined);
   
-  const { reset, ...form } = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -68,7 +69,7 @@ export default function Cities() {
       distance: data.distance
     });
     setIsAddDialogOpen(false);
-    reset();
+    form.reset();
   };
   
   const handleEditClick = (city: City) => {
@@ -87,7 +88,7 @@ export default function Cities() {
         distance: data.distance
       });
       setIsEditDialogOpen(false);
-      reset();
+      form.reset();
     }
   };
   
@@ -107,7 +108,7 @@ export default function Cities() {
               Gerencie as cidades disponíveis para entregas.
             </p>
           </div>
-          <Dialog>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
