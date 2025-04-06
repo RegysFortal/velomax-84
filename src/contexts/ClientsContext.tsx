@@ -16,7 +16,8 @@ type ClientsContextType = {
 const INITIAL_CLIENTS: Client[] = [
   {
     id: 'client-1',
-    name: 'Supermercado Nordeste',
+    name: 'Supermercado Nordeste LTDA',
+    tradingName: 'Supermercado Nordeste',
     street: 'Av. Dom Luis',
     number: '500',
     complement: 'Sala 302',
@@ -33,7 +34,8 @@ const INITIAL_CLIENTS: Client[] = [
   },
   {
     id: 'client-2',
-    name: 'Farmácia Popular',
+    name: 'Farmácia Popular Comércio de Medicamentos LTDA',
+    tradingName: 'Farmácia Popular',
     street: 'Rua Padre Valdevino',
     number: '100',
     complement: '',
@@ -50,7 +52,8 @@ const INITIAL_CLIENTS: Client[] = [
   },
   {
     id: 'client-3',
-    name: 'Hospital São Camilo',
+    name: 'Hospital São Camilo S.A.',
+    tradingName: 'Hospital São Camilo',
     street: 'Av. Barão de Studart',
     number: '2000',
     complement: 'Bloco A',
@@ -67,7 +70,8 @@ const INITIAL_CLIENTS: Client[] = [
   },
   {
     id: 'client-4',
-    name: 'Distribuidora Central',
+    name: 'Distribuidora Central Comércio e Serviços LTDA',
+    tradingName: 'Distribuidora Central',
     street: 'Rodovia BR-116',
     number: 'Km 10',
     complement: 'Galpão 5',

@@ -40,10 +40,11 @@ const Deliveries = () => {
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
 
   const filteredDeliveries = deliveries.filter(delivery => {
-    const clientName = clients.find(c => c.id === delivery.clientId)?.name || '';
+    const client = clients.find(c => c.id === delivery.clientId);
     const searchFields = [
       delivery.minuteNumber,
-      clientName,
+      client?.tradingName || '',
+      client?.name || '',
       delivery.receiver,
       delivery.deliveryDate,
     ].join(' ').toLowerCase();
@@ -128,7 +129,7 @@ const Deliveries = () => {
                     return (
                       <TableRow key={delivery.id}>
                         <TableCell>{delivery.minuteNumber}</TableCell>
-                        <TableCell>{client?.name || 'Cliente não encontrado'}</TableCell>
+                        <TableCell>{client?.tradingName || 'Cliente não encontrado'}</TableCell>
                         <TableCell>{delivery.deliveryDate}</TableCell>
                         <TableCell>{delivery.deliveryTime}</TableCell>
                         <TableCell>{delivery.receiver}</TableCell>

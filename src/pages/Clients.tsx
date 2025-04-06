@@ -53,6 +53,7 @@ const ClientForm = ({
   const [activeTab, setActiveTab] = useState("general");
   const [formData, setFormData] = useState<Omit<Client, 'id' | 'createdAt' | 'updatedAt'>>({
     name: initialData?.name || '',
+    tradingName: initialData?.tradingName || '',
     street: initialData?.street || '',
     number: initialData?.number || '',
     complement: initialData?.complement || '',
@@ -138,11 +139,23 @@ const ClientForm = ({
           
           <TabsContent value="general" className="space-y-4">
             <div>
-              <Label htmlFor="name">Nome do Cliente</Label>
+              <Label htmlFor="name">Razão Social</Label>
               <Input
                 id="name"
                 name="name"
                 value={formData.name}
+                onChange={handleChange}
+                required
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="tradingName">Nome Fantasia</Label>
+              <Input
+                id="tradingName"
+                name="tradingName"
+                value={formData.tradingName}
                 onChange={handleChange}
                 required
                 className="mt-1"
@@ -379,7 +392,10 @@ const ClientCard = ({ client, canEdit }: { client: Client, canEdit: boolean }) =
     <Card>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-xl">{client.name}</CardTitle>
+          <div>
+            <CardTitle className="text-xl">{client.tradingName}</CardTitle>
+            <p className="text-sm text-muted-foreground">{client.name}</p>
+          </div>
           {canEdit && (
             <div className="flex space-x-2">
               <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

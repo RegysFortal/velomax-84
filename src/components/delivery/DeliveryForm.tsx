@@ -246,7 +246,7 @@ export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
                       <SelectContent>
                         {clients.map((client) => (
                           <SelectItem key={client.id} value={client.id}>
-                            {client.name}
+                            {client.tradingName} ({client.name})
                           </SelectItem>
                         ))}
                       </SelectContent>

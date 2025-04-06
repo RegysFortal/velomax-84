@@ -31,7 +31,8 @@ export interface UserPermissions {
 
 export interface Client {
   id: string;
-  name: string;
+  name: string; // Manteremos o nome do campo para compatibilidade, mas será a razão social
+  tradingName: string; // Nome fantasia
   street: string;
   number: string;
   complement?: string;
