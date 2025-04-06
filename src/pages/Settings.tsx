@@ -117,7 +117,7 @@ const defaultSettings: SystemSettingsData = {
   theme: 'light',
 };
 
-const SettingsPage = () => {
+const Settings = () => {
   const { user, updateUserProfile, users, createUser, deleteUser, resetUserPassword, loading } = useAuth();
   const { theme, setTheme } = useTheme();
   const { cities } = useCities();
@@ -142,6 +142,33 @@ const SettingsPage = () => {
     confirmPassword: '',
   });
   const [systemSettings, setSystemSettings] = useState<SystemSettingsData>(defaultSettings);
+  const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
+  const [newUserData, setNewUserData] = useState<UserFormData>({
+    name: '',
+    username: '',
+    email: '',
+    role: 'user',
+    permissions: {
+      // Operational permissions
+      deliveries: false,
+      shipments: false,
+      
+      // Financial permissions
+      clients: false,
+      cities: false,
+      reports: false,
+      financial: false,
+      priceTables: false,
+      
+      // Management permissions
+      dashboard: true, // Default to true for dashboard
+      logbook: false,
+      employees: false,
+      vehicles: false,
+      maintenance: false,
+      settings: false,
+    }
+  });
   const { toast } = useToast();
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<SystemSettingsData>({
@@ -488,48 +515,74 @@ const SettingsPage = () => {
   const watchRole = watchUser('role');
   const isAdmin = watchRole === 'admin';
 
-  const createUser = async (formData: FormData) => {
-    const name = formData.get("name") as string;
-    const username = formData.get("username") as string;
-    const email = formData.get("email") as string;
-    const role = formData.get("role") as "admin" | "manager" | "user";
-    const permissions = {
-      deliveries: formData.get("perm-deliveries") === "on",
-      shipments: formData.get("perm-shipments") === "on",
-      clients: formData.get("perm-clients") === "on",
-      cities: formData.get("perm-cities") === "on",
-      reports: formData.get("perm-reports") === "on",
-      financial: formData.get("perm-financial") === "on",
-      priceTables: formData.get("perm-price-tables") === "on",
-      dashboard: formData.get("perm-dashboard") === "on",
-      logbook: formData.get("perm-logbook") === "on",
-      employees: formData.get("perm-employees") === "on",
-      vehicles: formData.get("perm-vehicles") === "on",
-      maintenance: formData.get("perm-maintenance") === "on",
-      settings: formData.get("perm-settings") === "on",
-    };
+  const createUser = async (userData: { 
+    name: string; 
+    username: string; 
+    email: string;
+    role: 'admin' | 'manager' | 'user';
+    permissions: {
+      deliveries: boolean;
+      shipments: boolean;
+      clients: boolean;
+      cities: boolean;
+      reports: boolean;
+      financial: boolean;
+      priceTables: boolean;
+      dashboard: boolean;
+      logbook: boolean;
+      employees: boolean;
+      vehicles: boolean;
+      maintenance: boolean;
+      settings: boolean;
+    }
+  }) => {
+    setIsCreatingUser(true);
     
     try {
-      await addUser({
-        name,
-        username,
-        email,
-        role,
-        permissions
+      const newUser = {
+        id: `user-${Date.now()}`,
+        ...userData,
+        createdAt: new Date().toISOString(),
+      };
+      
+      setUsers(prev => [...prev, newUser]);
+      setNewUserData({
+        name: '',
+        username: '',
+        email: '',
+        role: 'user',
+        permissions: {
+          deliveries: false,
+          shipments: false,
+          clients: false,
+          cities: false,
+          reports: false,
+          financial: false,
+          priceTables: false,
+          dashboard: false,
+          logbook: false,
+          employees: false,
+          vehicles: false,
+          maintenance: false,
+          settings: false,
+        }
       });
       
       toast({
         title: "Usuário criado",
-        description: `O usuário ${username} foi criado com sucesso.`,
+        description: `Usuário ${userData.name} criado com sucesso.`,
       });
       
-      setIsAddUserDialogOpen(false);
+      setIsNewUserDialogOpen(false);
     } catch (error) {
+      console.error(error);
       toast({
-        title: "Erro ao criar usuário",
-        description: "Ocorreu um erro ao criar o usuário. Tente novamente.",
+        title: "Erro",
+        description: "Não foi possível criar o usuário.",
         variant: "destructive",
       });
+    } finally {
+      setIsCreatingUser(false);
     }
   };
 
@@ -1083,6 +1136,244 @@ const SettingsPage = () => {
           </DialogContent>
         </Dialog>
 
+        <Dialog open={isNewUserDialogOpen} onOpenChange={setIsNewUserDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Adicionar novo usuário</DialogTitle>
+              <DialogDescription>
+                Preencha os dados do novo usuário
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  value={newUserData.name}
+                  onChange={(e) => setNewUserData({ ...newUserData, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">Usuário</Label>
+                <Input
+                  id="username"
+                  value={newUserData.username}
+                  onChange={(e) => setNewUserData({ ...newUserData, username: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newUserData.email}
+                  onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Função</Label>
+                <Select 
+                  value={newUserData.role} 
+                  onValueChange={(value: 'admin' | 'manager' | 'user') => 
+                    setNewUserData({ ...newUserData, role: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a função" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="manager">Gerente</SelectItem>
+                    <SelectItem value="user">Usuário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Permissões</Label>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permDeliveries">Entregas</Label>
+                    <Switch 
+                      id="permDeliveries" 
+                      checked={isAdmin || watchUser('permissions.deliveries')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.deliveries', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permShipments">Embarques</Label>
+                    <Switch 
+                      id="permShipments" 
+                      checked={isAdmin || watchUser('permissions.shipments')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.shipments', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permClients">Clientes</Label>
+                    <Switch 
+                      id="permClients" 
+                      checked={isAdmin || watchUser('permissions.clients')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.clients', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permCities">Cidades</Label>
+                    <Switch 
+                      id="permCities" 
+                      checked={isAdmin || watchUser('permissions.cities')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.cities', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permReports">Relatórios</Label>
+                    <Switch 
+                      id="permReports" 
+                      checked={isAdmin || watchUser('permissions.reports')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.reports', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permFinancial">Financeiro</Label>
+                    <Switch 
+                      id="permFinancial" 
+                      checked={isAdmin || watchUser('permissions.financial')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.financial', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permPriceTables">Tabelas de Preços</Label>
+                    <Switch 
+                      id="permPriceTables" 
+                      checked={isAdmin || watchUser('permissions.priceTables')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.priceTables', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permDashboard">Dashboard</Label>
+                    <Switch 
+                      id="permDashboard" 
+                      checked={isAdmin || watchUser('permissions.dashboard')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.dashboard', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permLogbook">Diário de Bordo</Label>
+                    <Switch 
+                      id="permLogbook" 
+                      checked={isAdmin || watchUser('permissions.logbook')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.logbook', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permEmployees">Funcionários</Label>
+                    <Switch 
+                      id="permEmployees" 
+                      checked={isAdmin || watchUser('permissions.employees')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.employees', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permVehicles">Veículos</Label>
+                    <Switch 
+                      id="permVehicles" 
+                      checked={isAdmin || watchUser('permissions.vehicles')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.vehicles', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permMaintenance">Manutenções</Label>
+                    <Switch 
+                      id="permMaintenance" 
+                      checked={isAdmin || watchUser('permissions.maintenance')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.maintenance', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permSettings">Configurações</Label>
+                    <Switch 
+                      id="permSettings" 
+                      checked={isAdmin || watchUser('permissions.settings')}
+                      onCheckedChange={(checked) => 
+                        setUserValue('permissions.settings', checked)
+                      }
+                      disabled={isAdmin}
+                    />
+                  </div>
+                </div>
+                
+                {isAdmin && (
+                  <div className="text-sm text-muted-foreground mt-2 p-2 bg-muted rounded-md">
+                    <strong>Nota:</strong> Administradores possuem acesso completo a todas as funcionalidades do sistema. As permissões são automaticamente habilitadas.
+                  </div>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsNewUserDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => createUser(newUserData)}
+                disabled={isCreatingUser || !newUserData.name || !newUserData.username || !newUserData.email}
+              >
+                {isCreatingUser ? "Criando..." : "Criar usuário"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
           <DialogContent className="sm:max-w-[400px]">
             <DialogHeader>
@@ -1121,4 +1412,4 @@ const SettingsPage = () => {
   );
 };
 
-export default SettingsPage;
+export default Settings;

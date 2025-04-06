@@ -78,7 +78,7 @@ const MaintenanceRegistrationForm = ({
       const maintenanceData = {
         vehicleId: formData.vehicleId,
         date: formData.date,
-        type: formData.type as 'preventive' | 'corrective' | 'emergency',
+        type: formData.type as 'preventive' | 'corrective' | 'emergency' | 'oil-change' | 'tire-change' | 'other',
         description: formData.description,
         cost: parseFloat(formData.cost),
         odometer: parseInt(formData.odometer),
@@ -161,6 +161,9 @@ const MaintenanceRegistrationForm = ({
               <SelectItem value="preventive">Preventiva</SelectItem>
               <SelectItem value="corrective">Corretiva</SelectItem>
               <SelectItem value="emergency">Emergencial</SelectItem>
+              <SelectItem value="oil-change">Troca de Óleo</SelectItem>
+              <SelectItem value="tire-change">Troca de Pneu</SelectItem>
+              <SelectItem value="other">Outros</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -334,10 +337,11 @@ const Maintenance = () => {
                             id: '', 
                             vehicleId: vehicle.id,
                             date: format(new Date(), 'yyyy-MM-dd'),
-                            type: '',
+                            type: 'other',
                             description: '',
                             cost: 0,
                             odometer: vehicle.currentOdometer,
+                            status: 'scheduled',
                             createdAt: '',
                             updatedAt: ''
                           });
@@ -357,10 +361,11 @@ const Maintenance = () => {
                             id: '', 
                             vehicleId: vehicle.id,
                             date: format(new Date(), 'yyyy-MM-dd'),
-                            type: 'Troca de Pneu',
-                            description: '',
+                            type: 'tire-change',
+                            description: 'Troca de Pneu',
                             cost: 0,
                             odometer: vehicle.currentOdometer,
+                            status: 'scheduled',
                             createdAt: '',
                             updatedAt: ''
                           });
@@ -490,10 +495,11 @@ const Maintenance = () => {
                                     id: '',
                                     vehicleId: vehicle.id,
                                     date: format(new Date(), 'yyyy-MM-dd'),
-                                    type: 'Troca de Óleo',
+                                    type: 'oil-change',
                                     description: 'Troca de óleo periódica.',
                                     cost: 0,
                                     odometer: vehicle.currentOdometer,
+                                    status: 'scheduled',
                                     createdAt: '',
                                     updatedAt: ''
                                   });

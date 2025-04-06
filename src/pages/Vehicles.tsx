@@ -51,6 +51,10 @@ const Vehicles = () => {
     currentOdometer: 0,
     lastOilChange: 0,
     nextOilChangeKm: 5000,
+    status: 'active' as 'active' | 'maintenance' | 'inactive',
+    brand: '',
+    type: 'car' as 'car' | 'motorcycle' | 'truck' | 'van',
+    fuelType: 'flex' as 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric',
   });
   const { toast } = useToast();
 
@@ -64,6 +68,10 @@ const Vehicles = () => {
         currentOdometer: editingVehicle.currentOdometer,
         lastOilChange: editingVehicle.lastOilChange,
         nextOilChangeKm: editingVehicle.nextOilChangeKm,
+        status: editingVehicle.status || 'active',
+        brand: editingVehicle.brand,
+        type: editingVehicle.type,
+        fuelType: editingVehicle.fuelType,
       });
     } else {
       resetForm();
@@ -86,20 +94,14 @@ const Vehicles = () => {
       if (editingVehicle) {
         await updateVehicle(editingVehicle.id, {
           ...formData,
-          status: formData.status || 'active',
         });
         toast({
           title: "Veículo atualizado",
           description: `O veículo ${formData.plate} foi atualizado com sucesso.`
         });
       } else {
-        // Add minimal required fields for a new vehicle
         await addVehicle({
           ...formData,
-          status: 'active',
-          brand: formData.make, // Set brand to same as make
-          type: 'car', // Default type
-          fuelType: 'flex', // Default fuel type
         });
         toast({
           title: "Veículo adicionado",
@@ -155,6 +157,10 @@ const Vehicles = () => {
       currentOdometer: 0,
       lastOilChange: 0,
       nextOilChangeKm: 5000,
+      status: 'active',
+      brand: '',
+      type: 'car',
+      fuelType: 'flex',
     });
   };
 
@@ -270,6 +276,72 @@ const Vehicles = () => {
                     onChange={handleChange}
                     required
                   />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="brand">Fabricante</Label>
+                  <Input
+                    type="text"
+                    id="brand"
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="type">Tipo</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) => handleSelectChange('type', value as 'car' | 'motorcycle' | 'truck' | 'van')}
+                  >
+                    <SelectTrigger id="type">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="car">Carro</SelectItem>
+                      <SelectItem value="motorcycle">Moto</SelectItem>
+                      <SelectItem value="truck">Caminhão</SelectItem>
+                      <SelectItem value="van">Van</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="fuelType">Combustível</Label>
+                  <Select
+                    value={formData.fuelType}
+                    onValueChange={(value) => handleSelectChange('fuelType', value as 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric')}
+                  >
+                    <SelectTrigger id="fuelType">
+                      <SelectValue placeholder="Selecione o combustível" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gasoline">Gasolina</SelectItem>
+                      <SelectItem value="diesel">Diesel</SelectItem>
+                      <SelectItem value="ethanol">Etanol</SelectItem>
+                      <SelectItem value="flex">Flex</SelectItem>
+                      <SelectItem value="electric">Elétrico</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => handleSelectChange('status', value as 'active' | 'maintenance' | 'inactive')}
+                  >
+                    <SelectTrigger id="status">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="maintenance">Em manutenção</SelectItem>
+                      <SelectItem value="inactive">Inativo</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

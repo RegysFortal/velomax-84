@@ -132,7 +132,7 @@ const FuelRecordForm = ({ recordId, onSuccess, onCancel }: FuelRecordFormProps) 
                 <SelectContent>
                   {vehicles.map(vehicle => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.plate} - {vehicle.model} ({vehicle.make})
+                      {vehicle.plate} - {vehicle.model} ({vehicle.brand})
                     </SelectItem>
                   ))}
                 </SelectContent>

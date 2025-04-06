@@ -1,8 +1,25 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -12,817 +29,711 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { usePriceTables } from '@/contexts/PriceTablesContext';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useFinancial } from '@/contexts/FinancialContext';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { PriceTable } from '@/types';
-import { Edit, Plus, Trash } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-// Form component for creating or updating price tables
-const PriceTableForm = ({
-  initialData,
-  onSubmit,
-  onCancel,
-}: {
-  initialData?: PriceTable;
-  onSubmit: (data: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  onCancel: () => void;
-}) => {
-  const [name, setName] = useState(initialData?.name || '');
-  const [currentTab, setCurrentTab] = useState('basic');
-  
-  // Minimum rates - Basic
-  const [standardDelivery, setStandardDelivery] = useState(initialData?.minimumRate.standardDelivery || 36);
-  const [saturdayCollection, setSaturdayCollection] = useState(initialData?.minimumRate.saturdayCollection || 72);
-  const [emergencyCollection, setEmergencyCollection] = useState(initialData?.minimumRate.emergencyCollection || 72);
-  const [exclusiveVehicle, setExclusiveVehicle] = useState(initialData?.minimumRate.exclusiveVehicle || 176);
-  const [scheduledDifficultAccess, setScheduledDifficultAccess] = useState(initialData?.minimumRate.scheduledDifficultAccess || 154);
-  
-  // Minimum rates - Biological and Special
-  const [normalBiological, setNormalBiological] = useState(initialData?.minimumRate.normalBiological || 72);
-  const [infectiousBiological, setInfectiousBiological] = useState(initialData?.minimumRate.infectiousBiological || 99);
-  const [sundayHoliday, setSundayHoliday] = useState(initialData?.minimumRate.sundayHoliday || 308);
-  const [metropolitanRegion, setMetropolitanRegion] = useState(initialData?.minimumRate.metropolitanRegion || 165);
-  const [nightExclusiveVehicle, setNightExclusiveVehicle] = useState(initialData?.minimumRate.nightExclusiveVehicle || 0);
-  const [trackedVehicle, setTrackedVehicle] = useState(initialData?.minimumRate.trackedVehicle || 440);
-  const [reshipment, setReshipment] = useState(initialData?.minimumRate.reshipment || 170);
-  const [doorToDoorInterior, setDoorToDoorInterior] = useState(initialData?.minimumRate.doorToDoorInterior || 200);
-  
-  // Excess weight rates
-  const [minPerKg, setMinPerKg] = useState(initialData?.excessWeight.minPerKg || 0.55);
-  const [maxPerKg, setMaxPerKg] = useState(initialData?.excessWeight.maxPerKg || 0.65);
-  const [biologicalPerKg, setBiologicalPerKg] = useState(initialData?.excessWeight.biologicalPerKg || 0.72);
-  const [reshipmentPerKg, setReshipmentPerKg] = useState(initialData?.excessWeight.reshipmentPerKg || 0.70);
-  
-  // Door to door rates
-  const [ratePerKm, setRatePerKm] = useState(initialData?.doorToDoor.ratePerKm || 2.4);
-  const [maxWeight, setMaxWeight] = useState(initialData?.doorToDoor.maxWeight || 100);
-  
-  // Waiting hour rates
-  const [fiorinoWaitingHour, setFiorinoWaitingHour] = useState(initialData?.waitingHour?.fiorino || 44);
-  const [mediumWaitingHour, setMediumWaitingHour] = useState(initialData?.waitingHour?.medium || 55);
-  const [largeWaitingHour, setLargeWaitingHour] = useState(initialData?.waitingHour?.large || 66);
-  
-  // Insurance rates
-  const [standardInsurance, setStandardInsurance] = useState(initialData?.insurance.standard || 0.01);
-  const [perishableInsurance, setPerishableInsurance] = useState(initialData?.insurance.perishable || 0.015);
-  
-  // Custom pricing options
-  const [allowCustomPricing, setAllowCustomPricing] = useState(initialData?.allowCustomPricing || false);
-  const [defaultDiscount, setDefaultDiscount] = useState(initialData?.defaultDiscount || 0);
-  
-  const handleSubmit = (e: React.FormEvent) => {
+interface PriceTableFormData {
+  name: string;
+  description: string;
+  minimumRate: {
+    standardDelivery: number;
+    emergencyCollection: number;
+    saturdayCollection: number;
+    exclusiveVehicle: number;
+    scheduledDifficultAccess: number;
+    metropolitanRegion: number;
+    sundayHoliday: number;
+    normalBiological: number;
+    infectiousBiological: number;
+    trackedVehicle: number;
+    doorToDoorInterior: number;
+    reshipment: number;
+  };
+  excessWeight: {
+    minPerKg: number;
+    maxPerKg: number;
+    biologicalPerKg: number;
+    reshipmentPerKg: number;
+  };
+  doorToDoor: {
+    ratePerKm: number;
+    maxWeight: number;
+  };
+  waitingHour: {
+    fiorino: number;
+    medium: number;
+    large: number;
+  };
+  insurance: {
+    standard: number;
+    perishable: number;
+  };
+  allowCustomPricing: boolean;
+  defaultDiscount: number;
+}
+
+const PriceTables = () => {
+  const { priceTables, addPriceTable, updatePriceTable, deletePriceTable } = useFinancial();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPriceTable, setEditingPriceTable] = useState<PriceTable | null>(null);
+  const [formData, setFormData] = useState<PriceTableFormData>(createEmptyPriceTable());
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (editingPriceTable) {
+      setFormData({
+        name: editingPriceTable.name,
+        description: editingPriceTable.description || '',
+        minimumRate: {
+          standardDelivery: editingPriceTable.minimumRate.standardDelivery,
+          emergencyCollection: editingPriceTable.minimumRate.emergencyCollection,
+          saturdayCollection: editingPriceTable.minimumRate.saturdayCollection,
+          exclusiveVehicle: editingPriceTable.minimumRate.exclusiveVehicle,
+          scheduledDifficultAccess: editingPriceTable.minimumRate.scheduledDifficultAccess,
+          metropolitanRegion: editingPriceTable.minimumRate.metropolitanRegion,
+          sundayHoliday: editingPriceTable.minimumRate.sundayHoliday,
+          normalBiological: editingPriceTable.minimumRate.normalBiological,
+          infectiousBiological: editingPriceTable.minimumRate.infectiousBiological,
+          trackedVehicle: editingPriceTable.minimumRate.trackedVehicle,
+          doorToDoorInterior: editingPriceTable.minimumRate.doorToDoorInterior,
+          reshipment: editingPriceTable.minimumRate.reshipment,
+        },
+        excessWeight: {
+          minPerKg: editingPriceTable.excessWeight.minPerKg,
+          maxPerKg: editingPriceTable.excessWeight.maxPerKg,
+          biologicalPerKg: editingPriceTable.excessWeight.biologicalPerKg,
+          reshipmentPerKg: editingPriceTable.excessWeight.reshipmentPerKg,
+        },
+        doorToDoor: {
+          ratePerKm: editingPriceTable.doorToDoor.ratePerKm,
+          maxWeight: editingPriceTable.doorToDoor.maxWeight || 0,
+        },
+        waitingHour: editingPriceTable.waitingHour ? {
+          fiorino: editingPriceTable.waitingHour.fiorino,
+          medium: editingPriceTable.waitingHour.medium,
+          large: editingPriceTable.waitingHour.large,
+        } : { fiorino: 0, medium: 0, large: 0 },
+        insurance: editingPriceTable.insurance ? {
+          standard: editingPriceTable.insurance.standard,
+          perishable: editingPriceTable.insurance.perishable,
+        } : { standard: 0, perishable: 0 },
+        allowCustomPricing: editingPriceTable.allowCustomPricing || false,
+        defaultDiscount: editingPriceTable.defaultDiscount || 0,
+      });
+    } else {
+      setFormData(createEmptyPriceTable());
+    }
+  }, [editingPriceTable]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (name.startsWith('minimumRate.')) {
+      const minimumRateKey = name.split('.')[1] as keyof PriceTableFormData['minimumRate'];
+      setFormData(prev => ({
+        ...prev,
+        minimumRate: {
+          ...prev.minimumRate,
+          [minimumRateKey]: type === 'number' ? parseFloat(value) : value,
+        },
+      }));
+    } else if (name.startsWith('excessWeight.')) {
+      const excessWeightKey = name.split('.')[1] as keyof PriceTableFormData['excessWeight'];
+      setFormData(prev => ({
+        ...prev,
+        excessWeight: {
+          ...prev.excessWeight,
+          [excessWeightKey]: type === 'number' ? parseFloat(value) : value,
+        },
+      }));
+    } else if (name.startsWith('doorToDoor.')) {
+      const doorToDoorKey = name.split('.')[1] as keyof PriceTableFormData['doorToDoor'];
+      setFormData(prev => ({
+        ...prev,
+        doorToDoor: {
+          ...prev.doorToDoor,
+          [doorToDoorKey]: type === 'number' ? parseFloat(value) : value,
+        },
+      }));
+    } else if (name.startsWith('waitingHour.')) {
+      const waitingHourKey = name.split('.')[1] as keyof PriceTableFormData['waitingHour'];
+      setFormData(prev => ({
+        ...prev,
+        waitingHour: {
+          ...prev.waitingHour,
+          [waitingHourKey]: type === 'number' ? parseFloat(value) : value,
+        },
+      }));
+    } else if (name.startsWith('insurance.')) {
+      const insuranceKey = name.split('.')[1] as keyof PriceTableFormData['insurance'];
+      setFormData(prev => ({
+        ...prev,
+        insurance: {
+          ...prev.insurance,
+          [insuranceKey]: type === 'number' ? parseFloat(value) : value,
+        },
+      }));
+    } else if (name === 'allowCustomPricing') {
+      setFormData(prev => ({
+        ...prev,
+        allowCustomPricing: checked,
+      }));
+    } else if (name === 'defaultDiscount') {
+      setFormData(prev => ({
+        ...prev,
+        defaultDiscount: type === 'number' ? parseFloat(value) : value,
+      }));
+    }
+    
+    else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleEdit = (priceTable: PriceTable) => {
+    setEditingPriceTable(priceTable);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePriceTable(id);
+      toast({
+        title: "Tabela de preços removida",
+        description: "A tabela de preços foi removida com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao remover tabela de preços:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao remover a tabela de preços.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const formData: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'> = {
-      name,
+    try {
+      if (editingPriceTable) {
+        await updatePriceTable(editingPriceTable.id, formData);
+        toast({
+          title: "Tabela de preços atualizada",
+          description: `A tabela de preços ${formData.name} foi atualizada com sucesso.`,
+        });
+      } else {
+        await addPriceTable(formData);
+        toast({
+          title: "Tabela de preços adicionada",
+          description: `A tabela de preços ${formData.name} foi adicionada com sucesso.`,
+        });
+      }
+      setEditingPriceTable(null);
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Erro ao salvar tabela de preços:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar a tabela de preços.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const getPriceTableById = (id: string) => {
+    const table = priceTables.find(table => table.id === id);
+    
+    if (table) {
+      return {
+        ...table,
+        minimumRate: {
+          standardDelivery: table.minimumRate.standardDelivery,
+          emergencyCollection: table.minimumRate.emergencyCollection,
+          saturdayCollection: table.minimumRate.saturdayCollection,
+          exclusiveVehicle: table.minimumRate.exclusiveVehicle,
+          scheduledDifficultAccess: table.minimumRate.scheduledDifficultAccess,
+          metropolitanRegion: table.minimumRate.metropolitanRegion,
+          sundayHoliday: table.minimumRate.sundayHoliday,
+          normalBiological: table.minimumRate.normalBiological,
+          infectiousBiological: table.minimumRate.infectiousBiological,
+          trackedVehicle: table.minimumRate.trackedVehicle,
+          doorToDoorInterior: table.minimumRate.doorToDoorInterior,
+          reshipment: table.minimumRate.reshipment,
+        },
+        excessWeight: {
+          minPerKg: table.excessWeight.minPerKg,
+          maxPerKg: table.excessWeight.maxPerKg,
+          biologicalPerKg: table.excessWeight.biologicalPerKg,
+          reshipmentPerKg: table.excessWeight.reshipmentPerKg,
+        },
+        doorToDoor: {
+          ratePerKm: table.doorToDoor.ratePerKm,
+          maxWeight: table.doorToDoor.maxWeight,
+        },
+        waitingHour: table.waitingHour ? {
+          fiorino: table.waitingHour.fiorino,
+          medium: table.waitingHour.medium,
+          large: table.waitingHour.large,
+        } : undefined,
+        insurance: table.insurance ? {
+          standard: table.insurance.standard,
+          perishable: table.insurance.perishable,
+        } : undefined,
+        allowCustomPricing: table.allowCustomPricing,
+        defaultDiscount: table.defaultDiscount,
+      };
+    }
+    
+    return null;
+  };
+
+  const createEmptyPriceTable = () => {
+    return {
+      name: '',
+      description: '',
       minimumRate: {
-        standardDelivery,
-        saturdayCollection,
-        emergencyCollection,
-        exclusiveVehicle,
-        scheduledDifficultAccess,
-        normalBiological,
-        infectiousBiological,
-        sundayHoliday,
-        metropolitanRegion,
-        nightExclusiveVehicle,
-        trackedVehicle,
-        reshipment,
-        doorToDoorInterior,
+        standardDelivery: 0,
+        emergencyCollection: 0,
+        saturdayCollection: 0,
+        exclusiveVehicle: 0,
+        scheduledDifficultAccess: 0,
+        metropolitanRegion: 0,
+        sundayHoliday: 0,
+        normalBiological: 0,
+        infectiousBiological: 0,
+        trackedVehicle: 0,
+        doorToDoorInterior: 0,
+        reshipment: 0,
       },
       excessWeight: {
-        minPerKg,
-        maxPerKg,
-        biologicalPerKg,
-        reshipmentPerKg,
+        minPerKg: 0,
+        maxPerKg: 0,
+        biologicalPerKg: 0,
+        reshipmentPerKg: 0,
       },
       doorToDoor: {
-        ratePerKm,
-        maxWeight,
+        ratePerKm: 0,
+        maxWeight: 0,
       },
       waitingHour: {
-        fiorino: fiorinoWaitingHour,
-        medium: mediumWaitingHour,
-        large: largeWaitingHour,
+        fiorino: 0,
+        medium: 0,
+        large: 0,
       },
       insurance: {
-        standard: standardInsurance,
-        perishable: perishableInsurance,
+        standard: 0,
+        perishable: 0,
       },
-      allowCustomPricing,
-      defaultDiscount,
+      allowCustomPricing: false,
+      defaultDiscount: 0,
     };
-    
-    onSubmit(formData);
-  };
-  
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <Label htmlFor="name">Nome da Tabela</Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          className="mt-1"
-        />
-      </div>
-      
-      <Tabs defaultValue="basic" value={currentTab} onValueChange={setCurrentTab}>
-        <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="basic">Básico</TabsTrigger>
-          <TabsTrigger value="special">Especial</TabsTrigger>
-          <TabsTrigger value="additional">Adicionais</TabsTrigger>
-          <TabsTrigger value="pricing">Preços/Descontos</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="basic" className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">Taxa mínima até 10 Kg</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label htmlFor="standardDelivery">Entregas região metropolitana</Label>
-                <Input
-                  id="standardDelivery"
-                  type="number"
-                  step="0.01"
-                  value={standardDelivery}
-                  onChange={(e) => setStandardDelivery(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="saturdayCollection">Coletas aos sábados</Label>
-                <Input
-                  id="saturdayCollection"
-                  type="number"
-                  step="0.01"
-                  value={saturdayCollection}
-                  onChange={(e) => setSaturdayCollection(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="emergencyCollection">Coletas emergenciais</Label>
-                <Input
-                  id="emergencyCollection"
-                  type="number"
-                  step="0.01"
-                  value={emergencyCollection}
-                  onChange={(e) => setEmergencyCollection(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="exclusiveVehicle">Veículo exclusivo</Label>
-                <Input
-                  id="exclusiveVehicle"
-                  type="number"
-                  step="0.01"
-                  value={exclusiveVehicle}
-                  onChange={(e) => setExclusiveVehicle(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="scheduledDifficultAccess">Agendado/Difícil acesso</Label>
-                <Input
-                  id="scheduledDifficultAccess"
-                  type="number"
-                  step="0.01"
-                  value={scheduledDifficultAccess}
-                  onChange={(e) => setScheduledDifficultAccess(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold">Excedente acima de 10 Kg</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label htmlFor="minPerKg">Taxa mínima por Kg (padrão)</Label>
-                <Input
-                  id="minPerKg"
-                  type="number"
-                  step="0.01"
-                  value={minPerKg}
-                  onChange={(e) => setMinPerKg(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="maxPerKg">Taxa máxima por Kg (especial)</Label>
-                <Input
-                  id="maxPerKg"
-                  type="number"
-                  step="0.01"
-                  value={maxPerKg}
-                  onChange={(e) => setMaxPerKg(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="special" className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">Outros tipos de entrega</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label htmlFor="normalBiological">Material biológico normal</Label>
-                <Input
-                  id="normalBiological"
-                  type="number"
-                  step="0.01"
-                  value={normalBiological}
-                  onChange={(e) => setNormalBiological(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="infectiousBiological">Material biológico infeccioso</Label>
-                <Input
-                  id="infectiousBiological"
-                  type="number"
-                  step="0.01"
-                  value={infectiousBiological}
-                  onChange={(e) => setInfectiousBiological(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="biologicalPerKg">Excedente biológico por Kg</Label>
-                <Input
-                  id="biologicalPerKg"
-                  type="number"
-                  step="0.01"
-                  value={biologicalPerKg}
-                  onChange={(e) => setBiologicalPerKg(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="sundayHoliday">Domingos e feriados</Label>
-                <Input
-                  id="sundayHoliday"
-                  type="number"
-                  step="0.01"
-                  value={sundayHoliday}
-                  onChange={(e) => setSundayHoliday(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="metropolitanRegion">Região Metropolitana</Label>
-                <Input
-                  id="metropolitanRegion"
-                  type="number"
-                  step="0.01"
-                  value={metropolitanRegion}
-                  onChange={(e) => setMetropolitanRegion(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="nightExclusiveVehicle">Exclusivo noturno/feriados (a combinar)</Label>
-                <Input
-                  id="nightExclusiveVehicle"
-                  type="number"
-                  step="0.01"
-                  value={nightExclusiveVehicle}
-                  onChange={(e) => setNightExclusiveVehicle(parseFloat(e.target.value) || 0)}
-                  className="mt-1"
-                />
-                <span className="text-sm text-muted-foreground mt-1 block">
-                  Use 0 para "valor a combinar"
-                </span>
-              </div>
-              <div>
-                <Label htmlFor="doorToDoorInterior">Porta a Porta interior</Label>
-                <Input
-                  id="doorToDoorInterior"
-                  type="number"
-                  step="0.01"
-                  value={doorToDoorInterior}
-                  onChange={(e) => setDoorToDoorInterior(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold">Veículos especiais e redespacho</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label htmlFor="trackedVehicle">Veículo rastreado até 100 Kg</Label>
-                <Input
-                  id="trackedVehicle"
-                  type="number"
-                  step="0.01"
-                  value={trackedVehicle}
-                  onChange={(e) => setTrackedVehicle(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="reshipment">Redespacho até 10 Kg</Label>
-                <Input
-                  id="reshipment"
-                  type="number"
-                  step="0.01"
-                  value={reshipment}
-                  onChange={(e) => setReshipment(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="reshipmentPerKg">Excedente redespacho por Kg</Label>
-                <Input
-                  id="reshipmentPerKg"
-                  type="number"
-                  step="0.01"
-                  value={reshipmentPerKg}
-                  onChange={(e) => setReshipmentPerKg(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="additional" className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">Hora Parada</h3>
-            <p className="text-sm text-muted-foreground mt-1 mb-2">
-              Todos as entregas tem tolerância de 1 hora. Após a 1ª hora será cobrado hora parada.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-              <div>
-                <Label htmlFor="fiorinoWaitingHour">Fiorino</Label>
-                <Input
-                  id="fiorinoWaitingHour"
-                  type="number"
-                  step="0.01"
-                  value={fiorinoWaitingHour}
-                  onChange={(e) => setFiorinoWaitingHour(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="mediumWaitingHour">3/4</Label>
-                <Input
-                  id="mediumWaitingHour"
-                  type="number"
-                  step="0.01"
-                  value={mediumWaitingHour}
-                  onChange={(e) => setMediumWaitingHour(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="largeWaitingHour">Toco</Label>
-                <Input
-                  id="largeWaitingHour"
-                  type="number"
-                  step="0.01"
-                  value={largeWaitingHour}
-                  onChange={(e) => setLargeWaitingHour(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold">Coletas ou entregas porta a porta</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label htmlFor="ratePerKm">Taxa por Km rodado (Fiorino)</Label>
-                <Input
-                  id="ratePerKm"
-                  type="number"
-                  step="0.01"
-                  value={ratePerKm}
-                  onChange={(e) => setRatePerKm(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="maxWeight">Peso máximo (Kg)</Label>
-                <Input
-                  id="maxWeight"
-                  type="number"
-                  step="1"
-                  value={maxWeight}
-                  onChange={(e) => setMaxWeight(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold">Seguro obrigatório</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label htmlFor="standardInsurance">Padrão (% sobre valor da carga)</Label>
-                <Input
-                  id="standardInsurance"
-                  type="number"
-                  step="0.001"
-                  value={standardInsurance}
-                  onChange={(e) => setStandardInsurance(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-                <span className="text-sm text-muted-foreground mt-1 block">Ex: 0.01 para 1%</span>
-              </div>
-              <div>
-                <Label htmlFor="perishableInsurance">Perecível/Medicamentos/Frágeis</Label>
-                <Input
-                  id="perishableInsurance"
-                  type="number"
-                  step="0.001"
-                  value={perishableInsurance}
-                  onChange={(e) => setPerishableInsurance(parseFloat(e.target.value) || 0)}
-                  required
-                  className="mt-1"
-                />
-                <span className="text-sm text-muted-foreground mt-1 block">Ex: 0.015 para 1.5%</span>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="pricing" className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">Opções de preço personalizado</h3>
-            <div className="space-y-4 mt-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="allowCustomPricing" className="mb-1 block">
-                    Permitir preço personalizado
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Permite definir preços especiais para entregas
-                  </p>
-                </div>
-                <Switch
-                  id="allowCustomPricing"
-                  checked={allowCustomPricing}
-                  onCheckedChange={setAllowCustomPricing}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="defaultDiscount">Desconto padrão (%)</Label>
-                <Input
-                  id="defaultDiscount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  value={defaultDiscount}
-                  onChange={(e) => setDefaultDiscount(parseFloat(e.target.value) || 0)}
-                  className="mt-1"
-                />
-                <span className="text-sm text-muted-foreground mt-1 block">
-                  Ex: 5 para 5% de desconto
-                </span>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button type="submit">
-          {initialData ? 'Atualizar' : 'Criar'} Tabela
-        </Button>
-      </DialogFooter>
-    </form>
-  );
-};
-
-const PriceTablesPage = () => {
-  const { priceTables, addPriceTable, updatePriceTable, deletePriceTable, loading } = usePriceTables();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentTable, setCurrentTable] = useState<PriceTable | null>(null);
-  
-  const handleCreate = (data: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'>) => {
-    addPriceTable(data);
-    setIsCreateDialogOpen(false);
-  };
-  
-  const handleEdit = (table: PriceTable) => {
-    setCurrentTable(table);
-    setIsEditDialogOpen(true);
-  };
-  
-  const handleUpdate = (data: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (currentTable) {
-      updatePriceTable(currentTable.id, data);
-      setIsEditDialogOpen(false);
-    }
-  };
-  
-  const handleDelete = (table: PriceTable) => {
-    setCurrentTable(table);
-    setIsDeleteDialogOpen(true);
-  };
-  
-  const confirmDelete = () => {
-    if (currentTable) {
-      deletePriceTable(currentTable.id);
-      setIsDeleteDialogOpen(false);
-    }
-  };
-  
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
-  
-  const formatPercentage = (value: number) => {
-    return `${(value * 100).toFixed(2)}%`;
   };
 
-  const safeRender = (render: () => React.ReactNode, fallback: React.ReactNode = "-") => {
-    try {
-      return render();
-    } catch (error) {
-      console.error("Error rendering value:", error);
-      return fallback;
-    }
-  };
-  
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Tabelas de Preço</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Tabelas de Preços</h1>
             <p className="text-muted-foreground">
-              Gerenciamento das tabelas de preço para cálculo de frete.
+              Gerencie as tabelas de preços da sua empresa.
             </p>
           </div>
-          
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Tabela
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl">
-              <DialogHeader>
-                <DialogTitle>Criar Nova Tabela de Preço</DialogTitle>
-                <DialogDescription>
-                  Defina os valores para a nova tabela de preço.
-                </DialogDescription>
-              </DialogHeader>
-              <PriceTableForm
-                onSubmit={handleCreate}
-                onCancel={() => setIsCreateDialogOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => { setIsDialogOpen(true); setEditingPriceTable(null); }}>
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Tabela
+          </Button>
         </div>
-        
-        {loading ? (
-          <div className="flex justify-center mt-10">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {priceTables.map((table) => (
-              <div key={table.id} className="border rounded-lg p-6 shadow-sm">
-                <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-xl font-bold">{table.name}</h2>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={() => handleEdit(table)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={() => handleDelete(table)}>
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-md font-medium">
+              Lista de Tabelas de Preços
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {priceTables.map((priceTable) => (
+                  <TableRow key={priceTable.id}>
+                    <TableCell className="font-medium">{priceTable.name}</TableCell>
+                    <TableCell>{priceTable.description}</TableCell>
+                    <TableCell className="flex gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(priceTable)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(priceTable.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingPriceTable ? 'Editar Tabela de Preços' : 'Nova Tabela de Preços'}</DialogTitle>
+              <DialogDescription>
+                Configure os valores padrão para esta tabela de preços.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Nome</Label>
+                  <Input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
-                
-                <Tabs defaultValue="basic">
-                  <TabsList className="w-full grid grid-cols-3">
-                    <TabsTrigger value="basic">Básico</TabsTrigger>
-                    <TabsTrigger value="special">Especial</TabsTrigger>
-                    <TabsTrigger value="additional">Adicionais</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="basic" className="mt-4 space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Taxa mínima até 10 Kg</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="text-sm">Metropolitana:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.standardDelivery)}</div>
-                        <div className="text-sm">Sábados:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.saturdayCollection)}</div>
-                        <div className="text-sm">Emergencial:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.emergencyCollection)}</div>
-                        <div className="text-sm">Exclusivo:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.exclusiveVehicle)}</div>
-                        <div className="text-sm">Agendado:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.scheduledDifficultAccess)}</div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Excedente acima de 10 Kg</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="text-sm">Taxa mínima:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.excessWeight.minPerKg)} por Kg</div>
-                        <div className="text-sm">Taxa máxima:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.excessWeight.maxPerKg)} por Kg</div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Seguro</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="text-sm">Padrão:</div>
-                        <div className="text-sm font-medium">{formatPercentage(table.insurance.standard)}</div>
-                        <div className="text-sm">Perecível/Medicamentos:</div>
-                        <div className="text-sm font-medium">{formatPercentage(table.insurance.perishable)}</div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="special" className="mt-4 space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Tipos especiais</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="text-sm">Bio. Normal:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.normalBiological)}</div>
-                        <div className="text-sm">Bio. Infeccioso:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.infectiousBiological)}</div>
-                        <div className="text-sm">Dom/Feriados:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.sundayHoliday)}</div>
-                        <div className="text-sm">Região Metropolitana:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.metropolitanRegion)}</div>
-                        <div className="text-sm">Porta a Porta interior:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.doorToDoorInterior)}</div>
-                        <div className="text-sm">Excedente biológico:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.excessWeight.biologicalPerKg)} por Kg</div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Veículos especiais/Redespacho</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="text-sm">Rastreado (100 Kg):</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.trackedVehicle)}</div>
-                        <div className="text-sm">Redespacho (10 Kg):</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.minimumRate.reshipment)}</div>
-                        <div className="text-sm">Excedente redespacho:</div>
-                        <div className="text-sm font-medium">{formatCurrency(table.excessWeight.reshipmentPerKg)} por Kg</div>
-                        <div className="text-sm">Noturno (a combinar):</div>
-                        <div className="text-sm font-medium">
-                          {table.minimumRate.nightExclusiveVehicle > 0 
-                            ? formatCurrency(table.minimumRate.nightExclusiveVehicle) 
-                            : "A combinar"}
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="additional" className="mt-4 space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Hora Parada</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="text-sm">Fiorino:</div>
-                        <div className="text-sm font-medium">
-                          {safeRender(() => formatCurrency(table.waitingHour?.fiorino || 44))}
-                        </div>
-                        <div className="text-sm">3/4:</div>
-                        <div className="text-sm font-medium">
-                          {safeRender(() => formatCurrency(table.waitingHour?.medium || 55))}
-                        </div>
-                        <div className="text-sm">Toco:</div>
-                        <div className="text-sm font-medium">
-                          {safeRender(() => formatCurrency(table.waitingHour?.large || 66))}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Porta a Porta</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="text-sm">Por Km rodado:</div>
-                        <div className="text-sm font-medium">
-                          {safeRender(() => formatCurrency(table.doorToDoor?.ratePerKm || 2.4))}
-                        </div>
-                        <div className="text-sm">Peso máximo:</div>
-                        <div className="text-sm font-medium">
-                          {safeRender(() => `${table.doorToDoor?.maxWeight || 100} Kg`)}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Preço personalizado</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="text-sm">Preço personalizado:</div>
-                        <div className="text-sm font-medium">
-                          {safeRender(() => table.allowCustomPricing ? "Permitido" : "Não permitido")}
-                        </div>
-                        <div className="text-sm">Desconto padrão:</div>
-                        <div className="text-sm font-medium">
-                          {safeRender(() => `${table.defaultDiscount || 0}%`)}
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                <div>
+                  <Label htmlFor="description">Descrição</Label>
+                  <Input
+                    type="text"
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-        
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Editar Tabela de Preço</DialogTitle>
-              <DialogDescription>
-                Atualize os valores da tabela de preço.
-              </DialogDescription>
-            </DialogHeader>
-            {currentTable && (
-              <PriceTableForm
-                initialData={currentTable}
-                onSubmit={handleUpdate}
-                onCancel={() => setIsEditDialogOpen(false)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-        
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirmar exclusão</DialogTitle>
-              <DialogDescription>
-                Tem certeza que deseja excluir a tabela "{currentTable?.name}"? Esta ação não pode ser desfeita.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button variant="destructive" onClick={confirmDelete}>
-                Excluir
-              </Button>
-            </DialogFooter>
+
+              <Tabs defaultValue="tarifas">
+                <TabsList className="grid grid-cols-3">
+                  <TabsTrigger value="tarifas">Tarifas Mínimas</TabsTrigger>
+                  <TabsTrigger value="peso">Excesso de Peso</TabsTrigger>
+                  <TabsTrigger value="adicionais">Valores Adicionais</TabsTrigger>
+                </TabsList>
+                <TabsContent value="tarifas" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="standardDelivery">Entrega Normal</Label>
+                      <Input 
+                        id="standardDelivery" 
+                        name="minimumRate.standardDelivery" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.standardDelivery} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="emergencyCollection">Coleta Emergencial</Label>
+                      <Input 
+                        id="emergencyCollection" 
+                        name="minimumRate.emergencyCollection" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.emergencyCollection} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="saturdayCollection">Coleta Sábados</Label>
+                      <Input 
+                        id="saturdayCollection" 
+                        name="minimumRate.saturdayCollection" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.saturdayCollection} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="exclusiveVehicle">Veículo Exclusivo</Label>
+                      <Input 
+                        id="exclusiveVehicle" 
+                        name="minimumRate.exclusiveVehicle" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.exclusiveVehicle} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="scheduledDifficultAccess">Difícil Acesso</Label>
+                      <Input 
+                        id="scheduledDifficultAccess" 
+                        name="minimumRate.scheduledDifficultAccess" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.scheduledDifficultAccess} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="metropolitanRegion">Região Metropolitana</Label>
+                      <Input 
+                        id="metropolitanRegion" 
+                        name="minimumRate.metropolitanRegion" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.metropolitanRegion} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sundayHoliday">Domingos/Feriados</Label>
+                      <Input 
+                        id="sundayHoliday" 
+                        name="minimumRate.sundayHoliday" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.sundayHoliday} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="normalBiological">Biológico Normal</Label>
+                      <Input 
+                        id="normalBiological" 
+                        name="minimumRate.normalBiological" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.normalBiological} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="infectiousBiological">Biológico Infeccioso</Label>
+                      <Input 
+                        id="infectiousBiological" 
+                        name="minimumRate.infectiousBiological" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.infectiousBiological} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="trackedVehicle">Veículo Rastreado</Label>
+                      <Input 
+                        id="trackedVehicle" 
+                        name="minimumRate.trackedVehicle" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.trackedVehicle} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="doorToDoorInterior">Porta a Porta</Label>
+                      <Input 
+                        id="doorToDoorInterior" 
+                        name="minimumRate.doorToDoorInterior" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.doorToDoorInterior} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reshipment">Redespacho</Label>
+                      <Input 
+                        id="reshipment" 
+                        name="minimumRate.reshipment" 
+                        type="number"
+                        step="0.01"
+                        value={formData.minimumRate.reshipment} 
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="peso" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="minPerKg">Mínimo por Kg</Label>
+                      <Input
+                        id="minPerKg"
+                        name="excessWeight.minPerKg"
+                        type="number"
+                        step="0.01"
+                        value={formData.excessWeight.minPerKg}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="maxPerKg">Máximo por Kg</Label>
+                      <Input
+                        id="maxPerKg"
+                        name="excessWeight.maxPerKg"
+                        type="number"
+                        step="0.01"
+                        value={formData.excessWeight.maxPerKg}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="biologicalPerKg">Biológico por Kg</Label>
+                      <Input
+                        id="biologicalPerKg"
+                        name="excessWeight.biologicalPerKg"
+                        type="number"
+                        step="0.01"
+                        value={formData.excessWeight.biologicalPerKg}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reshipmentPerKg">Redespacho por Kg</Label>
+                      <Input
+                        id="reshipmentPerKg"
+                        name="excessWeight.reshipmentPerKg"
+                        type="number"
+                        step="0.01"
+                        value={formData.excessWeight.reshipmentPerKg}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="adicionais" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="ratePerKm">Taxa por Km (Porta a Porta)</Label>
+                      <Input
+                        id="ratePerKm"
+                        name="doorToDoor.ratePerKm"
+                        type="number"
+                        step="0.01"
+                        value={formData.doorToDoor.ratePerKm}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="maxWeight">Peso Máximo (Porta a Porta)</Label>
+                      <Input
+                        id="maxWeight"
+                        name="doorToDoor.maxWeight"
+                        type="number"
+                        step="0.01"
+                        value={formData.doorToDoor.maxWeight}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fiorino">Espera/Hora (Fiorino)</Label>
+                      <Input
+                        id="fiorino"
+                        name="waitingHour.fiorino"
+                        type="number"
+                        step="0.01"
+                        value={formData.waitingHour.fiorino}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="medium">Espera/Hora (Médio)</Label>
+                      <Input
+                        id="medium"
+                        name="waitingHour.medium"
+                        type="number"
+                        step="0.01"
+                        value={formData.waitingHour.medium}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="large">Espera/Hora (Grande)</Label>
+                      <Input
+                        id="large"
+                        name="waitingHour.large"
+                        type="number"
+                        step="0.01"
+                        value={formData.waitingHour.large}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="standard">Seguro (%) Padrão</Label>
+                      <Input
+                        id="standard"
+                        name="insurance.standard"
+                        type="number"
+                        step="0.01"
+                        value={formData.insurance.standard}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="perishable">Seguro (%) Perecível</Label>
+                      <Input
+                        id="perishable"
+                        name="insurance.perishable"
+                        type="number"
+                        step="0.01"
+                        value={formData.insurance.perishable}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="checkbox"
+                      id="allowCustomPricing"
+                      name="allowCustomPricing"
+                      checked={formData.allowCustomPricing}
+                      onChange={handleChange}
+                    />
+                    <Label htmlFor="allowCustomPricing">Permitir preços customizados</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="defaultDiscount">Desconto padrão (%)</Label>
+                    <Input
+                      id="defaultDiscount"
+                      name="defaultDiscount"
+                      type="number"
+                      step="0.01"
+                      value={formData.defaultDiscount}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  {editingPriceTable ? 'Atualizar' : 'Criar'} Tabela
+                </Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
@@ -830,4 +741,4 @@ const PriceTablesPage = () => {
   );
 };
 
-export default PriceTablesPage;
+export default PriceTables;

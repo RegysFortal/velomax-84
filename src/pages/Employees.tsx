@@ -107,7 +107,7 @@ const Employees = () => {
     if (editingEmployee) {
       form.reset({
         name: editingEmployee.name,
-        role: editingEmployee.role,
+        role: editingEmployee.role === 'admin' ? 'driver' : editingEmployee.role,
         employeeSince: editingEmployee.employeeSince || "",
         dateOfBirth: editingEmployee.dateOfBirth || "",
         rg: editingEmployee.rg || "",
@@ -152,28 +152,28 @@ const Employees = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (values: FormValues) => {
     try {
       if (editingEmployee) {
         await updateEmployee(editingEmployee.id, {
-          ...form.getValues(),
+          ...values,
           status: 'active',
+          role: editingEmployee.role === 'admin' ? 'admin' : values.role,
+          position: values.role === 'driver' ? 'Motorista' : 'Assistente',
         });
         toast({
           title: "Funcionário atualizado",
-          description: `O funcionário ${form.getValues().name} foi atualizado com sucesso.`
+          description: `O funcionário ${values.name} foi atualizado com sucesso.`
         });
       } else {
         await addEmployee({
-          ...form.getValues(),
+          ...values,
           status: 'active',
-          position: form.getValues().role === 'driver' ? 'Motorista' : 'Assistente',
+          position: values.role === 'driver' ? 'Motorista' : 'Assistente',
         });
         toast({
           title: "Funcionário adicionado",
-          description: `O funcionário ${form.getValues().name} foi adicionado com sucesso.`
+          description: `O funcionário ${values.name} foi adicionado com sucesso.`
         });
       }
       setDialogOpen(false);
@@ -224,7 +224,7 @@ const Employees = () => {
                 {employees.map((employee) => (
                   <TableRow key={employee.id}>
                     <TableCell className="font-medium">{employee.name}</TableCell>
-                    <TableCell>{employee.role === 'driver' ? 'Motorista' : 'Ajudante'}</TableCell>
+                    <TableCell>{employee.role === 'driver' ? 'Motorista' : employee.role === 'assistant' ? 'Ajudante' : 'Admin'}</TableCell>
                     <TableCell>{employee.phone}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => handleEditEmployee(employee)}>

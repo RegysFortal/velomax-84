@@ -219,13 +219,30 @@ const ReportsPage = () => {
 
   const saveFinancialReport = () => {
     if (clientFilter && clientFilter !== 'all') {
-      const newReportId = addFinancialReport({
+      const client = clients.find(c => c.id === clientFilter);
+      if (!client) {
+        toast({
+          title: "Cliente não encontrado",
+          description: "Não foi possível encontrar o cliente selecionado.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const reportTitle = `Relatório ${client.name} - ${format(new Date(startDate), 'dd/MM/yyyy')} a ${format(new Date(endDate), 'dd/MM/yyyy')}`;
+      
+      addFinancialReport({
+        title: reportTitle,
+        description: `Relatório financeiro para ${client.name}`,
         clientId: clientFilter,
         startDate,
         endDate,
+        totalRevenue: totalFreight,
+        totalExpenses: 0,
+        profit: totalFreight,
+        status: 'open',
         totalFreight,
         totalDeliveries: deliveryCount,
-        status: 'open',
       });
       
       toast({
@@ -236,40 +253,6 @@ const ReportsPage = () => {
       toast({
         title: "Selecione um cliente",
         description: "É necessário filtrar por um cliente específico para criar um relatório financeiro.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleCreateInvoice = async () => {
-    if (!selectedClient) return;
-    
-    try {
-      await addFinancialReport({
-        title: `Faturamento ${selectedClient.name} - ${format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}`,
-        description: `Relatório financeiro para ${selectedClient.name}`,
-        clientId: selectedClient.id,
-        startDate: startOfMonth(selectedMonth).toISOString(),
-        endDate: endOfMonth(selectedMonth).toISOString(),
-        totalRevenue: totalFreightAmount,
-        totalExpenses: 0,
-        profit: totalFreightAmount,
-        totalFreight: totalFreightAmount,
-        totalDeliveries: clientDeliveries.length,
-        status: 'open'
-      });
-      
-      toast({
-        title: "Relatório criado",
-        description: "O relatório financeiro foi criado com sucesso.",
-      });
-      
-      setIsDialogOpen(false);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Erro ao criar relatório",
-        description: "Ocorreu um erro ao criar o relatório financeiro.",
         variant: "destructive"
       });
     }

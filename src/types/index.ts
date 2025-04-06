@@ -1,4 +1,3 @@
-
 // Add the username and permissions properties to the User interface
 export interface User {
   id: string;
@@ -243,10 +242,11 @@ export interface FuelRecord {
   updatedAt: string;
 }
 
+// Update Maintenance type to add more maintenance types
 export interface Maintenance {
   id: string;
   vehicleId: string;
-  type: 'preventive' | 'corrective' | 'emergency';
+  type: 'preventive' | 'corrective' | 'emergency' | 'oil-change' | 'tire-change' | 'other';
   description: string;
   date: string;
   cost: number;
