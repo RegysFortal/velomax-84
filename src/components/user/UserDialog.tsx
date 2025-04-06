@@ -191,9 +191,34 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           return;
         }
 
+        // Make sure all the permissions are properly defined as required by the User type
+        const completePermissions = {
+          deliveries: data.permissions.deliveries || false,
+          shipments: data.permissions.shipments || false,
+          clients: data.permissions.clients || false,
+          cities: data.permissions.cities || false,
+          reports: data.permissions.reports || false,
+          financial: data.permissions.financial || false,
+          priceTables: data.permissions.priceTables || false,
+          dashboard: data.permissions.dashboard || true,
+          logbook: data.permissions.logbook || false,
+          employees: data.permissions.employees || false,
+          vehicles: data.permissions.vehicles || false,
+          maintenance: data.permissions.maintenance || false,
+          settings: data.permissions.settings || false,
+        };
+
         const newUser = await createUser({
-          ...data,
-          password: data.password, // Password is handled internally by createUser
+          name: data.name,
+          username: data.username,
+          email: data.email,
+          password: data.password,
+          role: data.role,
+          department: data.department,
+          position: data.position,
+          phone: data.phone,
+          permissions: completePermissions,
+          updatedAt: new Date().toISOString(), // Adding the required updatedAt field
         });
 
         toast({
@@ -201,10 +226,38 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           description: `O usuário ${newUser.name} foi criado com sucesso.`,
         });
       } else if (user) {
-        // If updating a user and password is provided, update it
-        const updatedUser = { ...data };
-        if (!data.password) {
-          delete updatedUser.password; // Don't update password if not provided
+        // If updating a user, ensure all permissions are properly defined
+        const updatedPermissions = {
+          deliveries: data.permissions.deliveries || false,
+          shipments: data.permissions.shipments || false,
+          clients: data.permissions.clients || false,
+          cities: data.permissions.cities || false,
+          reports: data.permissions.reports || false,
+          financial: data.permissions.financial || false,
+          priceTables: data.permissions.priceTables || false,
+          dashboard: data.permissions.dashboard || true,
+          logbook: data.permissions.logbook || false,
+          employees: data.permissions.employees || false,
+          vehicles: data.permissions.vehicles || false,
+          maintenance: data.permissions.maintenance || false,
+          settings: data.permissions.settings || false,
+        };
+
+        // Create an updated user object with only the fields we want to update
+        const updatedUser: Partial<User> = {
+          name: data.name,
+          username: data.username,
+          email: data.email,
+          role: data.role,
+          department: data.department,
+          position: data.position,
+          phone: data.phone,
+          permissions: updatedPermissions,
+        };
+
+        // Only include password if it's provided
+        if (data.password) {
+          updatedUser.password = data.password;
         }
 
         await updateUser(user.id, updatedUser);
