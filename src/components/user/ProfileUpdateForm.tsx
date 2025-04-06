@@ -31,7 +31,7 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function ProfileUpdateForm() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ProfileFormValues>({
@@ -45,7 +45,7 @@ export function ProfileUpdateForm() {
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
     try {
-      await updateProfile({
+      await updateUserProfile({
         name: data.name,
         email: data.email,
       });

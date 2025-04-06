@@ -38,7 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Password, UserRound, MailIcon, ShieldCheck, AtSign } from 'lucide-react';
+import { UserRound, MailIcon, ShieldCheck, AtSign, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProfileUpdateForm } from '@/components/user/ProfileUpdateForm';
 import { PasswordUpdateForm } from '@/components/user/PasswordUpdateForm';
@@ -64,7 +64,7 @@ const passwordFormSchema = z
 type PasswordFormData = z.infer<typeof passwordFormSchema>;
 
 const Settings = () => {
-  const { user, updateProfile, updatePassword } = useAuth();
+  const { user, updateUserProfile, updateUserPassword } = useAuth();
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -79,11 +79,16 @@ const Settings = () => {
 
   const handleUpdatePassword = async (data: PasswordFormData) => {
     try {
-      await updatePassword(data.currentPassword, data.newPassword);
-      toast.success('Senha atualizada com sucesso!');
+      await updateUserPassword(data.currentPassword, data.newPassword);
+      toast('Senha atualizada com sucesso!', {
+        description: 'Sua senha foi atualizada com segurança.',
+      });
       passwordForm.reset();
     } catch (error) {
-      toast.error('Erro ao atualizar senha. Verifique a senha atual.');
+      toast('Erro ao atualizar senha', {
+        description: 'Verifique a senha atual.',
+        variant: 'destructive'
+      });
     }
   };
 

@@ -37,7 +37,7 @@ const passwordFormSchema = z
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 export function PasswordUpdateForm() {
-  const { updatePassword } = useAuth();
+  const { updateUserPassword } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<PasswordFormValues>({
@@ -52,7 +52,7 @@ export function PasswordUpdateForm() {
   const onSubmit = async (data: PasswordFormValues) => {
     setIsSubmitting(true);
     try {
-      await updatePassword(data.currentPassword, data.newPassword);
+      await updateUserPassword(data.currentPassword, data.newPassword);
       toast.success('Senha atualizada com sucesso!');
       form.reset();
     } catch (error) {
