@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
@@ -352,6 +353,159 @@ function getPayloadConfigFromPayload(
     ? config[configLabelKey]
     : config[key as keyof typeof config]
 }
+
+// Add the BarChart and LineChart components that are missing
+interface ChartProps {
+  data: {
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+      backgroundColor?: string | string[];
+      borderColor?: string | string[];
+      borderWidth?: number;
+    }[];
+  };
+  className?: string;
+}
+
+const defaultBarConfig: ChartConfig = {
+  default: {
+    color: "#3b82f6",
+  },
+};
+
+const defaultLineConfig: ChartConfig = {
+  default: {
+    color: "#3b82f6",
+  },
+};
+
+// Bar Chart Component
+export const BarChart = React.forwardRef<HTMLDivElement, ChartProps>(
+  ({ data, className, ...props }, ref) => {
+    // Prepare data for recharts
+    const chartData = data.labels.map((label, index) => {
+      const dataPoint: Record<string, any> = { name: label };
+      
+      data.datasets.forEach((dataset, datasetIndex) => {
+        dataPoint[dataset.label] = dataset.data[index];
+        dataPoint[`${dataset.label}Color`] = Array.isArray(dataset.backgroundColor) 
+          ? dataset.backgroundColor[index] 
+          : dataset.backgroundColor || "#3b82f6";
+      });
+      
+      return dataPoint;
+    });
+
+    const config: ChartConfig = defaultBarConfig;
+
+    return (
+      <ChartContainer
+        ref={ref}
+        className={className}
+        config={config}
+        {...props}
+      >
+        <RechartsPrimitive.ComposedChart data={chartData}>
+          <RechartsPrimitive.XAxis 
+            dataKey="name" 
+            stroke="#888888"
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+          />
+          <RechartsPrimitive.YAxis
+            stroke="#888888"
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(value) => `${value}`}
+          />
+          <RechartsPrimitive.CartesianGrid 
+            strokeDasharray="3 3"
+            vertical={false}
+          />
+          <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+          {data.datasets.map((dataset, index) => (
+            <RechartsPrimitive.Bar
+              key={dataset.label}
+              dataKey={dataset.label}
+              fill={Array.isArray(dataset.backgroundColor) ? undefined : (dataset.backgroundColor || "#3b82f6")}
+              radius={[4, 4, 0, 0]}
+            >
+              {Array.isArray(dataset.backgroundColor) && dataset.backgroundColor.map((color, colorIndex) => (
+                <RechartsPrimitive.Cell key={`cell-${colorIndex}`} fill={color} />
+              ))}
+            </RechartsPrimitive.Bar>
+          ))}
+        </RechartsPrimitive.ComposedChart>
+      </ChartContainer>
+    );
+  }
+);
+BarChart.displayName = "BarChart";
+
+// Line Chart Component
+export const LineChart = React.forwardRef<HTMLDivElement, ChartProps>(
+  ({ data, className, ...props }, ref) => {
+    // Prepare data for recharts
+    const chartData = data.labels.map((label, index) => {
+      const dataPoint: Record<string, any> = { name: label };
+      
+      data.datasets.forEach((dataset) => {
+        dataPoint[dataset.label] = dataset.data[index];
+      });
+      
+      return dataPoint;
+    });
+
+    const config: ChartConfig = defaultLineConfig;
+
+    return (
+      <ChartContainer
+        ref={ref}
+        className={className}
+        config={config}
+        {...props}
+      >
+        <RechartsPrimitive.LineChart data={chartData}>
+          <RechartsPrimitive.XAxis 
+            dataKey="name" 
+            stroke="#888888"
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+          />
+          <RechartsPrimitive.YAxis
+            stroke="#888888"
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(value) => `${value}`}
+          />
+          <RechartsPrimitive.CartesianGrid 
+            strokeDasharray="3 3"
+            vertical={false}
+          />
+          <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+          {data.datasets.map((dataset, index) => (
+            <RechartsPrimitive.Line
+              key={dataset.label}
+              type="monotone"
+              dataKey={dataset.label}
+              stroke={Array.isArray(dataset.borderColor) ? dataset.borderColor[0] : (dataset.borderColor || "#3b82f6")}
+              strokeWidth={2}
+              dot={{ r: 4, fill: "#fff", stroke: dataset.borderColor || "#3b82f6", strokeWidth: 2 }}
+              activeDot={{ r: 6, fill: dataset.borderColor || "#3b82f6", stroke: "#fff", strokeWidth: 2 }}
+            />
+          ))}
+        </RechartsPrimitive.LineChart>
+      </ChartContainer>
+    );
+  }
+);
+LineChart.displayName = "LineChart";
 
 export {
   ChartContainer,

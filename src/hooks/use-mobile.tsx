@@ -38,5 +38,5 @@ export function useIsMobile() {
   }
 }
 
-// Export an alias for backward compatibility
+// Export both names for backward compatibility
 export const useMobile = useIsMobile;

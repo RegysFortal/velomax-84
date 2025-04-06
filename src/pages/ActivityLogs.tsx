@@ -1,9 +1,32 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { BadgeExtended } from '@/components/ui/badge-extended';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { 
+  Search, 
+  Download, 
+  Filter, 
+  ArrowUpDown,
+  Clock,
+  User,
+  Activity,
+  FileText,
+  Info
+} from 'lucide-react';
+import { 
   Select,
   SelectContent,
   SelectItem,
@@ -11,345 +34,410 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Filter, Trash2, User, FileText, Database } from 'lucide-react';
-import { Label } from '@/components/ui/label';
-import { ActivityAction, EntityType, BadgeVariant } from '@/types/activity';
-import { useAuth } from '@/contexts/AuthContext';
-import { Badge } from '@/components/ui/badge';
+import { ActivityAction, ActivityLog, EntityType, BadgeVariant } from '@/types/activity';
 
-export default function ActivityLogs() {
-  const { logs, getLogsByAction, getLogsByEntityType, getLogsByDateRange, clearAllLogs } = useActivityLog();
-  const { user } = useAuth();
-  const [startDate, setStartDate] = useState<string>(
-    format(new Date(new Date().setDate(new Date().getDate() - 7)), 'yyyy-MM-dd')
-  );
-  const [endDate, setEndDate] = useState<string>(
-    format(new Date(), 'yyyy-MM-dd')
-  );
-  const [actionFilter, setActionFilter] = useState<ActivityAction | 'all'>('all');
-  const [entityFilter, setEntityFilter] = useState<EntityType | 'all'>('all');
-  const [searchTerm, setSearchTerm] = useState('');
+const ActivityLogs = () => {
+  const { activityLogs, fetchActivityLogs } = useActivityLog();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortColumn, setSortColumn] = useState<keyof ActivityLog | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [filteredLogs, setFilteredLogs] = useState<ActivityLog[]>([]);
+  const [page, setPage] = useState(1);
+  const logsPerPage = 10;
 
-  const isAdmin = user?.role === 'admin';
-  
-  if (!isAdmin) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-[70vh]">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
-            <p className="text-muted-foreground">Esta página está disponível apenas para administradores.</p>
-          </div>
-        </div>
-      </AppLayout>
-    );
+  // Date range filter state
+  const [fromDate, setFromDate] = useState<Date | undefined>();
+  const [toDate, setToDate] = useState<Date | undefined>();
+
+  useEffect(() => {
+    fetchActivityLogs();
+  }, [fetchActivityLogs]);
+
+  useEffect(() => {
+    let logs = [...activityLogs];
+
+    // Apply date range filter
+    if (fromDate && toDate) {
+      logs = logs.filter(log => {
+        const logDate = parseISO(log.timestamp);
+        return logDate >= fromDate && logDate <= toDate;
+      });
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      logs = logs.filter(log =>
+        log.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.entityType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (log.entityName && log.entityName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        log.details?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.ipAddress?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    if (sortColumn) {
+      logs.sort((a, b) => {
+        const aValue = a[sortColumn] || '';
+        const bValue = b[sortColumn] || '';
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+        } else {
+          return 0;
+        }
+      });
+    }
+
+    setFilteredLogs(logs);
+    setPage(1); // Reset page on filter change
+  }, [activityLogs, searchQuery, sortColumn, sortDirection, fromDate, toDate]);
+
+  const handleSort = (column: keyof ActivityLog) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const paginatedLogs = filteredLogs.slice((page - 1) * logsPerPage, page * logsPerPage);
+  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+
+  const renderActionBadge = (action: ActivityAction) => {
+  let variant: BadgeVariant = 'default';
+  let label = '';
+
+  switch (action) {
+    case 'create':
+      variant = 'success';
+      label = 'Criação';
+      break;
+    case 'update':
+      variant = 'secondary';
+      label = 'Atualização';
+      break;
+    case 'delete':
+      variant = 'destructive';
+      label = 'Exclusão';
+      break;
+    case 'login':
+      variant = 'default';
+      label = 'Login';
+      break;
+    case 'logout':
+      variant = 'outline';
+      label = 'Logout';
+      break;
+    default:
+      variant = 'outline';
+      label = action.charAt(0).toUpperCase() + action.slice(1).replace('_', ' ');
   }
 
-  const filteredLogs = logs.filter(log => {
-    const logDate = new Date(log.timestamp);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
-    
-    if (!(logDate >= start && logDate <= end)) {
-      return false;
-    }
-    
-    if (actionFilter !== 'all' && log.action !== actionFilter) {
-      return false;
-    }
-    
-    if (entityFilter !== 'all' && log.entityType !== entityFilter) {
-      return false;
-    }
-    
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const userNameMatch = log.userName.toLowerCase().includes(searchLower);
-      const entityNameMatch = log.entityName?.toLowerCase().includes(searchLower) || false;
-      const detailsMatch = log.details?.toLowerCase().includes(searchLower) || false;
-      
-      if (!(userNameMatch || entityNameMatch || detailsMatch)) {
-        return false;
-      }
-    }
-    
-    return true;
-  });
+  return <BadgeExtended variant={variant}>{label}</BadgeExtended>;
+};
 
-  const getActionDisplay = (action: ActivityAction): string => {
-    const actionMap: Record<ActivityAction, string> = {
-      login: 'Login',
-      logout: 'Logout',
-      create: 'Criação',
-      update: 'Atualização',
-      delete: 'Exclusão',
-      view: 'Visualização',
-      export: 'Exportação',
-      import: 'Importação',
-      register: 'Registro',
-      password_reset: 'Redefinição de Senha',
-      system: 'Sistema'
-    };
-    return actionMap[action] || action;
-  };
+  const renderEntityType = (entityType: EntityType) => {
+    let label = '';
 
-  const getEntityDisplay = (entityType: EntityType): string => {
-    const entityMap: Record<EntityType, string> = {
-      user: 'Usuário',
-      client: 'Cliente',
-      delivery: 'Entrega',
-      shipment: 'Embarque',
-      vehicle: 'Veículo',
-      employee: 'Funcionário',
-      price_table: 'Tabela de Preços',
-      city: 'Cidade',
-      maintenance: 'Manutenção',
-      tire: 'Pneu',
-      report: 'Relatório',
-      system: 'Sistema'
-    };
-    return entityMap[entityType] || entityType;
-  };
-  
-  const getActionBadgeVariant = (action: ActivityAction): BadgeVariant => {
-    switch (action) {
-      case 'create':
-        return 'default';
-      case 'update':
-        return 'outline';
-      case 'delete':
-        return 'destructive';
-      case 'login':
-        return 'success';
-      case 'logout':
-        return 'secondary';
+    switch (entityType) {
+      case 'user':
+        label = 'Usuário';
+        break;
+      case 'client':
+        label = 'Cliente';
+        break;
+      case 'delivery':
+        label = 'Entrega';
+        break;
+      case 'shipment':
+        label = 'Embarque';
+        break;
+      case 'vehicle':
+        label = 'Veículo';
+        break;
+      case 'employee':
+        label = 'Funcionário';
+        break;
+      case 'price_table':
+        label = 'Tabela de Preços';
+        break;
+      case 'city':
+        label = 'Cidade';
+        break;
+      case 'maintenance':
+        label = 'Manutenção';
+        break;
+      case 'tire':
+        label = 'Pneu';
+        break;
+      case 'report':
+        label = 'Relatório';
+        break;
+      case 'system':
+        label = 'Sistema';
+        break;
       default:
-        return 'outline';
+        label = entityType.charAt(0).toUpperCase() + entityType.slice(1).replace('_', ' ');
     }
+
+    return label;
   };
 
   return (
     <AppLayout>
-      <div className="flex flex-col space-y-6">
+      <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Logs de Atividades</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Logs de Atividade</h1>
             <p className="text-muted-foreground">
-              Monitore todas as atividades dos usuários no sistema
+              Visualize as atividades realizadas no sistema
             </p>
           </div>
-          <Button 
-            variant="destructive" 
-            onClick={clearAllLogs}
-            size="sm"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Limpar Logs
-          </Button>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Clock className="mr-2 h-4 w-4" />
-                Total de Atividades
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{logs.length}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <User className="mr-2 h-4 w-4" />
-                Usuários Ativos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{new Set(logs.map(log => log.userId)).size}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Database className="mr-2 h-4 w-4" />
-                Operações CRUD
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {logs.filter(log => ['create', 'update', 'delete'].includes(log.action)).length}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <FileText className="mr-2 h-4 w-4" />
-                Logs no Período
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{filteredLogs.length}</div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-sm font-medium mb-3 flex items-center">
-            <Filter className="mr-2 h-4 w-4" />
-            Filtros
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <Label htmlFor="startDate">Data inicial</Label>
+
+          <div className="flex items-center gap-4">
+            <div className="relative">
               <Input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1"
+                type="search"
+                placeholder="Buscar..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10"
               />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
-            
-            <div>
-              <Label htmlFor="endDate">Data final</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="action">Ação</Label>
-              <Select 
-                value={actionFilter} 
-                onValueChange={(val: ActivityAction | 'all') => setActionFilter(val)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Todas as ações" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as ações</SelectItem>
-                  <SelectItem value="login">Login</SelectItem>
-                  <SelectItem value="logout">Logout</SelectItem>
-                  <SelectItem value="create">Criação</SelectItem>
-                  <SelectItem value="update">Atualização</SelectItem>
-                  <SelectItem value="delete">Exclusão</SelectItem>
-                  <SelectItem value="view">Visualização</SelectItem>
-                  <SelectItem value="export">Exportação</SelectItem>
-                  <SelectItem value="import">Importação</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="entity">Entidade</Label>
-              <Select 
-                value={entityFilter} 
-                onValueChange={(val: EntityType | 'all') => setEntityFilter(val)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Todas as entidades" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as entidades</SelectItem>
-                  <SelectItem value="user">Usuário</SelectItem>
-                  <SelectItem value="client">Cliente</SelectItem>
-                  <SelectItem value="delivery">Entrega</SelectItem>
-                  <SelectItem value="shipment">Embarque</SelectItem>
-                  <SelectItem value="vehicle">Veículo</SelectItem>
-                  <SelectItem value="employee">Funcionário</SelectItem>
-                  <SelectItem value="price_table">Tabela de Preços</SelectItem>
-                  <SelectItem value="city">Cidade</SelectItem>
-                  <SelectItem value="maintenance">Manutenção</SelectItem>
-                  <SelectItem value="tire">Pneu</SelectItem>
-                  <SelectItem value="report">Relatório</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="search">Buscar</Label>
-              <Input
-                id="search"
-                placeholder="Usuário, entidade ou detalhes"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="mt-1"
-              />
-            </div>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Filter className="mr-2 h-4 w-4" />
+                  Filtrar por Data
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-4" align="end">
+                <div className="grid gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">De:</p>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-[150px] justify-start text-left font-normal",
+                              !fromDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {fromDate ? format(fromDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione a data</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={fromDate}
+                            onSelect={setFromDate}
+                            disabled={(date) =>
+                              toDate ? date > toDate : false
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Até:</p>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-[150px] justify-start text-left font-normal",
+                              !toDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {toDate ? format(toDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione a data</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={toDate}
+                            onSelect={setToDate}
+                            disabled={(date) =>
+                              fromDate ? date < fromDate : false
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Exportar
+            </Button>
           </div>
         </div>
-        
-        <ScrollArea className="h-[calc(100vh-500px)]">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data/Hora</TableHead>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Ação</TableHead>
-                  <TableHead>Entidade</TableHead>
-                  <TableHead>Nome/ID</TableHead>
-                  <TableHead>Detalhes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.length === 0 ? (
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Registros de Atividade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      Nenhum log encontrado para os filtros selecionados
-                    </TableCell>
+                    <TableHead className="w-[150px]">
+                      Usuário
+                      <Button variant="ghost" size="sm" onClick={() => handleSort('userName')}>
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      Ação
+                      <Button variant="ghost" size="sm" onClick={() => handleSort('action')}>
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      Entidade
+                      <Button variant="ghost" size="sm" onClick={() => handleSort('entityType')}>
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      Nome
+                      <Button variant="ghost" size="sm" onClick={() => handleSort('entityName')}>
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      Detalhes
+                      <Button variant="ghost" size="sm" onClick={() => handleSort('details')}>
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[150px]">
+                      Data/Hora
+                      <Button variant="ghost" size="sm" onClick={() => handleSort('timestamp')}>
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      IP
+                      <Button variant="ghost" size="sm" onClick={() => handleSort('ipAddress')}>
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </TableHead>
                   </TableRow>
-                ) : (
-                  filteredLogs.map((log) => (
+                </TableHeader>
+                <TableBody>
+                  {paginatedLogs.map((log) => (
                     <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(log.timestamp), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}
-                      </TableCell>
-                      <TableCell>{log.userName}</TableCell>
                       <TableCell>
-                        <Badge variant={getActionBadgeVariant(log.action)}>
-                          {getActionDisplay(log.action)}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          {log.userName}
+                        </div>
                       </TableCell>
-                      <TableCell>{getEntityDisplay(log.entityType)}</TableCell>
                       <TableCell>
-                        {log.entityName || log.entityId || '-'}
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-4 w-4" />
+                          {renderActionBadge(log.action)}
+                        </div>
                       </TableCell>
-                      <TableCell className="max-w-[250px] truncate">
-                        {log.details || '-'}
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          {renderEntityType(log.entityType)}
+                        </div>
+                      </TableCell>
+                      <TableCell>{log.entityName}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Info className="h-4 w-4" />
+                          {log.details}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          {format(parseISO(log.timestamp), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
+                        </div>
+                      </TableCell>
+                      <TableCell>{log.ipAddress}</TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedLogs.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center">
+                        Nenhum registro encontrado.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </ScrollArea>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+            <div className="flex justify-between items-center mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page - 1)}
+                disabled={page === 1}
+              >
+                Anterior
+              </Button>
+              <span>Página {page} de {totalPages}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page + 1)}
+                disabled={page === totalPages}
+              >
+                Próximo
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
+};
+
+export default ActivityLogs;
+
+function cn(...inputs: any) {
+  let classNames = '';
+  for (let i = 0; i < inputs.length; i++) {
+    const input = inputs[i];
+    if (typeof input === 'string') {
+      classNames += input + ' ';
+    } else if (typeof input === 'object' && input !== null) {
+      for (const key in input) {
+        if (input.hasOwnProperty(key) && input[key]) {
+          classNames += key + ' ';
+        }
+      }
+    }
+  }
+  return classNames.trim();
 }

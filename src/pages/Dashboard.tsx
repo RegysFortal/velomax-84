@@ -27,7 +27,6 @@ const Dashboard = () => {
     format(new Date(), 'yyyy-MM-dd')
   );
 
-  // Update date range when filter changes
   useEffect(() => {
     const today = new Date();
     
@@ -48,7 +47,6 @@ const Dashboard = () => {
     }
   }, [dateFilter]);
 
-  // Filter data by date range
   const filteredDeliveries = deliveries.filter(delivery => {
     const deliveryDate = new Date(delivery.deliveryDate);
     const start = new Date(startDate);
@@ -69,7 +67,6 @@ const Dashboard = () => {
     return shipmentDate >= start && shipmentDate <= end;
   });
 
-  // Calculate statistics
   const totalDeliveries = filteredDeliveries.length;
   const totalWeight = filteredDeliveries.reduce((sum, d) => sum + d.weight, 0);
   const totalRevenue = filteredDeliveries.reduce((sum, d) => sum + d.totalFreight, 0);
@@ -78,7 +75,6 @@ const Dashboard = () => {
   const retainedShipments = filteredShipments.filter(s => s.isRetained).length;
   const pendingShipments = filteredShipments.filter(s => s.status !== 'delivered').length;
 
-  // Prepare chart data
   const deliveriesByDate = filteredDeliveries.reduce((acc, delivery) => {
     const date = format(new Date(delivery.deliveryDate), 'dd/MM');
     acc[date] = (acc[date] || 0) + 1;
@@ -98,7 +94,6 @@ const Dashboard = () => {
     ],
   };
 
-  // Revenue by client
   const revenueByClient = filteredDeliveries.reduce((acc, delivery) => {
     const client = clients.find(c => c.id === delivery.clientId);
     const clientName = client ? (client.tradingName || client.name) : 'Cliente Desconhecido';
@@ -108,11 +103,11 @@ const Dashboard = () => {
   }, {} as Record<string, number>);
 
   const clientRevenueData = {
-    labels: Object.keys(revenueByClient).slice(0, 5), // Top 5 clients
+    labels: Object.keys(revenueByClient).slice(0, 5),
     datasets: [
       {
         label: 'Faturamento',
-        data: Object.values(revenueByClient).slice(0, 5), // Top 5 clients
+        data: Object.values(revenueByClient).slice(0, 5),
         backgroundColor: [
           'rgba(255, 99, 132, 0.5)',
           'rgba(54, 162, 235, 0.5)',
