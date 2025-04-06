@@ -50,9 +50,11 @@ const Deliveries = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
   
-  // Debug to check clients
-  console.log('Available clients:', clients);
-  console.log('Deliveries with client IDs:', deliveries.map(d => ({ deliveryId: d.id, clientId: d.clientId })));
+  // Debug para verificar os problemas com os nomes de clientes
+  useEffect(() => {
+    console.log('Clientes disponíveis:', clients);
+    console.log('Entregas com IDs de clientes:', deliveries.map(d => ({ deliveryId: d.id, clientId: d.clientId })));
+  }, [clients, deliveries]);
 
   const filteredDeliveries = deliveries.filter(delivery => {
     const client = clients.find(c => c.id === delivery.clientId);
@@ -69,7 +71,9 @@ const Deliveries = () => {
   }).sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime());
 
   const handleEditDelivery = (delivery: Delivery) => {
-    setEditingDelivery(delivery);
+    // Cria uma cópia profunda para evitar problemas de referência
+    const deliveryCopy = JSON.parse(JSON.stringify(delivery));
+    setEditingDelivery(deliveryCopy);
     setIsDialogOpen(true);
   };
 
@@ -102,10 +106,15 @@ const Deliveries = () => {
     setEditingDelivery(null);
   };
 
-  // Function to get client display name safely
+  // Função para obter o nome do cliente de forma segura
   const getClientDisplayName = (clientId: string) => {
     const client = clients.find(c => c.id === clientId);
-    return client ? (client.tradingName || client.name) : 'Cliente não encontrado';
+    if (!client) {
+      console.log('Cliente não encontrado para ID:', clientId);
+      console.log('Todos clientes:', clients.map(c => ({ id: c.id, name: c.name })));
+      return 'Cliente não encontrado';
+    }
+    return client.tradingName || client.name;
   };
 
   return (

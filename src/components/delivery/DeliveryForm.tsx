@@ -69,6 +69,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
   const [showDoorToDoor, setShowDoorToDoor] = useState(false);
   const [freight, setFreight] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [initialClientId, setInitialClientId] = useState('');
 
   // Initialize form with react-hook-form
   const form = useForm<DeliveryFormValues>({
@@ -90,10 +91,20 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
     },
   });
 
+  // Debug logs
+  useEffect(() => {
+    if (delivery) {
+      console.log("DeliveryForm - Entrega a ser editada:", delivery);
+      console.log("DeliveryForm - Cliente ID:", delivery.clientId);
+      console.log("DeliveryForm - Clientes disponíveis:", clients);
+    }
+  }, [delivery, clients]);
+
   // Populate form if editing existing delivery
   useEffect(() => {
     if (delivery) {
       setIsEditMode(true);
+      setInitialClientId(delivery.clientId);
       
       form.reset({
         clientId: delivery.clientId,
@@ -116,6 +127,13 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
       if (isDoorToDoorDelivery(delivery.deliveryType)) {
         setShowDoorToDoor(true);
       }
+      
+      // Log para debug
+      console.log("DeliveryForm - Form resetado com valores:", {
+        clientId: delivery.clientId,
+        minuteNumber: delivery.minuteNumber,
+        // ... outros campos
+      });
     }
   }, [delivery, isDoorToDoorDelivery, form]);
 
@@ -126,6 +144,11 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
   const watchCargoType = form.watch('cargoType');
   const watchCargoValue = form.watch('cargoValue');
   const watchCityId = form.watch('cityId');
+
+  // Log para debug - monitorar mudanças no clientId
+  useEffect(() => {
+    console.log("DeliveryForm - clientId mudou para:", watchClientId);
+  }, [watchClientId]);
 
   // Update freight calculation when relevant fields change
   useEffect(() => {
@@ -158,6 +181,8 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
   // Handle form submission
   const onSubmit = async (data: DeliveryFormValues) => {
     try {
+      console.log("DeliveryForm - Dados do formulário enviado:", data);
+      
       // Parse numeric values
       const weight = parseFloat(data.weight);
       const packages = parseInt(data.packages);
@@ -165,7 +190,9 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
       
       // Get client details for activity log
       const client = clients.find(c => c.id === data.clientId);
-      const clientName = client ? (client.tradingName || client.name) : 'Unknown client';
+      const clientName = client ? (client.tradingName || client.name) : 'Cliente desconhecido';
+      
+      console.log("DeliveryForm - Cliente selecionado:", client);
       
       if (isEditMode && delivery) {
         // Update existing delivery
@@ -184,6 +211,8 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
           occurrence: data.occurrence,
           cityId: data.cityId || undefined,
         };
+        
+        console.log("DeliveryForm - Atualizando entrega:", updatedDelivery);
         
         updateDelivery(delivery.id, updatedDelivery);
         
@@ -222,6 +251,8 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
           cityId: data.cityId || undefined,
         };
         
+        console.log("DeliveryForm - Criando nova entrega:", newDelivery);
+        
         addDelivery(newDelivery);
         
         // Log activity
@@ -256,7 +287,10 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                   <FormControl>
                     <ClientSearchSelect
                       value={field.value}
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        console.log("ClientSearchSelect - Valor alterado para:", value);
+                        field.onChange(value);
+                      }}
                       placeholder="Selecione um cliente"
                     />
                   </FormControl>
