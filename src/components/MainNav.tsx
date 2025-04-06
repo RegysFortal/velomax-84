@@ -1,302 +1,183 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { 
-  BarChart3, 
-  ClipboardList, 
-  Home, 
-  Package, 
-  Settings, 
-  Users, 
-  MapPin, 
-  Wallet, 
-  Truck, 
-  UserCheck, 
-  Wrench, 
-  BookOpenCheck,
-  PackageOpen,
-  ChartBar,
-  Menu
-} from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { useState } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger
-} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMobile } from "@/hooks/use-mobile";
 
-interface MainNavProps {
-  className?: string;
-}
+const NavItems = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: "dashboard",
+    roles: ["admin", "user", "manager"]
+  },
+  {
+    title: "Clientes",
+    href: "/clients",
+    icon: "clients",
+    roles: ["admin", "user", "manager"]
+  },
+  {
+    title: "Entregas",
+    href: "/deliveries",
+    icon: "deliveries",
+    roles: ["admin", "user", "manager"]
+  },
+  {
+    title: "Embarques",
+    href: "/shipments",
+    icon: "shipments",
+    roles: ["admin", "user", "manager"]
+  },
+  {
+    title: "Relatórios",
+    href: "/reports",
+    icon: "reports",
+    roles: ["admin", "user", "manager"]
+  },
+  {
+    title: "Relatórios de Embarques",
+    href: "/shipment-reports",
+    icon: "shipment-reports",
+    roles: ["admin", "user", "manager"]
+  },
+  {
+    title: "Financeiro",
+    href: "/financial",
+    icon: "financial",
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Logbook",
+    href: "/logbook",
+    icon: "logbook",
+    roles: ["admin", "user", "manager"]
+  },
+  {
+    title: "Cidades",
+    href: "/cities",
+    icon: "cities",
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Veículos",
+    href: "/vehicles",
+    icon: "vehicles",
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Colaboradores",
+    href: "/employees",
+    icon: "employees",
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Manutenções",
+    href: "/maintenance",
+    icon: "maintenance",
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Tabelas de Preços",
+    href: "/price-tables",
+    icon: "price-tables",
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Logs de Atividades",
+    href: "/activity-logs",
+    icon: "activity-logs",
+    roles: ["admin"]
+  },
+  {
+    title: "Configurações",
+    href: "/settings",
+    icon: "settings",
+    roles: ["admin", "manager"]
+  },
+];
 
-export function MainNav({ className }: MainNavProps) {
-  const { pathname } = useLocation();
+export function MainNav() {
+  const [open, setOpen] = useState(false);
   const { user } = useAuth();
-  const { isMobile } = useIsMobile();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useMobile();
+  const userRole = user?.role || 'user';
   
-  const isAdmin = user?.role === 'admin';
-  const isManager = user?.role === 'manager';
-  const canManageSystem = isAdmin || isManager;
-  
-  const operationalRoutes = [
-    {
-      href: "/deliveries",
-      label: "Entregas",
-      icon: Package,
-      active: pathname.includes("/deliveries"),
-      canAccess: user?.permissions?.deliveries ?? true
-    },
-    {
-      href: "/shipments",
-      label: "Embarques",
-      icon: PackageOpen,
-      active: pathname.includes("/shipments"),
-      canAccess: user?.permissions?.shipments ?? true
-    },
-    {
-      href: "/shipment-reports",
-      label: "Relatórios de Embarques",
-      icon: ChartBar,
-      active: pathname.includes("/shipment-reports"),
-      canAccess: user?.permissions?.reports
-    }
-  ];
+  // Filter nav items based on user role
+  const filteredNavItems = NavItems.filter(item => 
+    item.roles.includes(userRole)
+  );
 
-  const financialRoutes = [
-    {
-      href: "/financial",
-      label: "Financeiro",
-      icon: Wallet,
-      active: pathname.includes("/financial"),
-      canAccess: user?.permissions?.financial
-    },
-    {
-      href: "/reports",
-      label: "Relatórios",
-      icon: BarChart3,
-      active: pathname.includes("/reports"),
-      canAccess: user?.permissions?.reports
-    },
-    {
-      href: "/price-tables",
-      label: "Tabelas de Preço",
-      icon: ClipboardList,
-      active: pathname.includes("/price-tables"),
-      canAccess: user?.permissions?.priceTables
-    },
-    {
-      href: "/cities",
-      label: "Cidades",
-      icon: MapPin,
-      active: pathname.includes("/cities"),
-      canAccess: user?.permissions?.cities
-    }
-  ];
-
-  const managementRoutes = [
-    {
-      href: "/dashboard",
-      label: "Dashboard",
-      icon: Home,
-      active: pathname === "/dashboard",
-      canAccess: user?.permissions?.dashboard ?? true
-    },
-    {
-      href: "/logbook",
-      label: "Diário de Bordo",
-      icon: BookOpenCheck,
-      active: pathname.includes("/logbook"),
-      canAccess: user?.permissions?.logbook ?? canManageSystem
-    },
-    {
-      href: "/clients",
-      label: "Clientes",
-      icon: Users,
-      active: pathname.includes("/clients"),
-      canAccess: user?.permissions?.clients
-    },
-    {
-      href: "/employees",
-      label: "Funcionários",
-      icon: UserCheck,
-      active: pathname.includes("/employees"),
-      canAccess: user?.permissions?.employees ?? canManageSystem
-    },
-    {
-      href: "/vehicles",
-      label: "Veículos",
-      icon: Truck,
-      active: pathname.includes("/vehicles"),
-      canAccess: user?.permissions?.vehicles ?? canManageSystem
-    },
-    {
-      href: "/maintenance",
-      label: "Manutenções",
-      icon: Wrench,
-      active: pathname.includes("/maintenance"),
-      canAccess: user?.permissions?.maintenance ?? canManageSystem
-    },
-    {
-      href: "/settings",
-      label: "Configurações",
-      icon: Settings,
-      active: pathname.includes("/settings"),
-      canAccess: user?.permissions?.settings ?? isAdmin
-    }
-  ];
-
-  const filterRoutes = (routes: any[]) => 
-    routes.filter(route => route.canAccess === true);
-
-  const accessibleOperationalRoutes = filterRoutes(operationalRoutes);
-  const accessibleFinancialRoutes = filterRoutes(financialRoutes);
-  const accessibleManagementRoutes = filterRoutes(managementRoutes);
-  
-  // All accessible routes combined for mobile menu
-  const allRoutes = [
-    ...accessibleOperationalRoutes,
-    ...accessibleFinancialRoutes,
-    ...accessibleManagementRoutes
-  ];
-  
-  if (isMobile) {
-    return (
-      <div className={cn("flex items-center", className)}>
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+  return (
+    <>
+      {isMobile ? (
+        <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Menu de navegação">
+            <Button variant="outline" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle Menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[80%] max-w-[280px] p-0">
-            <nav className="flex flex-col py-4">
-              <div className="px-4 mb-4 font-semibold text-lg">Menu</div>
-              {allRoutes.map((route) => (
-                <Link
-                  key={route.href}
-                  to={route.href}
-                  className={cn(
-                    "flex items-center px-4 py-3 text-base transition-colors hover:bg-accent",
-                    route.active
-                      ? "font-medium text-primary bg-accent/30"
-                      : "text-muted-foreground"
-                  )}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {route.icon && (
-                    <route.icon className="h-5 w-5 mr-3" />
-                  )}
-                  {route.label}
-                </Link>
-              ))}
-            </nav>
+          <SheetContent side="left" className="pr-0">
+            <MobileNav items={filteredNavItems} setOpen={setOpen} />
           </SheetContent>
         </Sheet>
-      </div>
-    );
-  }
-  
+      ) : (
+        <nav className="hidden md:flex flex-row items-center gap-6 text-sm">
+          {filteredNavItems.map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              className={({ isActive }) =>
+                cn(
+                  "transition-colors hover:text-foreground/80",
+                  isActive ? "text-foreground font-medium" : "text-foreground/60"
+                )
+              }
+            >
+              {item.title}
+            </NavLink>
+          ))}
+        </nav>
+      )}
+    </>
+  );
+}
+
+interface MobileNavProps {
+  items: typeof NavItems;
+  setOpen: (open: boolean) => void;
+}
+
+function MobileNav({ items, setOpen }: MobileNavProps) {
   return (
-    <NavigationMenu className={cn("flex", className)}>
-      <NavigationMenuList className="flex gap-2">
-        {accessibleOperationalRoutes.length > 0 && (
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className="hover:bg-accent/50">
-              Operacional
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="w-[200px] p-2">
-                {accessibleOperationalRoutes.map((route) => (
-                  <Link
-                    key={route.href}
-                    to={route.href}
-                    className={cn(
-                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                      route.active
-                        ? "font-medium text-primary bg-accent/50"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {route.icon && (
-                      <route.icon className="h-4 w-4 mr-2" />
-                    )}
-                    {route.label}
-                  </Link>
-                ))}
-              </div>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        )}
-
-        {accessibleFinancialRoutes.length > 0 && (
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className="hover:bg-accent/50">
-              Financeiro
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="w-[200px] p-2">
-                {accessibleFinancialRoutes.map((route) => (
-                  <Link
-                    key={route.href}
-                    to={route.href}
-                    className={cn(
-                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                      route.active
-                        ? "font-medium text-primary bg-accent/50"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {route.icon && (
-                      <route.icon className="h-4 w-4 mr-2" />
-                    )}
-                    {route.label}
-                  </Link>
-                ))}
-              </div>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        )}
-
-        {accessibleManagementRoutes.length > 0 && (
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className="hover:bg-accent/50">
-              Gerência
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="w-[200px] p-2">
-                {accessibleManagementRoutes.map((route) => (
-                  <Link
-                    key={route.href}
-                    to={route.href}
-                    className={cn(
-                      "flex items-center px-2 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground rounded-md",
-                      route.active
-                        ? "font-medium text-primary bg-accent/50"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {route.icon && (
-                      <route.icon className="h-4 w-4 mr-2" />
-                    )}
-                    {route.label}
-                  </Link>
-                ))}
-              </div>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        )}
-      </NavigationMenuList>
-    </NavigationMenu>
+    <div className="flex flex-col gap-4 py-4">
+      <ScrollArea className="h-[calc(100vh-8rem)]">
+        <div className="flex flex-col gap-2 pl-2 pr-6">
+          {items.map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "hover:bg-accent hover:text-accent-foreground"
+                )
+              }
+            >
+              {item.title}
+            </NavLink>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
   );
 }

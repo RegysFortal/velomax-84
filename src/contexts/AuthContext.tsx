@@ -1,374 +1,339 @@
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { User, UserPermissions } from '@/types';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { toast } from 'sonner';
+import { useActivityLog } from './ActivityLogContext';
 
-type AuthContextType = {
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user' | 'manager';
+  avatar?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AuthContextProps {
   user: User | null;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
   loading: boolean;
-  isAuthenticated: boolean;
-  updateUserPermissions: (userId: string, permissions: UserPermissions) => void;
-  users: User[];
-  updateUserProfile: (userId: string, userData: Partial<User>) => Promise<void>;
-  updateUserPassword: (userId: string, currentPassword: string, newPassword: string) => Promise<void>;
-  createUser: (userData: Omit<User, 'id'>) => Promise<User>;
-  deleteUser: (userId: string) => void;
-  resetUserPassword: (userId: string, newPassword: string) => void;
-};
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  updateUserProfile: (data: Partial<User>) => Promise<void>;
+  updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
+}
 
-const DEFAULT_PERMISSIONS: UserPermissions = {
-  deliveries: true,
-  shipments: true,
-  
-  financial: true,
-  reports: true,
-  priceTables: true,
-  cities: true,
-  
-  dashboard: true,
-  logbook: false,
-  clients: true,
-  employees: false,
-  vehicles: false,
-  maintenance: false,
-  settings: false
-};
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-const ADMIN_PERMISSIONS: UserPermissions = {
-  deliveries: true,
-  shipments: true,
-  
-  financial: true,
-  reports: true,
-  priceTables: true,
-  cities: true,
-  
-  dashboard: true,
-  logbook: true,
-  employees: true,
-  vehicles: true,
-  maintenance: true,
-  settings: true,
-  clients: true
-};
-
-const MANAGER_PERMISSIONS: UserPermissions = {
-  ...DEFAULT_PERMISSIONS,
-  logbook: true,
-  employees: true,
-  vehicles: true,
-  maintenance: true,
-  settings: false
-};
-
-const USER_PERMISSIONS: UserPermissions = {
-  deliveries: true,
-  shipments: true,
-  
-  financial: false,
-  reports: true,
-  priceTables: false,
-  cities: false,
-  
-  dashboard: true,
-  logbook: false,
-  clients: false,
-  employees: false,
-  vehicles: false,
-  maintenance: false,
-  settings: false
-};
-
-const MOCK_USERS: User[] = [
-  { 
-    id: '1', 
-    username: 'admin', 
-    password: 'admin123', 
-    role: 'admin', 
-    name: 'Administrador',
-    permissions: ADMIN_PERMISSIONS
+// Initial user for demo purposes
+const INITIAL_USERS = [
+  {
+    id: 'user-1',
+    name: 'Admin User',
+    email: 'admin@example.com',
+    password: 'admin123',
+    role: 'admin' as const,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
-  { 
-    id: '2', 
-    username: 'manager', 
-    password: 'manager123', 
-    role: 'manager', 
-    name: 'Gerente',
-    permissions: MANAGER_PERMISSIONS
-  },
-  { 
-    id: '3', 
-    username: 'user', 
-    password: 'user123', 
-    role: 'user', 
-    name: 'Usuário Padrão',
-    permissions: USER_PERMISSIONS
+  {
+    id: 'user-2',
+    name: 'Regular User',
+    email: 'user@example.com',
+    password: 'user123',
+    role: 'user' as const,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [loading, setLoading] = useState(true);
-  const { toast: uiToast } = useToast();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { addLog } = useActivityLog();
   
   useEffect(() => {
-    const storedUser = localStorage.getItem('velomax_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse stored user', error);
+    // Check for existing user session in localStorage
+    const checkAuth = () => {
+      const storedUser = localStorage.getItem('velomax_user');
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error('Failed to parse stored user:', e);
+          localStorage.removeItem('velomax_user');
+        }
+      }
+      setLoading(false);
+    };
+    
+    // Initialize users in localStorage if they don't exist
+    const initUsers = () => {
+      const storedUsers = localStorage.getItem('velomax_users');
+      if (!storedUsers) {
+        localStorage.setItem('velomax_users', JSON.stringify(INITIAL_USERS));
+      }
+    };
+    
+    initUsers();
+    checkAuth();
+  }, []);
+  
+  // Update local storage when user changes
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        localStorage.setItem('velomax_user', JSON.stringify(user));
+      } else {
         localStorage.removeItem('velomax_user');
       }
     }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
+  }, [user, loading]);
+  
+  const login = async (email: string, password: string) => {
     try {
-      localStorage.setItem('velomax_users', JSON.stringify(users.map(u => ({
-        ...u,
-        password: u.password ? '[PROTECTED]' : undefined
-      }))));
-    } catch (error) {
-      console.error('Failed to store users', error);
-    }
-  }, [users]);
-
-  const login = async (username: string, password: string) => {
-    setLoading(true);
-    
-    try {
+      // Simulate API request
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const foundUser = users.find(
-        u => u.username === username && u.password === password
+      const storedUsers = localStorage.getItem('velomax_users');
+      if (!storedUsers) {
+        throw new Error('No users found');
+      }
+      
+      const users = JSON.parse(storedUsers);
+      const foundUser = users.find((u: any) => 
+        u.email.toLowerCase() === email.toLowerCase() && u.password === password
       );
       
       if (!foundUser) {
-        uiToast({
-          title: "Erro de autenticação",
-          description: "Nome de usuário ou senha incorretos.",
-          variant: "destructive"
-        });
-        throw new Error('Invalid credentials');
+        throw new Error('Credenciais inválidas');
       }
       
-      const authenticatedUser: User = {
-        id: foundUser.id,
-        username: foundUser.username,
-        role: foundUser.role,
-        name: foundUser.name,
-        permissions: foundUser.permissions
-      };
+      // Remove password from user object before storing in state
+      const { password: _, ...userWithoutPassword } = foundUser;
+      setUser(userWithoutPassword);
       
-      setUser(authenticatedUser);
-      localStorage.setItem('velomax_user', JSON.stringify(authenticatedUser));
-      
-      uiToast({
-        title: "Login realizado com sucesso",
-        description: `Bem-vindo, ${authenticatedUser.name}!`,
+      // Log login activity
+      addLog({
+        action: 'login',
+        entityType: 'user',
+        entityId: userWithoutPassword.id,
+        entityName: userWithoutPassword.name,
+        details: `Login bem-sucedido: ${userWithoutPassword.email}`
       });
-    } catch (error) {
-      console.error('Login failed:', error);
+      
+      toast({
+        title: 'Login Realizado',
+        description: `Bem-vindo, ${foundUser.name}!`,
+      });
+      
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao fazer login',
+        description: error.message || 'Ocorreu um erro ao tentar fazer login.',
+        variant: 'destructive',
+      });
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
   
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('velomax_user');
-    uiToast({
-      title: "Logout realizado",
-      description: "Você foi desconectado do sistema.",
-    });
-  };
-
-  const updateUserPermissions = (userId: string, permissions: UserPermissions) => {
-    const updatedUsers = users.map(u => 
-      u.id === userId ? { ...u, permissions } : u
-    );
-    
-    setUsers(updatedUsers);
-    
-    if (user && user.id === userId) {
-      const updatedUser = { ...user, permissions };
-      setUser(updatedUser);
-      localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
+    // Log logout activity before clearing user
+    if (user) {
+      addLog({
+        action: 'logout',
+        entityType: 'user',
+        entityId: user.id,
+        entityName: user.name,
+        details: `Logout: ${user.email}`
+      });
     }
     
-    uiToast({
-      title: "Permissões atualizadas",
-      description: "As permissões do usuário foram atualizadas com sucesso.",
+    setUser(null);
+    toast({
+      title: 'Logout Realizado',
+      description: 'Você foi desconectado com sucesso.',
     });
+    navigate('/login');
   };
-
-  const updateUserProfile = async (userId: string, userData: Partial<User>) => {
+  
+  const register = async (name: string, email: string, password: string) => {
     try {
-      setLoading(true);
+      // Simulate API request
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Find user to check if it exists
-      const userToUpdate = users.find(u => u.id === userId);
-      if (!userToUpdate) {
-        throw new Error('Usuário não encontrado');
+      // Validate inputs
+      if (!name || !email || !password) {
+        throw new Error('Todos os campos são obrigatórios');
       }
       
-      // Update users state with new data
-      const updatedUsers = users.map(u => 
-        u.id === userId ? { ...u, ...userData } : u
+      // Check if email is already registered
+      const storedUsers = localStorage.getItem('velomax_users');
+      const users = storedUsers ? JSON.parse(storedUsers) : [];
+      
+      if (users.some((u: any) => u.email.toLowerCase() === email.toLowerCase())) {
+        throw new Error('Este e-mail já está registrado');
+      }
+      
+      // Create new user
+      const newUser = {
+        id: `user-${uuidv4()}`,
+        name,
+        email,
+        password,
+        role: 'user' as const,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Add new user to the users list
+      const updatedUsers = [...users, newUser];
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      
+      // Auto-login the new user
+      const { password: _, ...userWithoutPassword } = newUser;
+      setUser(userWithoutPassword);
+      
+      // Log register activity
+      addLog({
+        action: 'register',
+        entityType: 'user',
+        entityId: newUser.id,
+        entityName: newUser.name,
+        details: `Novo usuário registrado: ${newUser.email}`
+      });
+      
+      toast({
+        title: 'Registro Concluído',
+        description: 'Sua conta foi criada com sucesso!',
+      });
+      
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao registrar',
+        description: error.message || 'Ocorreu um erro ao tentar registrar.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+  
+  const updateUserProfile = async (data: Partial<User>) => {
+    try {
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      // Simulate API request
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update user in state
+      const updatedUser = { ...user, ...data, updatedAt: new Date().toISOString() };
+      setUser(updatedUser);
+      
+      // Update user in localStorage
+      const storedUsers = localStorage.getItem('velomax_users');
+      if (storedUsers) {
+        const users = JSON.parse(storedUsers);
+        const updatedUsers = users.map((u: any) => 
+          u.id === user.id ? { ...u, ...data, updatedAt: new Date().toISOString() } : u
+        );
+        localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      }
+      
+      // Log profile update activity
+      addLog({
+        action: 'update',
+        entityType: 'user',
+        entityId: user.id,
+        entityName: user.name,
+        details: `Perfil atualizado: ${Object.keys(data).join(', ')}`
+      });
+      
+      toast({
+        title: 'Perfil Atualizado',
+        description: 'Suas informações foram atualizadas com sucesso!',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar perfil',
+        description: error.message || 'Ocorreu um erro ao tentar atualizar o perfil.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+  
+  const updateUserPassword = async (currentPassword: string, newPassword: string) => {
+    try {
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      // Simulate API request
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Verify current password
+      const storedUsers = localStorage.getItem('velomax_users');
+      if (!storedUsers) {
+        throw new Error('Erro ao verificar senha atual');
+      }
+      
+      const users = JSON.parse(storedUsers);
+      const currentUser = users.find((u: any) => u.id === user.id);
+      
+      if (!currentUser || currentUser.password !== currentPassword) {
+        throw new Error('Senha atual incorreta');
+      }
+      
+      // Update password
+      const updatedUsers = users.map((u: any) => 
+        u.id === user.id ? { ...u, password: newPassword, updatedAt: new Date().toISOString() } : u
       );
       
-      // Update users state
-      setUsers(updatedUsers);
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
       
-      // If the current user is being updated, also update the user state
-      if (user && user.id === userId) {
-        const updatedUser = { ...user, ...userData };
-        setUser(updatedUser);
-        localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
-      }
-
-      // Update localStorage to persist changes
-      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers.map(u => ({
-        ...u,
-        password: u.password ? '[PROTECTED]' : undefined
-      }))));
-      
-      uiToast({
-        title: "Perfil atualizado",
-        description: "As informações do usuário foram atualizadas com sucesso."
+      // Log password update activity
+      addLog({
+        action: 'update',
+        entityType: 'user',
+        entityId: user.id,
+        entityName: user.name,
+        details: 'Senha atualizada'
       });
       
-      return Promise.resolve();
-    } catch (error) {
-      console.error("Error updating user profile:", error);
-      uiToast({
-        title: "Erro ao atualizar",
-        description: error instanceof Error ? error.message : "Ocorreu um erro ao atualizar as informações do usuário.",
-        variant: "destructive"
+      toast({
+        title: 'Senha Atualizada',
+        description: 'Sua senha foi alterada com sucesso!',
       });
-      return Promise.reject(error);
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar senha',
+        description: error.message || 'Ocorreu um erro ao tentar atualizar a senha.',
+        variant: 'destructive',
+      });
+      throw error;
     }
-  };
-
-  const updateUserPassword = async (userId: string, currentPassword: string, newPassword: string) => {
-    return new Promise<void>((resolve, reject) => {
-      try {
-        const userToUpdate = users.find(u => u.id === userId);
-        
-        if (!userToUpdate) {
-          reject(new Error('Usuário não encontrado'));
-          return;
-        }
-        
-        if (userToUpdate.password !== currentPassword) {
-          reject(new Error('Senha atual incorreta'));
-          return;
-        }
-        
-        setTimeout(() => {
-          const updatedUsers = users.map(u => 
-            u.id === userId ? { ...u, password: newPassword } : u
-          );
-          
-          setUsers(updatedUsers);
-          resolve();
-        }, 800);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
-
-  const createUser = async (userData: Omit<User, 'id'>) => {
-    return new Promise<User>((resolve, reject) => {
-      try {
-        if (users.some(u => u.username === userData.username)) {
-          reject(new Error('Nome de usuário já existe'));
-          return;
-        }
-        
-        const newId = (Math.max(...users.map(u => parseInt(u.id))) + 1).toString();
-        
-        let permissions = { ...userData.permissions };
-        if (userData.role === 'admin') {
-          permissions = { ...ADMIN_PERMISSIONS };
-        } else if (userData.role === 'manager') {
-          permissions = { ...MANAGER_PERMISSIONS };
-        } else {
-          permissions = { ...USER_PERMISSIONS, ...permissions };
-        }
-        
-        const newUser: User = {
-          id: newId,
-          ...userData,
-          permissions
-        };
-        
-        setTimeout(() => {
-          setUsers(prev => [...prev, newUser]);
-          toast.success("Usuário criado com sucesso");
-          resolve(newUser);
-        }, 800);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
-
-  const deleteUser = (userId: string) => {
-    const admins = users.filter(u => u.role === 'admin');
-    if (admins.length === 1 && admins[0].id === userId) {
-      uiToast({
-        title: "Operação não permitida",
-        description: "Não é possível excluir o último administrador do sistema.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const updatedUsers = users.filter(u => u.id !== userId);
-    setUsers(updatedUsers);
-    toast.success("Usuário excluído com sucesso");
-  };
-
-  const resetUserPassword = (userId: string, newPassword: string) => {
-    const updatedUsers = users.map(u => 
-      u.id === userId ? { ...u, password: newPassword } : u
-    );
-    
-    setUsers(updatedUsers);
-    toast.success("Senha do usuário redefinida com sucesso");
   };
   
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      login, 
-      logout, 
-      loading,
-      isAuthenticated: !!user,
-      updateUserPermissions,
-      users,
-      updateUserProfile,
-      updateUserPassword,
-      createUser,
-      deleteUser,
-      resetUserPassword
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        register,
+        updateUserProfile,
+        updateUserPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -376,8 +341,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
 };

@@ -13,6 +13,7 @@ import { CitiesProvider } from "./contexts/CitiesContext";
 import { FinancialProvider } from "./contexts/FinancialContext";
 import { LogbookProvider } from "./contexts/LogbookContext";
 import { ShipmentsProvider } from "./contexts/ShipmentsContext";
+import { ActivityLogProvider } from "./contexts/ActivityLogContext";
 
 // Pages
 import Index from "./pages/Index";
@@ -33,6 +34,7 @@ import Maintenance from "./pages/Maintenance";
 import Profile from "./pages/Profile";
 import Shipments from "./pages/Shipments";
 import ShipmentReports from "./pages/ShipmentReports";
+import ActivityLogs from "./pages/ActivityLogs";
 
 const App = () => {
   return (
@@ -41,41 +43,44 @@ const App = () => {
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <PriceTablesProvider>
-            <ClientsProvider>
-              <CitiesProvider>
-                <DeliveriesProvider>
-                  <LogbookProvider>
-                    <ShipmentsProvider>
-                      <FinancialProvider>
-                        <Routes>
-                          <Route path="/login" element={<Login />} />
-                          <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/clients" element={<Clients />} />
-                          <Route path="/price-tables" element={<PriceTables />} />
-                          <Route path="/deliveries" element={<Deliveries />} />
-                          <Route path="/reports" element={<Reports />} />
-                          <Route path="/cities" element={<Cities />} />
-                          <Route path="/financial" element={<Financial />} />
-                          <Route path="/settings" element={<Settings />} />
-                          <Route path="/logbook" element={<Logbook />} />
-                          <Route path="/vehicles" element={<Vehicles />} />
-                          <Route path="/employees" element={<Employees />} />
-                          <Route path="/maintenance" element={<Maintenance />} />
-                          <Route path="/profile" element={<Profile />} />
-                          <Route path="/shipments" element={<Shipments />} />
-                          <Route path="/shipment-reports" element={<ShipmentReports />} />
-                          <Route path="/" element={<Index />} />
-                          {/* 404 Route */}
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </FinancialProvider>
-                    </ShipmentsProvider>
-                  </LogbookProvider>
-                </DeliveriesProvider>
-              </CitiesProvider>
-            </ClientsProvider>
-          </PriceTablesProvider>
+          <ActivityLogProvider>
+            <PriceTablesProvider>
+              <ClientsProvider>
+                <CitiesProvider>
+                  <DeliveriesProvider>
+                    <LogbookProvider>
+                      <ShipmentsProvider>
+                        <FinancialProvider>
+                          <Routes>
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/clients" element={<Clients />} />
+                            <Route path="/price-tables" element={<PriceTables />} />
+                            <Route path="/deliveries" element={<Deliveries />} />
+                            <Route path="/reports" element={<Reports />} />
+                            <Route path="/cities" element={<Cities />} />
+                            <Route path="/financial" element={<Financial />} />
+                            <Route path="/settings" element={<Settings />} />
+                            <Route path="/logbook" element={<Logbook />} />
+                            <Route path="/vehicles" element={<Vehicles />} />
+                            <Route path="/employees" element={<Employees />} />
+                            <Route path="/maintenance" element={<Maintenance />} />
+                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/shipments" element={<Shipments />} />
+                            <Route path="/shipment-reports" element={<ShipmentReports />} />
+                            <Route path="/activity-logs" element={<ActivityLogs />} />
+                            <Route path="/" element={<Index />} />
+                            {/* 404 Route */}
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </FinancialProvider>
+                      </ShipmentsProvider>
+                    </LogbookProvider>
+                  </DeliveriesProvider>
+                </CitiesProvider>
+              </ClientsProvider>
+            </PriceTablesProvider>
+          </ActivityLogProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   username: string;
@@ -99,17 +98,17 @@ export interface Delivery {
   deliveryTime: string;
   receiver: string;
   weight: number;
-  packages: number; // Adding the packages property
-  cityId?: string;
-  deliveryType: 'standard' | 'emergency' | 'saturday' | 'exclusive' | 'difficultAccess' | 'metropolitanRegion' | 'sundayHoliday' | 'normalBiological' | 'infectiousBiological' | 'tracked' | 'doorToDoorInterior' | 'reshipment';
+  packages: number;
+  deliveryType: 'standard' | 'emergency' | 'exclusive' | 'saturday' | 'sundayHoliday' | 'difficultAccess' | 'metropolitanRegion' | 'doorToDoorInterior' | 'reshipment' | 'normalBiological' | 'infectiousBiological' | 'tracked';
   cargoType: 'standard' | 'perishable';
-  cargoValue: number;
+  cargoValue?: number;
   totalFreight: number;
-  customPricing?: boolean;
-  discount?: number;
   notes?: string;
+  occurrence?: string; // New field for delivery occurrence
   createdAt: string;
   updatedAt: string;
+  distance?: number;
+  cityId?: string;
 }
 
 // Door to door delivery types array

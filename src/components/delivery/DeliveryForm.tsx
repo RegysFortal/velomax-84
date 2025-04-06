@@ -1,11 +1,25 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useClients } from '@/contexts/ClientsContext';
+import { useCities } from '@/contexts/CitiesContext';
+import { Delivery } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Form,
   FormControl,
@@ -14,541 +28,521 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
-import { useClients } from '@/contexts/ClientsContext';
-import { useCities } from '@/contexts/CitiesContext';
-import { format } from 'date-fns';
-import { AlertCircle } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Delivery } from '@/types';
-import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Textarea } from '@/components/ui/textarea';
+import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
+import { useActivityLog } from '@/contexts/ActivityLogContext';
+import { toast } from "sonner";
 
-type DeliveryType = 'standard' | 'emergency' | 'saturday' | 'exclusive' | 'difficultAccess' | 
-                   'metropolitanRegion' | 'sundayHoliday' | 'normalBiological' | 
-                   'infectiousBiological' | 'tracked' | 'doorToDoorInterior' | 'reshipment';
-
-type CargoType = 'standard' | 'perishable';
-
-const FormSchema = z.object({
-  clientId: z.string().min(1, {
-    message: "Selecione um cliente",
+// Schema for form validation
+const deliveryFormSchema = z.object({
+  clientId: z.string({ required_error: 'Cliente é obrigatório' }),
+  minuteNumber: z.string().optional(),
+  deliveryDate: z.string({ required_error: 'Data de entrega é obrigatória' }),
+  deliveryTime: z.string({ required_error: 'Hora de entrega é obrigatória' }),
+  receiver: z.string({ required_error: 'Destinatário é obrigatório' }).min(3, 'Mínimo de 3 caracteres'),
+  weight: z.string({ required_error: 'Peso é obrigatório' }).refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+    message: 'Peso deve ser maior que zero',
   }),
-  minuteNumber: z.string().min(1, {
-    message: "Número da minuta é obrigatório",
+  packages: z.string({ required_error: 'Quantidade de volumes é obrigatória' }).refine(val => !isNaN(parseInt(val)) && parseInt(val) > 0, {
+    message: 'Volumes devem ser maior que zero',
   }),
-  deliveryDate: z.string().min(1, {
-    message: "Data da entrega é obrigatória",
-  }),
-  deliveryTime: z.string().optional(),
-  receiver: z.string().min(1, {
-    message: "Nome do recebedor é obrigatório",
-  }),
-  weight: z.number(),
-  packages: z.number(),
-  deliveryType: z.string().min(1, {
-    message: "Tipo de entrega é obrigatório",
-  }),
-  cargoType: z.string().min(1, {
-    message: "Tipo de carga é obrigatório",
-  }),
-  cargoValue: z.number().optional(),
-  notes: z.string().optional(),
+  deliveryType: z.string({ required_error: 'Tipo de entrega é obrigatório' }),
+  cargoType: z.string({ required_error: 'Tipo de carga é obrigatório' }),
+  cargoValue: z.string().optional(),
   cityId: z.string().optional(),
+  notes: z.string().optional(),
+  occurrence: z.string().optional(),
 });
 
-interface FormData extends z.infer<typeof FormSchema> {}
+type DeliveryFormValues = z.infer<typeof deliveryFormSchema>;
 
 interface DeliveryFormProps {
   delivery?: Delivery | null;
   onComplete: () => void;
 }
 
-export function DeliveryForm({ delivery, onComplete }: DeliveryFormProps) {
-  const { toast } = useToast();
+export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
   const { addDelivery, updateDelivery, calculateFreight, isDoorToDoorDelivery, checkMinuteNumberExists } = useDeliveries();
   const { clients } = useClients();
   const { cities } = useCities();
-  const [showCitySelect, setShowCitySelect] = useState(false);
-  const [showCargoValue, setShowCargoValue] = useState(false);
-  const [totalFreight, setTotalFreight] = useState(0);
-  const [minuteNumberDuplicate, setMinuteNumberDuplicate] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const isEditMode = !!delivery;
+  const { addLog } = useActivityLog();
+  const [showDoorToDoor, setShowDoorToDoor] = useState(false);
+  const [freight, setFreight] = useState(0);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(FormSchema),
+  // Initialize form with react-hook-form
+  const form = useForm<DeliveryFormValues>({
+    resolver: zodResolver(deliveryFormSchema),
     defaultValues: {
-      clientId: delivery?.clientId || "",
-      minuteNumber: delivery?.minuteNumber || format(new Date(), 'yyyyMMddHHmmss'),
-      deliveryDate: delivery?.deliveryDate || format(new Date(), 'yyyy-MM-dd'),
-      deliveryTime: delivery?.deliveryTime || format(new Date(), 'HH:mm'),
-      receiver: delivery?.receiver || "",
-      weight: delivery?.weight || 1,
-      packages: delivery?.packages || 1,
-      deliveryType: delivery?.deliveryType || "standard",
-      cargoType: delivery?.cargoType || "standard",
-      cargoValue: delivery?.cargoValue || 0,
-      notes: delivery?.notes || "",
-      cityId: delivery?.cityId || "",
+      clientId: '',
+      minuteNumber: '',
+      deliveryDate: format(new Date(), 'yyyy-MM-dd'),
+      deliveryTime: format(new Date(), 'HH:mm'),
+      receiver: '',
+      weight: '',
+      packages: '',
+      deliveryType: 'standard',
+      cargoType: 'standard',
+      cargoValue: '',
+      cityId: '',
+      notes: '',
+      occurrence: '',
     },
   });
 
-  const watchClient = form.watch('clientId');
-  const watchDeliveryType = form.watch('deliveryType');
+  // Populate form if editing existing delivery
+  useEffect(() => {
+    if (delivery) {
+      setIsEditMode(true);
+      
+      form.reset({
+        clientId: delivery.clientId,
+        minuteNumber: delivery.minuteNumber,
+        deliveryDate: delivery.deliveryDate,
+        deliveryTime: delivery.deliveryTime,
+        receiver: delivery.receiver,
+        weight: delivery.weight.toString(),
+        packages: delivery.packages.toString(),
+        deliveryType: delivery.deliveryType,
+        cargoType: delivery.cargoType,
+        cargoValue: delivery.cargoValue?.toString() || '',
+        cityId: delivery.cityId || '',
+        notes: delivery.notes || '',
+        occurrence: delivery.occurrence || '',
+      });
+      
+      setFreight(delivery.totalFreight);
+      
+      if (isDoorToDoorDelivery(delivery.deliveryType)) {
+        setShowDoorToDoor(true);
+      }
+    }
+  }, [delivery, isDoorToDoorDelivery, form]);
+
+  // Watch for changes to calculate freight
+  const watchClientId = form.watch('clientId');
   const watchWeight = form.watch('weight');
+  const watchDeliveryType = form.watch('deliveryType');
   const watchCargoType = form.watch('cargoType');
-  const watchMinuteNumber = form.watch('minuteNumber');
   const watchCargoValue = form.watch('cargoValue');
   const watchCityId = form.watch('cityId');
 
-  // Initialize total freight when editing
+  // Update freight calculation when relevant fields change
   useEffect(() => {
-    if (isEditMode && delivery?.totalFreight) {
-      setTotalFreight(delivery.totalFreight);
+    if (watchClientId && watchWeight && !isNaN(parseFloat(watchWeight))) {
+      try {
+        const calculatedFreight = calculateFreight(
+          watchClientId,
+          parseFloat(watchWeight),
+          watchDeliveryType as Delivery['deliveryType'],
+          watchCargoType as Delivery['cargoType'],
+          watchCargoValue ? parseFloat(watchCargoValue) : undefined,
+          undefined,
+          watchCityId || undefined
+        );
+        
+        setFreight(calculatedFreight);
+      } catch (error) {
+        console.error('Error calculating freight:', error);
+      }
     }
-  }, [isEditMode, delivery]);
+  }, [watchClientId, watchWeight, watchDeliveryType, watchCargoType, watchCargoValue, watchCityId, calculateFreight]);
 
+  // Handle delivery type change to show/hide door-to-door fields
   useEffect(() => {
     if (watchDeliveryType) {
-      const isDoorToDoor = isDoorToDoorDelivery(watchDeliveryType as DeliveryType);
-      const isExclusive = watchDeliveryType === 'exclusive';
-      setShowCitySelect(isDoorToDoor && !isExclusive);
-      
-      setShowCargoValue(watchDeliveryType === 'reshipment');
+      setShowDoorToDoor(isDoorToDoorDelivery(watchDeliveryType as Delivery['deliveryType']));
     }
   }, [watchDeliveryType, isDoorToDoorDelivery]);
 
-  useEffect(() => {
-    if (watchMinuteNumber && watchClient) {
-      // Only check for duplicates if it's a new delivery or if the minute number has changed
-      if (!isEditMode || (delivery && watchMinuteNumber !== delivery.minuteNumber)) {
-        const isDuplicate = checkMinuteNumberExists(watchMinuteNumber, watchClient);
-        setMinuteNumberDuplicate(isDuplicate);
-      } else {
-        setMinuteNumberDuplicate(false);
-      }
-    }
-  }, [watchMinuteNumber, watchClient, checkMinuteNumberExists, isEditMode, delivery]);
-
-  useEffect(() => {
-    if (watchClient && watchWeight && watchDeliveryType && watchCargoType) {
-      const weight = parseFloat(watchWeight.toString());
-      const cargoValue = watchCargoValue ? parseFloat(watchCargoValue.toString()) : 0;
-      
-      const calculatedFreight = calculateFreight(
-        watchClient,
-        weight,
-        watchDeliveryType as DeliveryType,
-        watchCargoType as CargoType,
-        cargoValue,
-        undefined,
-        watchCityId
-      );
-      
-      setTotalFreight(calculatedFreight);
-    }
-  }, [watchClient, watchWeight, watchDeliveryType, watchCargoType, watchCargoValue, watchCityId, calculateFreight]);
-
-  const onSubmit = (data: FormData) => {
-    if (minuteNumberDuplicate && !dialogOpen && !isEditMode) {
-      setDialogOpen(true);
-      return;
-    }
-    
+  // Handle form submission
+  const onSubmit = async (data: DeliveryFormValues) => {
     try {
-      const formattedData = {
-        ...data,
-        weight: parseFloat(data.weight.toString()),
-        packages: parseInt(data.packages.toString()),
-        cargoValue: data.cargoValue ? parseFloat(data.cargoValue.toString()) : 0,
-        totalFreight: totalFreight,
-        minuteNumber: data.minuteNumber,
-        clientId: data.clientId,
-        deliveryDate: data.deliveryDate,
-        deliveryTime: data.deliveryTime || format(new Date(), 'HH:mm'),
-        receiver: data.receiver,
-        deliveryType: data.deliveryType as DeliveryType,
-        cargoType: data.cargoType as CargoType,
-        discount: 0,
-        customPricing: false
-      };
-
+      // Parse numeric values
+      const weight = parseFloat(data.weight);
+      const packages = parseInt(data.packages);
+      const cargoValue = data.cargoValue ? parseFloat(data.cargoValue) : undefined;
+      
+      // Get client details for activity log
+      const client = clients.find(c => c.id === data.clientId);
+      const clientName = client ? (client.tradingName || client.name) : 'Unknown client';
+      
       if (isEditMode && delivery) {
-        updateDelivery(delivery.id, formattedData);
-        toast({
-          title: "Entrega atualizada",
-          description: "A entrega foi atualizada com sucesso.",
+        // Update existing delivery
+        const updatedDelivery: Partial<Delivery> = {
+          clientId: data.clientId,
+          deliveryDate: data.deliveryDate,
+          deliveryTime: data.deliveryTime,
+          receiver: data.receiver,
+          weight,
+          packages,
+          deliveryType: data.deliveryType as Delivery['deliveryType'],
+          cargoType: data.cargoType as Delivery['cargoType'],
+          cargoValue,
+          totalFreight: freight,
+          notes: data.notes,
+          occurrence: data.occurrence,
+          cityId: data.cityId || undefined,
+        };
+        
+        updateDelivery(delivery.id, updatedDelivery);
+        
+        // Log activity
+        addLog({
+          action: 'update',
+          entityType: 'delivery',
+          entityId: delivery.id,
+          entityName: `Minuta ${delivery.minuteNumber} - ${clientName}`,
+          details: `Entrega atualizada: ${delivery.minuteNumber}`
         });
+        
+        toast.success("Entrega atualizada com sucesso");
       } else {
-        addDelivery(formattedData);
-        toast({
-          title: "Entrega registrada",
-          description: `A entrega ${data.minuteNumber} foi registrada com sucesso.`,
+        // Check if minute number exists
+        if (data.minuteNumber && checkMinuteNumberExists(data.minuteNumber, data.clientId)) {
+          toast.error("Número de minuta já existe para este cliente");
+          return;
+        }
+        
+        // Create new delivery
+        const newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
+          minuteNumber: data.minuteNumber || '',
+          clientId: data.clientId,
+          deliveryDate: data.deliveryDate,
+          deliveryTime: data.deliveryTime,
+          receiver: data.receiver,
+          weight,
+          packages,
+          deliveryType: data.deliveryType as Delivery['deliveryType'],
+          cargoType: data.cargoType as Delivery['cargoType'],
+          cargoValue,
+          totalFreight: freight,
+          notes: data.notes,
+          occurrence: data.occurrence,
+          cityId: data.cityId || undefined,
+        };
+        
+        addDelivery(newDelivery);
+        
+        // Log activity
+        addLog({
+          action: 'create',
+          entityType: 'delivery',
+          entityName: `Nova entrega - ${clientName}`,
+          details: `Nova entrega criada para ${clientName}`
         });
+        
+        toast.success("Entrega registrada com sucesso");
       }
       
-      form.reset();
       onComplete();
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast({
-        title: isEditMode ? "Erro ao atualizar entrega" : "Erro ao registrar entrega",
-        description: "Ocorreu um erro ao salvar a entrega. Tente novamente.",
-        variant: "destructive",
-      });
+      console.error('Error submitting delivery form:', error);
+      toast.error("Erro ao salvar entrega");
     }
   };
-
-  const confirmDuplicateMinute = () => {
-    setDialogOpen(false);
-    const data = form.getValues();
-    try {
-      const formattedData = {
-        ...data,
-        weight: parseFloat(data.weight.toString()),
-        packages: parseInt(data.packages.toString()),
-        cargoValue: data.cargoValue ? parseFloat(data.cargoValue.toString()) : 0,
-        totalFreight: totalFreight,
-        minuteNumber: data.minuteNumber,
-        clientId: data.clientId,
-        deliveryDate: data.deliveryDate,
-        deliveryTime: data.deliveryTime || format(new Date(), 'HH:mm'),
-        receiver: data.receiver,
-        deliveryType: data.deliveryType as DeliveryType,
-        cargoType: data.cargoType as CargoType,
-        discount: 0,
-        customPricing: false
-      };
-
-      addDelivery(formattedData);
-      form.reset();
-      onComplete();
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast({
-        title: "Erro ao registrar entrega",
-        description: "Ocorreu um erro ao salvar a entrega. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Format client options for the searchable select
-  const clientOptions = clients.map(client => ({
-    value: client.id,
-    label: client.tradingName,
-    description: client.name
-  }));
 
   return (
-    <>
-      <ScrollArea className="h-[calc(100vh-200px)]">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pr-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="clientId"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Cliente</FormLabel>
-                    <FormControl>
-                      <SearchableSelect
-                        options={clientOptions}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Selecione o cliente"
-                        emptyMessage="Nenhum cliente encontrado"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="minuteNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número da Minuta</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Minuta" />
-                    </FormControl>
-                    {minuteNumberDuplicate && (
-                      <p className="text-sm text-destructive flex items-center mt-1">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        Minuta já cadastrada para este cliente
-                      </p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="deliveryDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data da Entrega</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="deliveryTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Hora da Entrega</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="deliveryType"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Tipo de Entrega</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo de entrega" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="standard">Normal</SelectItem>
-                        <SelectItem value="emergency">Emergencial</SelectItem>
-                        <SelectItem value="saturday">Sábado</SelectItem>
-                        <SelectItem value="exclusive">Exclusivo</SelectItem>
-                        <SelectItem value="difficultAccess">Difícil Acesso</SelectItem>
-                        <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
-                        <SelectItem value="sundayHoliday">Domingo/Feriado</SelectItem>
-                        <SelectItem value="normalBiological">Biológico Normal</SelectItem>
-                        <SelectItem value="infectiousBiological">Biológico Infeccioso</SelectItem>
-                        <SelectItem value="tracked">Rastreado</SelectItem>
-                        <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
-                        <SelectItem value="reshipment">Redespacho por Transportadora</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {showCitySelect && (
-                <FormField
-                  control={form.control}
-                  name="cityId"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Cidade</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ''}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a cidade" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {cities.map((city) => (
-                            <SelectItem key={city.id} value={city.id}>
-                              {city.name} - {city.distance} km
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2">
+            <FormField
+              control={form.control}
+              name="clientId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cliente</FormLabel>
+                  <FormControl>
+                    <ClientSearchSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Selecione um cliente"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-
-              <FormField
-                control={form.control}
-                name="weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Peso (Kg)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="packages"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Volumes</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="1" 
-                        min="1" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="cargoType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Carga</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo de carga" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="standard">Padrão</SelectItem>
-                        <SelectItem value="perishable">Perecível</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {showCargoValue && (
-                <FormField
-                  control={form.control}
-                  name="cargoValue"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valor da Carga (R$)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01" 
-                          min="0" 
-                          {...field} 
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            />
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="minuteNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Número da Minuta</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Gerado automaticamente se vazio"
+                    disabled={isEditMode}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="grid grid-cols-2 gap-3">
+            <FormField
+              control={form.control}
+              name="deliveryDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de Entrega</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-
-              <FormField
-                control={form.control}
-                name="receiver"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Recebedor</FormLabel>
+            />
+            
+            <FormField
+              control={form.control}
+              name="deliveryTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hora</FormLabel>
+                  <FormControl>
+                    <Input type="time" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="receiver"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Destinatário</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nome do destinatário" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="grid grid-cols-2 gap-3">
+            <FormField
+              control={form.control}
+              name="weight"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Peso (kg)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="packages"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Volumes</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      min="1"
+                      placeholder="1"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="deliveryType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Entrega</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo de entrega" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="standard">Normal</SelectItem>
+                    <SelectItem value="emergency">Emergencial</SelectItem>
+                    <SelectItem value="exclusive">Exclusivo</SelectItem>
+                    <SelectItem value="saturday">Sábado</SelectItem>
+                    <SelectItem value="sundayHoliday">Domingo/Feriado</SelectItem>
+                    <SelectItem value="difficultAccess">Acesso Difícil</SelectItem>
+                    <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
+                    <SelectItem value="doorToDoorInterior">Interior</SelectItem>
+                    <SelectItem value="reshipment">Redespacho</SelectItem>
+                    <SelectItem value="normalBiological">Biológico Normal</SelectItem>
+                    <SelectItem value="infectiousBiological">Biológico Infeccioso</SelectItem>
+                    <SelectItem value="tracked">Rastreado</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="cargoType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Carga</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo de carga" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="standard">Padrão</SelectItem>
+                    <SelectItem value="perishable">Perecível</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {watchDeliveryType === 'reshipment' && (
+            <FormField
+              control={form.control}
+              name="cargoValue"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Valor da Carga (R$)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          
+          {showDoorToDoor && (
+            <FormField
+              control={form.control}
+              name="cityId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cidade</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
-                      <Input {...field} placeholder="Nome de quem recebeu" />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a cidade" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Observações</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} placeholder="Observações adicionais" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={city.id} value={city.id}>
+                          {city.name} - {city.distance}km
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          
+          <div className="md:col-span-2">
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Observações</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Observações sobre a entrega"
+                      rows={2}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <div className="md:col-span-2">
+            <FormField
+              control={form.control}
+              name="occurrence"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ocorrência</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Registre qualquer ocorrência durante a entrega"
+                      rows={2}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        
+        <div className="bg-muted p-4 rounded-md">
+          <div className="flex justify-between items-center">
+            <Label className="font-semibold">Valor Total do Frete:</Label>
+            <div className="text-xl font-bold">
+              {new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              }).format(freight)}
             </div>
-
-            <Alert className="bg-muted">
-              <AlertDescription>
-                <div className="flex justify-between items-center">
-                  <span>Total do frete:</span>
-                  <span className="font-bold text-lg">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    }).format(totalFreight)}
-                  </span>
-                </div>
-              </AlertDescription>
-            </Alert>
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => onComplete()}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {isEditMode ? 'Atualizar Entrega' : 'Registrar Entrega'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </ScrollArea>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Minuta já cadastrada</DialogTitle>
-            <DialogDescription>
-              Uma minuta com este número já foi registrada para este cliente. 
-              Deseja continuar mesmo assim?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Não
-            </Button>
-            <Button onClick={confirmDuplicateMinute}>
-              Sim
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          </div>
+        </div>
+        
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onComplete}>
+            Cancelar
+          </Button>
+          <Button type="submit">
+            {isEditMode ? 'Atualizar Entrega' : 'Registrar Entrega'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
-}
-
+};

@@ -10,13 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -31,6 +24,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Delivery } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 
 const ReportsPage = () => {
   const { deliveries } = useDeliveries();
@@ -45,15 +39,13 @@ const ReportsPage = () => {
     format(new Date(), 'yyyy-MM-dd')
   );
 
-  // Filter out deliveries that are already in financial reports
   const existingReportDeliveries = financialReports
-    .filter(report => report.status === 'open')  // Only consider 'open' reports
+    .filter(report => report.status === 'open')
     .flatMap(report => {
       const reportStartDate = new Date(report.startDate);
       const reportEndDate = new Date(report.endDate);
       reportEndDate.setHours(23, 59, 59, 999);
       
-      // Find all deliveries within the report date range for the specific client
       return deliveries.filter(delivery => 
         delivery.clientId === report.clientId &&
         new Date(delivery.deliveryDate) >= reportStartDate &&
@@ -62,9 +54,7 @@ const ReportsPage = () => {
     })
     .map(delivery => delivery.id);
 
-  // Filter deliveries that are not in any financial report
   const filteredDeliveries = deliveries.filter((delivery) => {
-    // Exclude deliveries that are already in financial reports
     if (existingReportDeliveries.includes(delivery.id)) {
       return false;
     }
@@ -117,14 +107,9 @@ const ReportsPage = () => {
       format: 'a4'
     });
     
-    // Add company logo and info
-    // doc.addImage("logo", "PNG", 14, 10, 20, 20);
-    
-    // Title centered at the top
     doc.setFontSize(18);
     doc.text("RELATÓRIO DE ENTREGAS", doc.internal.pageSize.width / 2, 15, { align: "center" });
     
-    // Company info aligned to the left
     doc.setFontSize(10);
     doc.text("VELOMAX TRANSPORTES LTDA", 14, 25);
     doc.text("CNPJ: 00.000.000/0001-00", 14, 30);
@@ -134,7 +119,6 @@ const ReportsPage = () => {
       ? clients.find(c => c.id === clientFilter)?.name || 'Cliente não encontrado'
       : 'TODOS OS CLIENTES';
     
-    // Client and period info at the same size as company info
     doc.text(`CLIENTE: ${clientName.toUpperCase()}`, 14, 45);
     doc.text(`PERÍODO: ${new Date(startDate).toLocaleDateString('pt-BR')} até ${new Date(endDate).toLocaleDateString('pt-BR')}`, 14, 50);
     
@@ -151,7 +135,6 @@ const ReportsPage = () => {
       ];
     });
 
-    // Add total row
     tableRows.push([
       '', '', '', '', formatCurrency(totalFreight), '', ''
     ]);
@@ -200,7 +183,6 @@ const ReportsPage = () => {
       };
     });
     
-    // Add total row at the bottom
     excelData.push({
       'Minuta': '',
       'Data': '',
@@ -272,22 +254,13 @@ const ReportsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label htmlFor="client">Cliente</Label>
-            <Select 
-              value={clientFilter} 
-              onValueChange={setClientFilter}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Todos os clientes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os clientes</SelectItem>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="mt-1">
+              <ClientSearchSelect
+                value={clientFilter}
+                onValueChange={setClientFilter}
+                includeAllOption={true}
+              />
+            </div>
           </div>
           
           <div>

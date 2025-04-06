@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts/ClientsContext';
+import { useActivityLog } from '@/contexts/ActivityLogContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,12 +31,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { 
+  PlusCircle, 
+  MoreVertical, 
+  Pencil, 
+  Trash2, 
+  AlertTriangle, 
+  Search 
+} from 'lucide-react';
+import { toast } from "sonner";
 import { DeliveryForm } from '@/components/delivery/DeliveryForm';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
   const { clients } = useClients();
+  const { addLog } = useActivityLog();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
@@ -48,10 +58,11 @@ const Deliveries = () => {
       client?.name || '',
       delivery.receiver,
       delivery.deliveryDate,
+      delivery.occurrence || '',
     ].join(' ').toLowerCase();
     
     return searchFields.includes(searchTerm.toLowerCase());
-  });
+  }).sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime());
 
   const handleEditDelivery = (delivery: Delivery) => {
     setEditingDelivery(delivery);
@@ -60,7 +71,25 @@ const Deliveries = () => {
 
   const handleDeleteDelivery = (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta entrega?')) {
-      deleteDelivery(id);
+      const deliveryToDelete = deliveries.find(d => d.id === id);
+      
+      if (deliveryToDelete) {
+        const client = clients.find(c => c.id === deliveryToDelete.clientId);
+        const clientName = client ? (client.tradingName || client.name) : 'Cliente desconhecido';
+        
+        deleteDelivery(id);
+        
+        // Log activity
+        addLog({
+          action: 'delete',
+          entityType: 'delivery',
+          entityId: id,
+          entityName: `Minuta ${deliveryToDelete.minuteNumber} - ${clientName}`,
+          details: `Entrega excluída: ${deliveryToDelete.minuteNumber}`
+        });
+        
+        toast.success("Entrega excluída com sucesso");
+      }
     }
   };
 
@@ -99,12 +128,15 @@ const Deliveries = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Lista de Entregas</CardTitle>
-              <Input
-                placeholder="Buscar entregas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
+              <div className="relative max-w-sm">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar entregas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -120,6 +152,7 @@ const Deliveries = () => {
                   <TableHead>Volumes</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor</TableHead>
+                  <TableHead>Ocorrência</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -153,6 +186,16 @@ const Deliveries = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>R$ {delivery.totalFreight.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {delivery.occurrence ? (
+                            <div className="flex items-center">
+                              <AlertTriangle className="h-4 w-4 text-amber-500 mr-1" />
+                              <span className="truncate max-w-[100px]" title={delivery.occurrence}>
+                                {delivery.occurrence}
+                              </span>
+                            </div>
+                          ) : '-'}
+                        </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -177,7 +220,7 @@ const Deliveries = () => {
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-4">
+                    <TableCell colSpan={11} className="text-center py-4">
                       Nenhuma entrega encontrada
                     </TableCell>
                   </TableRow>
