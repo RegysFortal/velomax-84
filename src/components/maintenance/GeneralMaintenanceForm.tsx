@@ -81,10 +81,23 @@ export function GeneralMaintenanceForm({ maintenance, onComplete }: GeneralMaint
   });
 
   const onSubmit = (values: MaintenanceFormValues) => {
+    // Make sure all required fields are present
+    const maintenanceData = {
+      vehicleId: values.vehicleId,
+      maintenanceType: values.maintenanceType,
+      date: values.date,
+      odometer: values.odometer,
+      description: values.description,
+      cost: values.cost,
+      provider: values.provider || '',
+      invoiceNumber: values.invoiceNumber || '',
+      notes: values.notes || '',
+    };
+    
     if (maintenance) {
-      updateMaintenance(maintenance.id, values);
+      updateMaintenance(maintenance.id, maintenanceData);
     } else {
-      addMaintenance(values);
+      addMaintenance(maintenanceData);
     }
     onComplete();
   };
