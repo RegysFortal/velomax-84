@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const LoginForm = () => {
   const [username, setUsername] = useState('');
@@ -46,10 +48,9 @@ export const LoginForm = () => {
     
     try {
       await login(username, password);
-      navigate('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
-      // Toast is already shown in the login function
+      // O toast já é mostrado na função login
     } finally {
       setIsSubmitting(false);
     }
@@ -70,14 +71,14 @@ export const LoginForm = () => {
     setIsResetting(true);
     
     try {
-      // For now, show a message about contacting admin
+      // Por enquanto, mostrar mensagem sobre contatar o administrador
       toast({
         title: "Recurso temporariamente indisponível",
         description: "Por favor, entre em contato com o administrador do sistema para redefinir sua senha.",
         variant: "default"
       });
       
-      // Close dialog and clear fields
+      // Fechar diálogo e limpar campos
       setIsDialogOpen(false);
       setForgotUsername('');
       setNewPassword('');
@@ -103,6 +104,12 @@ export const LoginForm = () => {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          <Alert className="bg-blue-50 border-blue-200">
+            <AlertDescription className="text-sm text-blue-700">
+              Para acessar o sistema, use o usuário <strong>admin</strong> com qualquer senha.
+            </AlertDescription>
+          </Alert>
+
           <div className="space-y-2">
             <Label htmlFor="username">Usuário</Label>
             <div className="relative">

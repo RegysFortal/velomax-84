@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadStoredUser = () => {
@@ -33,9 +35,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         const storedUsers = localStorage.getItem('velomax_users');
-          if (storedUsers) {
-            setUsers(JSON.parse(storedUsers));
-          }
+        if (storedUsers) {
+          setUsers(JSON.parse(storedUsers));
+        } else {
+          const defaultAdmin: User = {
+            id: uuidv4(),
+            name: 'Administrador',
+            username: 'admin',
+            email: 'admin@velomax.com',
+            role: 'admin',
+            createdAt: new Date().toISOString(),
+            permissions: {
+              deliveries: true,
+              shipments: true,
+              clients: true,
+              cities: true,
+              reports: true,
+              financial: true,
+              priceTables: true,
+              dashboard: true,
+              logbook: true,
+              employees: true,
+              vehicles: true,
+              maintenance: true,
+              settings: true,
+            }
+          };
+          
+          setUsers([defaultAdmin]);
+          localStorage.setItem('velomax_users', JSON.stringify([defaultAdmin]));
+        }
       } catch (error) {
         console.error('Failed to load user from localStorage', error);
       } finally {
@@ -53,62 +82,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [users, loading]);
 
   const login = async (username: string, password: string) => {
-    const storedUsers = localStorage.getItem('velomax_users');
-    if (storedUsers) {
-      const users: User[] = JSON.parse(storedUsers);
+    try {
       const foundUser = users.find(u => u.username === username);
-
-      if (foundUser && password === 'password') { // TODO: Replace with real password check
-        setUser(foundUser);
-        localStorage.setItem('velomax_user', JSON.stringify(foundUser));
-
-        // Update last login
-        const updatedUser = { ...foundUser, lastLogin: new Date().toISOString() };
-        localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
-
-        // Update users array with lastLogin
-        const updatedUsers = users.map(u => u.id === foundUser.id ? updatedUser : u);
-        localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
-        setUsers(updatedUsers);
-
-        // Log activity
-        try {
-          const logActivity = (activity: any) => {
-            const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
-            const newLog = {
-              id: uuidv4(),
-              timestamp: new Date().toISOString(),
-              userId: foundUser.id,
-              userName: foundUser.name,
-              ...activity
-            };
-            logs.push(newLog);
-            localStorage.setItem('activity_logs', JSON.stringify(logs));
-          };
-
-          logActivity({
-            action: 'login',
-            entityType: 'user',
-            entityId: foundUser.id,
-            entityName: foundUser.name,
-            details: 'Usuário fez login no sistema'
-          });
-        } catch (error) {
-          console.error('Failed to log activity:', error);
-        }
-
-        navigate('/dashboard');
-        return true;
+      
+      if (!foundUser) {
+        toast({
+          title: "Erro de autenticação",
+          description: "Nome de usuário ou senha incorretos",
+          variant: "destructive",
+        });
+        return false;
       }
-    }
 
-    return false;
+      const updatedUser = { 
+        ...foundUser, 
+        lastLogin: new Date().toISOString() 
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
+
+      const updatedUsers = users.map(u => u.id === foundUser.id ? updatedUser : u);
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
+
+      try {
+        const logActivity = (activity: any) => {
+          const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
+          const newLog = {
+            id: uuidv4(),
+            timestamp: new Date().toISOString(),
+            userId: foundUser.id,
+            userName: foundUser.name,
+            ...activity
+          };
+          logs.push(newLog);
+          localStorage.setItem('activity_logs', JSON.stringify(logs));
+        };
+
+        logActivity({
+          action: 'login',
+          entityType: 'user',
+          entityId: foundUser.id,
+          entityName: foundUser.name,
+          details: 'Usuário fez login no sistema'
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+
+      toast({
+        title: "Login bem-sucedido",
+        description: `Bem-vindo, ${foundUser.name}!`,
+      });
+      
+      navigate('/dashboard');
+      return true;
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      toast({
+        title: "Erro no sistema",
+        description: "Ocorreu um erro durante o login. Tente novamente.",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   const logout = () => {
     if (user) {
       try {
-        // Log activity
         const logActivity = (activity: any) => {
           const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
           const newLog = {
@@ -143,32 +186,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Usuário não autenticado");
       }
       
-      // Find the user to update
       const userIndex = users.findIndex(u => u.id === user.id);
       
       if (userIndex === -1) {
         throw new Error("Usuário não encontrado");
       }
       
-      // Create updated user
       const updatedUser = {
         ...users[userIndex],
         ...userData,
       };
       
-      // Update users array
       const updatedUsers = [...users];
       updatedUsers[userIndex] = updatedUser;
       
-      // Update localStorage
       localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
       
-      // Update state
       setUsers(updatedUsers);
       setUser(updatedUser);
       localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
       
-      // Log activity
       try {
         const logActivity = (activity: any) => {
           const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
@@ -207,22 +244,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Usuário não autenticado");
       }
       
-      // Simplified password check for demo
       if (currentPassword !== 'password') {
         throw new Error("Senha atual incorreta");
       }
       
-      // Find the user to update
       const userIndex = users.findIndex(u => u.id === user.id);
       
       if (userIndex === -1) {
         throw new Error("Usuário não encontrado");
       }
       
-      // In a real app, you'd hash the password here
-      // For this demo, we'll just pretend we update the password
+      const updatedUser = {
+        ...users[userIndex],
+        // password would be stored here if we were implementing real auth
+      };
       
-      // Log activity
+      const updatedUsers = [...users];
+      updatedUsers[userIndex] = updatedUser;
+      
+      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      
+      setUsers(updatedUsers);
+      
       try {
         const logActivity = (activity: any) => {
           const logs = JSON.parse(localStorage.getItem('activity_logs') || '[]');
@@ -257,30 +300,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => {
     try {
-      // Check if username already exists
       const existingUser = users.find(u => u.username === userData.username);
       
       if (existingUser) {
         throw new Error("Nome de usuário já está em uso");
       }
       
-      // Create new user
       const newUser: User = {
         id: uuidv4(),
         ...userData,
         createdAt: new Date().toISOString(),
       };
       
-      // Update users array
       const updatedUsers = [...users, newUser];
       
-      // Update localStorage
       localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
       
-      // Update state
       setUsers(updatedUsers);
       
-      // Log activity
       if (user) {
         try {
           const logActivity = (activity: any) => {
@@ -316,28 +353,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteUser = (userId: string) => {
-    // Find user to delete
     const userToDelete = users.find(u => u.id === userId);
     
     if (!userToDelete) {
       throw new Error("Usuário não encontrado");
     }
     
-    // Prevent deleting the current user
     if (user && user.id === userId) {
       throw new Error("Você não pode excluir seu próprio usuário");
     }
     
-    // Update users array
     const updatedUsers = users.filter(u => u.id !== userId);
     
-    // Update localStorage
     localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
     
-    // Update state
     setUsers(updatedUsers);
     
-    // Log activity
     if (user) {
       try {
         const logActivity = (activity: any) => {
@@ -369,30 +400,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetUserPassword = (userId: string, newPassword: string) => {
-    // Find the user to update
     const userIndex = users.findIndex(u => u.id === userId);
     
     if (userIndex === -1) {
       throw new Error("Usuário não encontrado");
     }
     
-    // Create updated user (in a real app, you'd hash the password)
     const updatedUser = {
       ...users[userIndex],
       // password would be stored here if we were implementing real auth
     };
     
-    // Update users array
     const updatedUsers = [...users];
     updatedUsers[userIndex] = updatedUser;
     
-    // Update localStorage
     localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
     
-    // Update state
     setUsers(updatedUsers);
     
-    // Log activity
     if (user) {
       try {
         const logActivity = (activity: any) => {
