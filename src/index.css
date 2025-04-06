@@ -103,4 +103,18 @@
   .radix-dropdown, [data-state="open"] {
     z-index: 9999 !important;
   }
+  
+  /* Garante que os menus de navegação apareçam por cima de outros elementos */
+  nav[data-radix-navigation-menu-root] {
+    z-index: 100 !important;
+    position: relative;
+  }
+  
+  div[data-radix-navigation-menu-viewport-anchor] {
+    z-index: 101 !important;
+  }
+  
+  div[data-radix-navigation-menu-content] {
+    z-index: 102 !important;
+  }
 }
