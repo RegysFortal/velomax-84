@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Delivery } from '@/types';
@@ -75,7 +74,7 @@ const Deliveries = () => {
       // Ajustar para comparação correta de datas
       deliveryDate.setHours(0, 0, 0, 0);
       reportStartDate.setHours(0, 0, 0, 0);
-      reportEndDate.setHours(0, 0, 0, 0);
+      reportEndDate.setHours(23, 59, 59, 999);
       
       return deliveryDate >= reportStartDate && deliveryDate <= reportEndDate;
     });

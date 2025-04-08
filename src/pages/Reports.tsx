@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -63,26 +62,62 @@ const ReportsPage = () => {
     }
   }, [reportId, getFinancialReport]);
 
-  // Exclude deliveries that are already in open financial reports, unless we're viewing a closed report
-  const existingReportDeliveries = !isViewingClosedReport ? 
-    financialReports
-      .filter(report => report.status === 'open')
-      .flatMap(report => {
+  // Function to check if a delivery is in any closed financial report
+  const isDeliveryInClosedReport = (delivery: Delivery): boolean => {
+    // Find all closed reports for the same client
+    const closedReports = financialReports.filter(
+      report => report.status === 'closed' && report.clientId === delivery.clientId
+    );
+    
+    if (closedReports.length === 0) return false;
+    
+    // Check if delivery date falls within any closed report's date range
+    return closedReports.some(report => {
+      const deliveryDate = new Date(delivery.deliveryDate);
+      const reportStartDate = new Date(report.startDate);
+      const reportEndDate = new Date(report.endDate);
+      
+      // Set times to beginning/end of day for proper comparison
+      deliveryDate.setHours(0, 0, 0, 0);
+      reportStartDate.setHours(0, 0, 0, 0);
+      reportEndDate.setHours(23, 59, 59, 999);
+      
+      return deliveryDate >= reportStartDate && deliveryDate <= reportEndDate;
+    });
+  };
+
+  // Exclude deliveries that are already in open OR closed financial reports, unless we're viewing a closed report
+  const getDeliveriesToExclude = () => {
+    if (isViewingClosedReport) return [];
+    
+    // Collect all deliveries that are in any financial report (open or closed)
+    return deliveries.filter(delivery => {
+      // Check if in closed reports
+      if (isDeliveryInClosedReport(delivery)) return true;
+      
+      // Check if in open reports
+      const openReports = financialReports.filter(report => report.status === 'open');
+      return openReports.some(report => {
+        if (delivery.clientId !== report.clientId) return false;
+        
+        const deliveryDate = new Date(delivery.deliveryDate);
         const reportStartDate = new Date(report.startDate);
         const reportEndDate = new Date(report.endDate);
+        
+        deliveryDate.setHours(0, 0, 0, 0);
+        reportStartDate.setHours(0, 0, 0, 0);
         reportEndDate.setHours(23, 59, 59, 999);
         
-        return deliveries.filter(delivery => 
-          delivery.clientId === report.clientId &&
-          new Date(delivery.deliveryDate) >= reportStartDate &&
-          new Date(delivery.deliveryDate) <= reportEndDate
-        );
-      })
-      .map(delivery => delivery.id) : [];
+        return deliveryDate >= reportStartDate && deliveryDate <= reportEndDate;
+      });
+    }).map(delivery => delivery.id);
+  };
+
+  const deliveriesToExclude = getDeliveriesToExclude();
 
   const filteredDeliveries = deliveries.filter((delivery) => {
     // If viewing a closed report by ID, don't filter out deliveries in reports
-    if (!isViewingClosedReport && existingReportDeliveries.includes(delivery.id)) {
+    if (!isViewingClosedReport && deliveriesToExclude.includes(delivery.id)) {
       return false;
     }
     
