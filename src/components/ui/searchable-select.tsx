@@ -30,6 +30,12 @@ export function SearchableSelect({
   const [open, setOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
+  // Debug logs
+  useEffect(() => {
+    console.log("SearchableSelect - options:", options);
+    console.log("SearchableSelect - value:", value);
+  }, [options, value]);
+
   // Find the selected option label
   const selectedOption = options.find(option => option.value === value);
   const displayValue = selectedOption ? selectedOption.label : placeholder;
@@ -80,6 +86,7 @@ export function SearchableSelect({
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
+                    console.log("SearchableSelect - Item selecionado:", option.value);
                     onValueChange(option.value);
                     setOpen(false);
                   }}

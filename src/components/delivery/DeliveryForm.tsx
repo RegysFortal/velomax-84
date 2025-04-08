@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form';
@@ -33,7 +32,6 @@ import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
 import { toast } from "sonner";
 
-// Schema for form validation
 const deliveryFormSchema = z.object({
   clientId: z.string({ required_error: 'Cliente é obrigatório' }),
   minuteNumber: z.string().optional(),
@@ -71,7 +69,6 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [initialClientId, setInitialClientId] = useState('');
 
-  // Initialize form with react-hook-form
   const form = useForm<DeliveryFormValues>({
     resolver: zodResolver(deliveryFormSchema),
     defaultValues: {
@@ -91,7 +88,6 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
     },
   });
 
-  // Debug logs
   useEffect(() => {
     if (delivery) {
       console.log("DeliveryForm - Entrega a ser editada:", delivery);
@@ -100,11 +96,24 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
     }
   }, [delivery, clients]);
 
-  // Populate form if editing existing delivery
   useEffect(() => {
     if (delivery) {
       setIsEditMode(true);
       setInitialClientId(delivery.clientId);
+      
+      console.log("DeliveryForm - Resetando form com valores:", {
+        clientId: delivery.clientId,
+        minuteNumber: delivery.minuteNumber,
+        receiver: delivery.receiver,
+        weight: delivery.weight.toString(),
+        packages: delivery.packages.toString(),
+        deliveryType: delivery.deliveryType,
+        cargoType: delivery.cargoType,
+        cargoValue: delivery.cargoValue?.toString() || '',
+        cityId: delivery.cityId || '',
+        notes: delivery.notes || '',
+        occurrence: delivery.occurrence || '',
+      });
       
       form.reset({
         clientId: delivery.clientId,
@@ -127,17 +136,9 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
       if (isDoorToDoorDelivery(delivery.deliveryType)) {
         setShowDoorToDoor(true);
       }
-      
-      // Log para debug
-      console.log("DeliveryForm - Form resetado com valores:", {
-        clientId: delivery.clientId,
-        minuteNumber: delivery.minuteNumber,
-        // ... outros campos
-      });
     }
   }, [delivery, isDoorToDoorDelivery, form]);
 
-  // Watch for changes to calculate freight
   const watchClientId = form.watch('clientId');
   const watchWeight = form.watch('weight');
   const watchDeliveryType = form.watch('deliveryType');
@@ -145,12 +146,10 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
   const watchCargoValue = form.watch('cargoValue');
   const watchCityId = form.watch('cityId');
 
-  // Log para debug - monitorar mudanças no clientId
   useEffect(() => {
     console.log("DeliveryForm - clientId mudou para:", watchClientId);
   }, [watchClientId]);
 
-  // Update freight calculation when relevant fields change
   useEffect(() => {
     if (watchClientId && watchWeight && !isNaN(parseFloat(watchWeight))) {
       try {
@@ -171,31 +170,26 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
     }
   }, [watchClientId, watchWeight, watchDeliveryType, watchCargoType, watchCargoValue, watchCityId, calculateFreight]);
 
-  // Handle delivery type change to show/hide door-to-door fields
   useEffect(() => {
     if (watchDeliveryType) {
       setShowDoorToDoor(isDoorToDoorDelivery(watchDeliveryType as Delivery['deliveryType']));
     }
   }, [watchDeliveryType, isDoorToDoorDelivery]);
 
-  // Handle form submission
   const onSubmit = async (data: DeliveryFormValues) => {
     try {
       console.log("DeliveryForm - Dados do formulário enviado:", data);
       
-      // Parse numeric values
       const weight = parseFloat(data.weight);
       const packages = parseInt(data.packages);
       const cargoValue = data.cargoValue ? parseFloat(data.cargoValue) : undefined;
       
-      // Get client details for activity log
       const client = clients.find(c => c.id === data.clientId);
       const clientName = client ? (client.tradingName || client.name) : 'Cliente desconhecido';
       
       console.log("DeliveryForm - Cliente selecionado:", client);
       
       if (isEditMode && delivery) {
-        // Update existing delivery
         const updatedDelivery: Partial<Delivery> = {
           clientId: data.clientId,
           deliveryDate: data.deliveryDate,
@@ -216,7 +210,6 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
         
         updateDelivery(delivery.id, updatedDelivery);
         
-        // Log activity
         addLog({
           action: 'update',
           entityType: 'delivery',
@@ -227,13 +220,11 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
         
         toast.success("Entrega atualizada com sucesso");
       } else {
-        // Check if minute number exists
         if (data.minuteNumber && checkMinuteNumberExists(data.minuteNumber, data.clientId)) {
           toast.error("Número de minuta já existe para este cliente");
           return;
         }
         
-        // Create new delivery
         const newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
           minuteNumber: data.minuteNumber || '',
           clientId: data.clientId,
@@ -255,7 +246,6 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
         
         addDelivery(newDelivery);
         
-        // Log activity
         addLog({
           action: 'create',
           entityType: 'delivery',
@@ -288,7 +278,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
                     <ClientSearchSelect
                       value={field.value}
                       onValueChange={(value) => {
-                        console.log("ClientSearchSelect - Valor alterado para:", value);
+                        console.log("DeliveryForm - ClientSearchSelect - Valor alterado para:", value);
                         field.onChange(value);
                       }}
                       placeholder="Selecione um cliente"
