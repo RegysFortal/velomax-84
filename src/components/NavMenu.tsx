@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Truck, Calculator, Settings } from "lucide-react";
+import { User } from "@/types";
 
 export function NavMenu() {
   const { user, hasPermission } = useAuth();
