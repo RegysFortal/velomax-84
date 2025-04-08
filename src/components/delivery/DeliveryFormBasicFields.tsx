@@ -92,9 +92,9 @@ export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBas
         name="receiver"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Destinatário</FormLabel>
+            <FormLabel>Recebedor</FormLabel>
             <FormControl>
-              <Input {...field} placeholder="Nome do destinatário" />
+              <Input {...field} placeholder="Nome do recebedor" />
             </FormControl>
             <FormMessage />
           </FormItem>

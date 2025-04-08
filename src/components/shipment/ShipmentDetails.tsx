@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription 
@@ -49,6 +50,11 @@ export function ShipmentDetails({
     date: new Date(),
     time: format(new Date(), 'HH:mm')
   });
+  const [finalDeliveryInfo, setFinalDeliveryInfo] = useState({
+    receiverName: '',
+    date: new Date(),
+    time: format(new Date(), 'HH:mm')
+  });
   
   useEffect(() => {
     if (shipment.arrivalDate) {
@@ -76,6 +82,11 @@ export function ShipmentDetails({
   
   const handleDeliveryComplete = async () => {
     try {
+      if (!deliveryInfo.receiverName.trim()) {
+        toast.error('Informe o nome do recebedor');
+        return;
+      }
+
       await updateStatus(shipment.id, 'delivered');
       
       await updateShipment(shipment.id, {
@@ -115,7 +126,18 @@ export function ShipmentDetails({
   
   const handleFinalDeliveryComplete = async () => {
     try {
+      if (!finalDeliveryInfo.receiverName.trim()) {
+        toast.error('Informe o nome do recebedor final');
+        return;
+      }
+
       await updateStatus(shipment.id, 'delivered_final');
+      
+      await updateShipment(shipment.id, {
+        receiverName: finalDeliveryInfo.receiverName,
+        deliveryDate: format(finalDeliveryInfo.date, 'yyyy-MM-dd'),
+        deliveryTime: finalDeliveryInfo.time
+      });
       
       onClose();
       toast.success('Entrega final registrada com sucesso');
@@ -128,6 +150,12 @@ export function ShipmentDetails({
   const handleDeliveryDateChange = (date: Date | undefined) => {
     if (date) {
       setDeliveryInfo(prev => ({ ...prev, date }));
+    }
+  };
+  
+  const handleFinalDeliveryDateChange = (date: Date | undefined) => {
+    if (date) {
+      setFinalDeliveryInfo(prev => ({ ...prev, date }));
     }
   };
   
@@ -333,14 +361,67 @@ export function ShipmentDetails({
                     Confirmar Entrega Final
                   </h3>
                   <p className="text-sm text-green-700 mb-4">
-                    Esta carga já foi retirada. Deseja confirmar que foi entregue ao destinatário final?
+                    Esta carga já foi retirada. Por favor, informe os dados da entrega final.
                   </p>
-                  <Button 
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={handleFinalDeliveryComplete}
-                  >
-                    Confirmar Entrega Final
-                  </Button>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="finalReceiverName">Nome do Recebedor</Label>
+                      <Input
+                        id="finalReceiverName"
+                        value={finalDeliveryInfo.receiverName}
+                        onChange={(e) => setFinalDeliveryInfo(prev => ({ ...prev, receiverName: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Data de Entrega</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !finalDeliveryInfo.date && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {finalDeliveryInfo.date ? format(finalDeliveryInfo.date, "P", { locale: ptBR }) : "Selecione uma data"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={finalDeliveryInfo.date}
+                              onSelect={handleFinalDeliveryDateChange}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="finalDeliveryTime">Hora da Entrega</Label>
+                        <Input
+                          id="finalDeliveryTime"
+                          type="time"
+                          value={finalDeliveryInfo.time}
+                          onChange={(e) => setFinalDeliveryInfo(prev => ({ ...prev, time: e.target.value }))}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      onClick={handleFinalDeliveryComplete}
+                      disabled={!finalDeliveryInfo.receiverName.trim()}
+                    >
+                      Confirmar Entrega Final
+                    </Button>
+                  </div>
                 </div>
               </>
             )}
