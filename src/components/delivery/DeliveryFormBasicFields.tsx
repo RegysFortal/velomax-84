@@ -111,7 +111,7 @@ export function DeliveryFormBasicFields({
           name="pickupId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Selecione quem retirou</FormLabel>
+              <FormLabel>Selecione quem retirou na transportadora</FormLabel>
               <FormControl>
                 <SearchableSelect
                   options={employeeOptions}
@@ -123,7 +123,7 @@ export function DeliveryFormBasicFields({
                       setValue('pickupName', '');
                     }
                   }}
-                  placeholder="Selecione um funcionário"
+                  placeholder="Selecione um funcionário da transportadora"
                   emptyMessage="Nenhum funcionário encontrado"
                 />
               </FormControl>
@@ -137,11 +137,11 @@ export function DeliveryFormBasicFields({
           name="pickupName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Ou informe outro nome de quem retirou</FormLabel>
+              <FormLabel>Ou informe nome de quem retirou</FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="Nome de quem retirou"
+                  placeholder="Nome de quem retirou na transportadora"
                   disabled={!!getValues().pickupId}
                   onChange={(e) => {
                     field.onChange(e);
@@ -163,9 +163,12 @@ export function DeliveryFormBasicFields({
         name="receiver"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Recebedor Final</FormLabel>
+            <FormLabel>Nome do recebedor final</FormLabel>
             <FormControl>
-              <Input {...field} placeholder="Nome do recebedor final" />
+              <Input 
+                {...field} 
+                placeholder="Nome de quem vai receber a mercadoria" 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -189,7 +192,7 @@ export function DeliveryFormBasicFields({
                     setValue('receiver', '');
                   }
                 }}
-                placeholder="Selecione um funcionário"
+                placeholder="Selecione um funcionário que recebeu"
                 emptyMessage="Nenhum funcionário encontrado"
               />
             </FormControl>
