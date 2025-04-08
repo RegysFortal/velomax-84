@@ -26,6 +26,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { StatusSection } from './StatusSection';
 
 interface ShipmentDetailsProps {
   shipment: Shipment;
@@ -345,24 +346,11 @@ export function ShipmentDetails({
             )}
             
             <div className="flex justify-center space-x-2 mt-4">
-              {shipment.status === 'in_transit' && (
-                <Button 
-                  variant="destructive" 
-                  onClick={() => handleStatusChange('retained')}
-                >
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Marcar como Retida
-                </Button>
-              )}
-              
-              {shipment.status === 'retained' && (
-                <Button 
-                  variant="default" 
-                  onClick={() => handleStatusChange('in_transit')}
-                >
-                  Marcar como Em Trânsito
-                </Button>
-              )}
+              <StatusSection 
+                status={shipment.status} 
+                setStatus={handleStatusChange}
+                shipmentId={shipment.trackingNumber}
+              />
             </div>
           </TabsContent>
           
