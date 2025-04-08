@@ -64,7 +64,7 @@ export function ShipmentFormSection({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2 md:col-span-2">
-        <label htmlFor="companyName" className="text-sm font-medium">Empresa</label>
+        <label htmlFor="companyName" className="text-sm font-medium">Cliente</label>
         <ClientSearchSelect 
           value={companyId || ""}
           onValueChange={(value) => {
@@ -75,10 +75,10 @@ export function ShipmentFormSection({
               setCompanyName(client.name);
             }
           }}
-          placeholder="Selecione uma empresa"
+          placeholder="Selecione um cliente"
           disableAutoSelect={false}
           showCreateOption={true}
-          createOptionLabel="Cadastrar nova empresa"
+          createOptionLabel="Cadastrar novo cliente"
         />
       </div>
       

@@ -43,6 +43,8 @@ const FinancialPage = () => {
   
   const handleCloseReport = (reportId: string) => {
     closeReport(reportId);
+    // Switch to the closed reports tab after closing
+    setCurrentTab("closed");
   };
 
   const handleViewReport = (reportId: string) => {
