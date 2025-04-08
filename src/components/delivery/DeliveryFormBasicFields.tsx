@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -22,7 +21,6 @@ export function DeliveryFormBasicFields({
 }: DeliveryFormBasicFieldsProps) {
   const { users } = useAuth();
   
-  // Create options for employee selection
   const employeeOptions = users.map(user => ({
     value: user.id,
     label: user.name,
@@ -118,7 +116,6 @@ export function DeliveryFormBasicFields({
                   value={field.value || ""}
                   onValueChange={(value) => {
                     field.onChange(value);
-                    // Clear manual name field if employee is selected
                     if (value) {
                       setValue('pickupName', '');
                     }
@@ -145,7 +142,6 @@ export function DeliveryFormBasicFields({
                   disabled={!!getValues().pickupId}
                   onChange={(e) => {
                     field.onChange(e);
-                    // Clear employee selection if manual name is entered
                     if (e.target.value) {
                       setValue('pickupId', '');
                     }
@@ -163,11 +159,11 @@ export function DeliveryFormBasicFields({
         name="receiver"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nome do recebedor final</FormLabel>
+            <FormLabel>Recebedor</FormLabel>
             <FormControl>
               <Input 
                 {...field} 
-                placeholder="Nome de quem vai receber a mercadoria" 
+                placeholder="Nome da pessoa que recebeu a mercadoria" 
               />
             </FormControl>
             <FormMessage />
@@ -180,14 +176,13 @@ export function DeliveryFormBasicFields({
         name="receiverId"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Ou selecione um funcionário que recebeu</FormLabel>
+            <FormLabel>Ou selecione o recebedor</FormLabel>
             <FormControl>
               <SearchableSelect
                 options={employeeOptions}
                 value={field.value || ""}
                 onValueChange={(value) => {
                   field.onChange(value);
-                  // Clear manual receiver if employee is selected
                   if (value) {
                     setValue('receiver', '');
                   }
