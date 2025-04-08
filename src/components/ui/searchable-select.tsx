@@ -39,9 +39,9 @@ export function SearchableSelect({
 
   // Debug logs
   useEffect(() => {
-    console.log("SearchableSelect - options:", options);
-    console.log("SearchableSelect - value:", value);
-  }, [options, value]);
+    console.log("SearchableSelect - options count:", options.length);
+    console.log("SearchableSelect - current value:", value);
+  }, [options.length, value]);
 
   // Find the selected option label
   const selectedOption = options.find(option => option.value === value);
@@ -66,9 +66,18 @@ export function SearchableSelect({
 
   // Handle option selection
   const handleSelect = (optionValue: string) => {
-    console.log("SearchableSelect - Item selecionado:", optionValue);
+    console.log("SearchableSelect - Item selected:", optionValue);
     onValueChange(optionValue);
     setOpen(false);
+  };
+
+  // Handle create new option
+  const handleCreateNew = () => {
+    if (onCreateNew) {
+      console.log("SearchableSelect - Create new option clicked");
+      onCreateNew();
+      setOpen(false);
+    }
   };
 
   return (
@@ -85,7 +94,7 @@ export function SearchableSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-full p-0" 
+        className="w-[var(--radix-popover-trigger-width)] p-0" 
         ref={popoverRef}
         align="start"
         sideOffset={4}
@@ -105,12 +114,7 @@ export function SearchableSelect({
                   <Button 
                     variant="outline" 
                     className="mt-2 w-full flex items-center justify-center" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onCreateNew();
-                      setOpen(false);
-                    }}
+                    onClick={handleCreateNew}
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     {createOptionLabel}
@@ -140,10 +144,7 @@ export function SearchableSelect({
               {showCreateOption && onCreateNew && options.length > 0 && (
                 <CommandItem
                   value="__create-new__"
-                  onSelect={(val) => {
-                    onCreateNew();
-                    setOpen(false);
-                  }}
+                  onSelect={handleCreateNew}
                   className="flex items-center border-t"
                 >
                   <Plus className="mr-2 h-4 w-4" />

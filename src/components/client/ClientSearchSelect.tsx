@@ -28,13 +28,15 @@ export function ClientSearchSelect({
   const [clientOptions, setClientOptions] = useState<any[]>([]);
   const navigate = useNavigate();
   
+  // Debug logs to trace the component behavior
   useEffect(() => {
-    // Log para debug
-    console.log("ClientSearchSelect - value atual:", value);
-    console.log("ClientSearchSelect - clientes disponíveis:", clients);
-    
+    console.log("ClientSearchSelect - Rendering with value:", value);
+    console.log("ClientSearchSelect - Clients available:", clients.length);
+  }, [value, clients.length]);
+  
+  useEffect(() => {
     if (clients.length > 0) {
-      // Formatar opções de cliente para o select pesquisável
+      // Format client options for the searchable select
       const options = [
         ...(includeAllOption ? [{ 
           value: allOptionValue, 
@@ -49,10 +51,10 @@ export function ClientSearchSelect({
       
       setClientOptions(options);
       
-      // Se não houver valor selecionado e temos clientes, e não incluímos a opção "todos"
-      // e não está desabilitado o auto-select, vamos selecionar automaticamente o primeiro cliente
+      // Auto-select first client if conditions are met
       if (!value && clients.length > 0 && !includeAllOption && !disableAutoSelect) {
-        console.log("ClientSearchSelect - Selecionando o primeiro cliente automaticamente");
+        console.log("ClientSearchSelect - Auto-selecting first client:", clients[0].id);
+        // Use setTimeout to ensure this happens after render
         setTimeout(() => {
           onValueChange(clients[0].id);
         }, 0);
@@ -61,7 +63,7 @@ export function ClientSearchSelect({
   }, [clients, includeAllOption, allOptionLabel, allOptionValue, value, onValueChange, disableAutoSelect]);
   
   const handleCreateNewClient = () => {
-    // Salva o estado atual e navega para a página de clientes
+    // Save current state and navigate to clients page
     toast.info("Redirecionando para cadastro de novo cliente");
     navigate("/clients");
   };
@@ -71,7 +73,7 @@ export function ClientSearchSelect({
       options={clientOptions}
       value={value}
       onValueChange={(newValue) => {
-        console.log("ClientSearchSelect - Valor alterado para:", newValue);
+        console.log("ClientSearchSelect - Value changed to:", newValue);
         onValueChange(newValue);
       }}
       placeholder={placeholder}

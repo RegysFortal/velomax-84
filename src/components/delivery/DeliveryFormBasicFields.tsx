@@ -24,10 +24,11 @@ export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBas
                 <ClientSearchSelect
                   value={field.value}
                   onValueChange={(value) => {
-                    console.log("DeliveryForm - ClientSearchSelect - Valor alterado para:", value);
+                    console.log("DeliveryFormBasicFields - ClientId changed to:", value);
                     field.onChange(value);
                   }}
                   placeholder="Selecione um cliente"
+                  disableAutoSelect={isEditMode}
                 />
               </FormControl>
               <FormMessage />
