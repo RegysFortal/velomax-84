@@ -643,11 +643,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     user,
+    users,
+    currentUser: user,
     login,
     logout,
+    updateUserProfile,
     createUser,
     updateUser,
     deleteUser,
+    resetUserPassword,
+    updateUserPassword,
     loading,
     hasPermission,
   };
