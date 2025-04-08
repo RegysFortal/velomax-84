@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription 
@@ -12,7 +13,7 @@ import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { 
   Shipment, ShipmentStatus, Document, FiscalAction
 } from '@/types/shipment';
-import { Delivery } from '@/types';
+import { Delivery, User } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DocumentsList } from './DocumentsList';
@@ -27,6 +28,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatusSection } from './StatusSection';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ShipmentDetailsProps {
   shipment: Shipment;
@@ -41,19 +44,29 @@ export function ShipmentDetails({
 }: ShipmentDetailsProps) {
   const { updateStatus, updateShipment, updateFiscalAction, clearFiscalAction, updateFiscalActionDetails } = useShipments();
   const { addDelivery } = useDeliveries();
+  const { users } = useAuth();
   const [activeTab, setActiveTab] = useState('details');
   const [date, setDate] = useState<Date | undefined>();
   const [showAddFiscalAction, setShowAddFiscalAction] = useState(false);
   const [deliveryInfo, setDeliveryInfo] = useState({
     receiverName: '',
+    receiverId: '',
     date: new Date(),
     time: format(new Date(), 'HH:mm')
   });
   const [finalDeliveryInfo, setFinalDeliveryInfo] = useState({
     receiverName: '',
+    receiverId: '',
     date: new Date(),
     time: format(new Date(), 'HH:mm')
   });
+  
+  // Create options for employee selection
+  const employeeOptions = users.map(user => ({
+    value: user.id,
+    label: user.name,
+    description: user.position || user.department
+  }));
   
   useEffect(() => {
     if (shipment.arrivalDate) {
@@ -63,7 +76,8 @@ export function ShipmentDetails({
     if (shipment.receiverName && shipment.status === 'delivered') {
       setDeliveryInfo(prev => ({
         ...prev,
-        receiverName: shipment.receiverName || ''
+        receiverName: shipment.receiverName || '',
+        receiverId: shipment.receiverId || ''
       }));
       
       if (shipment.deliveryDate) {
@@ -84,7 +98,8 @@ export function ShipmentDetails({
     if (shipment.receiverName && shipment.status === 'delivered_final') {
       setFinalDeliveryInfo(prev => ({
         ...prev,
-        receiverName: shipment.receiverName || ''
+        receiverName: shipment.receiverName || '',
+        receiverId: shipment.receiverId || ''
       }));
       
       if (shipment.deliveryDate) {
@@ -101,7 +116,7 @@ export function ShipmentDetails({
         }));
       }
     }
-  }, [shipment.arrivalDate, shipment.receiverName, shipment.deliveryDate, shipment.deliveryTime, shipment.status]);
+  }, [shipment.arrivalDate, shipment.receiverName, shipment.receiverId, shipment.deliveryDate, shipment.deliveryTime, shipment.status]);
   
   const canBeDelivered = shipment.status === 'in_transit';
   const canBeFinalDelivered = shipment.status === 'delivered';
@@ -125,7 +140,15 @@ export function ShipmentDetails({
     try {
       const updateData: any = {};
       
-      if (deliveryInfo.receiverName.trim()) {
+      // Save both receiver ID and name if an employee was selected
+      if (deliveryInfo.receiverId) {
+        updateData.receiverId = deliveryInfo.receiverId;
+        // Find the selected employee to get their name
+        const selectedEmployee = users.find(u => u.id === deliveryInfo.receiverId);
+        if (selectedEmployee) {
+          updateData.receiverName = selectedEmployee.name;
+        }
+      } else if (deliveryInfo.receiverName.trim()) {
         updateData.receiverName = deliveryInfo.receiverName;
       }
       
@@ -141,7 +164,7 @@ export function ShipmentDetails({
         minuteNumber: shipment.trackingNumber,
         deliveryDate: format(deliveryInfo.date, 'yyyy-MM-dd'),
         deliveryTime: deliveryInfo.time,
-        receiver: deliveryInfo.receiverName || 'Não informado',
+        receiver: updateData.receiverName || 'Não informado',
         weight: shipment.weight,
         packages: shipment.packages,
         cargoType: 'standard',
@@ -169,7 +192,15 @@ export function ShipmentDetails({
     try {
       const updateData: any = {};
       
-      if (finalDeliveryInfo.receiverName.trim()) {
+      // Save both receiver ID and name if an employee was selected
+      if (finalDeliveryInfo.receiverId) {
+        updateData.receiverId = finalDeliveryInfo.receiverId;
+        // Find the selected employee to get their name
+        const selectedEmployee = users.find(u => u.id === finalDeliveryInfo.receiverId);
+        if (selectedEmployee) {
+          updateData.receiverName = selectedEmployee.name;
+        }
+      } else if (finalDeliveryInfo.receiverName.trim()) {
         updateData.receiverName = finalDeliveryInfo.receiverName;
       }
       
@@ -198,6 +229,24 @@ export function ShipmentDetails({
     if (date) {
       setFinalDeliveryInfo(prev => ({ ...prev, date }));
     }
+  };
+  
+  const handleEmployeeSelect = (employeeId: string) => {
+    setDeliveryInfo(prev => ({ 
+      ...prev, 
+      receiverId: employeeId,
+      // Clear the manual name if an employee is selected
+      receiverName: ''
+    }));
+  };
+  
+  const handleFinalEmployeeSelect = (employeeId: string) => {
+    setFinalDeliveryInfo(prev => ({ 
+      ...prev, 
+      receiverId: employeeId,
+      // Clear the manual name if an employee is selected
+      receiverName: ''
+    }));
   };
   
   const handleUpdateFiscalAction = async (data: { actionNumber: string; reason: string; amountToPay: number }) => {
@@ -333,13 +382,30 @@ export function ShipmentDetails({
                   <h3 className="text-lg font-medium mb-2">Registrar Retirada</h3>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="receiverName">Retirado por</Label>
+                      <Label htmlFor="receiverId">Selecione quem retirou</Label>
+                      <SearchableSelect
+                        options={employeeOptions}
+                        value={deliveryInfo.receiverId}
+                        onValueChange={handleEmployeeSelect}
+                        placeholder="Selecione um funcionário"
+                        emptyMessage="Nenhum funcionário encontrado"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="receiverName">Ou informe outro nome</Label>
                       <Input
                         id="receiverName"
                         value={deliveryInfo.receiverName}
-                        onChange={(e) => setDeliveryInfo(prev => ({ ...prev, receiverName: e.target.value }))}
+                        onChange={(e) => setDeliveryInfo(prev => ({ 
+                          ...prev, 
+                          receiverName: e.target.value,
+                          // Clear employee selection if manual name is entered
+                          receiverId: e.target.value.trim() ? '' : prev.receiverId
+                        }))}
                         className="mt-1"
                         placeholder="Opcional"
+                        disabled={!!deliveryInfo.receiverId}
                       />
                     </div>
                     
@@ -407,13 +473,30 @@ export function ShipmentDetails({
                   
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="finalReceiverName">Nome do Recebedor</Label>
+                      <Label htmlFor="finalReceiverId">Selecione quem recebeu</Label>
+                      <SearchableSelect
+                        options={employeeOptions}
+                        value={finalDeliveryInfo.receiverId}
+                        onValueChange={handleFinalEmployeeSelect}
+                        placeholder="Selecione um funcionário"
+                        emptyMessage="Nenhum funcionário encontrado"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="finalReceiverName">Ou informe outro nome</Label>
                       <Input
                         id="finalReceiverName"
                         value={finalDeliveryInfo.receiverName}
-                        onChange={(e) => setFinalDeliveryInfo(prev => ({ ...prev, receiverName: e.target.value }))}
+                        onChange={(e) => setFinalDeliveryInfo(prev => ({ 
+                          ...prev, 
+                          receiverName: e.target.value,
+                          // Clear employee selection if manual name is entered
+                          receiverId: e.target.value.trim() ? '' : prev.receiverId
+                        }))}
                         className="mt-1"
                         placeholder="Opcional"
+                        disabled={!!finalDeliveryInfo.receiverId}
                       />
                     </div>
                     
