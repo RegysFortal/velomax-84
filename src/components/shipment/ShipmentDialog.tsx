@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,13 +19,10 @@ import {
 } from "@/components/ui/select";
 import { useShipments } from "@/contexts/ShipmentsContext";
 import { Shipment, ShipmentStatus } from "@/types/shipment";
-import { format } from 'date-fns';
 import { toast } from "sonner";
 import { useClients } from "@/contexts/ClientsContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import { ClientSearchSelect } from "@/components/client/ClientSearchSelect";
-import { z } from "zod";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -75,6 +73,9 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       setRetentionReason("");
       setRetentionAmount("");
       setPaymentDate("");
+      
+      // Debug logs
+      console.log("ShipmentDialog - Reset form");
     }
   }, [open]);
   
@@ -105,6 +106,9 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       // Get company name from the selected client
       const selectedClient = clients.find(c => c.id === companyId);
       const clientName = selectedClient ? selectedClient.name : "";
+      
+      console.log("ShipmentDialog - Cliente selecionado:", selectedClient);
+      console.log("ShipmentDialog - CompanyId:", companyId);
       
       // Build shipment object with all required fields
       const shipmentData = {
@@ -176,6 +180,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                     }
                   }}
                   placeholder="Selecione uma empresa"
+                  disableAutoSelect={false}
                 />
               </div>
               

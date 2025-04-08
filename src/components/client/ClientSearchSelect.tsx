@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useClients } from "@/contexts/ClientsContext";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface ClientSearchSelectProps {
   value: string;
@@ -10,6 +12,7 @@ interface ClientSearchSelectProps {
   includeAllOption?: boolean;
   allOptionLabel?: string;
   allOptionValue?: string;
+  disableAutoSelect?: boolean;
 }
 
 export function ClientSearchSelect({
@@ -18,10 +21,12 @@ export function ClientSearchSelect({
   placeholder = "Selecione um cliente",
   includeAllOption = false,
   allOptionLabel = "Todos os clientes",
-  allOptionValue = "all"
+  allOptionValue = "all",
+  disableAutoSelect = false
 }: ClientSearchSelectProps) {
   const { clients } = useClients();
   const [clientOptions, setClientOptions] = useState<any[]>([]);
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Log para debug
@@ -45,15 +50,21 @@ export function ClientSearchSelect({
       setClientOptions(options);
       
       // Se não houver valor selecionado e temos clientes, e não incluímos a opção "todos"
-      // vamos selecionar automaticamente o primeiro cliente
-      if (!value && clients.length > 0 && !includeAllOption) {
+      // e não está desabilitado o auto-select, vamos selecionar automaticamente o primeiro cliente
+      if (!value && clients.length > 0 && !includeAllOption && !disableAutoSelect) {
         console.log("ClientSearchSelect - Selecionando o primeiro cliente automaticamente");
         setTimeout(() => {
           onValueChange(clients[0].id);
         }, 0);
       }
     }
-  }, [clients, includeAllOption, allOptionLabel, allOptionValue, value, onValueChange]);
+  }, [clients, includeAllOption, allOptionLabel, allOptionValue, value, onValueChange, disableAutoSelect]);
+  
+  const handleCreateNewClient = () => {
+    // Salva o estado atual e navega para a página de clientes
+    toast.info("Redirecionando para cadastro de novo cliente");
+    navigate("/clients");
+  };
   
   return (
     <SearchableSelect
@@ -65,6 +76,9 @@ export function ClientSearchSelect({
       }}
       placeholder={placeholder}
       emptyMessage="Nenhum cliente encontrado"
+      showCreateOption={true}
+      onCreateNew={handleCreateNewClient}
+      createOptionLabel="Cadastrar novo cliente"
     />
   );
 }

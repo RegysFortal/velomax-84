@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchableSelectOption {
@@ -18,6 +18,9 @@ interface SearchableSelectProps {
   onValueChange: (value: string) => void;
   placeholder?: string;
   emptyMessage?: string;
+  onCreateNew?: () => void;
+  showCreateOption?: boolean;
+  createOptionLabel?: string;
 }
 
 export function SearchableSelect({
@@ -26,8 +29,12 @@ export function SearchableSelect({
   onValueChange,
   placeholder = "Selecione uma opção...",
   emptyMessage = "Nenhum resultado encontrado.",
+  onCreateNew,
+  showCreateOption = false,
+  createOptionLabel = "Cadastrar novo"
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // Debug logs
@@ -77,9 +84,32 @@ export function SearchableSelect({
         sideOffset={4}
       >
         <Command>
-          <CommandInput placeholder={`Procurar ${placeholder.toLowerCase()}`} className="h-9" />
+          <CommandInput 
+            placeholder={`Procurar ${placeholder.toLowerCase()}`} 
+            className="h-9" 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandEmpty>
+              <div className="py-2 px-2 text-sm text-muted-foreground">
+                {emptyMessage}
+                {showCreateOption && onCreateNew && (
+                  <Button 
+                    variant="outline" 
+                    className="mt-2 w-full flex items-center justify-center" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onCreateNew();
+                      setOpen(false);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    {createOptionLabel}
+                  </Button>
+                )}
+              </div>
+            </CommandEmpty>
             <CommandGroup className="max-h-64 overflow-auto">
               {options.map((option) => (
                 <CommandItem
@@ -103,6 +133,19 @@ export function SearchableSelect({
                   {value === option.value && <Check className="h-4 w-4" />}
                 </CommandItem>
               ))}
+              {showCreateOption && onCreateNew && options.length > 0 && (
+                <CommandItem
+                  value="__create-new__"
+                  onSelect={() => {
+                    onCreateNew();
+                    setOpen(false);
+                  }}
+                  className="flex items-center border-t"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  {createOptionLabel}
+                </CommandItem>
+              )}
             </CommandGroup>
           </CommandList>
         </Command>
