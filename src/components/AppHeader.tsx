@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserButton } from '@/components/user/UserButton';
+import { UserButton } from './user/UserButton';
 import { MainNav } from '@/components/MainNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ViewSizeToggle } from './ViewSizeToggle';
