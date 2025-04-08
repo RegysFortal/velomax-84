@@ -3,16 +3,23 @@ import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
-import { Control } from 'react-hook-form';
+import { Control, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface DeliveryFormBasicFieldsProps {
   control: Control<any>;
   isEditMode: boolean;
+  setValue: UseFormSetValue<any>;
+  getValues: UseFormGetValues<any>;
 }
 
-export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBasicFieldsProps) {
+export function DeliveryFormBasicFields({ 
+  control, 
+  isEditMode, 
+  setValue, 
+  getValues 
+}: DeliveryFormBasicFieldsProps) {
   const { users } = useAuth();
   
   // Create options for employee selection
@@ -113,7 +120,7 @@ export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBas
                     field.onChange(value);
                     // Clear manual name field if employee is selected
                     if (value) {
-                      control.setValue('pickupName', '');
+                      setValue('pickupName', '');
                     }
                   }}
                   placeholder="Selecione um funcionário"
@@ -135,12 +142,12 @@ export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBas
                 <Input
                   {...field}
                   placeholder="Nome de quem retirou"
-                  disabled={!!control.getValues().pickupId}
+                  disabled={!!getValues().pickupId}
                   onChange={(e) => {
                     field.onChange(e);
                     // Clear employee selection if manual name is entered
                     if (e.target.value) {
-                      control.setValue('pickupId', '');
+                      setValue('pickupId', '');
                     }
                   }}
                 />
@@ -179,7 +186,7 @@ export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBas
                   field.onChange(value);
                   // Clear manual receiver if employee is selected
                   if (value) {
-                    control.setValue('receiver', '');
+                    setValue('receiver', '');
                   }
                 }}
                 placeholder="Selecione um funcionário"

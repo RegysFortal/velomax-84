@@ -358,6 +358,8 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
             <DeliveryFormBasicFields 
               control={form.control}
               isEditMode={isEditMode}
+              setValue={form.setValue}
+              getValues={form.getValues}
             />
             
             <DeliveryFormTypeFields 
