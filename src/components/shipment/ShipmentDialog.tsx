@@ -15,6 +15,16 @@ import { useClients } from "@/contexts/ClientsContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShipmentFormSection } from "./ShipmentFormSection";
 import { RetentionFormSection } from "./RetentionFormSection";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -22,7 +32,7 @@ interface ShipmentDialogProps {
 }
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
-  const { addShipment } = useShipments();
+  const { addShipment, shipments } = useShipments();
   const { clients } = useClients();
   
   // Form state
@@ -45,6 +55,10 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const [retentionAmount, setRetentionAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
   
+  // Duplicate tracking number alert
+  const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
+  const [submissionData, setSubmissionData] = useState<any>(null);
+  
   // Reset form when dialog opens/closes
   useEffect(() => {
     if (open) {
@@ -65,11 +79,17 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       setRetentionReason("");
       setRetentionAmount("");
       setPaymentDate("");
+      setShowDuplicateAlert(false);
+      setSubmissionData(null);
       
       // Debug logs
       console.log("ShipmentDialog - Reset form");
     }
   }, [open]);
+  
+  const checkDuplicateTrackingNumber = (trackingNum: string) => {
+    return shipments.some(s => s.trackingNumber === trackingNum);
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,10 +140,26 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
         deliveryTime: deliveryTime || undefined,
       };
       
-      // Add fiscal action if status is retained
+      // Check for duplicate tracking number
+      if (checkDuplicateTrackingNumber(trackingNumber.trim())) {
+        // Save submission data for later use if user confirms
+        setSubmissionData({
+          shipmentData,
+          fiscalActionData: status === "retained" ? {
+            reason: retentionReason.trim(),
+            amountToPay: parseFloat(retentionAmount) || 0,
+            paymentDate: paymentDate || undefined,
+          } : undefined
+        });
+        
+        // Show duplicate confirmation dialog
+        setShowDuplicateAlert(true);
+        return;
+      }
+      
+      // If no duplicate, proceed normally
       if (status === "retained") {
         // Create fiscal action data without ID, createdAt, updatedAt
-        // These will be added by the addShipment function in the context
         const fiscalActionData = {
           reason: retentionReason.trim(),
           amountToPay: parseFloat(retentionAmount) || 0,
@@ -133,8 +169,6 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
         // Include fiscal action in shipment data
         await addShipment({
           ...shipmentData,
-          // We're passing fiscalActionData, not a complete FiscalAction
-          // The ShipmentContext.addShipment will handle creating the complete FiscalAction
           fiscalActionData,
         });
       } else {
@@ -148,63 +182,111 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       console.error(error);
     }
   };
+  
+  const handleConfirmDuplicate = async () => {
+    if (!submissionData) return;
+    
+    try {
+      const { shipmentData, fiscalActionData } = submissionData;
+      
+      if (fiscalActionData) {
+        await addShipment({
+          ...shipmentData,
+          fiscalActionData,
+        });
+      } else {
+        await addShipment(shipmentData);
+      }
+      
+      toast.success("Embarque criado com sucesso");
+      setShowDuplicateAlert(false);
+      onOpenChange(false);
+    } catch (error) {
+      toast.error("Erro ao salvar embarque");
+      console.error(error);
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[95vh]">
-        <DialogHeader>
-          <DialogTitle>Novo Embarque</DialogTitle>
-        </DialogHeader>
-        
-        <ScrollArea className="max-h-[calc(95vh-130px)] pr-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <ShipmentFormSection 
-              companyId={companyId}
-              setCompanyId={setCompanyId}
-              setCompanyName={setCompanyName}
-              transportMode={transportMode}
-              setTransportMode={setTransportMode}
-              carrierName={carrierName}
-              setCarrierName={setCarrierName}
-              trackingNumber={trackingNumber}
-              setTrackingNumber={setTrackingNumber}
-              packages={packages}
-              setPackages={setPackages}
-              weight={weight}
-              setWeight={setWeight}
-              arrivalFlight={arrivalFlight}
-              setArrivalFlight={setArrivalFlight}
-              arrivalDate={arrivalDate}
-              setArrivalDate={setArrivalDate}
-              observations={observations}
-              setObservations={setObservations}
-              status={status}
-              setStatus={setStatus}
-              clients={clients}
-            />
-            
-            {status === "retained" && (
-              <RetentionFormSection 
-                retentionReason={retentionReason}
-                setRetentionReason={setRetentionReason}
-                retentionAmount={retentionAmount}
-                setRetentionAmount={setRetentionAmount}
-                paymentDate={paymentDate}
-                setPaymentDate={setPaymentDate}
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-xl max-h-[95vh]">
+          <DialogHeader>
+            <DialogTitle>Novo Embarque</DialogTitle>
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-[calc(95vh-130px)] pr-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <ShipmentFormSection 
+                companyId={companyId}
+                setCompanyId={setCompanyId}
+                setCompanyName={setCompanyName}
+                transportMode={transportMode}
+                setTransportMode={setTransportMode}
+                carrierName={carrierName}
+                setCarrierName={setCarrierName}
+                trackingNumber={trackingNumber}
+                setTrackingNumber={setTrackingNumber}
+                packages={packages}
+                setPackages={setPackages}
+                weight={weight}
+                setWeight={setWeight}
+                arrivalFlight={arrivalFlight}
+                setArrivalFlight={setArrivalFlight}
+                arrivalDate={arrivalDate}
+                setArrivalDate={setArrivalDate}
+                observations={observations}
+                setObservations={setObservations}
+                status={status}
+                setStatus={setStatus}
+                clients={clients}
+                shipmentId=""
               />
-            )}
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                Criar
-              </Button>
-            </DialogFooter>
-          </form>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+              
+              {status === "retained" && (
+                <RetentionFormSection 
+                  retentionReason={retentionReason}
+                  setRetentionReason={setRetentionReason}
+                  retentionAmount={retentionAmount}
+                  setRetentionAmount={setRetentionAmount}
+                  paymentDate={paymentDate}
+                  setPaymentDate={setPaymentDate}
+                />
+              )}
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  Criar
+                </Button>
+              </DialogFooter>
+            </form>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Duplicate tracking number alert dialog */}
+      <AlertDialog open={showDuplicateAlert} onOpenChange={setShowDuplicateAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Número de conhecimento duplicado</AlertDialogTitle>
+            <AlertDialogDescription>
+              Já existe um embarque com o número de conhecimento <span className="font-semibold">{trackingNumber}</span>.
+              Deseja realmente criar outro embarque com o mesmo número?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDuplicateAlert(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDuplicate} className="bg-orange-600 hover:bg-orange-700">
+              Sim, criar mesmo assim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

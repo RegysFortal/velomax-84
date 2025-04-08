@@ -31,6 +31,7 @@ interface ShipmentFormSectionProps {
   status: ShipmentStatus;
   setStatus: (status: ShipmentStatus) => void;
   clients: Client[];
+  shipmentId: string;
 }
 
 export function ShipmentFormSection({
@@ -55,7 +56,8 @@ export function ShipmentFormSection({
   setObservations,
   status,
   setStatus,
-  clients
+  clients,
+  shipmentId
 }: ShipmentFormSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -95,6 +97,7 @@ export function ShipmentFormSection({
       <StatusSection 
         status={status}
         setStatus={setStatus}
+        shipmentId={shipmentId}
       />
     </div>
   );
