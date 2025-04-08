@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription 
@@ -61,7 +60,6 @@ export function ShipmentDetails({
       setDate(new Date(shipment.arrivalDate));
     }
     
-    // Set receiver name if already exists when opening details
     if (shipment.receiverName && shipment.status === 'delivered') {
       setDeliveryInfo(prev => ({
         ...prev,
@@ -125,19 +123,17 @@ export function ShipmentDetails({
   
   const handleDeliveryComplete = async () => {
     try {
-      if (!deliveryInfo.receiverName.trim()) {
-        toast.error('Informe o nome do recebedor');
-        return;
-      }
-
-      // Update shipment with receiver details first
-      await updateShipment(shipment.id, {
-        receiverName: deliveryInfo.receiverName,
-        deliveryDate: format(deliveryInfo.date, 'yyyy-MM-dd'),
-        deliveryTime: deliveryInfo.time
-      });
+      const updateData: any = {};
       
-      // Then update status to ensure all pickup details are saved
+      if (deliveryInfo.receiverName.trim()) {
+        updateData.receiverName = deliveryInfo.receiverName;
+      }
+      
+      updateData.deliveryDate = format(deliveryInfo.date, 'yyyy-MM-dd');
+      updateData.deliveryTime = deliveryInfo.time;
+      
+      await updateShipment(shipment.id, updateData);
+      
       await updateStatus(shipment.id, 'delivered');
       
       const newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
@@ -145,7 +141,7 @@ export function ShipmentDetails({
         minuteNumber: shipment.trackingNumber,
         deliveryDate: format(deliveryInfo.date, 'yyyy-MM-dd'),
         deliveryTime: deliveryInfo.time,
-        receiver: deliveryInfo.receiverName,
+        receiver: deliveryInfo.receiverName || 'Não informado',
         weight: shipment.weight,
         packages: shipment.packages,
         cargoType: 'standard',
@@ -171,19 +167,17 @@ export function ShipmentDetails({
   
   const handleFinalDeliveryComplete = async () => {
     try {
-      if (!finalDeliveryInfo.receiverName.trim()) {
-        toast.error('Informe o nome do recebedor final');
-        return;
-      }
-
-      // Update shipment with receiver details first
-      await updateShipment(shipment.id, {
-        receiverName: finalDeliveryInfo.receiverName,
-        deliveryDate: format(finalDeliveryInfo.date, 'yyyy-MM-dd'),
-        deliveryTime: finalDeliveryInfo.time
-      });
+      const updateData: any = {};
       
-      // Then update status to ensure all delivery details are saved
+      if (finalDeliveryInfo.receiverName.trim()) {
+        updateData.receiverName = finalDeliveryInfo.receiverName;
+      }
+      
+      updateData.deliveryDate = format(finalDeliveryInfo.date, 'yyyy-MM-dd');
+      updateData.deliveryTime = finalDeliveryInfo.time;
+      
+      await updateShipment(shipment.id, updateData);
+      
       await updateStatus(shipment.id, 'delivered_final');
       
       onClose();
@@ -345,6 +339,7 @@ export function ShipmentDetails({
                         value={deliveryInfo.receiverName}
                         onChange={(e) => setDeliveryInfo(prev => ({ ...prev, receiverName: e.target.value }))}
                         className="mt-1"
+                        placeholder="Opcional"
                       />
                     </div>
                     
@@ -390,7 +385,6 @@ export function ShipmentDetails({
                     <Button 
                       className="w-full" 
                       onClick={handleDeliveryComplete}
-                      disabled={!deliveryInfo.receiverName.trim()}
                     >
                       Registrar Retirada
                     </Button>
@@ -419,6 +413,7 @@ export function ShipmentDetails({
                         value={finalDeliveryInfo.receiverName}
                         onChange={(e) => setFinalDeliveryInfo(prev => ({ ...prev, receiverName: e.target.value }))}
                         className="mt-1"
+                        placeholder="Opcional"
                       />
                     </div>
                     
@@ -464,7 +459,6 @@ export function ShipmentDetails({
                     <Button 
                       className="w-full bg-green-600 hover:bg-green-700"
                       onClick={handleFinalDeliveryComplete}
-                      disabled={!finalDeliveryInfo.receiverName.trim()}
                     >
                       Confirmar Entrega Final
                     </Button>
