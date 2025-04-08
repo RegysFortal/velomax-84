@@ -64,6 +64,13 @@ export function SearchableSelect({
     };
   }, [open]);
 
+  // Handle option selection
+  const handleSelect = (optionValue: string) => {
+    console.log("SearchableSelect - Item selecionado:", optionValue);
+    onValueChange(optionValue);
+    setOpen(false);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -100,6 +107,7 @@ export function SearchableSelect({
                     className="mt-2 w-full flex items-center justify-center" 
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       onCreateNew();
                       setOpen(false);
                     }}
@@ -115,11 +123,7 @@ export function SearchableSelect({
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  onSelect={() => {
-                    console.log("SearchableSelect - Item selecionado:", option.value);
-                    onValueChange(option.value);
-                    setOpen(false);
-                  }}
+                  onSelect={() => handleSelect(option.value)}
                   className="flex items-center justify-between"
                 >
                   <div>
@@ -136,7 +140,7 @@ export function SearchableSelect({
               {showCreateOption && onCreateNew && options.length > 0 && (
                 <CommandItem
                   value="__create-new__"
-                  onSelect={() => {
+                  onSelect={(val) => {
                     onCreateNew();
                     setOpen(false);
                   }}
