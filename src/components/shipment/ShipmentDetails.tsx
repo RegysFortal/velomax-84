@@ -102,6 +102,7 @@ export function ShipmentDetails({
         totalFreight: 0,
         customPricing: false,
         discount: 0,
+        notes: '', // Adding the required notes property
         createdAt: '',
         updatedAt: '',
       };
