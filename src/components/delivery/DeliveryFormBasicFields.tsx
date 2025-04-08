@@ -7,6 +7,7 @@ import { DeliveryDateTimeFields } from './form-fields/DeliveryDateTimeFields';
 import { PickupPersonField } from './form-fields/PickupPersonField';
 import { ReceiverFields } from './form-fields/ReceiverFields';
 import { ShipmentDetailsFields } from './form-fields/ShipmentDetailsFields';
+import { Separator } from '@/components/ui/separator';
 
 interface DeliveryFormBasicFieldsProps {
   control: Control<any>;
@@ -33,24 +34,39 @@ export function DeliveryFormBasicFields({
         isEditMode={isEditMode} 
       />
       
-      <DeliveryDateTimeFields 
-        control={control} 
-      />
+      <div className="space-y-4">
+        <Separator className="my-4" />
+        <h3 className="text-md font-medium">Informações de Retirada na Transportadora</h3>
+        
+        <PickupPersonField 
+          control={control}
+          setValue={setValue}
+          getValues={getValues}
+        />
+      </div>
       
-      <PickupPersonField 
-        control={control}
-        setValue={setValue}
-        getValues={getValues}
-      />
+      <div className="space-y-4">
+        <Separator className="my-4" />
+        <h3 className="text-md font-medium">Informações de Entrega ao Destinatário</h3>
+        
+        <DeliveryDateTimeFields 
+          control={control} 
+        />
+        
+        <ReceiverFields 
+          control={control}
+          setValue={setValue}
+        />
+      </div>
       
-      <ReceiverFields 
-        control={control}
-        setValue={setValue}
-      />
-      
-      <ShipmentDetailsFields 
-        control={control} 
-      />
+      <div className="space-y-4">
+        <Separator className="my-4" />
+        <h3 className="text-md font-medium">Detalhes da Carga</h3>
+        
+        <ShipmentDetailsFields 
+          control={control} 
+        />
+      </div>
     </>
   );
 }

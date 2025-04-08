@@ -27,11 +27,11 @@ export function ReceiverFields({ control, setValue }: ReceiverFieldsProps) {
         name="receiver"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Recebedor</FormLabel>
+            <FormLabel>Nome do Recebedor Final</FormLabel>
             <FormControl>
               <Input 
                 {...field} 
-                placeholder="Nome da pessoa que recebeu a mercadoria" 
+                placeholder="Nome da pessoa que recebeu a entrega final" 
               />
             </FormControl>
             <FormMessage />
@@ -44,7 +44,7 @@ export function ReceiverFields({ control, setValue }: ReceiverFieldsProps) {
         name="receiverId"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Ou selecione o recebedor</FormLabel>
+            <FormLabel>Ou selecione um funcionário como recebedor</FormLabel>
             <FormControl>
               <SearchableSelect
                 options={employeeOptions}
@@ -55,7 +55,7 @@ export function ReceiverFields({ control, setValue }: ReceiverFieldsProps) {
                     setValue('receiver', '');
                   }
                 }}
-                placeholder="Selecione um funcionário que recebeu"
+                placeholder="Selecione um funcionário que recebeu a entrega"
                 emptyMessage="Nenhum funcionário encontrado"
               />
             </FormControl>

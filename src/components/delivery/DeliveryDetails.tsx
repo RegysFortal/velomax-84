@@ -40,10 +40,12 @@ export function DeliveryDetails({ delivery, open, onClose, onEdit }: DeliveryDet
     return user ? user.name : '';
   };
 
+  // For receiver - prefer employee name if ID exists, otherwise use manually entered name
   const receiverName = delivery.receiverId 
     ? getEmployeeName(delivery.receiverId) 
     : delivery.receiver || 'Não informado';
 
+  // For pickup person - prefer employee name if ID exists, otherwise use manually entered name
   const pickupName = delivery.pickupId 
     ? getEmployeeName(delivery.pickupId) 
     : delivery.pickupName || 'Não informado';
@@ -131,8 +133,8 @@ export function DeliveryDetails({ delivery, open, onClose, onEdit }: DeliveryDet
                 <div>
                   <p className="text-sm text-gray-500">Data e Hora da Retirada</p>
                   <p className="font-medium">
-                    {delivery.pickupDate && format(new Date(delivery.pickupDate), 'dd/MM/yyyy', { locale: ptBR })}
-                    {delivery.pickupTime && ` às ${delivery.pickupTime}`}
+                    {delivery.pickupDate ? format(new Date(delivery.pickupDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
+                    {delivery.pickupTime ? ` às ${delivery.pickupTime}` : ''}
                   </p>
                 </div>
               </div>

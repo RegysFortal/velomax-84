@@ -23,12 +23,16 @@ export function PickupPersonField({ control, setValue, getValues }: PickupPerson
 
   return (
     <div className="space-y-4">
+      <div className="mb-2">
+        <h3 className="text-sm font-semibold text-gray-700">Informações de Retirada na Transportadora</h3>
+      </div>
+      
       <FormField
         control={control}
         name="pickupId"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Selecione quem retirou na transportadora</FormLabel>
+            <FormLabel>Selecione o funcionário que retirou na transportadora</FormLabel>
             <FormControl>
               <SearchableSelect
                 options={employeeOptions}
@@ -39,7 +43,7 @@ export function PickupPersonField({ control, setValue, getValues }: PickupPerson
                     setValue('pickupName', '');
                   }
                 }}
-                placeholder="Selecione um funcionário da transportadora"
+                placeholder="Selecione um funcionário da empresa"
                 emptyMessage="Nenhum funcionário encontrado"
               />
             </FormControl>
@@ -53,7 +57,7 @@ export function PickupPersonField({ control, setValue, getValues }: PickupPerson
         name="pickupName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Ou informe nome de quem retirou</FormLabel>
+            <FormLabel>Ou informe o nome de quem retirou</FormLabel>
             <FormControl>
               <Input
                 {...field}
@@ -71,6 +75,44 @@ export function PickupPersonField({ control, setValue, getValues }: PickupPerson
           </FormItem>
         )}
       />
+      
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={control}
+          name="pickupDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Data da Retirada</FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  {...field}
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={control}
+          name="pickupTime"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hora da Retirada</FormLabel>
+              <FormControl>
+                <Input
+                  type="time"
+                  {...field}
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   );
 }
