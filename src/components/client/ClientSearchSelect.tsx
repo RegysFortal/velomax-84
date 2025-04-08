@@ -13,6 +13,8 @@ interface ClientSearchSelectProps {
   allOptionLabel?: string;
   allOptionValue?: string;
   disableAutoSelect?: boolean;
+  showCreateOption?: boolean;
+  createOptionLabel?: string;
 }
 
 export function ClientSearchSelect({
@@ -22,7 +24,9 @@ export function ClientSearchSelect({
   includeAllOption = false,
   allOptionLabel = "Todos os clientes",
   allOptionValue = "all",
-  disableAutoSelect = false
+  disableAutoSelect = false,
+  showCreateOption = true,
+  createOptionLabel = "Cadastrar novo cliente"
 }: ClientSearchSelectProps) {
   const { clients } = useClients();
   const [clientOptions, setClientOptions] = useState<any[]>([]);
@@ -78,9 +82,9 @@ export function ClientSearchSelect({
       }}
       placeholder={placeholder}
       emptyMessage="Nenhum cliente encontrado"
-      showCreateOption={true}
+      showCreateOption={showCreateOption}
       onCreateNew={handleCreateNewClient}
-      createOptionLabel="Cadastrar novo cliente"
+      createOptionLabel={createOptionLabel}
     />
   );
 }

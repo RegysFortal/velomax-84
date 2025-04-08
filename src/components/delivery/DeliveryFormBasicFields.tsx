@@ -29,6 +29,8 @@ export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBas
                   }}
                   placeholder="Selecione um cliente"
                   disableAutoSelect={isEditMode}
+                  showCreateOption={true}
+                  createOptionLabel="Cadastrar novo cliente"
                 />
               </FormControl>
               <FormMessage />

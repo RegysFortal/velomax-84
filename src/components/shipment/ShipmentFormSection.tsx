@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -78,6 +77,8 @@ export function ShipmentFormSection({
           }}
           placeholder="Selecione uma empresa"
           disableAutoSelect={false}
+          showCreateOption={true}
+          createOptionLabel="Cadastrar nova empresa"
         />
       </div>
       
