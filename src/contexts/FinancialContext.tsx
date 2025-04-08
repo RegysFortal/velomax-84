@@ -21,7 +21,6 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Load financial reports from localStorage or use empty array
     const loadReports = () => {
       const storedReports = localStorage.getItem('velomax_financial_reports');
       if (storedReports) {
@@ -40,7 +39,6 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     loadReports();
   }, []);
   
-  // Save financial reports to localStorage whenever they change
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_financial_reports', JSON.stringify(financialReports));
@@ -53,7 +51,6 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     const timestamp = new Date().toISOString();
     const newId = `report-${Date.now()}`;
     
-    // Check if an open report already exists for the same client and date range
     const existingReport = financialReports.find(
       (r) => 
         r.clientId === report.clientId && 
@@ -137,27 +134,15 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     
-    setFinancialReports((prev) => 
-      prev.map((report) => {
-        if (report.id === id) {
-          return {
-            ...report,
-            status: 'closed' as const,
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return report;
-      })
-    );
+    setFinancialReports((prev) => prev.filter((report) => report.id !== id));
     
-    // Log dos relatórios para depuração
     console.log("Relatórios após fechamento:", 
       financialReports.map(r => ({id: r.id, status: r.status}))
     );
     
     toast({
       title: "Relatório fechado",
-      description: `O relatório financeiro foi fechado com sucesso.`,
+      description: `O relatório financeiro foi fechado e removido com sucesso.`,
     });
   };
   
