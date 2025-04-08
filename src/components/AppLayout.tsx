@@ -43,7 +43,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/settings': 'settings',
       };
 
-      // Special case for activity logs and profile (admin only for logs, all users for profile)
+      // Special case for activity logs (admin only for logs, all users for profile)
       if (location.pathname === '/activity-logs' && user.role !== 'admin') {
         toast({
           title: "Acesso restrito",

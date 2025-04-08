@@ -28,7 +28,7 @@ export function NavMenu() {
   const hasOperationalAccess = 
     hasPermission('deliveries') || 
     hasPermission('shipments') ||
-    (user?.role === 'admin');
+    user?.role === 'admin';
 
   // Check if user has access to any financial modules
   const hasFinancialAccess = 
@@ -36,7 +36,7 @@ export function NavMenu() {
     hasPermission('reports') || 
     hasPermission('priceTables') || 
     hasPermission('cities') ||
-    (user?.role === 'admin');
+    user?.role === 'admin';
 
   // Check if user has access to any management modules
   const hasManagementAccess = 
@@ -47,7 +47,7 @@ export function NavMenu() {
     hasPermission('vehicles') || 
     hasPermission('maintenance') || 
     hasPermission('settings') ||
-    (user?.role === 'admin');
+    user?.role === 'admin';
 
   // Function to check if user can access a specific page
   const canAccessPage = (permission: keyof User['permissions']) => {
