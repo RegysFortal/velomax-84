@@ -18,7 +18,7 @@ export function ClientSelection({
 }: ClientSelectionProps) {
   return (
     <div className="space-y-2 md:col-span-2">
-      <label htmlFor="companyName" className="text-sm font-medium">Cliente</label>
+      <label htmlFor="companyName" className="text-sm font-medium">Selecione um cliente</label>
       <ClientSearchSelect 
         value={companyId || ""}
         onValueChange={(value) => {

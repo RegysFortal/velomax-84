@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { FinancialReport } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -125,6 +124,19 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const closeReport = (id: string) => {
+    console.log(`Fechando relatório com ID: ${id}`);
+    const reportToClose = financialReports.find(report => report.id === id);
+    
+    if (!reportToClose) {
+      console.error(`Relatório com ID ${id} não encontrado.`);
+      toast({
+        title: "Erro ao fechar relatório",
+        description: "Relatório não encontrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setFinancialReports((prev) => 
       prev.map((report) => {
         if (report.id === id) {
@@ -136,6 +148,11 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
         }
         return report;
       })
+    );
+    
+    // Log dos relatórios para depuração
+    console.log("Relatórios após fechamento:", 
+      financialReports.map(r => ({id: r.id, status: r.status}))
     );
     
     toast({

@@ -19,7 +19,7 @@ export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBas
           name="clientId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Cliente</FormLabel>
+              <FormLabel>Selecione um cliente</FormLabel>
               <FormControl>
                 <ClientSearchSelect
                   value={field.value || ""}

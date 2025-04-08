@@ -31,6 +31,7 @@ const FinancialPage = () => {
   const { clients } = useClients();
   const [currentTab, setCurrentTab] = useState("open");
   
+  // Filtragem dos relatórios
   const openReports = financialReports.filter(report => report.status === 'open');
   const closedReports = financialReports.filter(report => report.status === 'closed');
   
@@ -42,8 +43,9 @@ const FinancialPage = () => {
   };
   
   const handleCloseReport = (reportId: string) => {
+    // Fecha o relatório
     closeReport(reportId);
-    // Switch to the closed reports tab after closing
+    // Define a tab para "closed" para mostrar os relatórios fechados
     setCurrentTab("closed");
   };
 
@@ -104,7 +106,7 @@ const FinancialPage = () => {
           </p>
         </div>
         
-        <Tabs defaultValue="open" value={currentTab} onValueChange={setCurrentTab}>
+        <Tabs value={currentTab} onValueChange={setCurrentTab}>
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="open">Relatórios em Aberto</TabsTrigger>
             <TabsTrigger value="closed">Relatórios Fechados</TabsTrigger>

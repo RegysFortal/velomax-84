@@ -25,7 +25,6 @@ export const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [forgotUsername, setForgotUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
   const [isResetting, setIsResetting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
@@ -48,31 +47,33 @@ export const LoginForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Use the username as the email, appending a domain if necessary
+      // Para o modo de demonstração, se o usuário for 'admin', usar o login mock
+      if (username === 'admin') {
+        console.log("Usando login de administrador para demo");
+        const success = await login(username, password);
+        
+        if (success) {
+          navigate('/dashboard');
+        }
+        return;
+      }
+      
+      // Para outros usuários, tentar Supabase
       const email = username.includes('@') ? username : `${username}@velomax.com`;
       
-      // Login via Supabase using email and password
-      console.log(`Attempting login with email: ${email}`);
+      console.log(`Tentando login com email: ${email}`);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password
       });
       
       if (error) {
-        console.error("Supabase login error:", error);
-        
-        // For demo version, if the user enters admin, use the mock login
-        if (username === 'admin') {
-          console.log("Falling back to mock admin login for demo version");
-          await login(username, password);
-          return;
-        }
-        
+        console.error("Erro de login Supabase:", error);
         throw error;
       }
       
       if (data.user) {
-        console.log("Login successful with Supabase");
+        console.log("Login bem-sucedido com Supabase");
         toast({
           title: "Login bem-sucedido",
           description: `Bem-vindo, ${data.user.email}!`,
@@ -80,7 +81,7 @@ export const LoginForm = () => {
         navigate('/dashboard');
       }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Falha no login:', error);
       toast({
         title: "Erro de autenticação",
         description: "Nome de usuário ou senha incorretos",
