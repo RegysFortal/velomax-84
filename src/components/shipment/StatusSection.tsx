@@ -29,6 +29,7 @@ export function StatusSection({
           <SelectItem value="in_transit">Em Trânsito</SelectItem>
           <SelectItem value="retained">Retida</SelectItem>
           <SelectItem value="delivered">Retirada</SelectItem>
+          <SelectItem value="delivered_final">Entregue</SelectItem>
         </SelectContent>
       </Select>
     </div>
