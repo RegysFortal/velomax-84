@@ -15,14 +15,18 @@ import { useFinancial } from '@/contexts/FinancialContext';
 import { useClients } from '@/contexts/ClientsContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from 'react';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
   const { financialReports, closeReport } = useFinancial();
   const { clients } = useClients();
+  const [activeTab, setActiveTab] = useState("open");
   
-  // Filtragem dos relatórios - agora todos são abertos
+  // Filtragem dos relatórios por status
   const openReports = financialReports.filter(report => report.status === 'open');
+  const closedReports = financialReports.filter(report => report.status === 'closed');
   
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -32,7 +36,6 @@ const FinancialPage = () => {
   };
   
   const handleCloseReport = (reportId: string) => {
-    // Fecha o relatório - agora isso vai removê-lo da lista
     closeReport(reportId);
   };
 
@@ -51,63 +54,122 @@ const FinancialPage = () => {
           </p>
         </div>
         
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Período</TableHead>
-                <TableHead>Entregas</TableHead>
-                <TableHead className="text-right">Valor Total</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {openReports.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    Nenhum relatório em aberto
-                  </TableCell>
-                </TableRow>
-              ) : (
-                openReports.map((report) => {
-                  const client = clients.find(c => c.id === report.clientId);
-                  return (
-                    <TableRow key={report.id}>
-                      <TableCell className="font-medium">{client?.name || 'N/A'}</TableCell>
-                      <TableCell>
-                        {format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até {' '}
-                        {format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}
-                      </TableCell>
-                      <TableCell>{report.totalDeliveries}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleCloseReport(report.id)}
-                          >
-                            <FileText className="mr-2 h-4 w-4" />
-                            Fechar Relatório
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewReport(report.id)}
-                          >
-                            <FileText className="mr-2 h-4 w-4" />
-                            Ver Relatório
-                          </Button>
-                        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="open">Relatórios a Fechar</TabsTrigger>
+            <TabsTrigger value="closed">Relatórios Fechados</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="open" className="space-y-4">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Período</TableHead>
+                    <TableHead>Entregas</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {openReports.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center">
+                        Nenhum relatório em aberto
                       </TableCell>
                     </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                  ) : (
+                    openReports.map((report) => {
+                      const client = clients.find(c => c.id === report.clientId);
+                      return (
+                        <TableRow key={report.id}>
+                          <TableCell className="font-medium">{client?.name || 'N/A'}</TableCell>
+                          <TableCell>
+                            {format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até {' '}
+                            {format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}
+                          </TableCell>
+                          <TableCell>{report.totalDeliveries}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleCloseReport(report.id)}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Fechar Relatório
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleViewReport(report.id)}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Ver Relatório
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="closed" className="space-y-4">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Período</TableHead>
+                    <TableHead>Entregas</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {closedReports.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center">
+                        Nenhum relatório fechado
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    closedReports.map((report) => {
+                      const client = clients.find(c => c.id === report.clientId);
+                      return (
+                        <TableRow key={report.id}>
+                          <TableCell className="font-medium">{client?.name || 'N/A'}</TableCell>
+                          <TableCell>
+                            {format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até {' '}
+                            {format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}
+                          </TableCell>
+                          <TableCell>{report.totalDeliveries}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewReport(report.id)}
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              Ver Relatório
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );

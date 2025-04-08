@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { FinancialReport } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -134,7 +135,18 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     
-    setFinancialReports((prev) => prev.filter((report) => report.id !== id));
+    setFinancialReports((prev) => 
+      prev.map((report) => {
+        if (report.id === id) {
+          return {
+            ...report,
+            status: 'closed',
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return report;
+      })
+    );
     
     console.log("Relatórios após fechamento:", 
       financialReports.map(r => ({id: r.id, status: r.status}))
@@ -142,7 +154,7 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     
     toast({
       title: "Relatório fechado",
-      description: `O relatório financeiro foi fechado e removido com sucesso.`,
+      description: `O relatório financeiro foi fechado com sucesso.`,
     });
   };
   
