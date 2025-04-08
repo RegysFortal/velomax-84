@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -108,7 +109,12 @@ export interface Delivery {
   clientId: string;
   deliveryDate: string;
   deliveryTime: string;
-  receiver: string;
+  receiver?: string;
+  receiverId?: string; // Added receiverId property
+  pickupName?: string; // Added pickupName property
+  pickupId?: string; // Added pickupId property
+  pickupDate?: string; // Added pickupDate property
+  pickupTime?: string; // Added pickupTime property
   weight: number;
   packages: number;
   deliveryType: 'standard' | 'emergency' | 'exclusive' | 'saturday' | 'sundayHoliday' | 'difficultAccess' | 'metropolitanRegion' | 'doorToDoorInterior' | 'reshipment' | 'normalBiological' | 'infectiousBiological' | 'tracked';
