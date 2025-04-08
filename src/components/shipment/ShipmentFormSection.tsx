@@ -67,7 +67,7 @@ export function ShipmentFormSection({
       <div className="space-y-2 md:col-span-2">
         <label htmlFor="companyName" className="text-sm font-medium">Empresa</label>
         <ClientSearchSelect 
-          value={companyId}
+          value={companyId || ""}
           onValueChange={(value) => {
             console.log("ShipmentDialog - Cliente selecionado:", value);
             setCompanyId(value);

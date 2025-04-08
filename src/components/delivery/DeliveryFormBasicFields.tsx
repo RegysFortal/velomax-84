@@ -22,7 +22,7 @@ export function DeliveryFormBasicFields({ control, isEditMode }: DeliveryFormBas
               <FormLabel>Cliente</FormLabel>
               <FormControl>
                 <ClientSearchSelect
-                  value={field.value}
+                  value={field.value || ""}
                   onValueChange={(value) => {
                     console.log("DeliveryFormBasicFields - ClientId changed to:", value);
                     field.onChange(value);
