@@ -7,10 +7,10 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Truck, Calculator, Settings } from "lucide-react";
 
 export function NavMenu() {
@@ -56,41 +56,43 @@ export function NavMenu() {
               Operacional
             </NavigationMenuTrigger>
             <NavigationMenuContent>
-              <div className="grid gap-3 p-4 md:w-[400px] lg:w-[500px]">
-                {hasPermission('deliveries') && (
-                  <Link
-                    to="/deliveries"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/deliveries")
-                    )}
-                  >
-                    Entregas
-                  </Link>
-                )}
-                {hasPermission('shipments') && (
-                  <Link
-                    to="/shipments"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/shipments")
-                    )}
-                  >
-                    Embarques
-                  </Link>
-                )}
-                {hasPermission('reports') && (
-                  <Link
-                    to="/shipment-reports"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/shipment-reports")
-                    )}
-                  >
-                    Relatórios de Embarques
-                  </Link>
-                )}
-              </div>
+              <ScrollArea className="h-[300px] w-[400px]">
+                <div className="grid gap-3 p-4">
+                  {hasPermission('deliveries') && (
+                    <Link
+                      to="/deliveries"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/deliveries")
+                      )}
+                    >
+                      Entregas
+                    </Link>
+                  )}
+                  {hasPermission('shipments') && (
+                    <Link
+                      to="/shipments"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/shipments")
+                      )}
+                    >
+                      Embarques
+                    </Link>
+                  )}
+                  {hasPermission('reports') && (
+                    <Link
+                      to="/shipment-reports"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/shipment-reports")
+                      )}
+                    >
+                      Relatórios de Embarques
+                    </Link>
+                  )}
+                </div>
+              </ScrollArea>
             </NavigationMenuContent>
           </NavigationMenuItem>
         )}
@@ -103,52 +105,54 @@ export function NavMenu() {
               Financeiro
             </NavigationMenuTrigger>
             <NavigationMenuContent>
-              <div className="grid gap-3 p-4 md:w-[400px] lg:w-[500px]">
-                {hasPermission('financial') && (
-                  <Link
-                    to="/financial"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/financial")
-                    )}
-                  >
-                    Financeiro
-                  </Link>
-                )}
-                {hasPermission('reports') && (
-                  <Link
-                    to="/reports"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/reports")
-                    )}
-                  >
-                    Relatórios
-                  </Link>
-                )}
-                {hasPermission('priceTables') && (
-                  <Link
-                    to="/price-tables"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/price-tables")
-                    )}
-                  >
-                    Tabelas de Preços
-                  </Link>
-                )}
-                {hasPermission('cities') && (
-                  <Link
-                    to="/cities"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/cities")
-                    )}
-                  >
-                    Cidades
-                  </Link>
-                )}
-              </div>
+              <ScrollArea className="h-[300px] w-[400px]">
+                <div className="grid gap-3 p-4">
+                  {hasPermission('financial') && (
+                    <Link
+                      to="/financial"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/financial")
+                      )}
+                    >
+                      Financeiro
+                    </Link>
+                  )}
+                  {hasPermission('reports') && (
+                    <Link
+                      to="/reports"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/reports")
+                      )}
+                    >
+                      Relatórios
+                    </Link>
+                  )}
+                  {hasPermission('priceTables') && (
+                    <Link
+                      to="/price-tables"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/price-tables")
+                      )}
+                    >
+                      Tabelas de Preços
+                    </Link>
+                  )}
+                  {hasPermission('cities') && (
+                    <Link
+                      to="/cities"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/cities")
+                      )}
+                    >
+                      Cidades
+                    </Link>
+                  )}
+                </div>
+              </ScrollArea>
             </NavigationMenuContent>
           </NavigationMenuItem>
         )}
@@ -161,96 +165,98 @@ export function NavMenu() {
               Gerência
             </NavigationMenuTrigger>
             <NavigationMenuContent>
-              <div className="grid gap-3 p-4 md:w-[400px] lg:w-[500px]">
-                {hasPermission('dashboard') && (
-                  <Link
-                    to="/dashboard"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/dashboard")
-                    )}
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                {hasPermission('logbook') && (
-                  <Link
-                    to="/logbook"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/logbook")
-                    )}
-                  >
-                    Diário de Bordo
-                  </Link>
-                )}
-                {hasPermission('clients') && (
-                  <Link
-                    to="/clients"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/clients")
-                    )}
-                  >
-                    Clientes
-                  </Link>
-                )}
-                {hasPermission('employees') && (
-                  <Link
-                    to="/employees"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/employees")
-                    )}
-                  >
-                    Funcionários
-                  </Link>
-                )}
-                {hasPermission('vehicles') && (
-                  <Link
-                    to="/vehicles"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/vehicles")
-                    )}
-                  >
-                    Veículos
-                  </Link>
-                )}
-                {hasPermission('maintenance') && (
-                  <Link
-                    to="/maintenance"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/maintenance")
-                    )}
-                  >
-                    Manutenções
-                  </Link>
-                )}
-                {user?.role === 'admin' && (
-                  <Link
-                    to="/activity-logs"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/activity-logs")
-                    )}
-                  >
-                    Logs de Atividades
-                  </Link>
-                )}
-                {hasPermission('settings') && (
-                  <Link
-                    to="/settings"
-                    className={cn(
-                      "flex items-center p-2 rounded-md hover:bg-accent",
-                      getActiveClass("/settings")
-                    )}
-                  >
-                    Configurações do Sistema
-                  </Link>
-                )}
-              </div>
+              <ScrollArea className="h-[300px] w-[400px]">
+                <div className="grid gap-3 p-4">
+                  {hasPermission('dashboard') && (
+                    <Link
+                      to="/dashboard"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/dashboard")
+                      )}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+                  {hasPermission('logbook') && (
+                    <Link
+                      to="/logbook"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/logbook")
+                      )}
+                    >
+                      Diário de Bordo
+                    </Link>
+                  )}
+                  {hasPermission('clients') && (
+                    <Link
+                      to="/clients"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/clients")
+                      )}
+                    >
+                      Clientes
+                    </Link>
+                  )}
+                  {hasPermission('employees') && (
+                    <Link
+                      to="/employees"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/employees")
+                      )}
+                    >
+                      Funcionários
+                    </Link>
+                  )}
+                  {hasPermission('vehicles') && (
+                    <Link
+                      to="/vehicles"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/vehicles")
+                      )}
+                    >
+                      Veículos
+                    </Link>
+                  )}
+                  {hasPermission('maintenance') && (
+                    <Link
+                      to="/maintenance"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/maintenance")
+                      )}
+                    >
+                      Manutenções
+                    </Link>
+                  )}
+                  {user?.role === 'admin' && (
+                    <Link
+                      to="/activity-logs"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/activity-logs")
+                      )}
+                    >
+                      Logs de Atividades
+                    </Link>
+                  )}
+                  {hasPermission('settings') && (
+                    <Link
+                      to="/settings"
+                      className={cn(
+                        "flex items-center p-2 rounded-md hover:bg-accent",
+                        getActiveClass("/settings")
+                      )}
+                    >
+                      Configurações do Sistema
+                    </Link>
+                  )}
+                </div>
+              </ScrollArea>
             </NavigationMenuContent>
           </NavigationMenuItem>
         )}

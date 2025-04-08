@@ -3,26 +3,13 @@ import React from 'react';
 import { Delivery } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface PickupInfoProps {
   delivery: Delivery;
 }
 
 export function PickupInfo({ delivery }: PickupInfoProps) {
-  const { users } = useAuth();
-
-  // Get name for employee ID if available
-  const getEmployeeName = (id: string | undefined) => {
-    if (!id) return '';
-    const user = users.find(u => u.id === id);
-    return user ? user.name : '';
-  };
-
-  // For pickup person - prefer employee name if ID exists, otherwise use manually entered name
-  const pickupName = delivery.pickupId 
-    ? getEmployeeName(delivery.pickupId) 
-    : delivery.pickupName || 'Não informado';
+  const pickupName = delivery.pickupName || 'Não informado';
 
   return (
     <div>

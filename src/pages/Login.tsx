@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoginForm } from '@/components/LoginForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { Logo } from '@/components/ui/logo';
 
 const Login = () => {
   const { user, loading } = useAuth();
@@ -28,15 +29,19 @@ const Login = () => {
         <img 
           src="/lovable-uploads/e65f8895-c8f1-4e81-a9d0-4e008d4fed5a.png" 
           alt="Velomax Brasil Logo" 
-          className="h-16 mx-auto mb-3" 
+          className="h-24 mx-auto mb-4" 
         />
         <h1 className="text-3xl font-bold tracking-tight text-navy-blue">Velomax Brasil</h1>
         <p className="text-muted-foreground mt-1">Sistema de Gerenciamento de Fretes</p>
       </div>
       
       <LoginForm />
+      
+      <div className="mt-8">
+        <Logo className="h-12 w-auto text-primary" />
+      </div>
     </div>
   );
-};
+}
 
 export default Login;
