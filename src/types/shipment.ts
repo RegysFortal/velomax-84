@@ -52,6 +52,7 @@ export interface Shipment {
   deliveryDate?: string;
   deliveryTime?: string;
   receiverName?: string;
+  receiverId?: string; // Added the receiverId property to fix the TypeScript errors
   createdAt: string;
   updatedAt: string;
 }
