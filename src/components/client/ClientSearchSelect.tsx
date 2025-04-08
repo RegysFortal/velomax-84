@@ -38,7 +38,7 @@ export function ClientSearchSelect({
         ...clients.map(client => ({
           value: client.id,
           label: client.tradingName || client.name,
-          description: client.tradingName ? client.name : undefined
+          description: client.tradingName ? client.name : ''
         }))
       ];
       
@@ -48,7 +48,9 @@ export function ClientSearchSelect({
       // vamos selecionar automaticamente o primeiro cliente
       if (!value && clients.length > 0 && !includeAllOption) {
         console.log("ClientSearchSelect - Selecionando o primeiro cliente automaticamente");
-        onValueChange(clients[0].id);
+        setTimeout(() => {
+          onValueChange(clients[0].id);
+        }, 0);
       }
     }
   }, [clients, includeAllOption, allOptionLabel, allOptionValue, value, onValueChange]);

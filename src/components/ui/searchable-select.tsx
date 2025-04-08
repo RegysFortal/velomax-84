@@ -96,7 +96,7 @@ export function SearchableSelect({
                     <div>{option.label}</div>
                     {option.description && (
                       <div className="text-xs text-muted-foreground">
-                        {typeof option.description === 'string' ? option.description : ''}
+                        {option.description}
                       </div>
                     )}
                   </div>
