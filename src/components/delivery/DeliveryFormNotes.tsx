@@ -23,6 +23,7 @@ export function DeliveryFormNotes({ control }: DeliveryFormNotesProps) {
                   {...field}
                   placeholder="Observações sobre a entrega"
                   rows={2}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />
@@ -43,6 +44,7 @@ export function DeliveryFormNotes({ control }: DeliveryFormNotesProps) {
                   {...field}
                   placeholder="Registre qualquer ocorrência durante a entrega"
                   rows={2}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />

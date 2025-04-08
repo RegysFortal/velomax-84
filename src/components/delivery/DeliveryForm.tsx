@@ -86,15 +86,20 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
       setIsEditMode(true);
       setInitialClientId(delivery.clientId);
       
+      // Safe conversion of numeric values to string, handling undefined/null values
+      const safeToString = (value: any) => {
+        return value !== undefined && value !== null ? String(value) : '';
+      };
+      
       console.log("DeliveryForm - Resetando form com valores:", {
         clientId: delivery.clientId,
         minuteNumber: delivery.minuteNumber,
         receiver: delivery.receiver,
-        weight: delivery.weight.toString(),
-        packages: delivery.packages.toString(),
+        weight: safeToString(delivery.weight),
+        packages: safeToString(delivery.packages),
         deliveryType: delivery.deliveryType,
         cargoType: delivery.cargoType,
-        cargoValue: delivery.cargoValue?.toString() || '',
+        cargoValue: safeToString(delivery.cargoValue),
         cityId: delivery.cityId || '',
         notes: delivery.notes || '',
         occurrence: delivery.occurrence || '',
@@ -102,21 +107,21 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
       
       form.reset({
         clientId: delivery.clientId,
-        minuteNumber: delivery.minuteNumber,
-        deliveryDate: delivery.deliveryDate,
-        deliveryTime: delivery.deliveryTime,
-        receiver: delivery.receiver,
-        weight: delivery.weight.toString(),
-        packages: delivery.packages.toString(),
-        deliveryType: delivery.deliveryType,
-        cargoType: delivery.cargoType,
-        cargoValue: delivery.cargoValue?.toString() || '',
+        minuteNumber: delivery.minuteNumber || '',
+        deliveryDate: delivery.deliveryDate || format(new Date(), 'yyyy-MM-dd'),
+        deliveryTime: delivery.deliveryTime || format(new Date(), 'HH:mm'),
+        receiver: delivery.receiver || '',
+        weight: safeToString(delivery.weight),
+        packages: safeToString(delivery.packages),
+        deliveryType: delivery.deliveryType || 'standard',
+        cargoType: delivery.cargoType || 'standard',
+        cargoValue: safeToString(delivery.cargoValue),
         cityId: delivery.cityId || '',
         notes: delivery.notes || '',
         occurrence: delivery.occurrence || '',
       });
       
-      setFreight(delivery.totalFreight);
+      setFreight(delivery.totalFreight || 0);
       
       if (isDoorToDoorDelivery(delivery.deliveryType)) {
         setShowDoorToDoor(true);
