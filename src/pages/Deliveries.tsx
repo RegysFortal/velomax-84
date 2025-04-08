@@ -5,9 +5,9 @@ import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts/ClientsContext';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
+import { useFinancial } from '@/contexts/FinancialContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -36,16 +36,17 @@ import {
   Pencil, 
   Trash2, 
   AlertTriangle, 
-  Search 
 } from 'lucide-react';
 import { toast } from "sonner";
 import { DeliveryForm } from '@/components/delivery/DeliveryForm';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
   const { clients } = useClients();
   const { addLog } = useActivityLog();
+  const { financialReports } = useFinancial();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
@@ -56,7 +57,36 @@ const Deliveries = () => {
     console.log('Entregas com IDs de clientes:', deliveries.map(d => ({ deliveryId: d.id, clientId: d.clientId })));
   }, [clients, deliveries]);
 
+  // Verificar se uma entrega está em um relatório fechado
+  const isDeliveryInClosedReport = (delivery: Delivery) => {
+    // Filtrar apenas relatórios fechados
+    const closedReports = financialReports.filter(report => report.status === 'closed');
+    
+    // Verificar se a entrega está em algum relatório fechado
+    return closedReports.some(report => {
+      // Verificar se o cliente da entrega é o mesmo do relatório
+      if (report.clientId !== delivery.clientId) return false;
+      
+      // Verificar se a data da entrega está dentro do período do relatório
+      const deliveryDate = new Date(delivery.deliveryDate);
+      const reportStartDate = new Date(report.startDate);
+      const reportEndDate = new Date(report.endDate);
+      
+      // Ajustar para comparação correta de datas
+      deliveryDate.setHours(0, 0, 0, 0);
+      reportStartDate.setHours(0, 0, 0, 0);
+      reportEndDate.setHours(0, 0, 0, 0);
+      
+      return deliveryDate >= reportStartDate && deliveryDate <= reportEndDate;
+    });
+  };
+
   const filteredDeliveries = deliveries.filter(delivery => {
+    // Excluir entregas que estão em relatórios fechados
+    if (isDeliveryInClosedReport(delivery)) {
+      return false;
+    }
+    
     const client = clients.find(c => c.id === delivery.clientId);
     const searchFields = [
       delivery.minuteNumber,
@@ -152,13 +182,11 @@ const Deliveries = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Lista de Entregas</CardTitle>
-              <div className="relative max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar entregas..."
+              <div className="max-w-sm w-full">
+                <SearchWithMagnifier
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
+                  onChange={setSearchTerm}
+                  placeholder="Buscar por cliente, minuta ou ocorrência..."
                 />
               </div>
             </div>

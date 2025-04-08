@@ -3,12 +3,7 @@ import { useState } from 'react';
 import { useShipments } from '@/contexts/ShipmentsContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { 
-  AlertTriangle, 
-  CheckCircle2, 
-  Search, 
-  Truck, 
   Plus, 
 } from 'lucide-react';
 import {
@@ -27,6 +22,7 @@ import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
 import { Shipment } from '@/types/shipment';
 import { StatusBadge } from '@/components/shipment/StatusBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
 
 export default function Shipments() {
   const { shipments, loading } = useShipments();
@@ -34,8 +30,14 @@ export default function Shipments() {
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Filter shipments based on search term
+  // Filtrar embarques, excluindo os que foram retirados e aplicando o termo de busca
   const filteredShipments = shipments.filter(shipment => {
+    // Excluir embarques que tenham sido retirados (status 'delivered' ou 'delivered_final')
+    if (shipment.status === 'delivered' || shipment.status === 'delivered_final') {
+      return false;
+    }
+    
+    // Aplicar termo de busca nos campos relevantes
     const matchesSearch = 
       shipment.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipment.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -89,16 +91,11 @@ export default function Shipments() {
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar por empresa, conhecimento ou transportadora..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
-          </div>
+          <SearchWithMagnifier
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Buscar por empresa, conhecimento ou transportadora..."
+          />
         </div>
         
         <ScrollArea className="h-[calc(100vh-280px)]">
@@ -140,7 +137,7 @@ export default function Shipments() {
                         className={cn(
                           "cursor-pointer hover:bg-muted",
                           shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
-                          isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100" // Changed from amber to red
+                          isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100"
                         )}
                         onClick={() => setSelectedShipment(shipment)}
                       >
