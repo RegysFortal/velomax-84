@@ -95,7 +95,9 @@ export function SearchableSelect({
                   <div>
                     <div>{option.label}</div>
                     {option.description && (
-                      <div className="text-xs text-muted-foreground">{option.description}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {typeof option.description === 'string' ? option.description : ''}
+                      </div>
                     )}
                   </div>
                   {value === option.value && <Check className="h-4 w-4" />}

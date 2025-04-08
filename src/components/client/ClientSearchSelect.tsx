@@ -44,14 +44,14 @@ export function ClientSearchSelect({
       
       setClientOptions(options);
       
-      // Se não houver valor selecionado e temos clientes, vamos verificar se precisamos selecionar um padrão
+      // Se não houver valor selecionado e temos clientes, e não incluímos a opção "todos"
+      // vamos selecionar automaticamente o primeiro cliente
       if (!value && clients.length > 0 && !includeAllOption) {
-        console.log("ClientSearchSelect - Nenhum valor selecionado, definindo o primeiro cliente");
-        // Apenas definimos um valor padrão se não for uma lista com "todos os clientes"
-        // onValueChange(clients[0].id);
+        console.log("ClientSearchSelect - Selecionando o primeiro cliente automaticamente");
+        onValueChange(clients[0].id);
       }
     }
-  }, [clients, includeAllOption, allOptionLabel, allOptionValue, value]);
+  }, [clients, includeAllOption, allOptionLabel, allOptionValue, value, onValueChange]);
   
   return (
     <SearchableSelect

@@ -168,6 +168,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                 <ClientSearchSelect 
                   value={companyId}
                   onValueChange={(value) => {
+                    console.log("ShipmentDialog - Cliente selecionado:", value);
                     setCompanyId(value);
                     const client = clients.find(c => c.id === value);
                     if (client) {
