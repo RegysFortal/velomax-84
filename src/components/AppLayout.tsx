@@ -43,7 +43,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/settings': 'settings',
       };
 
-      // Special case for activity logs (admin only)
+      // Special case for activity logs and profile (admin only for logs, all users for profile)
       if (location.pathname === '/activity-logs' && user.role !== 'admin') {
         toast({
           title: "Acesso restrito",
@@ -54,12 +54,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         return;
       }
 
+      // Profile is accessible to all authenticated users
+      if (location.pathname === '/profile') {
+        return;
+      }
+
       // Check if current path needs permission
       const requiredPermission = pathPermissions[location.pathname];
       
-      if (requiredPermission && !hasPermission(requiredPermission)) {
-        // Admin can access everything
-        if (user.role !== 'admin') {
+      if (requiredPermission) {
+        // Check if user has required permission or is admin
+        if (!hasPermission(requiredPermission) && user.role !== 'admin') {
           toast({
             title: "Acesso restrito",
             description: "Você não tem permissão para acessar esta página.",

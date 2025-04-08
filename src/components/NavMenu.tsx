@@ -26,14 +26,16 @@ export function NavMenu() {
   // Check if user has access to any operational modules
   const hasOperationalAccess = 
     hasPermission('deliveries') || 
-    hasPermission('shipments');
+    hasPermission('shipments') ||
+    (user?.role === 'admin');
 
   // Check if user has access to any financial modules
   const hasFinancialAccess = 
     hasPermission('financial') || 
     hasPermission('reports') || 
     hasPermission('priceTables') || 
-    hasPermission('cities');
+    hasPermission('cities') ||
+    (user?.role === 'admin');
 
   // Check if user has access to any management modules
   const hasManagementAccess = 
@@ -43,7 +45,13 @@ export function NavMenu() {
     hasPermission('employees') || 
     hasPermission('vehicles') || 
     hasPermission('maintenance') || 
-    user?.role === 'admin';
+    hasPermission('settings') ||
+    (user?.role === 'admin');
+
+  // Function to check if user can access a specific page
+  const canAccessPage = (permission: keyof User['permissions']) => {
+    return hasPermission(permission) || user?.role === 'admin';
+  };
 
   return (
     <NavigationMenu>
@@ -58,7 +66,7 @@ export function NavMenu() {
             <NavigationMenuContent>
               <ScrollArea className="h-[300px] w-[400px]">
                 <div className="grid gap-3 p-4">
-                  {hasPermission('deliveries') && (
+                  {canAccessPage('deliveries') && (
                     <Link
                       to="/deliveries"
                       className={cn(
@@ -69,7 +77,7 @@ export function NavMenu() {
                       Entregas
                     </Link>
                   )}
-                  {hasPermission('shipments') && (
+                  {canAccessPage('shipments') && (
                     <Link
                       to="/shipments"
                       className={cn(
@@ -80,7 +88,7 @@ export function NavMenu() {
                       Embarques
                     </Link>
                   )}
-                  {hasPermission('reports') && (
+                  {canAccessPage('reports') && (
                     <Link
                       to="/shipment-reports"
                       className={cn(
@@ -107,7 +115,7 @@ export function NavMenu() {
             <NavigationMenuContent>
               <ScrollArea className="h-[300px] w-[400px]">
                 <div className="grid gap-3 p-4">
-                  {hasPermission('financial') && (
+                  {canAccessPage('financial') && (
                     <Link
                       to="/financial"
                       className={cn(
@@ -118,7 +126,7 @@ export function NavMenu() {
                       Financeiro
                     </Link>
                   )}
-                  {hasPermission('reports') && (
+                  {canAccessPage('reports') && (
                     <Link
                       to="/reports"
                       className={cn(
@@ -129,7 +137,7 @@ export function NavMenu() {
                       Relatórios
                     </Link>
                   )}
-                  {hasPermission('priceTables') && (
+                  {canAccessPage('priceTables') && (
                     <Link
                       to="/price-tables"
                       className={cn(
@@ -140,7 +148,7 @@ export function NavMenu() {
                       Tabelas de Preços
                     </Link>
                   )}
-                  {hasPermission('cities') && (
+                  {canAccessPage('cities') && (
                     <Link
                       to="/cities"
                       className={cn(
@@ -167,7 +175,7 @@ export function NavMenu() {
             <NavigationMenuContent>
               <ScrollArea className="h-[300px] w-[400px]">
                 <div className="grid gap-3 p-4">
-                  {hasPermission('dashboard') && (
+                  {canAccessPage('dashboard') && (
                     <Link
                       to="/dashboard"
                       className={cn(
@@ -178,7 +186,7 @@ export function NavMenu() {
                       Dashboard
                     </Link>
                   )}
-                  {hasPermission('logbook') && (
+                  {canAccessPage('logbook') && (
                     <Link
                       to="/logbook"
                       className={cn(
@@ -189,7 +197,7 @@ export function NavMenu() {
                       Diário de Bordo
                     </Link>
                   )}
-                  {hasPermission('clients') && (
+                  {canAccessPage('clients') && (
                     <Link
                       to="/clients"
                       className={cn(
@@ -200,7 +208,7 @@ export function NavMenu() {
                       Clientes
                     </Link>
                   )}
-                  {hasPermission('employees') && (
+                  {canAccessPage('employees') && (
                     <Link
                       to="/employees"
                       className={cn(
@@ -211,7 +219,7 @@ export function NavMenu() {
                       Funcionários
                     </Link>
                   )}
-                  {hasPermission('vehicles') && (
+                  {canAccessPage('vehicles') && (
                     <Link
                       to="/vehicles"
                       className={cn(
@@ -222,7 +230,7 @@ export function NavMenu() {
                       Veículos
                     </Link>
                   )}
-                  {hasPermission('maintenance') && (
+                  {canAccessPage('maintenance') && (
                     <Link
                       to="/maintenance"
                       className={cn(
@@ -244,7 +252,7 @@ export function NavMenu() {
                       Logs de Atividades
                     </Link>
                   )}
-                  {hasPermission('settings') && (
+                  {canAccessPage('settings') && (
                     <Link
                       to="/settings"
                       className={cn(
