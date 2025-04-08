@@ -60,7 +60,50 @@ export function ShipmentDetails({
     if (shipment.arrivalDate) {
       setDate(new Date(shipment.arrivalDate));
     }
-  }, [shipment.arrivalDate]);
+    
+    // Set receiver name if already exists when opening details
+    if (shipment.receiverName && shipment.status === 'delivered') {
+      setDeliveryInfo(prev => ({
+        ...prev,
+        receiverName: shipment.receiverName || ''
+      }));
+      
+      if (shipment.deliveryDate) {
+        setDeliveryInfo(prev => ({
+          ...prev,
+          date: new Date(shipment.deliveryDate)
+        }));
+      }
+      
+      if (shipment.deliveryTime) {
+        setDeliveryInfo(prev => ({
+          ...prev,
+          time: shipment.deliveryTime
+        }));
+      }
+    }
+    
+    if (shipment.receiverName && shipment.status === 'delivered_final') {
+      setFinalDeliveryInfo(prev => ({
+        ...prev,
+        receiverName: shipment.receiverName || ''
+      }));
+      
+      if (shipment.deliveryDate) {
+        setFinalDeliveryInfo(prev => ({
+          ...prev,
+          date: new Date(shipment.deliveryDate)
+        }));
+      }
+      
+      if (shipment.deliveryTime) {
+        setFinalDeliveryInfo(prev => ({
+          ...prev,
+          time: shipment.deliveryTime
+        }));
+      }
+    }
+  }, [shipment.arrivalDate, shipment.receiverName, shipment.deliveryDate, shipment.deliveryTime, shipment.status]);
   
   const canBeDelivered = shipment.status === 'in_transit';
   const canBeFinalDelivered = shipment.status === 'delivered';
@@ -87,13 +130,15 @@ export function ShipmentDetails({
         return;
       }
 
-      await updateStatus(shipment.id, 'delivered');
-      
+      // Update shipment with receiver details first
       await updateShipment(shipment.id, {
         receiverName: deliveryInfo.receiverName,
         deliveryDate: format(deliveryInfo.date, 'yyyy-MM-dd'),
         deliveryTime: deliveryInfo.time
       });
+      
+      // Then update status to ensure all pickup details are saved
+      await updateStatus(shipment.id, 'delivered');
       
       const newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
         clientId: shipment.companyId,
@@ -131,13 +176,15 @@ export function ShipmentDetails({
         return;
       }
 
-      await updateStatus(shipment.id, 'delivered_final');
-      
+      // Update shipment with receiver details first
       await updateShipment(shipment.id, {
         receiverName: finalDeliveryInfo.receiverName,
         deliveryDate: format(finalDeliveryInfo.date, 'yyyy-MM-dd'),
         deliveryTime: finalDeliveryInfo.time
       });
+      
+      // Then update status to ensure all delivery details are saved
+      await updateStatus(shipment.id, 'delivered_final');
       
       onClose();
       toast.success('Entrega final registrada com sucesso');
