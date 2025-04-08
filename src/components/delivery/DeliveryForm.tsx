@@ -1,36 +1,21 @@
+
 import React, { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts/ClientsContext';
 import { useCities } from '@/contexts/CitiesContext';
 import { Delivery } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
+import { Form } from '@/components/ui/form';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
 import { toast } from "sonner";
+import { DeliveryFormBasicFields } from './DeliveryFormBasicFields';
+import { DeliveryFormTypeFields } from './DeliveryFormTypeFields';
+import { DeliveryFormNotes } from './DeliveryFormNotes';
 
 const deliveryFormSchema = z.object({
   clientId: z.string({ required_error: 'Cliente é obrigatório' }),
@@ -267,286 +252,21 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="clientId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cliente</FormLabel>
-                  <FormControl>
-                    <ClientSearchSelect
-                      value={field.value}
-                      onValueChange={(value) => {
-                        console.log("DeliveryForm - ClientSearchSelect - Valor alterado para:", value);
-                        field.onChange(value);
-                      }}
-                      placeholder="Selecione um cliente"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <FormField
+          <DeliveryFormBasicFields 
             control={form.control}
-            name="minuteNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número da Minuta</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Gerado automaticamente se vazio"
-                    disabled={isEditMode}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            isEditMode={isEditMode}
           />
           
-          <div className="grid grid-cols-2 gap-3">
-            <FormField
-              control={form.control}
-              name="deliveryDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data de Entrega</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="deliveryTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hora</FormLabel>
-                  <FormControl>
-                    <Input type="time" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <FormField
+          <DeliveryFormTypeFields 
             control={form.control}
-            name="receiver"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Destinatário</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Nome do destinatário" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            watchDeliveryType={watchDeliveryType}
+            showDoorToDoor={showDoorToDoor}
+            cities={cities}
           />
           
-          <div className="grid grid-cols-2 gap-3">
-            <FormField
-              control={form.control}
-              name="weight"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Peso (kg)</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="packages"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Volumes</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      min="1"
-                      placeholder="1"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <FormField
+          <DeliveryFormNotes 
             control={form.control}
-            name="deliveryType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Entrega</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de entrega" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="max-h-80">
-                    <SelectItem value="standard">Normal</SelectItem>
-                    <SelectItem value="emergency">Emergencial</SelectItem>
-                    <SelectItem value="exclusive">Exclusivo</SelectItem>
-                    <SelectItem value="saturday">Sábado</SelectItem>
-                    <SelectItem value="sundayHoliday">Domingo/Feriado</SelectItem>
-                    <SelectItem value="difficultAccess">Acesso Difícil</SelectItem>
-                    <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
-                    <SelectItem value="doorToDoorInterior">Interior</SelectItem>
-                    <SelectItem value="reshipment">Redespacho</SelectItem>
-                    <SelectItem value="normalBiological">Biológico Normal</SelectItem>
-                    <SelectItem value="infectiousBiological">Biológico Infeccioso</SelectItem>
-                    <SelectItem value="tracked">Rastreado</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
           />
-          
-          <FormField
-            control={form.control}
-            name="cargoType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Carga</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de carga" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="standard">Padrão</SelectItem>
-                    <SelectItem value="perishable">Perecível</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {watchDeliveryType === 'reshipment' && (
-            <FormField
-              control={form.control}
-              name="cargoValue"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor da Carga (R$)</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-          
-          {showDoorToDoor && (
-            <FormField
-              control={form.control}
-              name="cityId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cidade</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a cidade" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-80">
-                      {cities.map((city) => (
-                        <SelectItem key={city.id} value={city.id}>
-                          {city.name} - {city.distance}km
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-          
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Observações sobre a entrega"
-                      rows={2}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="occurrence"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ocorrência</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Registre qualquer ocorrência durante a entrega"
-                      rows={2}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
         </div>
         
         <div className="bg-muted p-4 rounded-md">
