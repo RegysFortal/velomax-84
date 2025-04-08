@@ -30,14 +30,14 @@ export default function Shipments() {
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Filtrar embarques, agora inclui os retirados (status 'delivered') mas exclui os entregues (status 'delivered_final')
+  // Filter shipments - only exclude shipments with status 'delivered_final'
   const filteredShipments = shipments.filter(shipment => {
-    // Excluir apenas embarques que tenham sido entregues ao destinatário final (status 'delivered_final')
+    // Exclude shipments that have been delivered to the final recipient (status 'delivered_final')
     if (shipment.status === 'delivered_final') {
       return false;
     }
     
-    // Aplicar termo de busca nos campos relevantes
+    // Apply search term to relevant fields
     const matchesSearch = 
       shipment.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipment.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||

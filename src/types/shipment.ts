@@ -67,6 +67,8 @@ export interface Delivery {
   receiverId?: string; // Adding receiverId field for the employee who received
   pickupName?: string; // Adding field for who picked up the shipment (name)
   pickupId?: string; // Adding field for employee ID who picked up the shipment
+  pickupDate?: string; // Adding pickup date field
+  pickupTime?: string; // Adding pickup time field
   cityId?: string;
   weight: number;
   packages: number;
@@ -77,6 +79,7 @@ export interface Delivery {
   customPricing: boolean;
   discount: number;
   notes?: string;
+  occurrence?: string;
   createdAt: string;
   updatedAt: string;
 }

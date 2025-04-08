@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Delivery } from '@/types';
@@ -40,6 +41,7 @@ import { toast } from "sonner";
 import { DeliveryForm } from '@/components/delivery/DeliveryForm';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
+import { DeliveryDetails } from '@/components/delivery/DeliveryDetails';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
@@ -49,6 +51,7 @@ const Deliveries = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   
   // Debug para verificar os problemas com os nomes de clientes
   useEffect(() => {
@@ -104,6 +107,7 @@ const Deliveries = () => {
     const deliveryCopy = JSON.parse(JSON.stringify(delivery));
     setEditingDelivery(deliveryCopy);
     setIsDialogOpen(true);
+    setSelectedDelivery(null); // Close details view if open
   };
 
   const handleDeleteDelivery = (id: string) => {
@@ -133,6 +137,10 @@ const Deliveries = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingDelivery(null);
+  };
+  
+  const handleViewDetails = (delivery: Delivery) => {
+    setSelectedDelivery(delivery);
   };
 
   // Função para obter o nome do cliente de forma segura
@@ -198,7 +206,7 @@ const Deliveries = () => {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Hora</TableHead>
-                  <TableHead>Destinatário</TableHead>
+                  <TableHead>Recebedor</TableHead>
                   <TableHead>Peso</TableHead>
                   <TableHead>Volumes</TableHead>
                   <TableHead>Tipo</TableHead>
@@ -212,7 +220,11 @@ const Deliveries = () => {
                   filteredDeliveries.map((delivery) => {
                     const clientName = getClientDisplayName(delivery.clientId);
                     return (
-                      <TableRow key={delivery.id}>
+                      <TableRow 
+                        key={delivery.id}
+                        className="cursor-pointer hover:bg-muted"
+                        onClick={() => handleViewDetails(delivery)}
+                      >
                         <TableCell>{delivery.minuteNumber}</TableCell>
                         <TableCell>{clientName}</TableCell>
                         <TableCell>{delivery.deliveryDate}</TableCell>
@@ -247,7 +259,7 @@ const Deliveries = () => {
                             </div>
                           ) : '-'}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon">
@@ -281,6 +293,15 @@ const Deliveries = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Delivery details dialog */}
+      <DeliveryDetails
+        delivery={selectedDelivery}
+        open={!!selectedDelivery}
+        onClose={() => setSelectedDelivery(null)}
+        onEdit={handleEditDelivery}
+      />
+      
     </AppLayout>
   );
 };

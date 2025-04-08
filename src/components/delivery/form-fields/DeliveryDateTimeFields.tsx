@@ -6,17 +6,27 @@ import { Control } from 'react-hook-form';
 
 interface DeliveryDateTimeFieldsProps {
   control: Control<any>;
+  dateLabel?: string;
+  timeLabel?: string;
+  dateName?: string;
+  timeName?: string;
 }
 
-export function DeliveryDateTimeFields({ control }: DeliveryDateTimeFieldsProps) {
+export function DeliveryDateTimeFields({ 
+  control,
+  dateLabel = "Data de Entrega",
+  timeLabel = "Hora",
+  dateName = "deliveryDate",
+  timeName = "deliveryTime"
+}: DeliveryDateTimeFieldsProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
       <FormField
         control={control}
-        name="deliveryDate"
+        name={dateName}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Data de Entrega</FormLabel>
+            <FormLabel>{dateLabel}</FormLabel>
             <FormControl>
               <Input type="date" {...field} />
             </FormControl>
@@ -27,10 +37,10 @@ export function DeliveryDateTimeFields({ control }: DeliveryDateTimeFieldsProps)
       
       <FormField
         control={control}
-        name="deliveryTime"
+        name={timeName}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Hora</FormLabel>
+            <FormLabel>{timeLabel}</FormLabel>
             <FormControl>
               <Input type="time" {...field} />
             </FormControl>
