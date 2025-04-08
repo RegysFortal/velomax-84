@@ -54,6 +54,24 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     const timestamp = new Date().toISOString();
     const newId = `report-${Date.now()}`;
     
+    // Check if an open report already exists for the same client and date range
+    const existingReport = financialReports.find(
+      (r) => 
+        r.clientId === report.clientId && 
+        r.status === 'open' &&
+        new Date(r.startDate).getTime() <= new Date(report.endDate).getTime() &&
+        new Date(r.endDate).getTime() >= new Date(report.startDate).getTime()
+    );
+    
+    if (existingReport) {
+      toast({
+        title: "Relatório já existe",
+        description: `Já existe um relatório aberto para este cliente no período selecionado.`,
+        variant: "destructive"
+      });
+      return existingReport.id;
+    }
+    
     const newReport: FinancialReport = {
       ...report,
       id: newId,

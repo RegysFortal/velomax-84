@@ -1,4 +1,6 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,9 +30,12 @@ import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { toast } from 'sonner';
 
 const ReportsPage = () => {
+  const [searchParams] = useSearchParams();
+  const reportId = searchParams.get('reportId');
+  
   const { deliveries } = useDeliveries();
   const { clients } = useClients();
-  const { addFinancialReport, financialReports } = useFinancial();
+  const { addFinancialReport, financialReports, getFinancialReport } = useFinancial();
   const { toast: uiToast } = useToast();
   const [clientFilter, setClientFilter] = useState<string>('');
   const [startDate, setStartDate] = useState<string>(
@@ -43,24 +48,41 @@ const ReportsPage = () => {
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [isViewingClosedReport, setIsViewingClosedReport] = useState(false);
 
-  const existingReportDeliveries = financialReports
-    .filter(report => report.status === 'open')
-    .flatMap(report => {
-      const reportStartDate = new Date(report.startDate);
-      const reportEndDate = new Date(report.endDate);
-      reportEndDate.setHours(23, 59, 59, 999);
-      
-      return deliveries.filter(delivery => 
-        delivery.clientId === report.clientId &&
-        new Date(delivery.deliveryDate) >= reportStartDate &&
-        new Date(delivery.deliveryDate) <= reportEndDate
-      );
-    })
-    .map(delivery => delivery.id);
+  // If a reportId is provided in the URL, load that report
+  useEffect(() => {
+    if (reportId) {
+      const report = getFinancialReport(reportId);
+      if (report && report.status === 'closed') {
+        setIsViewingClosedReport(true);
+        setClientFilter(report.clientId);
+        setStartDate(report.startDate);
+        setEndDate(report.endDate);
+      }
+    }
+  }, [reportId, getFinancialReport]);
+
+  // Exclude deliveries that are already in open financial reports, unless we're viewing a closed report
+  const existingReportDeliveries = !isViewingClosedReport ? 
+    financialReports
+      .filter(report => report.status === 'open')
+      .flatMap(report => {
+        const reportStartDate = new Date(report.startDate);
+        const reportEndDate = new Date(report.endDate);
+        reportEndDate.setHours(23, 59, 59, 999);
+        
+        return deliveries.filter(delivery => 
+          delivery.clientId === report.clientId &&
+          new Date(delivery.deliveryDate) >= reportStartDate &&
+          new Date(delivery.deliveryDate) <= reportEndDate
+        );
+      })
+      .map(delivery => delivery.id) : [];
 
   const filteredDeliveries = deliveries.filter((delivery) => {
-    if (existingReportDeliveries.includes(delivery.id)) {
+    // If viewing a closed report by ID, don't filter out deliveries in reports
+    if (!isViewingClosedReport && existingReportDeliveries.includes(delivery.id)) {
       return false;
     }
     
@@ -309,49 +331,55 @@ const ReportsPage = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="client">Cliente</Label>
-            <div className="mt-1">
-              <ClientSearchSelect
-                value={clientFilter}
-                onValueChange={setClientFilter}
-                includeAllOption={true}
+        {!isViewingClosedReport && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="client">Cliente</Label>
+              <div className="mt-1">
+                <ClientSearchSelect
+                  value={clientFilter}
+                  onValueChange={setClientFilter}
+                  includeAllOption={true}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="startDate">Data inicial</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="mt-1"
+                disabled={isViewingClosedReport}
+              />
+            </div>
+            <div>
+              <Label htmlFor="endDate">Data final</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="mt-1"
+                disabled={isViewingClosedReport}
               />
             </div>
           </div>
-          
-          <div>
-            <Label htmlFor="startDate">Data inicial</Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="endDate">Data final</Label>
-            <Input
-              id="endDate"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        </div>
+        )}
         
         <div className="flex flex-col md:flex-row gap-4 justify-end">
-          <Button
-            variant="outline"
-            onClick={saveFinancialReport}
-            disabled={!clientFilter || clientFilter === 'all'}
-          >
-            <Save className="mr-2 h-4 w-4" />
-            Salvar para Financeiro
-          </Button>
+          {!isViewingClosedReport && (
+            <Button
+              variant="outline"
+              onClick={saveFinancialReport}
+              disabled={!clientFilter || clientFilter === 'all'}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Salvar para Financeiro
+            </Button>
+          )}
           <Button onClick={exportToPDF} variant="outline">
             <FileText className="mr-2 h-4 w-4" />
             Exportar PDF
@@ -361,6 +389,25 @@ const ReportsPage = () => {
             Exportar Excel
           </Button>
         </div>
+        
+        {isViewingClosedReport && reportId && (
+          <div className="bg-muted p-4 rounded-lg mb-4">
+            <p className="font-semibold">Visualizando relatório fechado</p>
+            {(() => {
+              const report = getFinancialReport(reportId);
+              const client = report ? clients.find(c => c.id === report.clientId) : null;
+              return report ? (
+                <div className="text-sm text-muted-foreground">
+                  <p>Cliente: {client?.name || 'N/A'}</p>
+                  <p>Período: {format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até {format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}</p>
+                  <p>Total: {formatCurrency(report.totalFreight)}</p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Relatório não encontrado</p>
+              );
+            })()}
+          </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-muted p-6 rounded-lg">

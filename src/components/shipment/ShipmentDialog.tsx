@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +24,7 @@ import { useClients } from "@/contexts/ClientsContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { ClientSearchSelect } from "@/components/client/ClientSearchSelect";
+import { z } from "zod";
 
 interface ShipmentDialogProps {
   open: boolean;

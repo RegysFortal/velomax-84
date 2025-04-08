@@ -42,7 +42,7 @@ export function ClientSearchSelect({
     ];
     
     setClientOptions(options);
-  }, [clients, includeAllOption, allOptionLabel, allOptionValue, value]);
+  }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
   
   return (
     <SearchableSelect

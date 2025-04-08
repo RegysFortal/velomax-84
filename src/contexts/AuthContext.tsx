@@ -19,11 +19,12 @@ interface AuthContextType {
   deleteUser: (userId: string) => boolean;
   resetUserPassword: (userId: string, newPassword: string) => boolean;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  hasPermission: (feature: keyof User['permissions']) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -632,19 +633,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
+  const hasPermission = (feature: keyof User['permissions']) => {
+    if (!user) return false;
+    
+    if (user.role === 'admin') return true;
+    
+    return user.permissions && user.permissions[feature] === true;
+  };
+
   const value = {
     user,
-    users,
-    currentUser: user,
-    loading,
     login,
     logout,
-    updateUserProfile,
-    updateUser,
     createUser,
+    updateUser,
     deleteUser,
-    resetUserPassword,
-    updateUserPassword,
+    loading,
+    hasPermission,
   };
 
   return (
@@ -652,7 +657,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

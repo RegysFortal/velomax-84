@@ -22,6 +22,8 @@ import { useFinancial } from '@/contexts/FinancialContext';
 import { useClients } from '@/contexts/ClientsContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
@@ -43,8 +45,51 @@ const FinancialPage = () => {
     closeReport(reportId);
   };
 
-  const handleViewReport = () => {
-    navigate('/reports');
+  const handleViewReport = (reportId: string) => {
+    // Navigate to reports page with the specific report ID
+    navigate(`/reports?reportId=${reportId}`);
+  };
+  
+  const handleExportPDF = (report: any) => {
+    const client = clients.find(c => c.id === report.clientId);
+    
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    doc.setFontSize(18);
+    doc.text("RELATÓRIO FINANCEIRO", doc.internal.pageSize.width / 2, 15, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.text("VELOMAX TRANSPORTES LTDA", 14, 25);
+    doc.text("CNPJ: 00.000.000/0001-00", 14, 30);
+    doc.text("Av. Exemplo, 1000 - Fortaleza - CE", 14, 35);
+    
+    doc.text(`CLIENTE: ${client?.name || 'Cliente não encontrado'}`, 14, 45);
+    doc.text(`PERÍODO: ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 50);
+    doc.text(`STATUS: ${report.status === 'open' ? 'Em aberto' : 'Fechado'}`, 14, 55);
+    
+    const tableColumn = ["Descrição", "Valor"];
+    const tableRows = [
+      ["Total de Entregas", report.totalDeliveries.toString()],
+      ["Valor Total de Fretes", formatCurrency(report.totalFreight)],
+      ["Total de Despesas", formatCurrency(report.totalExpenses || 0)],
+      ["Lucro", formatCurrency(report.profit || report.totalFreight)],
+    ];
+    
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 65,
+      theme: 'striped',
+    });
+    
+    doc.text(`Data de emissão: ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })}`, 14, 120);
+    doc.text(`Relatório ${report.status === 'closed' ? 'fechado' : 'gerado'} em: ${format(new Date(report.updatedAt), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 125);
+    
+    doc.save(`relatorio-financeiro-${client?.name || 'cliente'}-${format(new Date(), 'yyyyMMdd')}.pdf`);
   };
   
   return (
@@ -151,7 +196,7 @@ const FinancialPage = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={handleViewReport}
+                                onClick={() => handleViewReport(report.id)}
                               >
                                 <FileText className="mr-2 h-4 w-4" />
                                 Ver Relatório
@@ -159,9 +204,10 @@ const FinancialPage = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={() => handleExportPDF(report)}
                               >
                                 <FileSpreadsheet className="mr-2 h-4 w-4" />
-                                Exportar
+                                Exportar PDF
                               </Button>
                               <Button
                                 size="sm"
