@@ -10,8 +10,9 @@ import { StatusBadge } from './StatusBadge';
 import { useShipments } from '@/contexts/ShipmentsContext';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { 
-  Shipment, ShipmentStatus, Document, FiscalAction, Delivery
+  Shipment, ShipmentStatus, Document, FiscalAction
 } from '@/types/shipment';
+import { Delivery } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DocumentsList } from './DocumentsList';
@@ -91,12 +92,14 @@ export function ShipmentDetails({
         weight: shipment.weight,
         packages: shipment.packages,
         cargoType: 'standard',
-        deliveryType: 'standard' as const,
+        deliveryType: 'standard',
         cargoValue: 0,
         totalFreight: 0,
         customPricing: false,
         discount: 0,
         notes: '',
+        occurrence: undefined,
+        cityId: undefined
       };
       
       await addDelivery(newDelivery);
