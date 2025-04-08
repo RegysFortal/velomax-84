@@ -64,9 +64,12 @@ export interface Delivery {
   deliveryDate: string;
   deliveryTime?: string;
   receiver?: string;
+  receiverId?: string; // Adding receiverId field for the employee who received
+  pickupName?: string; // Adding field for who picked up the shipment (name)
+  pickupId?: string; // Adding field for employee ID who picked up the shipment
   cityId?: string;
   weight: number;
-  packages: number; // Explicitly adding the packages property here
+  packages: number;
   cargoType: string;
   deliveryType: string;
   cargoValue: number;
