@@ -42,12 +42,6 @@ const formSchema = z.object({
   departureOdometer: z.coerce.number().min(0, {
     message: "Informe a km de saída.",
   }),
-  destination: z.string().min(2, {
-    message: "Informe o destino.",
-  }),
-  purpose: z.string().min(2, {
-    message: "Informe o propósito da viagem.",
-  }),
   returnTime: z.string().optional(),
   endOdometer: z.coerce.number().optional(),
   notes: z.string().optional(),
@@ -92,8 +86,6 @@ const LogbookEntryForm = ({
       date: initialData?.date || new Date().toISOString().split('T')[0],
       departureTime: initialData?.departureTime || "",
       departureOdometer: initialData?.departureOdometer || 0,
-      destination: initialData?.destination || "",
-      purpose: initialData?.purpose || "",
       returnTime: initialData?.returnTime || "",
       endOdometer: initialData?.endOdometer || undefined,
       notes: initialData?.notes || "",
@@ -110,8 +102,6 @@ const LogbookEntryForm = ({
         form.setValue("date", entry.date);
         form.setValue("departureTime", entry.departureTime);
         form.setValue("departureOdometer", entry.departureOdometer);
-        form.setValue("destination", entry.destination);
-        form.setValue("purpose", entry.purpose);
         form.setValue("returnTime", entry.returnTime || "");
         form.setValue("endOdometer", entry.endOdometer || undefined);
         form.setValue("notes", entry.notes || "");
@@ -129,8 +119,6 @@ const LogbookEntryForm = ({
         departureTime: data.departureTime,
         departureOdometer: Number(data.departureOdometer),
         date: data.date,
-        destination: data.destination,
-        purpose: data.purpose,
         returnTime: data.returnTime === "" ? undefined : data.returnTime,
         endOdometer: data.endOdometer ? Number(data.endOdometer) : undefined,
         notes: data.notes,
@@ -145,12 +133,10 @@ const LogbookEntryForm = ({
         departureTime: data.departureTime,
         departureOdometer: Number(data.departureOdometer),
         date: data.date,
-        destination: data.destination,
-        purpose: data.purpose,
-        returnTime: data.returnTime === "" ? undefined : data.returnTime,
-        endOdometer: data.endOdometer ? Number(data.endOdometer) : undefined,
         tripDistance: data.endOdometer && Number(data.endOdometer) > Number(data.departureOdometer) ? 
           Number(data.endOdometer) - Number(data.departureOdometer) : undefined,
+        returnTime: data.returnTime === "" ? undefined : data.returnTime,
+        endOdometer: data.endOdometer ? Number(data.endOdometer) : undefined,
         notes: data.notes,
         status: data.returnTime ? 'completed' : 'ongoing',
       });
@@ -268,32 +254,6 @@ const LogbookEntryForm = ({
               <FormLabel>Km de Saída</FormLabel>
               <FormControl>
                 <Input type="number" placeholder="0" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="destination"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Destino</FormLabel>
-              <FormControl>
-                <Input placeholder="Para onde o veículo está indo?" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="purpose"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Propósito</FormLabel>
-              <FormControl>
-                <Input placeholder="Qual o objetivo da viagem?" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
