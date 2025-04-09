@@ -150,7 +150,9 @@ export function EmployeeEditForm({
         employeeSince: employeeSince?.toISOString(),
         role: 'user',
         createdAt: employee?.createdAt || currentDate,
-        updatedAt: currentDate
+        updatedAt: currentDate,
+        email: employee?.email || '',
+        username: employee?.username || ''
       };
 
       if (onSave) {
