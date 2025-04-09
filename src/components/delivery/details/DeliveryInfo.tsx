@@ -3,7 +3,7 @@ import React from 'react';
 import { Delivery } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 interface DeliveryInfoProps {
   delivery: Delivery;

@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthContext';
 import { ProfileUpdateForm } from '@/components/user/ProfileUpdateForm';
 import { PasswordUpdateForm } from '@/components/user/PasswordUpdateForm';
 import { UserManagementTable } from '@/components/user/UserManagementTable';

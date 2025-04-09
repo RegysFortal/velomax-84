@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription 
@@ -29,7 +28,7 @@ import { CalendarIcon, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatusSection } from './StatusSection';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 interface ShipmentDetailsProps {
   shipment: Shipment;
@@ -61,7 +60,6 @@ export function ShipmentDetails({
     time: format(new Date(), 'HH:mm')
   });
   
-  // Create options for employee selection
   const employeeOptions = users.map(user => ({
     value: user.id,
     label: user.name,
@@ -140,10 +138,8 @@ export function ShipmentDetails({
     try {
       const updateData: any = {};
       
-      // Save both receiver ID and name if an employee was selected
       if (deliveryInfo.receiverId) {
         updateData.receiverId = deliveryInfo.receiverId;
-        // Find the selected employee to get their name
         const selectedEmployee = users.find(u => u.id === deliveryInfo.receiverId);
         if (selectedEmployee) {
           updateData.receiverName = selectedEmployee.name;
@@ -192,10 +188,8 @@ export function ShipmentDetails({
     try {
       const updateData: any = {};
       
-      // Save both receiver ID and name if an employee was selected
       if (finalDeliveryInfo.receiverId) {
         updateData.receiverId = finalDeliveryInfo.receiverId;
-        // Find the selected employee to get their name
         const selectedEmployee = users.find(u => u.id === finalDeliveryInfo.receiverId);
         if (selectedEmployee) {
           updateData.receiverName = selectedEmployee.name;
@@ -235,7 +229,6 @@ export function ShipmentDetails({
     setDeliveryInfo(prev => ({ 
       ...prev, 
       receiverId: employeeId,
-      // Clear the manual name if an employee is selected
       receiverName: ''
     }));
   };
@@ -244,7 +237,6 @@ export function ShipmentDetails({
     setFinalDeliveryInfo(prev => ({ 
       ...prev, 
       receiverId: employeeId,
-      // Clear the manual name if an employee is selected
       receiverName: ''
     }));
   };
@@ -400,7 +392,6 @@ export function ShipmentDetails({
                         onChange={(e) => setDeliveryInfo(prev => ({ 
                           ...prev, 
                           receiverName: e.target.value,
-                          // Clear employee selection if manual name is entered
                           receiverId: e.target.value.trim() ? '' : prev.receiverId
                         }))}
                         className="mt-1"
@@ -491,7 +482,6 @@ export function ShipmentDetails({
                         onChange={(e) => setFinalDeliveryInfo(prev => ({ 
                           ...prev, 
                           receiverName: e.target.value,
-                          // Clear employee selection if manual name is entered
                           receiverId: e.target.value.trim() ? '' : prev.receiverId
                         }))}
                         className="mt-1"
