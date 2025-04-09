@@ -8,7 +8,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Card,
@@ -27,7 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, UserPlus } from 'lucide-react';
 import { User } from '@/types';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { EmployeeEditForm } from '@/components/employee/EmployeeEditForm';
@@ -40,6 +39,19 @@ const getRoleBadge = (role: string) => {
       return <Badge className="bg-blue-500">Gerente</Badge>;
     default:
       return <Badge>Usuário</Badge>;
+  }
+};
+
+const getPositionBadge = (position: string | undefined) => {
+  if (!position) return null;
+  
+  switch (position.toLowerCase()) {
+    case 'motorista':
+      return <Badge className="bg-green-500">Motorista</Badge>;
+    case 'ajudante':
+      return <Badge className="bg-purple-500">Ajudante</Badge>;
+    default:
+      return <Badge className="bg-gray-500">{position}</Badge>;
   }
 };
 
@@ -67,6 +79,7 @@ export default function Employees() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   // Filter users based on search term
   const filteredUsers = users.filter(u => {
@@ -81,6 +94,13 @@ export default function Employees() {
 
   const handleEditClick = (employee: User) => {
     setSelectedEmployee(employee);
+    setIsCreating(false);
+    setIsDialogOpen(true);
+  };
+
+  const handleCreateClick = () => {
+    setSelectedEmployee(null);
+    setIsCreating(true);
     setIsDialogOpen(true);
   };
 
@@ -99,6 +119,10 @@ export default function Employees() {
               Gerencie os funcionários e suas permissões.
             </p>
           </div>
+          <Button onClick={handleCreateClick} className="flex gap-2 items-center">
+            <UserPlus className="h-4 w-4" />
+            <span>Novo Colaborador</span>
+          </Button>
         </div>
 
         <Card>
@@ -129,31 +153,40 @@ export default function Employees() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Função</TableHead>
-                  <TableHead>Departamento</TableHead>
                   <TableHead>Cargo</TableHead>
+                  <TableHead>Departamento</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">{u.name}</TableCell>
-                    <TableCell>{u.email}</TableCell>
-                    <TableCell>{getRoleBadge(u.role)}</TableCell>
-                    <TableCell>{getDepartmentLabel(u.department)}</TableCell>
-                    <TableCell>{u.position || '-'}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClick(u)}
-                        disabled={u.id === user?.id} // Prevent editing current user
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                      Nenhum colaborador encontrado
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredUsers.map((u) => (
+                    <TableRow key={u.id}>
+                      <TableCell className="font-medium">{u.name}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>{getRoleBadge(u.role)}</TableCell>
+                      <TableCell>{u.position ? getPositionBadge(u.position) : '-'}</TableCell>
+                      <TableCell>{getDepartmentLabel(u.department)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(u)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -162,13 +195,16 @@ export default function Employees() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Editar Colaborador</DialogTitle>
+              <DialogTitle>{isCreating ? 'Novo Colaborador' : 'Editar Colaborador'}</DialogTitle>
               <DialogDescription>
-                Altere as informações e permissões do colaborador.
+                {isCreating 
+                  ? 'Adicione um novo colaborador ao sistema.'
+                  : 'Altere as informações e permissões do colaborador.'}
               </DialogDescription>
             </DialogHeader>
             <EmployeeEditForm 
               employee={selectedEmployee}
+              isCreating={isCreating}
               onComplete={handleCloseDialog}
             />
           </DialogContent>

@@ -66,6 +66,19 @@ export function UserManagementTable() {
     setIsDialogOpen(false);
   };
 
+  const getPositionBadge = (position: string | undefined) => {
+    if (!position) return null;
+    
+    switch (position.toLowerCase()) {
+      case 'motorista':
+        return <Badge className="bg-green-500">Motorista</Badge>;
+      case 'ajudante':
+        return <Badge className="bg-purple-500">Ajudante</Badge>;
+      default:
+        return null;
+    }
+  };
+
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
@@ -95,6 +108,7 @@ export function UserManagementTable() {
               <TableHead>Usuário</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Função</TableHead>
+              <TableHead>Cargo</TableHead>
               <TableHead>Departamento</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -102,7 +116,7 @@ export function UserManagementTable() {
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
                   Nenhum usuário encontrado
                 </TableCell>
               </TableRow>
@@ -113,6 +127,15 @@ export function UserManagementTable() {
                   <TableCell>{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{getRoleBadge(user.role)}</TableCell>
+                  <TableCell>
+                    {user.position ? (
+                      <div className="flex flex-wrap gap-1">
+                        {getPositionBadge(user.position) || user.position}
+                      </div>
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
                   <TableCell>{user.department || '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
