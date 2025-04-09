@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserManagement } from './useUserManagement';

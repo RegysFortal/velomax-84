@@ -2,17 +2,19 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Client } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './auth/AuthContext';
 
 type ClientsContextType = {
   clients: Client[];
-  addClient: (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateClient: (id: string, client: Partial<Client>) => void;
-  deleteClient: (id: string) => void;
+  addClient: (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateClient: (id: string, client: Partial<Client>) => Promise<void>;
+  deleteClient: (id: string) => Promise<void>;
   getClient: (id: string) => Client | undefined;
   loading: boolean;
 };
 
-// Initial clients data for demo purposes
+// Initial clients data for demo purposes - will be used only if fetching fails
 const INITIAL_CLIENTS: Client[] = [
   {
     id: 'client-1',
@@ -106,72 +108,244 @@ export const ClientsProvider = ({ children }: { children: ReactNode }) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   useEffect(() => {
-    // Load clients from localStorage or use initial data
-    const loadClients = () => {
-      const storedClients = localStorage.getItem('velomax_clients');
-      if (storedClients) {
-        try {
-          setClients(JSON.parse(storedClients));
-        } catch (error) {
-          console.error('Failed to parse stored clients', error);
+    const fetchClients = async () => {
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('clients')
+          .select('*')
+          .order('name', { ascending: true });
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Map Supabase data to match our Client type
+        const mappedClients = data.map((client: any): Client => ({
+          id: client.id,
+          name: client.name,
+          tradingName: client.trading_name || '',
+          document: client.document || '',
+          address: client.address || '',
+          street: client.street || '',
+          number: client.number || '',
+          complement: client.complement || '',
+          neighborhood: client.neighborhood || '',
+          city: client.city || '',
+          state: client.state || '',
+          zipCode: client.zip_code || '',
+          contact: client.contact || '',
+          phone: client.phone || '',
+          email: client.email || '',
+          priceTableId: client.price_table_id || '',
+          notes: client.notes || '',
+          createdAt: client.created_at || new Date().toISOString(),
+          updatedAt: client.updated_at || new Date().toISOString(),
+        }));
+        
+        setClients(mappedClients);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+        toast({
+          title: "Erro ao carregar clientes",
+          description: "Usando dados locais como fallback.",
+          variant: "destructive"
+        });
+        
+        // Load from localStorage as fallback
+        const storedClients = localStorage.getItem('velomax_clients');
+        if (storedClients) {
+          try {
+            setClients(JSON.parse(storedClients));
+          } catch (error) {
+            console.error('Failed to parse stored clients', error);
+            setClients(INITIAL_CLIENTS);
+          }
+        } else {
           setClients(INITIAL_CLIENTS);
         }
-      } else {
-        setClients(INITIAL_CLIENTS);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
-    loadClients();
-  }, []);
+    if (user) {
+      fetchClients();
+    }
+  }, [toast, user]);
   
-  // Save clients to localStorage whenever they change
+  // Save clients to localStorage as a backup
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_clients', JSON.stringify(clients));
     }
   }, [clients, loading]);
   
-  const addClient = (
+  const addClient = async (
     client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>
   ) => {
-    const timestamp = new Date().toISOString();
-    const newClient: Client = {
-      ...client,
-      id: `client-${Date.now()}`,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-    
-    setClients((prev) => [...prev, newClient]);
-    toast({
-      title: "Cliente adicionado",
-      description: `O cliente "${client.name}" foi adicionado com sucesso.`,
-    });
+    try {
+      const timestamp = new Date().toISOString();
+
+      // Prepare data for Supabase insert
+      const supabaseClient = {
+        name: client.name,
+        trading_name: client.tradingName,
+        document: client.document,
+        address: client.address,
+        street: client.street,
+        number: client.number,
+        complement: client.complement,
+        neighborhood: client.neighborhood,
+        city: client.city,
+        state: client.state,
+        zip_code: client.zipCode,
+        contact: client.contact,
+        phone: client.phone,
+        email: client.email,
+        price_table_id: client.priceTableId,
+        notes: client.notes,
+        user_id: user?.id,
+        created_at: timestamp,
+        updated_at: timestamp
+      };
+      
+      const { data, error } = await supabase
+        .from('clients')
+        .insert(supabaseClient)
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Map the returned data to our Client type
+      const newClient: Client = {
+        id: data.id,
+        name: data.name,
+        tradingName: data.trading_name || '',
+        document: data.document || '',
+        address: data.address || '',
+        street: data.street || '',
+        number: data.number || '',
+        complement: data.complement || '',
+        neighborhood: data.neighborhood || '',
+        city: data.city || '',
+        state: data.state || '',
+        zipCode: data.zip_code || '',
+        contact: data.contact || '',
+        phone: data.phone || '',
+        email: data.email || '',
+        priceTableId: data.price_table_id || '',
+        notes: data.notes || '',
+        createdAt: data.created_at || timestamp,
+        updatedAt: data.updated_at || timestamp,
+      };
+      
+      setClients((prev) => [...prev, newClient]);
+      
+      toast({
+        title: "Cliente adicionado",
+        description: `O cliente "${client.name}" foi adicionado com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error adding client:", error);
+      toast({
+        title: "Erro ao adicionar cliente",
+        description: "Ocorreu um erro ao adicionar o cliente. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const updateClient = (id: string, client: Partial<Client>) => {
-    setClients((prev) => 
-      prev.map((c) => 
-        c.id === id 
-          ? { ...c, ...client, updatedAt: new Date().toISOString() } 
-          : c
-      )
-    );
-    toast({
-      title: "Cliente atualizado",
-      description: `O cliente foi atualizado com sucesso.`,
-    });
+  const updateClient = async (id: string, client: Partial<Client>) => {
+    try {
+      const timestamp = new Date().toISOString();
+      
+      // Prepare data for Supabase update
+      const supabaseClient: any = {
+        updated_at: timestamp
+      };
+      
+      // Map properties from client to supabaseClient
+      if (client.name !== undefined) supabaseClient.name = client.name;
+      if (client.tradingName !== undefined) supabaseClient.trading_name = client.tradingName;
+      if (client.document !== undefined) supabaseClient.document = client.document;
+      if (client.address !== undefined) supabaseClient.address = client.address;
+      if (client.street !== undefined) supabaseClient.street = client.street;
+      if (client.number !== undefined) supabaseClient.number = client.number;
+      if (client.complement !== undefined) supabaseClient.complement = client.complement;
+      if (client.neighborhood !== undefined) supabaseClient.neighborhood = client.neighborhood;
+      if (client.city !== undefined) supabaseClient.city = client.city;
+      if (client.state !== undefined) supabaseClient.state = client.state;
+      if (client.zipCode !== undefined) supabaseClient.zip_code = client.zipCode;
+      if (client.contact !== undefined) supabaseClient.contact = client.contact;
+      if (client.phone !== undefined) supabaseClient.phone = client.phone;
+      if (client.email !== undefined) supabaseClient.email = client.email;
+      if (client.priceTableId !== undefined) supabaseClient.price_table_id = client.priceTableId;
+      if (client.notes !== undefined) supabaseClient.notes = client.notes;
+
+      const { error } = await supabase
+        .from('clients')
+        .update(supabaseClient)
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setClients((prev) => 
+        prev.map((c) => 
+          c.id === id 
+            ? { ...c, ...client, updatedAt: timestamp } 
+            : c
+        )
+      );
+      
+      toast({
+        title: "Cliente atualizado",
+        description: `O cliente foi atualizado com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error updating client:", error);
+      toast({
+        title: "Erro ao atualizar cliente",
+        description: "Ocorreu um erro ao atualizar o cliente. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const deleteClient = (id: string) => {
-    setClients((prev) => prev.filter((client) => client.id !== id));
-    toast({
-      title: "Cliente removido",
-      description: `O cliente foi removido com sucesso.`,
-    });
+  const deleteClient = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setClients((prev) => prev.filter((client) => client.id !== id));
+      
+      toast({
+        title: "Cliente removido",
+        description: `O cliente foi removido com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      toast({
+        title: "Erro ao remover cliente",
+        description: "Ocorreu um erro ao remover o cliente. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
   const getClient = (id: string) => {

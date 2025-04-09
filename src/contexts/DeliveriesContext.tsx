@@ -8,9 +8,9 @@ import { isDoorToDoorDelivery, isExclusiveDelivery, checkMinuteNumberExists } fr
 
 type DeliveriesContextType = {
   deliveries: Delivery[];
-  addDelivery: (delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateDelivery: (id: string, delivery: Partial<Delivery>) => void;
-  deleteDelivery: (id: string) => void;
+  addDelivery: (delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => Promise<any>;
+  updateDelivery: (id: string, delivery: Partial<Delivery>) => Promise<void>;
+  deleteDelivery: (id: string) => Promise<void>;
   getDelivery: (id: string) => Delivery | undefined;
   calculateFreight: (
     clientId: string,

@@ -27,6 +27,10 @@ export const LoginForm = () => {
   const [forgotUsername, setForgotUsername] = useState('');
   const [isResetting, setIsResetting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [registerName, setRegisterName] = useState('');
   
   const { login } = useAuth();
   const { toast } = useToast();
@@ -92,6 +96,58 @@ export const LoginForm = () => {
     }
   };
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!registerEmail || !registerPassword || !registerName) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos para cadastro.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsRegistering(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: registerEmail,
+        password: registerPassword,
+        options: {
+          data: {
+            name: registerName
+          },
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Cadastro realizado",
+        description: "Sua conta foi criada com sucesso. Você já pode fazer login.",
+      });
+      
+      // Reset form
+      setIsRegistering(false);
+      setRegisterEmail('');
+      setRegisterPassword('');
+      setRegisterName('');
+      
+      // Switch back to login tab
+      setIsRegistering(false);
+    } catch (error: any) {
+      console.error('Erro no cadastro:', error);
+      toast({
+        title: "Erro no cadastro",
+        description: error.message || "Ocorreu um erro ao criar sua conta. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -141,89 +197,159 @@ export const LoginForm = () => {
       <CardHeader>
         <CardTitle className="text-2xl text-center">Acesso ao Sistema</CardTitle>
         <CardDescription className="text-center">
-          Entre com seu usuário e senha para acessar o sistema
+          {isRegistering ? "Crie sua conta para acessar o sistema" : "Entre com seu usuário e senha para acessar o sistema"}
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <Alert className="bg-blue-50 border-blue-200">
-            <AlertDescription className="text-sm text-blue-700">
-              Para acessar o sistema, você precisa de uma conta válida. O usuário <strong>admin</strong> está disponível para demonstração.
-            </AlertDescription>
-          </Alert>
-
-          <div className="space-y-2">
-            <Label htmlFor="username">Usuário</Label>
-            <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      
+      {isRegistering ? (
+        // Registration form
+        <form onSubmit={handleRegister}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="register-name">Nome Completo</Label>
               <Input
-                id="username"
-                placeholder="Digite seu nome de usuário"
-                className="pl-10"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={isSubmitting}
+                id="register-name"
+                value={registerName}
+                onChange={(e) => setRegisterName(e.target.value)}
+                placeholder="Digite seu nome completo"
+                disabled={isRegistering}
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <div className="relative">
-              <LockIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="space-y-2">
+              <Label htmlFor="register-email">Email</Label>
               <Input
-                id="password"
+                id="register-email"
+                type="email"
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
+                placeholder="Digite seu email"
+                disabled={isRegistering}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="register-password">Senha</Label>
+              <Input
+                id="register-password"
                 type="password"
-                placeholder="Digite sua senha"
-                className="pl-10"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isSubmitting}
+                value={registerPassword}
+                onChange={(e) => setRegisterPassword(e.target.value)}
+                placeholder="Crie uma senha"
+                disabled={isRegistering}
               />
             </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex-col gap-4">
-          <Button 
-            type="submit" 
-            className="w-full bg-velomax-blue hover:bg-blue-800"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Autenticando..." : "Entrar"}
-          </Button>
-          
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="link" className="text-sm text-muted-foreground hover:text-primary">
-                Esqueci minha senha
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Recuperação de Senha</DialogTitle>
-                <DialogDescription>
-                  Informe seu nome de usuário ou email para receber instruções de redefinição.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleResetPassword} className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="forgot-username">Nome de Usuário ou Email</Label>
-                  <Input
-                    id="forgot-username"
-                    value={forgotUsername}
-                    onChange={(e) => setForgotUsername(e.target.value)}
-                    disabled={isResetting}
-                  />
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={isResetting}>
-                    {isResetting ? "Enviando..." : "Enviar Instruções"}
+          </CardContent>
+          <CardFooter className="flex-col gap-4">
+            <Button
+              type="submit"
+              className="w-full bg-velomax-blue hover:bg-blue-800"
+              disabled={isRegistering}
+            >
+              {isRegistering ? "Criando conta..." : "Criar conta"}
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => setIsRegistering(false)}
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              Já tem uma conta? Faça login
+            </Button>
+          </CardFooter>
+        </form>
+      ) : (
+        // Login form
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertDescription className="text-sm text-blue-700">
+                Para acessar o sistema, você precisa de uma conta válida. O usuário <strong>admin</strong> está disponível para demonstração.
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Usuário</Label>
+              <div className="relative">
+                <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="username"
+                  placeholder="Digite seu nome de usuário"
+                  className="pl-10"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <div className="relative">
+                <LockIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Digite sua senha"
+                  className="pl-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex-col gap-4">
+            <Button 
+              type="submit" 
+              className="w-full bg-velomax-blue hover:bg-blue-800"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Autenticando..." : "Entrar"}
+            </Button>
+            
+            <div className="flex justify-between w-full">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="link" className="text-sm text-muted-foreground hover:text-primary">
+                    Esqueci minha senha
                   </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </CardFooter>
-      </form>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Recuperação de Senha</DialogTitle>
+                    <DialogDescription>
+                      Informe seu nome de usuário ou email para receber instruções de redefinição.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleResetPassword} className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="forgot-username">Nome de Usuário ou Email</Label>
+                      <Input
+                        id="forgot-username"
+                        value={forgotUsername}
+                        onChange={(e) => setForgotUsername(e.target.value)}
+                        disabled={isResetting}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit" disabled={isResetting}>
+                        {isResetting ? "Enviando..." : "Enviar Instruções"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+              
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => setIsRegistering(true)}
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                Criar uma conta
+              </Button>
+            </div>
+          </CardFooter>
+        </form>
+      )}
     </Card>
   );
 };

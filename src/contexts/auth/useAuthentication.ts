@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { User } from '@/types';
 import { useNavigate } from 'react-router-dom';
@@ -58,6 +57,24 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
         navigate('/dashboard');
         return true;
       } else {
+        const email = username.includes('@') ? username : `${username}@velomax.com`;
+        
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+          toast({
+            title: "Login bem-sucedido",
+            description: `Bem-vindo, ${data.user.email}!`,
+          });
+          navigate('/dashboard');
+          return true;
+        }
+        
         toast({
           title: "Erro de autenticação",
           description: "Nome de usuário ou senha incorretos",
@@ -130,7 +147,7 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
         'user',
         user.id,
         updatedUser.name,
-        'Perfil de usuário atualizado'
+        'Perfil de usu��rio atualizado'
       );
       
       return true;
