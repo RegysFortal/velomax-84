@@ -2,19 +2,13 @@
 import { useState, useEffect } from 'react';
 import { Client } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useClients } from '@/contexts/ClientsContext';
+import { ClientBasicInfo } from './forms/ClientBasicInfo';
+import { AddressFields } from './forms/AddressFields';
+import { ContactInfo } from './forms/ContactInfo';
+import { PriceTableAndNotes } from './forms/PriceTableAndNotes';
 
 interface ClientFormProps {
   client: Client | null;
@@ -128,171 +122,47 @@ export function ClientForm({ client, isCreating, onComplete }: ClientFormProps) 
     <form onSubmit={handleSubmit} className="space-y-4 h-[600px]">
       <ScrollArea className="h-[500px] pr-4">
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome/Razão Social*</Label>
-            <Input 
-              id="name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              placeholder="Nome completo ou razão social"
-              required
-            />
-          </div>
+          <ClientBasicInfo
+            name={name}
+            setName={setName}
+            tradingName={tradingName}
+            setTradingName={setTradingName}
+            document={document}
+            setDocument={setDocument}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="tradingName">Nome Fantasia</Label>
-            <Input 
-              id="tradingName" 
-              value={tradingName} 
-              onChange={(e) => setTradingName(e.target.value)} 
-              placeholder="Nome fantasia"
-            />
-          </div>
+          <AddressFields
+            street={street}
+            setStreet={setStreet}
+            number={number}
+            setNumber={setNumber}
+            complement={complement}
+            setComplement={setComplement}
+            neighborhood={neighborhood}
+            setNeighborhood={setNeighborhood}
+            city={city}
+            setCity={setCity}
+            state={state}
+            setState={setState}
+            zipCode={zipCode}
+            setZipCode={setZipCode}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="document">CNPJ/CPF</Label>
-            <Input 
-              id="document" 
-              value={document} 
-              onChange={(e) => setDocument(e.target.value)} 
-              placeholder="00.000.000/0000-00"
-            />
-          </div>
+          <ContactInfo
+            contact={contact}
+            setContact={setContact}
+            phone={phone}
+            setPhone={setPhone}
+            email={email}
+            setEmail={setEmail}
+          />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="street">Rua/Avenida</Label>
-              <Input 
-                id="street" 
-                value={street} 
-                onChange={(e) => setStreet(e.target.value)} 
-                placeholder="Rua ou avenida"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="number">Número</Label>
-              <Input 
-                id="number" 
-                value={number} 
-                onChange={(e) => setNumber(e.target.value)} 
-                placeholder="Número"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="complement">Complemento</Label>
-              <Input 
-                id="complement" 
-                value={complement} 
-                onChange={(e) => setComplement(e.target.value)} 
-                placeholder="Complemento"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="neighborhood">Bairro</Label>
-              <Input 
-                id="neighborhood" 
-                value={neighborhood} 
-                onChange={(e) => setNeighborhood(e.target.value)} 
-                placeholder="Bairro"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">Cidade</Label>
-              <Input 
-                id="city" 
-                value={city} 
-                onChange={(e) => setCity(e.target.value)} 
-                placeholder="Cidade"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="state">Estado</Label>
-              <Input 
-                id="state" 
-                value={state} 
-                onChange={(e) => setState(e.target.value)} 
-                placeholder="Estado"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="zipCode">CEP</Label>
-              <Input 
-                id="zipCode" 
-                value={zipCode} 
-                onChange={(e) => setZipCode(e.target.value)} 
-                placeholder="00000-000"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="contact">Contato</Label>
-              <Input 
-                id="contact" 
-                value={contact} 
-                onChange={(e) => setContact(e.target.value)} 
-                placeholder="Nome do contato"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefone</Label>
-              <Input 
-                id="phone" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)} 
-                placeholder="(00) 00000-0000"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              placeholder="email@exemplo.com"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="priceTableId">Tabela de Preços</Label>
-            <Select value={priceTableId} onValueChange={setPriceTableId}>
-              <SelectTrigger id="priceTableId">
-                <SelectValue placeholder="Selecione uma tabela" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="table-a">Tabela A</SelectItem>
-                <SelectItem value="table-b">Tabela B</SelectItem>
-                <SelectItem value="table-c">Tabela C</SelectItem>
-                <SelectItem value="table-d">Tabela D</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Observações</Label>
-            <Textarea 
-              id="notes" 
-              value={notes} 
-              onChange={(e) => setNotes(e.target.value)} 
-              placeholder="Observações sobre o cliente"
-              className="min-h-[100px]"
-            />
-          </div>
+          <PriceTableAndNotes
+            priceTableId={priceTableId}
+            setPriceTableId={setPriceTableId}
+            notes={notes}
+            setNotes={setNotes}
+          />
         </div>
       </ScrollArea>
 
