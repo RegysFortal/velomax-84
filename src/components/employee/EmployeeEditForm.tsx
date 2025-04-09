@@ -5,17 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   RadioGroup,
   RadioGroupItem
 } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface EmployeeEditFormProps {
   employee: User | null;
@@ -34,23 +33,42 @@ export function EmployeeEditForm({
 }: EmployeeEditFormProps) {
   // Form state
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [role, setRole] = useState<'user' | 'admin' | 'manager'>('user');
-  const [position, setPosition] = useState('');
-  const [department, setDepartment] = useState<string>('');
+  const [rg, setRg] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [positionType, setPositionType] = useState<'motorista' | 'ajudante' | 'outro'>('outro');
   const [customPosition, setCustomPosition] = useState('');
+  const [position, setPosition] = useState('');
+  const [driverLicense, setDriverLicense] = useState('');
+  const [driverLicenseExpiry, setDriverLicenseExpiry] = useState<Date | undefined>(undefined);
+  const [driverLicenseCategory, setDriverLicenseCategory] = useState('');
+  const [fatherName, setFatherName] = useState('');
+  const [motherName, setMotherName] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zipCode, setZipCode] = useState('');
+  const [phone, setPhone] = useState('');
+  const [employeeSince, setEmployeeSince] = useState<Date | undefined>(undefined);
 
   // Load employee data if editing
   useEffect(() => {
     if (employee) {
       setName(employee.name || '');
-      setEmail(employee.email || '');
-      setUsername(employee.username || '');
-      setRole(employee.role as 'user' | 'admin' | 'manager');
-      setPosition(employee.position || '');
-      setDepartment(employee.department || '');
+      setRg(employee.rg || '');
+      setCpf(employee.cpf || '');
+      setBirthDate(employee.birthDate ? new Date(employee.birthDate) : undefined);
+      setPhone(employee.phone || '');
+      setDriverLicense(employee.driverLicense || '');
+      setDriverLicenseExpiry(employee.driverLicenseExpiry ? new Date(employee.driverLicenseExpiry) : undefined);
+      setDriverLicenseCategory(employee.driverLicenseCategory || '');
+      setFatherName(employee.fatherName || '');
+      setMotherName(employee.motherName || '');
+      setAddress(employee.address || '');
+      setCity(employee.city || '');
+      setState(employee.state || '');
+      setZipCode(employee.zipCode || '');
+      setEmployeeSince(employee.employeeSince ? new Date(employee.employeeSince) : undefined);
       
       // Set position type based on existing position
       if (employee.position) {
@@ -69,13 +87,23 @@ export function EmployeeEditForm({
     } else {
       // Reset form for new employee
       setName('');
-      setEmail('');
-      setUsername('');
-      setRole('user');
-      setPosition('');
-      setDepartment('');
+      setRg('');
+      setCpf('');
+      setBirthDate(undefined);
+      setPhone('');
       setPositionType('outro');
       setCustomPosition('');
+      setPosition('');
+      setDriverLicense('');
+      setDriverLicenseExpiry(undefined);
+      setDriverLicenseCategory('');
+      setFatherName('');
+      setMotherName('');
+      setAddress('');
+      setCity('');
+      setState('');
+      setZipCode('');
+      setEmployeeSince(undefined);
     }
   }, [employee]);
 
@@ -105,11 +133,25 @@ export function EmployeeEditForm({
       const userData: User = {
         id: employee?.id || `emp-${Date.now()}`,
         name,
-        email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@velomax.com`,
-        username: username || name.toLowerCase().replace(/\s+/g, '.'),
-        role,
+        rg,
+        cpf,
+        birthDate: birthDate?.toISOString(),
         position,
-        department,
+        driverLicense: positionType === 'motorista' ? driverLicense : undefined,
+        driverLicenseExpiry: positionType === 'motorista' ? driverLicenseExpiry?.toISOString() : undefined,
+        driverLicenseCategory: positionType === 'motorista' ? driverLicenseCategory : undefined,
+        fatherName,
+        motherName,
+        address,
+        city,
+        state,
+        zipCode,
+        phone,
+        employeeSince: employeeSince?.toISOString(),
+        // These fields are still required by the User type
+        email: employee?.email || `${name.toLowerCase().replace(/\s+/g, '.')}@velomax.com`,
+        username: employee?.username || name.toLowerCase().replace(/\s+/g, '.'),
+        role: employee?.role || 'user',
         createdAt: employee?.createdAt || currentDate,
         updatedAt: currentDate
       };
@@ -130,24 +172,62 @@ export function EmployeeEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Nome</Label>
+        <Label htmlFor="name">Nome Completo*</Label>
         <Input 
           id="name" 
           value={name} 
           onChange={(e) => setName(e.target.value)} 
           placeholder="Nome completo"
+          required
         />
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="rg">RG</Label>
+          <Input 
+            id="rg" 
+            value={rg} 
+            onChange={(e) => setRg(e.target.value)} 
+            placeholder="Registro Geral"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="cpf">CPF</Label>
+          <Input 
+            id="cpf" 
+            value={cpf} 
+            onChange={(e) => setCpf(e.target.value)} 
+            placeholder="000.000.000-00"
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input 
-          id="email" 
-          type="email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          placeholder="email@exemplo.com"
-        />
+        <Label htmlFor="birthDate">Data de Nascimento</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !birthDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {birthDate ? format(birthDate, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={birthDate}
+              onSelect={setBirthDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="space-y-2">
@@ -178,20 +258,155 @@ export function EmployeeEditForm({
         )}
       </div>
 
+      {positionType === 'motorista' && (
+        <div className="space-y-4 p-4 border rounded-md bg-slate-50">
+          <div className="space-y-2">
+            <Label htmlFor="driverLicense">Número da CNH</Label>
+            <Input 
+              id="driverLicense" 
+              value={driverLicense} 
+              onChange={(e) => setDriverLicense(e.target.value)} 
+              placeholder="Número da CNH"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="driverLicenseExpiry">Validade da Habilitação</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !driverLicenseExpiry && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {driverLicenseExpiry ? format(driverLicenseExpiry, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={driverLicenseExpiry}
+                  onSelect={setDriverLicenseExpiry}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="driverLicenseCategory">Categoria da Habilitação</Label>
+            <Input 
+              id="driverLicenseCategory" 
+              value={driverLicenseCategory} 
+              onChange={(e) => setDriverLicenseCategory(e.target.value)} 
+              placeholder="Ex: A, B, C, D, E"
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="fatherName">Nome do Pai</Label>
+          <Input 
+            id="fatherName" 
+            value={fatherName} 
+            onChange={(e) => setFatherName(e.target.value)} 
+            placeholder="Nome completo do pai"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="motherName">Nome da Mãe</Label>
+          <Input 
+            id="motherName" 
+            value={motherName} 
+            onChange={(e) => setMotherName(e.target.value)} 
+            placeholder="Nome completo da mãe"
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <Label htmlFor="department">Departamento</Label>
-        <Select value={department} onValueChange={setDepartment}>
-          <SelectTrigger id="department">
-            <SelectValue placeholder="Selecione um departamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="operations">Operações</SelectItem>
-            <SelectItem value="logistics">Logística</SelectItem>
-            <SelectItem value="administrative">Administrativo</SelectItem>
-            <SelectItem value="finance">Financeiro</SelectItem>
-            <SelectItem value="commercial">Comercial</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label htmlFor="address">Endereço Completo</Label>
+        <Input 
+          id="address" 
+          value={address} 
+          onChange={(e) => setAddress(e.target.value)} 
+          placeholder="Rua, número, complemento"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="city">Cidade</Label>
+          <Input 
+            id="city" 
+            value={city} 
+            onChange={(e) => setCity(e.target.value)} 
+            placeholder="Cidade"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="state">Estado</Label>
+          <Input 
+            id="state" 
+            value={state} 
+            onChange={(e) => setState(e.target.value)} 
+            placeholder="Estado"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="zipCode">CEP</Label>
+          <Input 
+            id="zipCode" 
+            value={zipCode} 
+            onChange={(e) => setZipCode(e.target.value)} 
+            placeholder="00000-000"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="phone">Telefone</Label>
+        <Input 
+          id="phone" 
+          type="tel" 
+          value={phone} 
+          onChange={(e) => setPhone(e.target.value)} 
+          placeholder="(00) 00000-0000"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="employeeSince">Funcionário Desde</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !employeeSince && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {employeeSince ? format(employeeSince, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={employeeSince}
+              onSelect={setEmployeeSince}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="flex justify-end gap-2">

@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -10,6 +11,19 @@ export interface User {
   department?: string;
   position?: string;
   phone?: string;
+  rg?: string;
+  cpf?: string;
+  birthDate?: string;
+  driverLicense?: string;
+  driverLicenseExpiry?: string;
+  driverLicenseCategory?: string;
+  fatherName?: string;
+  motherName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  employeeSince?: string;
   permissions?: {
     deliveries: boolean;
     shipments: boolean;
