@@ -1,7 +1,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthContext';
 import { AppHeader } from './AppHeader';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@/types';

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthContext';
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import {

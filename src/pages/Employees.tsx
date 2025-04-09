@@ -29,7 +29,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { User } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthContext';
 import { EmployeeEditForm } from '@/components/employee/EmployeeEditForm';
 
 const getRoleBadge = (role: string) => {
