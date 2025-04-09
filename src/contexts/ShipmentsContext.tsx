@@ -1,7 +1,10 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Shipment, Document, FiscalAction, ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 interface ShipmentCreateData extends Omit<Shipment, 'id' | 'createdAt' | 'updatedAt' | 'documents' | 'fiscalAction'> {
   fiscalActionData?: Omit<FiscalAction, 'id' | 'createdAt' | 'updatedAt'>;
@@ -43,14 +46,20 @@ interface ShipmentsProviderProps {
 export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       try {
-        const storedShipments = localStorage.getItem("velomax_shipments");
-        
-        if (storedShipments) {
-          setShipments(JSON.parse(storedShipments));
+        if (user) {
+          setLoading(true);
+          
+          // For now, shipments are stored in localStorage until we create shipments tables
+          const storedShipments = localStorage.getItem("velomax_shipments");
+          
+          if (storedShipments) {
+            setShipments(JSON.parse(storedShipments));
+          }
         }
       } catch (error) {
         console.error("Error loading shipments data:", error);
@@ -61,7 +70,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     };
     
     loadData();
-  }, []);
+  }, [user]);
   
   useEffect(() => {
     if (!loading) {

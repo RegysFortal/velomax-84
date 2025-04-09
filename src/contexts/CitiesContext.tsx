@@ -2,17 +2,19 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { City } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 type CitiesContextType = {
   cities: City[];
-  addCity: (city: Omit<City, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateCity: (id: string, city: Partial<City>) => void;
-  deleteCity: (id: string) => void;
+  addCity: (city: Omit<City, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateCity: (id: string, city: Partial<City>) => Promise<void>;
+  deleteCity: (id: string) => Promise<void>;
   getCity: (id: string) => City | undefined;
   loading: boolean;
 };
 
-// Initial cities data for demo purposes
+// Initial cities data for demo purposes - will be used only if fetching fails
 const INITIAL_CITIES: City[] = [
   {
     id: 'city-1',
@@ -54,70 +56,188 @@ export const CitiesProvider = ({ children }: { children: ReactNode }) => {
   const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   useEffect(() => {
-    // Load cities from localStorage or use initial data
-    const loadCities = () => {
-      const storedCities = localStorage.getItem('velomax_cities');
-      if (storedCities) {
-        try {
-          setCities(JSON.parse(storedCities));
-        } catch (error) {
-          console.error('Failed to parse stored cities', error);
+    const fetchCities = async () => {
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('cities')
+          .select('*')
+          .order('name', { ascending: true });
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Map Supabase data to match our City type
+        const mappedCities = data.map((city: any): City => ({
+          id: city.id,
+          name: city.name,
+          state: city.state,
+          distance: city.distance,
+          createdAt: city.created_at || new Date().toISOString(),
+          updatedAt: city.updated_at || new Date().toISOString(),
+        }));
+        
+        setCities(mappedCities);
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+        toast({
+          title: "Erro ao carregar cidades",
+          description: "Usando dados locais como fallback.",
+          variant: "destructive"
+        });
+        
+        // Load from localStorage as fallback
+        const storedCities = localStorage.getItem('velomax_cities');
+        if (storedCities) {
+          try {
+            setCities(JSON.parse(storedCities));
+          } catch (error) {
+            console.error('Failed to parse stored cities', error);
+            setCities(INITIAL_CITIES);
+          }
+        } else {
           setCities(INITIAL_CITIES);
         }
-      } else {
-        setCities(INITIAL_CITIES);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
-    loadCities();
-  }, []);
+    if (user) {
+      fetchCities();
+    }
+  }, [toast, user]);
   
-  // Save cities to localStorage whenever they change
+  // Save cities to localStorage as a backup
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_cities', JSON.stringify(cities));
     }
   }, [cities, loading]);
   
-  const addCity = (city: Omit<City, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const timestamp = new Date().toISOString();
-    const newCity: City = {
-      ...city,
-      id: `city-${Date.now()}`,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-    
-    setCities((prev) => [...prev, newCity]);
-    toast({
-      title: "Cidade cadastrada",
-      description: `A cidade "${city.name}" foi cadastrada com sucesso.`,
-    });
+  const addCity = async (city: Omit<City, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const timestamp = new Date().toISOString();
+      
+      // Prepare data for Supabase insert
+      const supabaseCity = {
+        name: city.name,
+        state: city.state,
+        distance: city.distance,
+        user_id: user?.id
+      };
+      
+      const { data, error } = await supabase
+        .from('cities')
+        .insert(supabaseCity)
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Map the returned data to our City type
+      const newCity: City = {
+        id: data.id,
+        name: data.name,
+        state: data.state,
+        distance: data.distance,
+        createdAt: data.created_at || timestamp,
+        updatedAt: data.updated_at || timestamp,
+      };
+      
+      setCities((prev) => [...prev, newCity]);
+      
+      toast({
+        title: "Cidade cadastrada",
+        description: `A cidade "${city.name}" foi cadastrada com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error adding city:", error);
+      toast({
+        title: "Erro ao adicionar cidade",
+        description: "Ocorreu um erro ao adicionar a cidade. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const updateCity = (id: string, city: Partial<City>) => {
-    setCities((prev) => 
-      prev.map((c) => 
-        c.id === id 
-          ? { ...c, ...city, updatedAt: new Date().toISOString() } 
-          : c
-      )
-    );
-    toast({
-      title: "Cidade atualizada",
-      description: `A cidade foi atualizada com sucesso.`,
-    });
+  const updateCity = async (id: string, city: Partial<City>) => {
+    try {
+      const timestamp = new Date().toISOString();
+      
+      // Prepare data for Supabase update
+      const supabaseCity: any = {
+        updated_at: timestamp
+      };
+      
+      // Map properties from city to supabaseCity
+      if (city.name !== undefined) supabaseCity.name = city.name;
+      if (city.state !== undefined) supabaseCity.state = city.state;
+      if (city.distance !== undefined) supabaseCity.distance = city.distance;
+
+      const { error } = await supabase
+        .from('cities')
+        .update(supabaseCity)
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setCities((prev) => 
+        prev.map((c) => 
+          c.id === id 
+            ? { ...c, ...city, updatedAt: timestamp } 
+            : c
+        )
+      );
+      
+      toast({
+        title: "Cidade atualizada",
+        description: `A cidade foi atualizada com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error updating city:", error);
+      toast({
+        title: "Erro ao atualizar cidade",
+        description: "Ocorreu um erro ao atualizar a cidade. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const deleteCity = (id: string) => {
-    setCities((prev) => prev.filter((city) => city.id !== id));
-    toast({
-      title: "Cidade removida",
-      description: `A cidade foi removida com sucesso.`,
-    });
+  const deleteCity = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('cities')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setCities((prev) => prev.filter((city) => city.id !== id));
+      
+      toast({
+        title: "Cidade removida",
+        description: `A cidade foi removida com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error deleting city:", error);
+      toast({
+        title: "Erro ao remover cidade",
+        description: "Ocorreu um erro ao remover a cidade. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
   const getCity = (id: string) => {

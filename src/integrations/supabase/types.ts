@@ -9,6 +9,75 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          details: string | null
+          entity_id: string | null
+          entity_name: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          timestamp: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          action: string
+          details?: string | null
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          timestamp?: string | null
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          action?: string
+          details?: string | null
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          timestamp?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
+      cities: {
+        Row: {
+          created_at: string | null
+          distance: number
+          id: string
+          name: string
+          state: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          distance: number
+          id?: string
+          name: string
+          state: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          distance?: number
+          id?: string
+          name?: string
+          state?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -148,6 +217,456 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      employees: {
+        Row: {
+          created_at: string | null
+          department_id: string | null
+          email: string | null
+          hire_date: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          position: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department_id?: string | null
+          email?: string | null
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          position: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: string | null
+          email?: string | null
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          position?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      financial_reports: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          end_date: string
+          id: string
+          start_date: string
+          status: string
+          total_deliveries: number
+          total_freight: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          end_date: string
+          id?: string
+          start_date: string
+          status: string
+          total_deliveries: number
+          total_freight: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: string
+          total_deliveries?: number
+          total_freight?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fuel_records: {
+        Row: {
+          created_at: string | null
+          date: string
+          fuel_type: string
+          id: string
+          is_full: boolean | null
+          liters: number
+          notes: string | null
+          odometer: number
+          price_per_liter: number
+          station: string | null
+          total_cost: number
+          updated_at: string | null
+          user_id: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          fuel_type: string
+          id?: string
+          is_full?: boolean | null
+          liters: number
+          notes?: string | null
+          odometer: number
+          price_per_liter: number
+          station?: string | null
+          total_cost: number
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          fuel_type?: string
+          id?: string
+          is_full?: boolean | null
+          liters?: number
+          notes?: string | null
+          odometer?: number
+          price_per_liter?: number
+          station?: string | null
+          total_cost?: number
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fuel_records_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      logbook_entries: {
+        Row: {
+          assistant_id: string | null
+          created_at: string | null
+          date: string
+          departure_odometer: number
+          departure_time: string
+          destination: string
+          driver_id: string
+          end_odometer: number | null
+          id: string
+          notes: string | null
+          purpose: string
+          return_time: string | null
+          status: string
+          trip_distance: number | null
+          updated_at: string | null
+          user_id: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          assistant_id?: string | null
+          created_at?: string | null
+          date: string
+          departure_odometer: number
+          departure_time: string
+          destination: string
+          driver_id: string
+          end_odometer?: number | null
+          id?: string
+          notes?: string | null
+          purpose: string
+          return_time?: string | null
+          status: string
+          trip_distance?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          assistant_id?: string | null
+          created_at?: string | null
+          date?: string
+          departure_odometer?: number
+          departure_time?: string
+          destination?: string
+          driver_id?: string
+          end_odometer?: number | null
+          id?: string
+          notes?: string | null
+          purpose?: string
+          return_time?: string | null
+          status?: string
+          trip_distance?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logbook_entries_assistant_id_fkey"
+            columns: ["assistant_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logbook_entries_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logbook_entries_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_records: {
+        Row: {
+          cost: number
+          created_at: string | null
+          date: string
+          description: string
+          id: string
+          maintenance_type: string
+          notes: string | null
+          odometer: number
+          provider: string | null
+          updated_at: string | null
+          user_id: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          cost: number
+          created_at?: string | null
+          date: string
+          description: string
+          id?: string
+          maintenance_type: string
+          notes?: string | null
+          odometer: number
+          provider?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string | null
+          date?: string
+          description?: string
+          id?: string
+          maintenance_type?: string
+          notes?: string | null
+          odometer?: number
+          provider?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_tables: {
+        Row: {
+          allow_custom_pricing: boolean | null
+          created_at: string | null
+          default_discount: number | null
+          description: string | null
+          door_to_door: Json
+          excess_weight: Json
+          id: string
+          insurance: Json
+          minimum_rate: Json
+          name: string
+          updated_at: string | null
+          user_id: string | null
+          waiting_hour: Json
+        }
+        Insert: {
+          allow_custom_pricing?: boolean | null
+          created_at?: string | null
+          default_discount?: number | null
+          description?: string | null
+          door_to_door: Json
+          excess_weight: Json
+          id?: string
+          insurance: Json
+          minimum_rate: Json
+          name: string
+          updated_at?: string | null
+          user_id?: string | null
+          waiting_hour: Json
+        }
+        Update: {
+          allow_custom_pricing?: boolean | null
+          created_at?: string | null
+          default_discount?: number | null
+          description?: string | null
+          door_to_door?: Json
+          excess_weight?: Json
+          id?: string
+          insurance?: Json
+          minimum_rate?: Json
+          name?: string
+          updated_at?: string | null
+          user_id?: string | null
+          waiting_hour?: Json
+        }
+        Relationships: []
+      }
+      tire_maintenance_records: {
+        Row: {
+          brand: string | null
+          cost: number
+          created_at: string | null
+          date: string
+          description: string | null
+          id: string
+          maintenance_type: string
+          mileage: number
+          notes: string | null
+          provider: string | null
+          tire_position: string
+          tire_size: string | null
+          updated_at: string | null
+          user_id: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          brand?: string | null
+          cost: number
+          created_at?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          maintenance_type: string
+          mileage: number
+          notes?: string | null
+          provider?: string | null
+          tire_position: string
+          tire_size?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          brand?: string | null
+          cost?: number
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          maintenance_type?: string
+          mileage?: number
+          notes?: string | null
+          provider?: string | null
+          tire_position?: string
+          tire_size?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tire_maintenance_records_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          brand: string
+          capacity: number
+          created_at: string | null
+          current_odometer: number
+          fuel_type: string
+          id: string
+          last_oil_change: number | null
+          make: string
+          model: string
+          next_oil_change_km: number | null
+          plate: string
+          status: string
+          type: string
+          updated_at: string | null
+          user_id: string | null
+          year: string
+        }
+        Insert: {
+          brand: string
+          capacity: number
+          created_at?: string | null
+          current_odometer: number
+          fuel_type: string
+          id?: string
+          last_oil_change?: number | null
+          make: string
+          model: string
+          next_oil_change_km?: number | null
+          plate: string
+          status: string
+          type: string
+          updated_at?: string | null
+          user_id?: string | null
+          year: string
+        }
+        Update: {
+          brand?: string
+          capacity?: number
+          created_at?: string | null
+          current_odometer?: number
+          fuel_type?: string
+          id?: string
+          last_oil_change?: number | null
+          make?: string
+          model?: string
+          next_oil_change_km?: number | null
+          plate?: string
+          status?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string | null
+          year?: string
+        }
+        Relationships: []
       }
     }
     Views: {

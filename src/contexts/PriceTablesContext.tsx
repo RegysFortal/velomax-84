@@ -2,18 +2,20 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 type PriceTablesContextType = {
   priceTables: PriceTable[];
-  addPriceTable: (priceTable: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updatePriceTable: (id: string, priceTable: Partial<PriceTable>) => void;
-  deletePriceTable: (id: string) => void;
+  addPriceTable: (priceTable: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updatePriceTable: (id: string, priceTable: Partial<PriceTable>) => Promise<void>;
+  deletePriceTable: (id: string) => Promise<void>;
   getPriceTable: (id: string) => PriceTable | undefined;
   calculateInsurance: (priceTableId: string, invoiceValue: number, isReshipment: boolean, cargoType: 'standard' | 'perishable') => number;
   loading: boolean;
 };
 
-// Initial price tables data for demo purposes
+// Initial price tables data for demo purposes - will be used only if fetching fails
 const INITIAL_PRICE_TABLES: PriceTable[] = [
   {
     id: 'table-a',
@@ -191,99 +193,243 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
   const [priceTables, setPriceTables] = useState<PriceTable[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   useEffect(() => {
-    const loadPriceTables = () => {
-      const storedTables = localStorage.getItem('velomax_price_tables');
-      if (storedTables) {
-        try {
-          const parsedTables = JSON.parse(storedTables);
-          // Validate and fix any missing properties in the price tables
-          const validatedTables = parsedTables.map((table: PriceTable) => {
-            const updatedTable = { ...table };
-            
-            if (!updatedTable.waitingHour) {
-              updatedTable.waitingHour = {
-                fiorino: 44.00,
-                medium: 55.00,
-                large: 66.00,
-              };
-            }
-            
-            // Ensure minimumRate has all required properties
-            if (!updatedTable.minimumRate.doorToDoorInterior) {
-              updatedTable.minimumRate.doorToDoorInterior = 200.00;
-            }
-            
-            // Ensure excessWeight has all required properties
-            if (!updatedTable.excessWeight.biologicalPerKg) {
-              updatedTable.excessWeight.biologicalPerKg = 0.72;
-            }
-            
-            if (!updatedTable.excessWeight.reshipmentPerKg) {
-              updatedTable.excessWeight.reshipmentPerKg = 0.70;
-            }
-            
-            return updatedTable;
-          });
-          setPriceTables(validatedTables);
-        } catch (error) {
-          console.error('Failed to parse stored price tables', error);
+    const fetchPriceTables = async () => {
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('price_tables')
+          .select('*')
+          .order('name', { ascending: true });
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Map Supabase data to match our PriceTable type
+        const mappedPriceTables = data.map((table: any): PriceTable => ({
+          id: table.id,
+          name: table.name,
+          description: table.description || '',
+          minimumRate: table.minimum_rate,
+          excessWeight: table.excess_weight,
+          doorToDoor: table.door_to_door,
+          waitingHour: table.waiting_hour,
+          insurance: table.insurance,
+          allowCustomPricing: table.allow_custom_pricing,
+          defaultDiscount: table.default_discount || 0,
+          createdAt: table.created_at || new Date().toISOString(),
+          updatedAt: table.updated_at || new Date().toISOString(),
+        }));
+        
+        setPriceTables(mappedPriceTables);
+      } catch (error) {
+        console.error('Error fetching price tables:', error);
+        toast({
+          title: "Erro ao carregar tabelas de preços",
+          description: "Usando dados locais como fallback.",
+          variant: "destructive"
+        });
+        
+        // Load from localStorage as fallback
+        const storedTables = localStorage.getItem('velomax_price_tables');
+        if (storedTables) {
+          try {
+            const parsedTables = JSON.parse(storedTables);
+            // Validate and fix any missing properties in the price tables
+            const validatedTables = parsedTables.map((table: PriceTable) => {
+              const updatedTable = { ...table };
+              
+              if (!updatedTable.waitingHour) {
+                updatedTable.waitingHour = {
+                  fiorino: 44.00,
+                  medium: 55.00,
+                  large: 66.00,
+                };
+              }
+              
+              // Ensure minimumRate has all required properties
+              if (!updatedTable.minimumRate.doorToDoorInterior) {
+                updatedTable.minimumRate.doorToDoorInterior = 200.00;
+              }
+              
+              // Ensure excessWeight has all required properties
+              if (!updatedTable.excessWeight.biologicalPerKg) {
+                updatedTable.excessWeight.biologicalPerKg = 0.72;
+              }
+              
+              if (!updatedTable.excessWeight.reshipmentPerKg) {
+                updatedTable.excessWeight.reshipmentPerKg = 0.70;
+              }
+              
+              return updatedTable;
+            });
+            setPriceTables(validatedTables);
+          } catch (error) {
+            console.error('Failed to parse stored price tables', error);
+            setPriceTables(INITIAL_PRICE_TABLES);
+          }
+        } else {
           setPriceTables(INITIAL_PRICE_TABLES);
         }
-      } else {
-        setPriceTables(INITIAL_PRICE_TABLES);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
-    loadPriceTables();
-  }, []);
+    if (user) {
+      fetchPriceTables();
+    }
+  }, [toast, user]);
   
+  // Save price tables to localStorage as a backup
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_price_tables', JSON.stringify(priceTables));
     }
   }, [priceTables, loading]);
   
-  const addPriceTable = (
+  const addPriceTable = async (
     priceTable: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'>
   ) => {
-    const timestamp = new Date().toISOString();
-    const newPriceTable: PriceTable = {
-      ...priceTable,
-      id: `table-${Date.now()}`,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-    
-    setPriceTables((prev) => [...prev, newPriceTable]);
-    toast({
-      title: "Tabela de preços criada",
-      description: `A tabela "${priceTable.name}" foi criada com sucesso.`,
-    });
+    try {
+      const timestamp = new Date().toISOString();
+      
+      // Prepare data for Supabase insert
+      const supabasePriceTable = {
+        name: priceTable.name,
+        description: priceTable.description,
+        minimum_rate: priceTable.minimumRate,
+        excess_weight: priceTable.excessWeight,
+        door_to_door: priceTable.doorToDoor,
+        waiting_hour: priceTable.waitingHour,
+        insurance: priceTable.insurance,
+        allow_custom_pricing: priceTable.allowCustomPricing,
+        default_discount: priceTable.defaultDiscount || 0,
+        user_id: user?.id
+      };
+      
+      const { data, error } = await supabase
+        .from('price_tables')
+        .insert(supabasePriceTable)
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Map the returned data to our PriceTable type
+      const newPriceTable: PriceTable = {
+        id: data.id,
+        name: data.name,
+        description: data.description || '',
+        minimumRate: data.minimum_rate,
+        excessWeight: data.excess_weight,
+        doorToDoor: data.door_to_door,
+        waitingHour: data.waiting_hour,
+        insurance: data.insurance,
+        allowCustomPricing: data.allow_custom_pricing,
+        defaultDiscount: data.default_discount || 0,
+        createdAt: data.created_at || timestamp,
+        updatedAt: data.updated_at || timestamp,
+      };
+      
+      setPriceTables((prev) => [...prev, newPriceTable]);
+      
+      toast({
+        title: "Tabela de preços criada",
+        description: `A tabela "${priceTable.name}" foi criada com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error adding price table:", error);
+      toast({
+        title: "Erro ao criar tabela de preços",
+        description: "Ocorreu um erro ao criar a tabela de preços. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const updatePriceTable = (id: string, priceTable: Partial<PriceTable>) => {
-    setPriceTables((prev) => 
-      prev.map((table) => 
-        table.id === id 
-          ? { ...table, ...priceTable, updatedAt: new Date().toISOString() } 
-          : table
-      )
-    );
-    toast({
-      title: "Tabela de preços atualizada",
-      description: `A tabela foi atualizada com sucesso.`,
-    });
+  const updatePriceTable = async (id: string, priceTable: Partial<PriceTable>) => {
+    try {
+      const timestamp = new Date().toISOString();
+      
+      // Prepare data for Supabase update
+      const supabasePriceTable: any = {
+        updated_at: timestamp
+      };
+      
+      // Map properties from priceTable to supabasePriceTable
+      if (priceTable.name !== undefined) supabasePriceTable.name = priceTable.name;
+      if (priceTable.description !== undefined) supabasePriceTable.description = priceTable.description;
+      if (priceTable.minimumRate !== undefined) supabasePriceTable.minimum_rate = priceTable.minimumRate;
+      if (priceTable.excessWeight !== undefined) supabasePriceTable.excess_weight = priceTable.excessWeight;
+      if (priceTable.doorToDoor !== undefined) supabasePriceTable.door_to_door = priceTable.doorToDoor;
+      if (priceTable.waitingHour !== undefined) supabasePriceTable.waiting_hour = priceTable.waitingHour;
+      if (priceTable.insurance !== undefined) supabasePriceTable.insurance = priceTable.insurance;
+      if (priceTable.allowCustomPricing !== undefined) supabasePriceTable.allow_custom_pricing = priceTable.allowCustomPricing;
+      if (priceTable.defaultDiscount !== undefined) supabasePriceTable.default_discount = priceTable.defaultDiscount;
+
+      const { error } = await supabase
+        .from('price_tables')
+        .update(supabasePriceTable)
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setPriceTables((prev) => 
+        prev.map((table) => 
+          table.id === id 
+            ? { ...table, ...priceTable, updatedAt: timestamp } 
+            : table
+        )
+      );
+      
+      toast({
+        title: "Tabela de preços atualizada",
+        description: `A tabela foi atualizada com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error updating price table:", error);
+      toast({
+        title: "Erro ao atualizar tabela de preços",
+        description: "Ocorreu um erro ao atualizar a tabela de preços. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const deletePriceTable = (id: string) => {
-    setPriceTables((prev) => prev.filter((table) => table.id !== id));
-    toast({
-      title: "Tabela de preços removida",
-      description: `A tabela foi removida com sucesso.`,
-    });
+  const deletePriceTable = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('price_tables')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setPriceTables((prev) => prev.filter((table) => table.id !== id));
+      
+      toast({
+        title: "Tabela de preços removida",
+        description: `A tabela foi removida com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error deleting price table:", error);
+      toast({
+        title: "Erro ao remover tabela de preços",
+        description: "Ocorreu um erro ao remover a tabela de preços. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
   const getPriceTable = (id: string) => {

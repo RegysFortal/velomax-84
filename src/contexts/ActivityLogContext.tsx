@@ -1,165 +1,177 @@
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { ActivityLog } from '@/types';
+import { useAuth } from '@/contexts/auth/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { ActivityLog, ActivityAction, EntityType } from "@/types/activity";
-import { toast } from "sonner";
-
-interface ActivityLogContextType {
+interface ActivityLogContextProps {
   logs: ActivityLog[];
-  addLog: (params: {
-    action: ActivityAction;
-    entityType: EntityType;
-    entityId?: string;
-    entityName?: string;
-    details?: string;
-    userId?: string;
-    userName?: string;
-  }) => void;
-  getLogsByUser: (userId: string) => ActivityLog[];
-  getLogsByAction: (action: ActivityAction) => ActivityLog[];
-  getLogsByEntityType: (entityType: EntityType) => ActivityLog[];
-  getLogsByDateRange: (startDate: string, endDate: string) => ActivityLog[];
-  clearAllLogs: () => void;
+  addLog: (log: Omit<ActivityLog, 'id' | 'timestamp' | 'userId' | 'userName'>) => Promise<void>;
+  clearLogs: () => Promise<void>;
+  loading: boolean;
 }
 
-const ActivityLogContext = createContext<ActivityLogContextType | undefined>(undefined);
+const ActivityLogContext = createContext<ActivityLogContextProps | undefined>(undefined);
 
-export function ActivityLogProvider({ children }: { children: ReactNode }) {
+export const ActivityLogProvider = ({ children }: { children: ReactNode }) => {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const { user } = useAuth();
+
   useEffect(() => {
-    const loadLogs = () => {
+    const fetchLogs = async () => {
       try {
-        const storedLogs = localStorage.getItem("velomax_activity_logs");
-        if (storedLogs) {
-          setLogs(JSON.parse(storedLogs));
+        setLoading(true);
+        
+        if (user) {
+          const { data, error } = await supabase
+            .from('activity_logs')
+            .select('*')
+            .order('timestamp', { ascending: false });
+          
+          if (error) {
+            throw error;
+          }
+          
+          // Map Supabase data to our ActivityLog type
+          const mappedLogs = data.map((log: any): ActivityLog => ({
+            id: log.id,
+            userId: log.user_id,
+            userName: log.user_name,
+            action: log.action,
+            entityType: log.entity_type,
+            entityId: log.entity_id || '',
+            entityName: log.entity_name || '',
+            timestamp: log.timestamp,
+            details: log.details || '',
+            ipAddress: log.ip_address || '',
+          }));
+          
+          setLogs(mappedLogs);
         }
       } catch (error) {
-        console.error("Error loading activity logs:", error);
+        console.error('Error fetching activity logs:', error);
+        
+        // Fallback to localStorage if Supabase fetch fails
+        const storedLogs = localStorage.getItem('velomax_activity_logs');
+        if (storedLogs) {
+          try {
+            setLogs(JSON.parse(storedLogs));
+          } catch (err) {
+            console.error('Failed to parse stored logs', err);
+            setLogs([]);
+          }
+        } else {
+          setLogs([]);
+        }
       } finally {
         setLoading(false);
       }
     };
     
-    loadLogs();
-  }, []);
+    fetchLogs();
+  }, [user]);
   
+  // Keep localStorage sync as backup
   useEffect(() => {
     if (!loading) {
-      localStorage.setItem("velomax_activity_logs", JSON.stringify(logs));
+      localStorage.setItem('velomax_activity_logs', JSON.stringify(logs));
     }
   }, [logs, loading]);
-  
-  const addLog = ({
-    action,
-    entityType,
-    entityId,
-    entityName,
-    details,
-    userId,
-    userName
-  }: {
-    action: ActivityAction;
-    entityType: EntityType;
-    entityId?: string;
-    entityName?: string;
-    details?: string;
-    userId?: string;
-    userName?: string;
-  }) => {
-    // If userId and userName are not provided, try to get them from localStorage
-    let logUserId = userId;
-    let logUserName = userName;
+
+  const addLog = async (logData: Omit<ActivityLog, 'id' | 'timestamp' | 'userId' | 'userName'>) => {
+    if (!user) return;
     
-    if (!logUserId || !logUserName) {
-      try {
-        const storedUser = localStorage.getItem('velomax_user');
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          logUserId = logUserId || user.id;
-          logUserName = logUserName || user.name;
-        }
-      } catch (e) {
-        console.error('Failed to get user from localStorage:', e);
+    try {
+      const ipResponse = await fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .catch(() => ({ ip: '' }));
+      
+      const ipAddress = ipResponse.ip || '';
+      
+      const newLog = {
+        user_id: user.id,
+        user_name: user.name || user.email || 'Unknown User',
+        action: logData.action,
+        entity_type: logData.entityType,
+        entity_id: logData.entityId || '',
+        entity_name: logData.entityName || '',
+        details: logData.details || '',
+        ip_address: ipAddress,
+      };
+      
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .insert(newLog)
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
       }
+      
+      const mappedLog: ActivityLog = {
+        id: data.id,
+        userId: data.user_id,
+        userName: data.user_name,
+        action: data.action,
+        entityType: data.entity_type,
+        entityId: data.entity_id || '',
+        entityName: data.entity_name || '',
+        timestamp: data.timestamp,
+        details: data.details || '',
+        ipAddress: data.ip_address || '',
+      };
+      
+      setLogs(prev => [mappedLog, ...prev]);
+    } catch (error) {
+      console.error('Error adding activity log:', error);
+      
+      // Fallback to local storage if Supabase insert fails
+      const timestamp = new Date().toISOString();
+      const fallbackLog: ActivityLog = {
+        id: `log-${Date.now()}`,
+        userId: user.id,
+        userName: user.name || user.email || 'Unknown User',
+        timestamp,
+        ...logData,
+        ipAddress: '',
+      };
+      
+      setLogs(prev => [fallbackLog, ...prev]);
     }
-    
-    // If we still don't have a user, log a warning
-    if (!logUserId || !logUserName) {
-      console.warn("Cannot log activity without a user");
-      return;
-    }
-    
-    const newLog: ActivityLog = {
-      id: uuidv4(),
-      userId: logUserId,
-      userName: logUserName,
-      action,
-      entityType,
-      entityId,
-      entityName,
-      timestamp: new Date().toISOString(),
-      details,
-      ipAddress: "local" // In a real app, you would get the IP from the server
-    };
-    
-    setLogs(prevLogs => [newLog, ...prevLogs]);
   };
-  
-  const getLogsByUser = (userId: string) => {
-    return logs.filter(log => log.userId === userId);
-  };
-  
-  const getLogsByAction = (action: ActivityAction) => {
-    return logs.filter(log => log.action === action);
-  };
-  
-  const getLogsByEntityType = (entityType: EntityType) => {
-    return logs.filter(log => log.entityType === entityType);
-  };
-  
-  const getLogsByDateRange = (startDate: string, endDate: string) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
-    
-    return logs.filter(log => {
-      const logDate = new Date(log.timestamp);
-      return logDate >= start && logDate <= end;
-    });
-  };
-  
-  const clearAllLogs = () => {
-    if (window.confirm("Tem certeza que deseja limpar todos os logs de atividades? Esta ação não pode ser desfeita.")) {
+
+  const clearLogs = async () => {
+    try {
+      if (user) {
+        const { error } = await supabase
+          .from('activity_logs')
+          .delete()
+          .eq('user_id', user.id);
+        
+        if (error) {
+          throw error;
+        }
+      }
+      
       setLogs([]);
-      toast.success("Todos os logs de atividades foram limpos");
+      localStorage.removeItem('velomax_activity_logs');
+    } catch (error) {
+      console.error('Error clearing activity logs:', error);
     }
   };
-  
+
   return (
-    <ActivityLogContext.Provider
-      value={{
-        logs,
-        addLog,
-        getLogsByUser,
-        getLogsByAction,
-        getLogsByEntityType,
-        getLogsByDateRange,
-        clearAllLogs
-      }}
-    >
+    <ActivityLogContext.Provider value={{ logs, addLog, clearLogs, loading }}>
       {children}
     </ActivityLogContext.Provider>
   );
-}
+};
 
 export const useActivityLog = () => {
   const context = useContext(ActivityLogContext);
-  
-  if (context === undefined) {
-    throw new Error("useActivityLog must be used within a ActivityLogProvider");
+  if (!context) {
+    throw new Error('useActivityLog must be used within an ActivityLogProvider');
   }
-  
   return context;
 };
