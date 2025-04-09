@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EmployeeEditFormProps {
   employee: User | null;
@@ -148,16 +148,12 @@ export function EmployeeEditForm({
         zipCode,
         phone,
         employeeSince: employeeSince?.toISOString(),
-        // These fields are still required by the User type
-        email: employee?.email || `${name.toLowerCase().replace(/\s+/g, '.')}@velomax.com`,
-        username: employee?.username || name.toLowerCase().replace(/\s+/g, '.'),
-        role: employee?.role || 'user',
+        role: 'user',
         createdAt: employee?.createdAt || currentDate,
         updatedAt: currentDate
       };
 
       if (onSave) {
-        // For employee management
         onSave(userData, isCreating);
         toast.success(isCreating ? "Colaborador adicionado" : "Colaborador atualizado");
       }
@@ -170,246 +166,250 @@ export function EmployeeEditForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Nome Completo*</Label>
-        <Input 
-          id="name" 
-          value={name} 
-          onChange={(e) => setName(e.target.value)} 
-          placeholder="Nome completo"
-          required
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="rg">RG</Label>
-          <Input 
-            id="rg" 
-            value={rg} 
-            onChange={(e) => setRg(e.target.value)} 
-            placeholder="Registro Geral"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="cpf">CPF</Label>
-          <Input 
-            id="cpf" 
-            value={cpf} 
-            onChange={(e) => setCpf(e.target.value)} 
-            placeholder="000.000.000-00"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="birthDate">Data de Nascimento</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !birthDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {birthDate ? format(birthDate, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={birthDate}
-              onSelect={setBirthDate}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Cargo</Label>
-        <RadioGroup value={positionType} onValueChange={(value) => setPositionType(value as 'motorista' | 'ajudante' | 'outro')}>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="motorista" id="motorista" />
-            <Label htmlFor="motorista">Motorista</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="ajudante" id="ajudante" />
-            <Label htmlFor="ajudante">Ajudante</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="outro" id="outro" />
-            <Label htmlFor="outro">Outro</Label>
-          </div>
-        </RadioGroup>
-        
-        {positionType === 'outro' && (
-          <div className="mt-2">
-            <Input 
-              value={customPosition} 
-              onChange={(e) => setCustomPosition(e.target.value)} 
-              placeholder="Especifique o cargo"
-            />
-          </div>
-        )}
-      </div>
-
-      {positionType === 'motorista' && (
-        <div className="space-y-4 p-4 border rounded-md bg-slate-50">
+    <form onSubmit={handleSubmit} className="space-y-4 h-[600px]">
+      <ScrollArea className="h-[500px] pr-4">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="driverLicense">Número da CNH</Label>
+            <Label htmlFor="name">Nome Completo*</Label>
             <Input 
-              id="driverLicense" 
-              value={driverLicense} 
-              onChange={(e) => setDriverLicense(e.target.value)} 
-              placeholder="Número da CNH"
+              id="name" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              placeholder="Nome completo"
+              required
             />
           </div>
-          
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="rg">RG</Label>
+              <Input 
+                id="rg" 
+                value={rg} 
+                onChange={(e) => setRg(e.target.value)} 
+                placeholder="Registro Geral"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cpf">CPF</Label>
+              <Input 
+                id="cpf" 
+                value={cpf} 
+                onChange={(e) => setCpf(e.target.value)} 
+                placeholder="000.000.000-00"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="driverLicenseExpiry">Validade da Habilitação</Label>
+            <Label htmlFor="birthDate">Data de Nascimento</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !driverLicenseExpiry && "text-muted-foreground"
+                    !birthDate && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {driverLicenseExpiry ? format(driverLicenseExpiry, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
+                  {birthDate ? format(birthDate, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={driverLicenseExpiry}
-                  onSelect={setDriverLicenseExpiry}
+                  selected={birthDate}
+                  onSelect={setBirthDate}
                   initialFocus
                 />
               </PopoverContent>
             </Popover>
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="driverLicenseCategory">Categoria da Habilitação</Label>
+            <Label>Cargo</Label>
+            <RadioGroup value={positionType} onValueChange={(value) => setPositionType(value as 'motorista' | 'ajudante' | 'outro')}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="motorista" id="motorista" />
+                <Label htmlFor="motorista">Motorista</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="ajudante" id="ajudante" />
+                <Label htmlFor="ajudante">Ajudante</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="outro" id="outro" />
+                <Label htmlFor="outro">Outro</Label>
+              </div>
+            </RadioGroup>
+            
+            {positionType === 'outro' && (
+              <div className="mt-2">
+                <Input 
+                  value={customPosition} 
+                  onChange={(e) => setCustomPosition(e.target.value)} 
+                  placeholder="Especifique o cargo"
+                />
+              </div>
+            )}
+          </div>
+
+          {positionType === 'motorista' && (
+            <div className="space-y-4 p-4 border rounded-md bg-slate-50">
+              <div className="space-y-2">
+                <Label htmlFor="driverLicense">Número da CNH</Label>
+                <Input 
+                  id="driverLicense" 
+                  value={driverLicense} 
+                  onChange={(e) => setDriverLicense(e.target.value)} 
+                  placeholder="Número da CNH"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="driverLicenseExpiry">Validade da Habilitação</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !driverLicenseExpiry && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {driverLicenseExpiry ? format(driverLicenseExpiry, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={driverLicenseExpiry}
+                      onSelect={setDriverLicenseExpiry}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="driverLicenseCategory">Categoria da Habilitação</Label>
+                <Input 
+                  id="driverLicenseCategory" 
+                  value={driverLicenseCategory} 
+                  onChange={(e) => setDriverLicenseCategory(e.target.value)} 
+                  placeholder="Ex: A, B, C, D, E"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="fatherName">Nome do Pai</Label>
+              <Input 
+                id="fatherName" 
+                value={fatherName} 
+                onChange={(e) => setFatherName(e.target.value)} 
+                placeholder="Nome completo do pai"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="motherName">Nome da Mãe</Label>
+              <Input 
+                id="motherName" 
+                value={motherName} 
+                onChange={(e) => setMotherName(e.target.value)} 
+                placeholder="Nome completo da mãe"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Endereço Completo</Label>
             <Input 
-              id="driverLicenseCategory" 
-              value={driverLicenseCategory} 
-              onChange={(e) => setDriverLicenseCategory(e.target.value)} 
-              placeholder="Ex: A, B, C, D, E"
+              id="address" 
+              value={address} 
+              onChange={(e) => setAddress(e.target.value)} 
+              placeholder="Rua, número, complemento"
             />
           </div>
-        </div>
-      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="fatherName">Nome do Pai</Label>
-          <Input 
-            id="fatherName" 
-            value={fatherName} 
-            onChange={(e) => setFatherName(e.target.value)} 
-            placeholder="Nome completo do pai"
-          />
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="city">Cidade</Label>
+              <Input 
+                id="city" 
+                value={city} 
+                onChange={(e) => setCity(e.target.value)} 
+                placeholder="Cidade"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="motherName">Nome da Mãe</Label>
-          <Input 
-            id="motherName" 
-            value={motherName} 
-            onChange={(e) => setMotherName(e.target.value)} 
-            placeholder="Nome completo da mãe"
-          />
-        </div>
-      </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">Estado</Label>
+              <Input 
+                id="state" 
+                value={state} 
+                onChange={(e) => setState(e.target.value)} 
+                placeholder="Estado"
+              />
+            </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="address">Endereço Completo</Label>
-        <Input 
-          id="address" 
-          value={address} 
-          onChange={(e) => setAddress(e.target.value)} 
-          placeholder="Rua, número, complemento"
-        />
-      </div>
+            <div className="space-y-2">
+              <Label htmlFor="zipCode">CEP</Label>
+              <Input 
+                id="zipCode" 
+                value={zipCode} 
+                onChange={(e) => setZipCode(e.target.value)} 
+                placeholder="00000-000"
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="city">Cidade</Label>
-          <Input 
-            id="city" 
-            value={city} 
-            onChange={(e) => setCity(e.target.value)} 
-            placeholder="Cidade"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="state">Estado</Label>
-          <Input 
-            id="state" 
-            value={state} 
-            onChange={(e) => setState(e.target.value)} 
-            placeholder="Estado"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="zipCode">CEP</Label>
-          <Input 
-            id="zipCode" 
-            value={zipCode} 
-            onChange={(e) => setZipCode(e.target.value)} 
-            placeholder="00000-000"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="phone">Telefone</Label>
-        <Input 
-          id="phone" 
-          type="tel" 
-          value={phone} 
-          onChange={(e) => setPhone(e.target.value)} 
-          placeholder="(00) 00000-0000"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="employeeSince">Funcionário Desde</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !employeeSince && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {employeeSince ? format(employeeSince, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={employeeSince}
-              onSelect={setEmployeeSince}
-              initialFocus
+          <div className="space-y-2">
+            <Label htmlFor="phone">Telefone</Label>
+            <Input 
+              id="phone" 
+              type="tel" 
+              value={phone} 
+              onChange={(e) => setPhone(e.target.value)} 
+              placeholder="(00) 00000-0000"
             />
-          </PopoverContent>
-        </Popover>
-      </div>
+          </div>
 
-      <div className="flex justify-end gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="employeeSince">Funcionário Desde</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !employeeSince && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {employeeSince ? format(employeeSince, "dd/MM/yyyy", {locale: ptBR}) : <span>Selecione uma data</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={employeeSince}
+                  onSelect={setEmployeeSince}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      </ScrollArea>
+
+      <div className="flex justify-end gap-2 mt-4">
         <Button type="button" variant="outline" onClick={onComplete}>
           Cancelar
         </Button>
