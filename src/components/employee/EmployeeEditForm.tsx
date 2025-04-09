@@ -15,8 +15,7 @@ import {
   RadioGroup,
   RadioGroupItem
 } from '@/components/ui/radio-group';
-import { useAuth } from '@/contexts/auth/AuthContext';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 interface EmployeeEditFormProps {
   employee: User | null;
@@ -33,15 +32,11 @@ export function EmployeeEditForm({
   onSave,
   isEmployeeForm = false
 }: EmployeeEditFormProps) {
-  const { updateUserRole, addUser } = useAuth();
-  
   // Form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [role, setRole] = useState<'user' | 'admin' | 'manager'>('user');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [position, setPosition] = useState('');
   const [department, setDepartment] = useState<string>('');
   const [positionType, setPositionType] = useState<'motorista' | 'ajudante' | 'outro'>('outro');
@@ -77,8 +72,6 @@ export function EmployeeEditForm({
       setEmail('');
       setUsername('');
       setRole('user');
-      setPassword('');
-      setConfirmPassword('');
       setPosition('');
       setDepartment('');
       setPositionType('outro');
@@ -102,91 +95,35 @@ export function EmployeeEditForm({
 
     // Form validation
     if (!name.trim()) {
-      toast({ title: "Erro", description: "Nome é obrigatório", variant: "destructive" });
+      toast.error("Nome é obrigatório");
       return;
     }
 
-    if (!isEmployeeForm) {
-      // For system users, we need email and username
-      if (!email.trim() || !username.trim()) {
-        toast({ title: "Erro", description: "Email e nome de usuário são obrigatórios", variant: "destructive" });
-        return;
-      }
-
-      // Password validation for new users
-      if (isCreating) {
-        if (!password) {
-          toast({ title: "Erro", description: "Senha é obrigatória para novos usuários", variant: "destructive" });
-          return;
-        }
-        
-        if (password.length < 6) {
-          toast({ title: "Erro", description: "A senha deve ter pelo menos 6 caracteres", variant: "destructive" });
-          return;
-        }
-        
-        if (password !== confirmPassword) {
-          toast({ title: "Erro", description: "As senhas não conferem", variant: "destructive" });
-          return;
-        }
-      }
-    }
-
     try {
+      const currentDate = new Date().toISOString();
+      
       const userData: User = {
-        id: employee?.id || '',
+        id: employee?.id || `emp-${Date.now()}`,
         name,
-        email,
-        username,
+        email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@velomax.com`,
+        username: username || name.toLowerCase().replace(/\s+/g, '.'),
         role,
         position,
         department,
+        createdAt: employee?.createdAt || currentDate,
+        updatedAt: currentDate
       };
 
-      if (isEmployeeForm && onSave) {
-        // For employee management (not system users)
+      if (onSave) {
+        // For employee management
         onSave(userData, isCreating);
-        toast({
-          title: isCreating ? "Colaborador adicionado" : "Colaborador atualizado",
-          description: `${name} foi ${isCreating ? 'adicionado' : 'atualizado'} com sucesso.`
-        });
-      } else {
-        // For system users
-        if (isCreating) {
-          // Create new user
-          await addUser({
-            email,
-            password,
-            username,
-            name,
-            role,
-            position,
-            department,
-          });
-          
-          toast({
-            title: "Usuário criado",
-            description: `O usuário ${name} foi criado com sucesso.`
-          });
-        } else if (employee) {
-          // Update existing user role
-          await updateUserRole(employee.id, role);
-          
-          toast({
-            title: "Usuário atualizado",
-            description: `O usuário ${name} foi atualizado com sucesso.`
-          });
-        }
+        toast.success(isCreating ? "Colaborador adicionado" : "Colaborador atualizado");
       }
       
       onComplete();
     } catch (error) {
-      console.error('Error saving user/employee:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao salvar. Tente novamente.",
-        variant: "destructive"
-      });
+      console.error('Error saving employee:', error);
+      toast.error("Ocorreu um erro ao salvar. Tente novamente.");
     }
   };
 
@@ -202,70 +139,16 @@ export function EmployeeEditForm({
         />
       </div>
 
-      {!isEmployeeForm && (
-        <>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              placeholder="email@exemplo.com"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="username">Nome de Usuário</Label>
-            <Input 
-              id="username" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)} 
-              placeholder="username"
-            />
-          </div>
-
-          {isCreating && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  placeholder="********"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                <Input 
-                  id="confirmPassword" 
-                  type="password" 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)} 
-                  placeholder="********"
-                />
-              </div>
-            </>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="role">Função no Sistema</Label>
-            <Select value={role} onValueChange={(value) => setRole(value as 'user' | 'admin' | 'manager')}>
-              <SelectTrigger id="role">
-                <SelectValue placeholder="Selecione uma função" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">Usuário Padrão</SelectItem>
-                <SelectItem value="manager">Gerente</SelectItem>
-                <SelectItem value="admin">Administrador</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </>
-      )}
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input 
+          id="email" 
+          type="email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          placeholder="email@exemplo.com"
+        />
+      </div>
 
       <div className="space-y-2">
         <Label>Cargo</Label>

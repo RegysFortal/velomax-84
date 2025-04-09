@@ -36,7 +36,8 @@ export function ClientSearchSelect({
   useEffect(() => {
     console.log("ClientSearchSelect - Rendering with value:", value);
     console.log("ClientSearchSelect - Clients available:", clients.length);
-  }, [value, clients.length]);
+    console.log("ClientSearchSelect - showCreateOption:", showCreateOption);
+  }, [value, clients.length, showCreateOption]);
   
   useEffect(() => {
     if (clients.length > 0) {
@@ -85,7 +86,7 @@ export function ClientSearchSelect({
       }}
       placeholder={placeholder}
       emptyMessage="Nenhum cliente encontrado"
-      showCreateOption={showCreateOption && clients.length > 0}
+      showCreateOption={showCreateOption}
       onCreateNew={handleCreateNewClient}
       createOptionLabel={createOptionLabel}
     />
