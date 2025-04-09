@@ -1,6 +1,9 @@
 
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { fetchAddressFromCep } from '@/utils/cepUtils';
+import { toast } from '@/components/ui/use-toast';
 
 interface AddressSectionProps {
   address: string;
@@ -23,6 +26,37 @@ export function AddressSection({
   zipCode,
   setZipCode
 }: AddressSectionProps) {
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cep = e.target.value;
+    setZipCode(cep);
+    
+    // Only try to fetch if CEP length is 8 digits (without formatting)
+    if (cep.replace(/\D/g, '').length === 8) {
+      setIsLoadingCep(true);
+      
+      try {
+        const addressData = await fetchAddressFromCep(cep);
+        
+        if (addressData) {
+          setAddress(addressData.logradouro || '');
+          setCity(addressData.localidade || '');
+          setState(addressData.uf || '');
+          
+          toast({
+            title: "CEP encontrado",
+            description: "Endereço preenchido automaticamente",
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching address from CEP:', error);
+      } finally {
+        setIsLoadingCep(false);
+      }
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -61,8 +95,9 @@ export function AddressSection({
           <Input 
             id="zipCode" 
             value={zipCode} 
-            onChange={(e) => setZipCode(e.target.value)} 
+            onChange={handleCepChange} 
             placeholder="00000-000"
+            className={isLoadingCep ? "bg-muted" : ""}
           />
         </div>
       </div>
