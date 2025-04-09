@@ -8,13 +8,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { ClientForm } from '@/components/client/ClientForm';
 import { useClients } from '@/contexts/ClientsContext';
 import { z } from 'zod';
-
-// For type safety, we're using the same form schema here
 import { clientFormSchema } from '@/components/client/ClientFormSchema';
 
 export function ClientAddDialog() {
@@ -52,19 +51,22 @@ export function ClientAddDialog() {
           Adicionar Cliente
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[625px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Adicionar Cliente</DialogTitle>
           <DialogDescription>
             Adicione um novo cliente à sua empresa.
           </DialogDescription>
         </DialogHeader>
-        <ClientForm 
-          onSubmit={handleAddClient} 
-          submitButtonLabel="Adicionar" 
-          initialData={undefined}
-        />
+        <ScrollArea className="h-[60vh] pr-4">
+          <ClientForm 
+            onSubmit={handleAddClient} 
+            submitButtonLabel="Adicionar" 
+            initialData={undefined}
+          />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
 }
+
