@@ -7,7 +7,35 @@ import { logUserActivity, createUserPermissions } from './authUtils';
 export const useUserManagement = (currentUser: User | null) => {
   const [users, setUsers] = useState<User[]>(() => {
     const storedUsers = localStorage.getItem('velomax_users');
-    return storedUsers ? JSON.parse(storedUsers) : [];
+    if (storedUsers) {
+      const parsedUsers = JSON.parse(storedUsers);
+      
+      // Check if we need to update specific users' roles
+      const updatedUsers = parsedUsers.map((user: User) => {
+        if (
+          user.name === "Wanessa" || 
+          user.name === "Liangela" || 
+          user.name === "Rosangela"
+        ) {
+          // Update these specific users to the 'user' role and adjust permissions accordingly
+          return {
+            ...user,
+            role: 'user',
+            permissions: createUserPermissions('user'),
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return user;
+      });
+      
+      // If any changes were made, save them back to localStorage
+      if (JSON.stringify(parsedUsers) !== JSON.stringify(updatedUsers)) {
+        localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+      }
+      
+      return updatedUsers;
+    }
+    return [];
   });
 
   const saveUsers = (updatedUsers: User[]) => {
@@ -78,11 +106,22 @@ export const useUserManagement = (currentUser: User | null) => {
         throw new Error("Nome de usuário já está em uso");
       }
       
-      const permissions = userData.permissions || createUserPermissions(userData.role);
+      // Check if this is one of our specific users that should be a 'user' role
+      let role = userData.role;
+      if (
+        userData.name === "Wanessa" || 
+        userData.name === "Liangela" || 
+        userData.name === "Rosangela"
+      ) {
+        role = 'user';
+      }
+      
+      const permissions = userData.permissions || createUserPermissions(role);
       
       const newUser: User = {
         id: uuidv4(),
         ...userData,
+        role,
         permissions,
         createdAt: new Date().toISOString(),
         updatedAt: userData.updatedAt || new Date().toISOString(),
