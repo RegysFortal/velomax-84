@@ -56,7 +56,7 @@ export const useDeliveriesCRUD = (
         throw error;
       }
       
-      // Map the returned data to our Delivery type
+      // Map the returned data to our Delivery type with proper type assertions
       const newDelivery: Delivery = {
         id: data.id,
         minuteNumber: data.minute_number,
@@ -66,8 +66,8 @@ export const useDeliveriesCRUD = (
         receiver: data.receiver || '',
         weight: data.weight,
         packages: data.packages,
-        deliveryType: data.delivery_type,
-        cargoType: data.cargo_type,
+        deliveryType: data.delivery_type as Delivery['deliveryType'],
+        cargoType: data.cargo_type as Delivery['cargoType'],
         cargoValue: data.cargo_value || 0,
         totalFreight: data.total_freight,
         notes: data.notes || '',

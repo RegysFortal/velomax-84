@@ -64,7 +64,7 @@ export const useDeliveriesStorage = () => {
           throw error;
         }
         
-        // Map Supabase data to match our Delivery type
+        // Map Supabase data to match our Delivery type with proper type assertions
         const mappedDeliveries = data.map((delivery: any): Delivery => ({
           id: delivery.id,
           minuteNumber: delivery.minute_number,
@@ -74,8 +74,8 @@ export const useDeliveriesStorage = () => {
           receiver: delivery.receiver || '',
           weight: delivery.weight,
           packages: delivery.packages,
-          deliveryType: delivery.delivery_type,
-          cargoType: delivery.cargo_type,
+          deliveryType: delivery.delivery_type as Delivery['deliveryType'],
+          cargoType: delivery.cargo_type as Delivery['cargoType'],
           cargoValue: delivery.cargo_value || 0,
           totalFreight: delivery.total_freight,
           notes: delivery.notes || '',
