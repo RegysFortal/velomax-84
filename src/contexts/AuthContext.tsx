@@ -473,21 +473,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Nome de usuário já está em uso");
       }
       
-      const permissions = {
-        deliveries: userData.permissions?.deliveries ?? false,
-        shipments: userData.permissions?.shipments ?? false,
-        clients: userData.permissions?.clients ?? false,
-        cities: userData.permissions?.cities ?? false,
-        reports: userData.permissions?.reports ?? false,
-        financial: userData.permissions?.financial ?? false,
-        priceTables: userData.permissions?.priceTables ?? false,
-        dashboard: userData.permissions?.dashboard ?? true,
-        logbook: userData.permissions?.logbook ?? false,
-        employees: userData.permissions?.employees ?? false,
-        vehicles: userData.permissions?.vehicles ?? false,
-        maintenance: userData.permissions?.maintenance ?? false,
-        settings: userData.permissions?.settings ?? false,
+      let permissions = {
+        deliveries: false,
+        shipments: false,
+        clients: false,
+        cities: false,
+        reports: false,
+        financial: false,
+        priceTables: false,
+        dashboard: false,
+        logbook: false,
+        employees: false,
+        vehicles: false,
+        maintenance: false,
+        settings: false,
       };
+
+      if (userData.role === 'admin') {
+        Object.keys(permissions).forEach(key => {
+          permissions[key as keyof User['permissions']] = true;
+        });
+      } 
+      else if (userData.role === 'manager') {
+        permissions = {
+          ...permissions,
+          dashboard: true,
+          priceTables: true,
+          employees: true,
+          clients: true,
+          cities: true,
+          deliveries: true,
+          shipments: true,
+          reports: true,
+          vehicles: true,
+          maintenance: true,
+        };
+      } 
+      else if (userData.role === 'user') {
+        permissions = {
+          ...permissions,
+          dashboard: true,
+          deliveries: true,
+          shipments: true,
+          reports: true,
+        };
+      }
+      
+      if (userData.permissions) {
+        permissions = {
+          ...permissions,
+          ...userData.permissions
+        };
+      }
       
       const newUser: User = {
         id: uuidv4(),

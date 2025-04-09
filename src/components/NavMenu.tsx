@@ -24,21 +24,17 @@ export function NavMenu() {
       : "text-muted-foreground";
   };
 
-  // Check if user has access to any operational modules
+  // Determine which menus should be shown based on user permissions
   const hasOperationalAccess = 
     hasPermission('deliveries') || 
-    hasPermission('shipments') ||
-    user?.role === 'admin';
+    hasPermission('shipments');
 
-  // Check if user has access to any financial modules
   const hasFinancialAccess = 
     hasPermission('financial') || 
     hasPermission('reports') || 
     hasPermission('priceTables') || 
-    hasPermission('cities') ||
-    user?.role === 'admin';
+    hasPermission('cities');
 
-  // Check if user has access to any management modules
   const hasManagementAccess = 
     hasPermission('dashboard') || 
     hasPermission('logbook') || 
@@ -47,12 +43,7 @@ export function NavMenu() {
     hasPermission('vehicles') || 
     hasPermission('maintenance') || 
     hasPermission('settings') ||
-    user?.role === 'admin';
-
-  // Function to check if user can access a specific page
-  const canAccessPage = (permission: keyof User['permissions']) => {
-    return hasPermission(permission) || user?.role === 'admin';
-  };
+    user?.role === 'admin'; // Admin always sees management menu
 
   return (
     <NavigationMenu>
@@ -67,7 +58,7 @@ export function NavMenu() {
             <NavigationMenuContent>
               <ScrollArea className="h-[300px] w-[400px]">
                 <div className="grid gap-3 p-4">
-                  {canAccessPage('deliveries') && (
+                  {hasPermission('deliveries') && (
                     <Link
                       to="/deliveries"
                       className={cn(
@@ -78,7 +69,7 @@ export function NavMenu() {
                       Entregas
                     </Link>
                   )}
-                  {canAccessPage('shipments') && (
+                  {hasPermission('shipments') && (
                     <Link
                       to="/shipments"
                       className={cn(
@@ -89,7 +80,7 @@ export function NavMenu() {
                       Embarques
                     </Link>
                   )}
-                  {canAccessPage('reports') && (
+                  {hasPermission('reports') && (
                     <Link
                       to="/shipment-reports"
                       className={cn(
@@ -116,7 +107,7 @@ export function NavMenu() {
             <NavigationMenuContent>
               <ScrollArea className="h-[300px] w-[400px]">
                 <div className="grid gap-3 p-4">
-                  {canAccessPage('financial') && (
+                  {hasPermission('financial') && (
                     <Link
                       to="/financial"
                       className={cn(
@@ -127,7 +118,7 @@ export function NavMenu() {
                       Financeiro
                     </Link>
                   )}
-                  {canAccessPage('reports') && (
+                  {hasPermission('reports') && (
                     <Link
                       to="/reports"
                       className={cn(
@@ -138,7 +129,7 @@ export function NavMenu() {
                       Relatórios
                     </Link>
                   )}
-                  {canAccessPage('priceTables') && (
+                  {hasPermission('priceTables') && (
                     <Link
                       to="/price-tables"
                       className={cn(
@@ -149,7 +140,7 @@ export function NavMenu() {
                       Tabelas de Preços
                     </Link>
                   )}
-                  {canAccessPage('cities') && (
+                  {hasPermission('cities') && (
                     <Link
                       to="/cities"
                       className={cn(
@@ -176,7 +167,7 @@ export function NavMenu() {
             <NavigationMenuContent>
               <ScrollArea className="h-[300px] w-[400px]">
                 <div className="grid gap-3 p-4">
-                  {canAccessPage('dashboard') && (
+                  {hasPermission('dashboard') && (
                     <Link
                       to="/dashboard"
                       className={cn(
@@ -187,7 +178,7 @@ export function NavMenu() {
                       Dashboard
                     </Link>
                   )}
-                  {canAccessPage('logbook') && (
+                  {hasPermission('logbook') && (
                     <Link
                       to="/logbook"
                       className={cn(
@@ -198,7 +189,7 @@ export function NavMenu() {
                       Diário de Bordo
                     </Link>
                   )}
-                  {canAccessPage('clients') && (
+                  {hasPermission('clients') && (
                     <Link
                       to="/clients"
                       className={cn(
@@ -209,7 +200,7 @@ export function NavMenu() {
                       Clientes
                     </Link>
                   )}
-                  {canAccessPage('employees') && (
+                  {hasPermission('employees') && (
                     <Link
                       to="/employees"
                       className={cn(
@@ -220,7 +211,7 @@ export function NavMenu() {
                       Funcionários
                     </Link>
                   )}
-                  {canAccessPage('vehicles') && (
+                  {hasPermission('vehicles') && (
                     <Link
                       to="/vehicles"
                       className={cn(
@@ -231,7 +222,7 @@ export function NavMenu() {
                       Veículos
                     </Link>
                   )}
-                  {canAccessPage('maintenance') && (
+                  {hasPermission('maintenance') && (
                     <Link
                       to="/maintenance"
                       className={cn(
@@ -253,7 +244,7 @@ export function NavMenu() {
                       Logs de Atividades
                     </Link>
                   )}
-                  {canAccessPage('settings') && (
+                  {hasPermission('settings') && (
                     <Link
                       to="/settings"
                       className={cn(
