@@ -5,8 +5,8 @@ export interface ActivityLog {
   userName: string;
   action: ActivityAction;
   entityType: EntityType;
-  entityId?: string;
-  entityName?: string;
+  entityId: string;
+  entityName: string;
   timestamp: string;
   details?: string;
   ipAddress?: string;

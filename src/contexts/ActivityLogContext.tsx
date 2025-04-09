@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { ActivityLog } from '@/types';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -130,7 +131,11 @@ export const ActivityLogProvider = ({ children }: { children: ReactNode }) => {
         userId: user.id,
         userName: user.name || user.email || 'Unknown User',
         timestamp,
-        ...logData,
+        action: logData.action,
+        entityType: logData.entityType,
+        entityId: logData.entityId || '',
+        entityName: logData.entityName || '',
+        details: logData.details || '',
         ipAddress: '',
       };
       

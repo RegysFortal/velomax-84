@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
@@ -50,7 +51,7 @@ const ActivityLogs = () => {
   const [toDate, setToDate] = useState<Date | undefined>();
 
   useEffect(() => {
-    let currentLogs = [...logs];
+    let currentLogs = [...logs] as ActivityLog[];
 
     // Apply date range filter
     if (fromDate && toDate) {

@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -165,14 +164,16 @@ export interface FinancialReport {
 }
 
 export interface ActivityLog {
-  id?: string;
-  timestamp?: string;
-  userId?: string;
+  id: string;
+  userId: string;
+  userName: string;
   action: string;
   entityType: string;
   entityId: string;
   entityName: string;
+  timestamp: string;
   details?: string;
+  ipAddress?: string;
 }
 
 export interface Shipment {
