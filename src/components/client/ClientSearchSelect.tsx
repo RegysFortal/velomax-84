@@ -67,7 +67,10 @@ export function ClientSearchSelect({
   }, [clients, includeAllOption, allOptionLabel, allOptionValue, value, onValueChange, disableAutoSelect]);
   
   const handleCreateNewClient = () => {
-    // Save current state and navigate to clients page
+    // Store current route to return after client creation
+    localStorage.setItem('velomax_return_route', window.location.pathname);
+    
+    // Navigate to clients page
     toast.info("Redirecionando para cadastro de novo cliente");
     navigate("/clients");
   };
@@ -82,7 +85,7 @@ export function ClientSearchSelect({
       }}
       placeholder={placeholder}
       emptyMessage="Nenhum cliente encontrado"
-      showCreateOption={showCreateOption}
+      showCreateOption={showCreateOption && clients.length > 0}
       onCreateNew={handleCreateNewClient}
       createOptionLabel={createOptionLabel}
     />

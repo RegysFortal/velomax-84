@@ -41,7 +41,8 @@ export function SearchableSelect({
   useEffect(() => {
     console.log("SearchableSelect - options count:", options.length);
     console.log("SearchableSelect - current value:", value);
-  }, [options.length, value]);
+    console.log("SearchableSelect - showCreateOption:", showCreateOption);
+  }, [options.length, value, showCreateOption]);
 
   // Find the selected option label
   const selectedOption = options.find(option => option.value === value);
@@ -141,7 +142,7 @@ export function SearchableSelect({
                   {value === option.value && <Check className="h-4 w-4" />}
                 </CommandItem>
               ))}
-              {showCreateOption && onCreateNew && options.length > 0 && (
+              {showCreateOption && onCreateNew && (
                 <CommandItem
                   value="__create-new__"
                   onSelect={handleCreateNew}

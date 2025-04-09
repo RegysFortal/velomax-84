@@ -1,19 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -23,418 +13,312 @@ import {
 } from '@/components/ui/select';
 import {
   RadioGroup,
-  RadioGroupItem,
+  RadioGroupItem
 } from '@/components/ui/radio-group';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { toast } from "sonner";
-
-// Define the validation schema
-const employeeFormSchema = z.object({
-  name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
-  email: z.string().email({ message: 'Email inválido' }),
-  username: z.string().min(3, { message: 'Nome de usuário deve ter pelo menos 3 caracteres' }).optional().or(z.literal('')),
-  password: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres' }).optional().or(z.literal('')),
-  role: z.enum(['admin', 'manager', 'user'], {
-    required_error: 'Selecione uma função'
-  }),
-  department: z.string().min(1, { message: 'Selecione um departamento' }),
-  position: z.string().min(1, { message: 'Informe o cargo' }),
-  positionType: z.enum(['motorista', 'ajudante', 'outro'], {
-    required_error: 'Selecione o tipo de cargo'
-  }),
-  phone: z.string().optional(),
-});
-
-type EmployeeFormValues = z.infer<typeof employeeFormSchema>;
+import { toast } from '@/components/ui/use-toast';
 
 interface EmployeeEditFormProps {
   employee: User | null;
-  isCreating?: boolean;
+  isCreating: boolean;
   onComplete: () => void;
+  onSave?: (employee: User, isNew: boolean) => void;
+  isEmployeeForm?: boolean;
 }
 
-export function EmployeeEditForm({ employee, isCreating = false, onComplete }: EmployeeEditFormProps) {
-  const { updateUser, deleteUser, createUser } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+export function EmployeeEditForm({
+  employee,
+  isCreating,
+  onComplete,
+  onSave,
+  isEmployeeForm = false
+}: EmployeeEditFormProps) {
+  const { updateUserRole, addUser } = useAuth();
+  
+  // Form state
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [role, setRole] = useState<'user' | 'admin' | 'manager'>('user');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [position, setPosition] = useState('');
+  const [department, setDepartment] = useState<string>('');
   const [positionType, setPositionType] = useState<'motorista' | 'ajudante' | 'outro'>('outro');
+  const [customPosition, setCustomPosition] = useState('');
 
-  // Initialize form with react-hook-form
-  const form = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeFormSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      username: '',
-      password: '',
-      role: 'user' as const,
-      department: '',
-      position: '',
-      positionType: 'outro' as const,
-      phone: '',
-    }
-  });
-
-  // Fill the form with employee data when editing
+  // Load employee data if editing
   useEffect(() => {
     if (employee) {
-      // Determine the position type based on position string
-      let posType: 'motorista' | 'ajudante' | 'outro' = 'outro';
+      setName(employee.name || '');
+      setEmail(employee.email || '');
+      setUsername(employee.username || '');
+      setRole(employee.role as 'user' | 'admin' | 'manager');
+      setPosition(employee.position || '');
+      setDepartment(employee.department || '');
+      
+      // Set position type based on existing position
       if (employee.position) {
-        const pos = employee.position.toLowerCase();
-        if (pos === 'motorista') posType = 'motorista';
-        else if (pos === 'ajudante') posType = 'ajudante';
-      }
-      
-      setPositionType(posType);
-      
-      form.reset({
-        name: employee.name,
-        email: employee.email,
-        username: employee.username || '',
-        password: '',  // Don't prefill password
-        role: employee.role,
-        department: employee.department || '',
-        position: employee.position || '',
-        positionType: posType,
-        phone: employee.phone || '',
-      });
-    } else if (isCreating) {
-      form.reset({
-        name: '',
-        email: '',
-        username: '',
-        password: '',
-        role: 'user',
-        department: '',
-        position: '',
-        positionType: 'outro',
-        phone: '',
-      });
-    }
-  }, [employee, form, isCreating]);
-
-  // Handle position type change
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'positionType') {
-        const posType = value.positionType as 'motorista' | 'ajudante' | 'outro';
-        setPositionType(posType);
-        
-        // Auto-set position field based on position type
-        if (posType === 'motorista') {
-          form.setValue('position', 'Motorista');
-        } else if (posType === 'ajudante') {
-          form.setValue('position', 'Ajudante');
-        } else if (posType === 'outro' && (value.position === 'Motorista' || value.position === 'Ajudante')) {
-          form.setValue('position', '');
+        const lowerPos = employee.position.toLowerCase();
+        if (lowerPos === 'motorista') {
+          setPositionType('motorista');
+          setCustomPosition('');
+        } else if (lowerPos === 'ajudante') {
+          setPositionType('ajudante');
+          setCustomPosition('');
+        } else {
+          setPositionType('outro');
+          setCustomPosition(employee.position);
         }
       }
-    });
-    
-    return () => subscription.unsubscribe();
-  }, [form]);
+    } else {
+      // Reset form for new employee
+      setName('');
+      setEmail('');
+      setUsername('');
+      setRole('user');
+      setPassword('');
+      setConfirmPassword('');
+      setPosition('');
+      setDepartment('');
+      setPositionType('outro');
+      setCustomPosition('');
+    }
+  }, [employee]);
 
-  const onSubmit = async (data: EmployeeFormValues) => {
-    setIsLoading(true);
-    
-    try {
+  // Update position whenever position type changes
+  useEffect(() => {
+    if (positionType === 'motorista') {
+      setPosition('Motorista');
+    } else if (positionType === 'ajudante') {
+      setPosition('Ajudante');
+    } else if (positionType === 'outro' && customPosition) {
+      setPosition(customPosition);
+    }
+  }, [positionType, customPosition]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Form validation
+    if (!name.trim()) {
+      toast({ title: "Erro", description: "Nome é obrigatório", variant: "destructive" });
+      return;
+    }
+
+    if (!isEmployeeForm) {
+      // For system users, we need email and username
+      if (!email.trim() || !username.trim()) {
+        toast({ title: "Erro", description: "Email e nome de usuário são obrigatórios", variant: "destructive" });
+        return;
+      }
+
+      // Password validation for new users
       if (isCreating) {
-        if (!data.username || !data.password) {
-          toast.error('Nome de usuário e senha são obrigatórios para novos colaboradores');
-          setIsLoading(false);
+        if (!password) {
+          toast({ title: "Erro", description: "Senha é obrigatória para novos usuários", variant: "destructive" });
           return;
         }
         
-        const newUser = await createUser({
-          name: data.name,
-          email: data.email,
-          username: data.username,
-          password: data.password,
-          role: data.role,
-          department: data.department,
-          position: data.position,
-          phone: data.phone,
-          permissions: {
-            dashboard: true,
-            deliveries: data.role !== 'user',
-            shipments: data.role !== 'user',
-            clients: data.role !== 'user',
-            cities: data.role === 'admin',
-            reports: data.role !== 'user',
-            financial: data.role === 'admin',
-            priceTables: data.role === 'admin',
-            logbook: true,
-            employees: data.role === 'admin',
-            vehicles: data.role !== 'user',
-            maintenance: data.role !== 'user',
-            settings: data.role === 'admin',
-          },
-          updatedAt: new Date().toISOString(),
+        if (password.length < 6) {
+          toast({ title: "Erro", description: "A senha deve ter pelo menos 6 caracteres", variant: "destructive" });
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          toast({ title: "Erro", description: "As senhas não conferem", variant: "destructive" });
+          return;
+        }
+      }
+    }
+
+    try {
+      const userData: User = {
+        id: employee?.id || '',
+        name,
+        email,
+        username,
+        role,
+        position,
+        department,
+      };
+
+      if (isEmployeeForm && onSave) {
+        // For employee management (not system users)
+        onSave(userData, isCreating);
+        toast({
+          title: isCreating ? "Colaborador adicionado" : "Colaborador atualizado",
+          description: `${name} foi ${isCreating ? 'adicionado' : 'atualizado'} com sucesso.`
         });
-        
-        toast.success('Colaborador criado com sucesso');
-      } else if (employee) {
-        const updateData: Partial<User> = {
-          name: data.name,
-          email: data.email,
-          role: data.role,
-          department: data.department,
-          position: data.position,
-          phone: data.phone,
-        };
-        
-        // Only update username and password if provided
-        if (data.username) updateData.username = data.username;
-        if (data.password) updateData.password = data.password;
-        
-        await updateUser(employee.id, updateData);
-        toast.success('Colaborador atualizado com sucesso');
+      } else {
+        // For system users
+        if (isCreating) {
+          // Create new user
+          await addUser({
+            email,
+            password,
+            username,
+            name,
+            role,
+            position,
+            department,
+          });
+          
+          toast({
+            title: "Usuário criado",
+            description: `O usuário ${name} foi criado com sucesso.`
+          });
+        } else if (employee) {
+          // Update existing user role
+          await updateUserRole(employee.id, role);
+          
+          toast({
+            title: "Usuário atualizado",
+            description: `O usuário ${name} foi atualizado com sucesso.`
+          });
+        }
       }
       
       onComplete();
     } catch (error) {
-      console.error('Error saving employee:', error);
-      toast.error('Erro ao salvar colaborador');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!employee) return;
-    
-    if (confirm(`Tem certeza que deseja excluir o colaborador ${employee.name}?`)) {
-      setIsLoading(true);
-      try {
-        await deleteUser(employee.id);
-        toast.success('Colaborador excluído com sucesso');
-        onComplete();
-      } catch (error) {
-        console.error('Error deleting employee:', error);
-        toast.error('Erro ao excluir colaborador');
-      } finally {
-        setIsLoading(false);
-      }
+      console.error('Error saving user/employee:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Nome</Label>
+        <Input 
+          id="name" 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+          placeholder="Nome completo"
         />
+      </div>
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input {...field} type="email" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {isCreating && (
-          <>
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome de Usuário</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+      {!isEmployeeForm && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input 
+              id="email" 
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              placeholder="email@exemplo.com"
             />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Senha</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="password" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        )}
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Função no Sistema</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a função" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="manager">Gerente</SelectItem>
-                    <SelectItem value="user">Usuário</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="department"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Departamento</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o departamento" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="operations">Operações</SelectItem>
-                    <SelectItem value="finance">Financeiro</SelectItem>
-                    <SelectItem value="administrative">Administrativo</SelectItem>
-                    <SelectItem value="logistics">Logística</SelectItem>
-                    <SelectItem value="commercial">Comercial</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="positionType"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Tipo de Cargo</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                  className="flex space-x-4"
-                >
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="motorista" />
-                    </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">Motorista</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="ajudante" />
-                    </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">Ajudante</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="outro" />
-                    </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">Outro</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="position"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cargo</FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  disabled={positionType === 'motorista' || positionType === 'ajudante'} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Telefone</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-between pt-4">
-          {!isCreating && (
-            <Button 
-              type="button" 
-              variant="destructive" 
-              onClick={handleDelete}
-              disabled={isLoading}
-            >
-              Excluir
-            </Button>
-          )}
-          {isCreating && <div />}
-          <div className="space-x-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onComplete}
-              disabled={isLoading}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Salvando...' : isCreating ? 'Criar' : 'Salvar'}
-            </Button>
           </div>
-        </div>
-      </form>
-    </Form>
+
+          <div className="space-y-2">
+            <Label htmlFor="username">Nome de Usuário</Label>
+            <Input 
+              id="username" 
+              value={username} 
+              onChange={(e) => setUsername(e.target.value)} 
+              placeholder="username"
+            />
+          </div>
+
+          {isCreating && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="********"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <Input 
+                  id="confirmPassword" 
+                  type="password" 
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)} 
+                  placeholder="********"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="role">Função no Sistema</Label>
+            <Select value={role} onValueChange={(value) => setRole(value as 'user' | 'admin' | 'manager')}>
+              <SelectTrigger id="role">
+                <SelectValue placeholder="Selecione uma função" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">Usuário Padrão</SelectItem>
+                <SelectItem value="manager">Gerente</SelectItem>
+                <SelectItem value="admin">Administrador</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
+
+      <div className="space-y-2">
+        <Label>Cargo</Label>
+        <RadioGroup value={positionType} onValueChange={(value) => setPositionType(value as 'motorista' | 'ajudante' | 'outro')}>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="motorista" id="motorista" />
+            <Label htmlFor="motorista">Motorista</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="ajudante" id="ajudante" />
+            <Label htmlFor="ajudante">Ajudante</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="outro" id="outro" />
+            <Label htmlFor="outro">Outro</Label>
+          </div>
+        </RadioGroup>
+        
+        {positionType === 'outro' && (
+          <div className="mt-2">
+            <Input 
+              value={customPosition} 
+              onChange={(e) => setCustomPosition(e.target.value)} 
+              placeholder="Especifique o cargo"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="department">Departamento</Label>
+        <Select value={department} onValueChange={setDepartment}>
+          <SelectTrigger id="department">
+            <SelectValue placeholder="Selecione um departamento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="operations">Operações</SelectItem>
+            <SelectItem value="logistics">Logística</SelectItem>
+            <SelectItem value="administrative">Administrativo</SelectItem>
+            <SelectItem value="finance">Financeiro</SelectItem>
+            <SelectItem value="commercial">Comercial</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onComplete}>
+          Cancelar
+        </Button>
+        <Button type="submit">
+          {isCreating ? 'Criar' : 'Atualizar'}
+        </Button>
+      </div>
+    </form>
   );
 }

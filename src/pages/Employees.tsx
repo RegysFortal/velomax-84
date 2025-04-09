@@ -75,20 +75,25 @@ const getDepartmentLabel = (department: string | undefined) => {
 };
 
 export default function Employees() {
-  const { users, user } = useAuth();
+  // Change from using users to a dedicated employees array
+  const { user } = useAuth();
+  const [employees, setEmployees] = useState<User[]>(() => {
+    const storedEmployees = localStorage.getItem('velomax_employees');
+    return storedEmployees ? JSON.parse(storedEmployees) : [];
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Filter users based on search term
-  const filteredUsers = users.filter(u => {
+  // Filter employees based on search term
+  const filteredEmployees = employees.filter(emp => {
     const searchText = searchTerm.toLowerCase();
     return (
-      u.name.toLowerCase().includes(searchText) ||
-      u.email.toLowerCase().includes(searchText) ||
-      (u.position && u.position.toLowerCase().includes(searchText)) ||
-      (u.department && u.department.toLowerCase().includes(searchText))
+      emp.name.toLowerCase().includes(searchText) ||
+      (emp.email && emp.email.toLowerCase().includes(searchText)) ||
+      (emp.position && emp.position.toLowerCase().includes(searchText)) ||
+      (emp.department && emp.department.toLowerCase().includes(searchText))
     );
   });
 
@@ -109,6 +114,37 @@ export default function Employees() {
     setSelectedEmployee(null);
   };
 
+  const handleSaveEmployee = (employee: User, isNew: boolean) => {
+    if (isNew) {
+      const newEmployee = {
+        ...employee,
+        id: `emp-${Date.now()}`
+      };
+      setEmployees(prev => {
+        const updated = [...prev, newEmployee];
+        localStorage.setItem('velomax_employees', JSON.stringify(updated));
+        return updated;
+      });
+    } else {
+      setEmployees(prev => {
+        const updated = prev.map(emp => emp.id === employee.id ? employee : emp);
+        localStorage.setItem('velomax_employees', JSON.stringify(updated));
+        return updated;
+      });
+    }
+    setIsDialogOpen(false);
+  };
+
+  const handleDeleteEmployee = (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este funcionário?')) {
+      setEmployees(prev => {
+        const updated = prev.filter(emp => emp.id !== id);
+        localStorage.setItem('velomax_employees', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
@@ -116,7 +152,7 @@ export default function Employees() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Colaboradores</h1>
             <p className="text-muted-foreground">
-              Gerencie os funcionários e suas permissões.
+              Gerencie os funcionários da empresa.
             </p>
           </div>
           <Button onClick={handleCreateClick} className="flex gap-2 items-center">
@@ -130,7 +166,7 @@ export default function Employees() {
             <div>
               <CardTitle>Lista de Colaboradores</CardTitle>
               <CardDescription>
-                Total de {users.length} colaboradores registrados
+                Total de {employees.length} colaboradores registrados
               </CardDescription>
             </div>
             <div className="flex items-center gap-4">
@@ -152,35 +188,40 @@ export default function Employees() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Função</TableHead>
                   <TableHead>Cargo</TableHead>
                   <TableHead>Departamento</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {filteredEmployees.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                       Nenhum colaborador encontrado
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.name}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>{getRoleBadge(u.role)}</TableCell>
-                      <TableCell>{u.position ? getPositionBadge(u.position) : '-'}</TableCell>
-                      <TableCell>{getDepartmentLabel(u.department)}</TableCell>
+                  filteredEmployees.map((emp) => (
+                    <TableRow key={emp.id}>
+                      <TableCell className="font-medium">{emp.name}</TableCell>
+                      <TableCell>{emp.email}</TableCell>
+                      <TableCell>{emp.position ? getPositionBadge(emp.position) : '-'}</TableCell>
+                      <TableCell>{getDepartmentLabel(emp.department)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEditClick(u)}
+                            onClick={() => handleEditClick(emp)}
                           >
                             <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteEmployee(emp.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -199,13 +240,15 @@ export default function Employees() {
               <DialogDescription>
                 {isCreating 
                   ? 'Adicione um novo colaborador ao sistema.'
-                  : 'Altere as informações e permissões do colaborador.'}
+                  : 'Altere as informações do colaborador.'}
               </DialogDescription>
             </DialogHeader>
             <EmployeeEditForm 
               employee={selectedEmployee}
               isCreating={isCreating}
               onComplete={handleCloseDialog}
+              onSave={handleSaveEmployee}
+              isEmployeeForm={true}
             />
           </DialogContent>
         </Dialog>
