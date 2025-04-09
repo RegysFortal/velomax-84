@@ -135,8 +135,7 @@ export const CitiesProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase
         .from('cities')
         .insert(supabaseCity)
-        .select()
-        .single();
+        .select();
       
       if (error) {
         throw error;
@@ -144,12 +143,12 @@ export const CitiesProvider = ({ children }: { children: ReactNode }) => {
       
       // Map the returned data to our City type
       const newCity: City = {
-        id: data.id,
-        name: data.name,
-        state: data.state,
-        distance: data.distance,
-        createdAt: data.created_at || timestamp,
-        updatedAt: data.updated_at || timestamp,
+        id: data[0].id,
+        name: data[0].name,
+        state: data[0].state,
+        distance: data[0].distance,
+        createdAt: data[0].created_at || timestamp,
+        updatedAt: data[0].updated_at || timestamp,
       };
       
       setCities((prev) => [...prev, newCity]);

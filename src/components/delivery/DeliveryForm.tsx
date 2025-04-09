@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -98,7 +97,6 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
       setIsEditMode(true);
       setInitialClientId(delivery.clientId);
       
-      // Safe conversion of numeric values to string, handling undefined/null values
       const safeToString = (value: any) => {
         return value !== undefined && value !== null ? String(value) : '';
       };
@@ -200,6 +198,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
         addLog({
           action: 'create',
           entityType: 'delivery',
+          entityId: '',
           entityName: `Nova entrega - ${formData.clientName}`,
           details: `Nova entrega criada para ${formData.clientName}`
         });
@@ -228,7 +227,6 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
       
       console.log("DeliveryForm - Cliente selecionado:", client);
       
-      // Verificar número de minuta duplicado
       if (data.minuteNumber && checkMinuteNumberExists(data.minuteNumber, data.clientId) && 
           (!isEditMode || (isEditMode && delivery && delivery.minuteNumber !== data.minuteNumber))) {
         
@@ -336,6 +334,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
         addLog({
           action: 'create',
           entityType: 'delivery',
+          entityId: '',
           entityName: `Nova entrega - ${clientName}`,
           details: `Nova entrega criada para ${clientName}`
         });
@@ -397,7 +396,6 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
         </form>
       </Form>
       
-      {/* Diálogo de alerta para número de minuta duplicado */}
       <AlertDialog open={showDuplicateAlert} onOpenChange={setShowDuplicateAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -32,7 +32,6 @@ export const ActivityLogProvider = ({ children }: { children: ReactNode }) => {
             throw error;
           }
           
-          // Map Supabase data to our ActivityLog type
           const mappedLogs = data.map((log: any): ActivityLog => ({
             id: log.id,
             userId: log.user_id,
@@ -51,7 +50,6 @@ export const ActivityLogProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error('Error fetching activity logs:', error);
         
-        // Fallback to localStorage if Supabase fetch fails
         const storedLogs = localStorage.getItem('velomax_activity_logs');
         if (storedLogs) {
           try {
@@ -71,7 +69,6 @@ export const ActivityLogProvider = ({ children }: { children: ReactNode }) => {
     fetchLogs();
   }, [user]);
   
-  // Keep localStorage sync as backup
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_activity_logs', JSON.stringify(logs));
@@ -102,31 +99,31 @@ export const ActivityLogProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase
         .from('activity_logs')
         .insert(newLog)
-        .select()
-        .single();
+        .select();
       
       if (error) {
         throw error;
       }
       
+      const insertedData = data[0];
+      
       const mappedLog: ActivityLog = {
-        id: data.id,
-        userId: data.user_id,
-        userName: data.user_name,
-        action: data.action,
-        entityType: data.entity_type,
-        entityId: data.entity_id || '',
-        entityName: data.entity_name || '',
-        timestamp: data.timestamp,
-        details: data.details || '',
-        ipAddress: data.ip_address || '',
+        id: insertedData.id,
+        userId: insertedData.user_id,
+        userName: insertedData.user_name,
+        action: insertedData.action,
+        entityType: insertedData.entity_type,
+        entityId: insertedData.entity_id || '',
+        entityName: insertedData.entity_name || '',
+        timestamp: insertedData.timestamp,
+        details: insertedData.details || '',
+        ipAddress: insertedData.ip_address || '',
       };
       
       setLogs(prev => [mappedLog, ...prev]);
     } catch (error) {
       console.error('Error adding activity log:', error);
       
-      // Fallback to local storage if Supabase insert fails
       const timestamp = new Date().toISOString();
       const fallbackLog: ActivityLog = {
         id: `log-${Date.now()}`,

@@ -126,8 +126,7 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase
         .from('financial_reports')
         .insert(supabaseReport)
-        .select()
-        .single();
+        .select();
       
       if (error) {
         throw error;
@@ -135,15 +134,15 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
       
       // Map the returned data to our FinancialReport type
       const newReport: FinancialReport = {
-        id: data.id,
-        clientId: data.client_id,
-        startDate: data.start_date,
-        endDate: data.end_date,
-        totalDeliveries: data.total_deliveries,
-        totalFreight: data.total_freight,
-        status: data.status as FinancialReport['status'],
-        createdAt: data.created_at || timestamp,
-        updatedAt: data.updated_at || timestamp,
+        id: data[0].id,
+        clientId: data[0].client_id,
+        startDate: data[0].start_date,
+        endDate: data[0].end_date,
+        totalDeliveries: data[0].total_deliveries,
+        totalFreight: data[0].total_freight,
+        status: data[0].status as FinancialReport['status'],
+        createdAt: data[0].created_at || timestamp,
+        updatedAt: data[0].updated_at || timestamp,
       };
       
       setFinancialReports((prev) => [...prev, newReport]);
