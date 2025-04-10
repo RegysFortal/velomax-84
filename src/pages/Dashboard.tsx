@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -13,7 +12,18 @@ import { format, subDays, subMonths, subYears, startOfDay, startOfMonth, startOf
 import { ptBR } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CalendarDays, CalendarIcon, Calendar, TrendingUp, Package, Truck, Users, FileText, AlertTriangle } from 'lucide-react';
+import { 
+  CalendarDays, 
+  CalendarIcon, 
+  Calendar, 
+  TrendingUp, 
+  Package, 
+  Truck, 
+  AlertTriangle, 
+  CheckCircle2, 
+  Clock 
+} from 'lucide-react';
+import { StatusBadge } from '@/components/shipment/StatusBadge';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -70,11 +80,11 @@ const Dashboard = () => {
 
   const totalDeliveries = filteredDeliveries.length;
   const totalWeight = filteredDeliveries.reduce((sum, d) => sum + d.weight, 0);
-  const totalRevenue = filteredDeliveries.reduce((sum, d) => sum + d.totalFreight, 0);
   
   const totalShipments = filteredShipments.length;
   const retainedShipments = filteredShipments.filter(s => s.isRetained).length;
-  const pendingShipments = filteredShipments.filter(s => s.status !== 'delivered').length;
+  const deliveredShipments = filteredShipments.filter(s => s.status === 'delivered' || s.status === 'delivered_final').length;
+  const inTransitShipments = filteredShipments.filter(s => s.status === 'in_transit').length;
 
   const deliveriesByDate = filteredDeliveries.reduce((acc, delivery) => {
     const date = format(new Date(delivery.deliveryDate), 'dd/MM');
@@ -95,31 +105,34 @@ const Dashboard = () => {
     ],
   };
 
-  const revenueByClient = filteredDeliveries.reduce((acc, delivery) => {
-    const client = clients.find(c => c.id === delivery.clientId);
-    const clientName = client ? (client.tradingName || client.name) : 'Cliente Desconhecido';
-    
-    acc[clientName] = (acc[clientName] || 0) + delivery.totalFreight;
+  const shipmentsByStatus = filteredShipments.reduce((acc, shipment) => {
+    acc[shipment.status] = (acc[shipment.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  const clientRevenueData = {
-    labels: Object.keys(revenueByClient).slice(0, 5),
+  const shipmentStatusData = {
+    labels: Object.keys(shipmentsByStatus).map(status => {
+      switch(status) {
+        case 'in_transit': return 'Em Trânsito';
+        case 'retained': return 'Retido';
+        case 'delivered': return 'Retirado';
+        case 'delivered_final': return 'Entregue';
+        default: return status;
+      }
+    }),
     datasets: [
       {
-        label: 'Faturamento',
-        data: Object.values(revenueByClient).slice(0, 5).map(value => Number(value)),
+        label: 'Embarques por Status',
+        data: Object.values(shipmentsByStatus),
         backgroundColor: [
-          'rgba(255, 99, 132, 0.5)',
           'rgba(54, 162, 235, 0.5)',
-          'rgba(255, 206, 86, 0.5)',
+          'rgba(255, 99, 132, 0.5)',
           'rgba(75, 192, 192, 0.5)',
           'rgba(153, 102, 255, 0.5)',
         ],
         borderColor: [
-          'rgba(255, 99, 132, 1)',
           'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
+          'rgba(255, 99, 132, 1)',
           'rgba(75, 192, 192, 1)',
           'rgba(153, 102, 255, 1)',
         ],
@@ -220,30 +233,28 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Peso Total
+                Total de Embarques
               </CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <Truck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalWeight.toFixed(2)} kg</div>
+              <div className="text-2xl font-bold">{totalShipments}</div>
               <p className="text-xs text-muted-foreground">
-                Total transportado
+                No período selecionado
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Faturamento
+                Cargas Entregues
               </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalRevenue)}
-              </div>
+              <div className="text-2xl font-bold">{deliveredShipments}</div>
               <p className="text-xs text-muted-foreground">
-                Valor total de fretes
+                De {totalShipments} embarques
               </p>
             </CardContent>
           </Card>
@@ -274,10 +285,10 @@ const Dashboard = () => {
           </Card>
           <Card className="col-span-3">
             <CardHeader>
-              <CardTitle>Faturamento por Cliente</CardTitle>
+              <CardTitle>Embarques por Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <BarChart data={clientRevenueData} className="aspect-[4/3]" />
+              <BarChart data={shipmentStatusData} className="aspect-[4/3]" />
             </CardContent>
           </Card>
         </div>
@@ -285,48 +296,67 @@ const Dashboard = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardTitle>Embarques Pendentes</CardTitle>
+              <CardTitle>Status de Embarques</CardTitle>
               <CardDescription>
-                Embarques ainda não entregues
+                Resumo dos embarques por status
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-4">
-                <div className="text-3xl font-bold">{pendingShipments}</div>
-                <div className="text-sm text-muted-foreground mt-1">de {totalShipments} embarques no período</div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <StatusBadge status="in_transit" />
+                    <span className="ml-2">Em Trânsito</span>
+                  </div>
+                  <span className="font-medium">{inTransitShipments}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <StatusBadge status="retained" />
+                    <span className="ml-2">Retidas</span>
+                  </div>
+                  <span className="font-medium">{retainedShipments}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <StatusBadge status="delivered" />
+                    <span className="ml-2">Retiradas/Entregues</span>
+                  </div>
+                  <span className="font-medium">{deliveredShipments}</span>
+                </div>
               </div>
               <Button 
                 variant="outline" 
-                className="w-full" 
+                className="w-full mt-4" 
                 onClick={() => navigate('/shipments')}
               >
                 <Truck className="mr-2 h-4 w-4" />
-                Ver Embarques
+                Ver Todos Embarques
               </Button>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader>
-              <CardTitle>Clientes Ativos</CardTitle>
+              <CardTitle>Peso Transportado</CardTitle>
               <CardDescription>
-                Clientes com entregas no período
+                Total em kg no período
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-4">
                 <div className="text-3xl font-bold">
-                  {new Set(filteredDeliveries.map(d => d.clientId)).size}
+                  {totalWeight.toFixed(2)} kg
                 </div>
-                <div className="text-sm text-muted-foreground mt-1">de {clients.length} clientes cadastrados</div>
+                <div className="text-sm text-muted-foreground mt-1">em {totalDeliveries} entregas</div>
               </div>
               <Button 
                 variant="outline" 
                 className="w-full" 
-                onClick={() => navigate('/clients')}
+                onClick={() => navigate('/deliveries')}
               >
-                <Users className="mr-2 h-4 w-4" />
-                Ver Clientes
+                <Package className="mr-2 h-4 w-4" />
+                Ver Entregas
               </Button>
             </CardContent>
           </Card>
@@ -348,10 +378,10 @@ const Dashboard = () => {
               <Button 
                 variant="outline" 
                 className="w-full" 
-                onClick={() => navigate('/reports')}
+                onClick={() => navigate('/shipment-reports')}
               >
-                <FileText className="mr-2 h-4 w-4" />
-                Ver Relatórios
+                <Clock className="mr-2 h-4 w-4" />
+                Relatórios de Embarques
               </Button>
             </CardContent>
           </Card>
