@@ -22,6 +22,7 @@ export const useClientsOperations = (
       const supabaseClient = mapClientToSupabaseClient(client, user?.id);
       
       console.log("Inserting client with data:", supabaseClient);
+      console.log("Price table ID being sent to Supabase:", supabaseClient.price_table_id);
       
       const { data, error } = await supabase
         .from('clients')
@@ -36,6 +37,7 @@ export const useClientsOperations = (
       
       // Map the returned data to our Client type
       const newClient = mapSupabaseClientToClient(data);
+      console.log("Mapped new client after insert:", newClient);
       
       setClients((prev) => [...prev, newClient]);
       
@@ -43,6 +45,8 @@ export const useClientsOperations = (
         title: "Cliente adicionado",
         description: `O cliente "${client.name}" foi adicionado com sucesso.`,
       });
+
+      return newClient;
     } catch (error) {
       console.error("Error adding client:", error);
       toast({
@@ -109,6 +113,7 @@ export const useClientsOperations = (
       });
       
       console.log("Cliente atualizado com sucesso");
+      return;
     } catch (error) {
       console.error("Error updating client:", error);
       throw error;

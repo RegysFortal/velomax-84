@@ -48,6 +48,11 @@ export function ClientAddDialog() {
         priceTableId: formData.priceTableId,
       });
       
+      toast({
+        title: "Cliente adicionado",
+        description: "Cliente adicionado com sucesso!",
+      });
+      
       // Fechar o diálogo após um breve delay para permitir que a animação ocorra
       setTimeout(() => {
         setIsDialogOpen(false);
@@ -66,21 +71,30 @@ export function ClientAddDialog() {
 
   // Previne o fechamento automático do modal durante submissão
   const handleOpenChange = (open: boolean) => {
-    if (isSubmitting && !open) {
+    console.log("Dialog open state changing to:", open);
+    console.log("Is currently submitting:", isSubmitting);
+    
+    if (!open && isSubmitting) {
+      console.log("Preventing dialog from closing during submission");
       return; // Não fecha o modal se estiver submetendo
     }
+    
     setIsDialogOpen(open);
   };
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>
+        <Button onClick={() => setIsDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Adicionar Cliente
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[625px] max-h-[90vh]">
+      <DialogContent className="sm:max-w-[625px] max-h-[90vh]" onInteractOutside={(e) => {
+        if (isSubmitting) {
+          e.preventDefault();
+        }
+      }}>
         <DialogHeader>
           <DialogTitle>Adicionar Cliente</DialogTitle>
           <DialogDescription>

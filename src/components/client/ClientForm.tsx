@@ -83,6 +83,12 @@ export function ClientForm({
     }
   });
 
+  // Monitor de mudanças para acompanhar alterações no formulário
+  const watchPriceTableId = form.watch("priceTableId");
+  useEffect(() => {
+    console.log("Form price table ID changed to:", watchPriceTableId);
+  }, [watchPriceTableId]);
+
   // Log quando o formulário é submetido
   const handleSubmit = (data: ClientFormValues) => {
     console.log("Form submitted with data:", data);
@@ -92,7 +98,19 @@ export function ClientForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form 
+        onSubmit={(e) => {
+          console.log("Form onSubmit triggered");
+          // Previne comportamentos padrão que possam fechar o diálogo
+          e.stopPropagation();
+          form.handleSubmit(handleSubmit)(e);
+        }} 
+        className="space-y-4"
+        onClick={(e) => {
+          // Previne propagação de cliques que possam fechar o diálogo
+          e.stopPropagation();
+        }}
+      >
         <ClientBasicInfoFields control={form.control} />
         <ContactInfoFields control={form.control} />
         <AddressInfoFields control={form.control} />
@@ -102,7 +120,14 @@ export function ClientForm({
         />
 
         <DialogFooter>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            onClick={(e) => {
+              // Este é um handler adicional para garantir que o clique no botão não feche o diálogo
+              e.stopPropagation();
+            }}
+          >
             {isSubmitting ? "Processando..." : submitButtonLabel}
           </Button>
         </DialogFooter>

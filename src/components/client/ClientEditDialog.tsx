@@ -29,6 +29,12 @@ export function ClientEditDialog({
   const { updateClient } = useClients();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(isOpen);
+
+  // Sincroniza o estado interno com a prop isOpen
+  useEffect(() => {
+    setInternalIsOpen(isOpen);
+  }, [isOpen]);
 
   // Log para verificar quando o diálogo é aberto/fechado
   useEffect(() => {
@@ -71,6 +77,7 @@ export function ClientEditDialog({
       
       // Explicitamente fechar o diálogo após a atualização bem-sucedida
       setTimeout(() => {
+        setInternalIsOpen(false);
         onOpenChange(false);
       }, 300);
     } catch (error) {
@@ -85,17 +92,34 @@ export function ClientEditDialog({
     }
   };
 
-  // Previne o fechamento automático do modal durante submissão
+  // Previne o fechamento automático do modal durante submissão ou seleção
   const handleOpenChange = (open: boolean) => {
-    if (isSubmitting && !open) {
+    console.log("Dialog open change requested:", open, "isSubmitting:", isSubmitting);
+    
+    if (!open && isSubmitting) {
+      console.log("Preventing dialog from closing during submission");
       return; // Não fecha o modal se estiver submetendo
     }
+    
+    setInternalIsOpen(open);
     onOpenChange(open);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[625px] max-h-[90vh]">
+    <Dialog open={internalIsOpen} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="sm:max-w-[625px] max-h-[90vh]" 
+        onInteractOutside={(e) => {
+          if (isSubmitting) {
+            e.preventDefault();
+          }
+        }}
+        onEscapeKeyDown={(e) => {
+          if (isSubmitting) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Editar Cliente</DialogTitle>
           <DialogDescription>

@@ -51,7 +51,7 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
                   field.onChange(value);
                 }} 
                 value={field.value || ""}
-                defaultValue={field.value || ""}
+                // Removido defaultValue para evitar conflito com value
               >
                 <FormControl>
                   <SelectTrigger>

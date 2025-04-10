@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
@@ -113,7 +114,13 @@ const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >(({ className, children, ...props }, ref) => {
-  // Usando o valor original, sem modificar
+  // Usa o stopPropagation para evitar que o clique no item feche o diálogo
+  const handleClick = (e: React.MouseEvent) => {
+    // Não use stopPropagation, pois o Select precisa capturar o evento
+    // Apenas log para debug
+    console.log("SelectItem clicked:", props.value);
+  };
+
   return (
     <SelectPrimitive.Item
       ref={ref}
@@ -122,6 +129,10 @@ const SelectItem = React.forwardRef<
         className
       )}
       {...props}
+      onClick={(e) => {
+        handleClick(e);
+        // O componente original mantém seu comportamento padrão
+      }}
     >
       <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
