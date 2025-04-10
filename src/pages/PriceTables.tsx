@@ -115,8 +115,8 @@ const createEmptyPriceTable = (): PriceTableFormData => {
       large: 0,
     },
     insurance: {
-      standard: 0,
-      perishable: 0,
+      standard: 0.01,
+      perishable: 0.015,
     },
     allowCustomPricing: false,
     defaultDiscount: 0,
@@ -268,14 +268,30 @@ const PriceTables = () => {
     e.preventDefault();
     
     try {
+      const priceTableData = {
+        ...formData,
+        waitingHour: {
+          standard: formData.waitingHour.fiorino || 0,
+          exclusive: formData.waitingHour.medium || 0,
+          fiorino: formData.waitingHour.fiorino,
+          medium: formData.waitingHour.medium,
+          large: formData.waitingHour.large,
+        },
+        insurance: {
+          rate: formData.insurance.standard || 0.01,
+          standard: formData.insurance.standard,
+          perishable: formData.insurance.perishable,
+        }
+      };
+      
       if (editingPriceTable) {
-        await updatePriceTable(editingPriceTable.id, formData);
+        await updatePriceTable(editingPriceTable.id, priceTableData);
         toast({
           title: "Tabela de preços atualizada",
           description: `A tabela de preços ${formData.name} foi atualizada com sucesso.`,
         });
       } else {
-        await addPriceTable(formData);
+        await addPriceTable(priceTableData);
         toast({
           title: "Tabela de preços adicionada",
           description: `A tabela de preços ${formData.name} foi adicionada com sucesso.`,

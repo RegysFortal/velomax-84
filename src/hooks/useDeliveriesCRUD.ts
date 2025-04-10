@@ -27,14 +27,14 @@ export const useDeliveriesCRUD = (
         minuteNumber = generateMinuteNumber(deliveries);
       }
       
-      // Prepare data for Supabase insert
+      // Prepare data for Supabase insert using the correct field names for Supabase schema
       const supabaseDelivery = {
         minute_number: minuteNumber,
         client_id: delivery.clientId,
         delivery_date: delivery.deliveryDate,
         delivery_time: delivery.deliveryTime || '',
         receiver: delivery.receiver || '',
-        receiver_id: delivery.receiverId || null, // Use receiver_id for Supabase mapping
+        receiver_document: delivery.receiverId || null, // Using receiver_document for Supabase
         weight: delivery.weight,
         packages: delivery.packages,
         delivery_type: delivery.deliveryType,
@@ -45,11 +45,12 @@ export const useDeliveriesCRUD = (
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
         user_id: user?.id,
-        pickup_name: delivery.pickupName || '', // Use pickup_name for Supabase mapping
+        pickup_person: delivery.pickupName || '', // Using pickup_person for Supabase
         pickup_date: delivery.pickupDate || '',
         pickup_time: delivery.pickupTime || '',
       };
       
+      // Insert the delivery into Supabase
       const { data, error } = await supabase
         .from('deliveries')
         .insert(supabaseDelivery)
@@ -60,7 +61,7 @@ export const useDeliveriesCRUD = (
         throw error;
       }
       
-      // Map the returned data to our Delivery type with proper type assertions
+      // Map the returned data to our Delivery type with proper field mappings
       const newDelivery: Delivery = {
         id: data.id,
         minuteNumber: data.minute_number,
@@ -68,7 +69,7 @@ export const useDeliveriesCRUD = (
         deliveryDate: data.delivery_date,
         deliveryTime: data.delivery_time || '',
         receiver: data.receiver || '',
-        receiverId: data.receiver_id || undefined, // Using receiver_id
+        receiverId: data.receiver_document || undefined, // Map from receiver_document to receiverId
         weight: data.weight,
         packages: data.packages,
         deliveryType: data.delivery_type as Delivery['deliveryType'],
@@ -80,7 +81,7 @@ export const useDeliveriesCRUD = (
         createdAt: data.created_at || timestamp,
         updatedAt: data.updated_at || timestamp,
         cityId: data.city_id || undefined,
-        pickupName: data.pickup_name || '', // Using pickup_name
+        pickupName: data.pickup_person || '', // Map from pickup_person to pickupName
         pickupDate: data.pickup_date || '',
         pickupTime: data.pickup_time || '',
       };

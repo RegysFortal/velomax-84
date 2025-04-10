@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,7 +14,6 @@ type PriceTablesContextType = {
   loading: boolean;
 };
 
-// Initial price tables data for demo purposes - will be used only if fetching fails
 const INITIAL_PRICE_TABLES: PriceTable[] = [
   {
     id: 'table-a',
@@ -46,11 +44,14 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       maxWeight: 100,
     },
     waitingHour: {
+      standard: 44.00,
+      exclusive: 55.00,
       fiorino: 44.00,
       medium: 55.00,
       large: 66.00,
     },
     insurance: {
+      rate: 0.01,
       standard: 0.01,
       perishable: 0.015,
     },
@@ -88,11 +89,14 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       maxWeight: 100,
     },
     waitingHour: {
+      standard: 48.00,
+      exclusive: 60.00,
       fiorino: 48.00,
       medium: 60.00,
       large: 72.00,
     },
     insurance: {
+      rate: 0.01,
       standard: 0.01,
       perishable: 0.015,
     },
@@ -130,11 +134,14 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       maxWeight: 100,
     },
     waitingHour: {
+      standard: 44.00,
+      exclusive: 55.00,
       fiorino: 44.00,
       medium: 55.00,
       large: 66.00,
     },
     insurance: {
+      rate: 0.01,
       standard: 0.01,
       perishable: 0.015,
     },
@@ -172,11 +179,14 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       maxWeight: 100,
     },
     waitingHour: {
+      standard: 44.00,
+      exclusive: 55.00,
       fiorino: 44.00,
       medium: 55.00,
       large: 66.00,
     },
     insurance: {
+      rate: 0.01,
       standard: 0.01,
       perishable: 0.015,
     },
@@ -209,21 +219,29 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
           throw error;
         }
         
-        // Map Supabase data to match our PriceTable type
-        const mappedPriceTables = data.map((table: any): PriceTable => ({
-          id: table.id,
-          name: table.name,
-          description: table.description || '',
-          minimumRate: table.minimum_rate as PriceTable['minimumRate'],
-          excessWeight: table.excess_weight as PriceTable['excessWeight'],
-          doorToDoor: table.door_to_door as PriceTable['doorToDoor'],
-          waitingHour: table.waiting_hour as PriceTable['waitingHour'],
-          insurance: table.insurance as PriceTable['insurance'],
-          allowCustomPricing: table.allow_custom_pricing,
-          defaultDiscount: table.default_discount || 0,
-          createdAt: table.created_at || new Date().toISOString(),
-          updatedAt: table.updated_at || new Date().toISOString(),
-        }));
+        const mappedPriceTables = data.map((table: any): PriceTable => {
+          const waitingHour = table.waiting_hour || {};
+          if (!waitingHour.standard) waitingHour.standard = waitingHour.fiorino || 44.00;
+          if (!waitingHour.exclusive) waitingHour.exclusive = waitingHour.medium || 55.00;
+          
+          const insurance = table.insurance || {};
+          if (!insurance.rate) insurance.rate = insurance.standard || 0.01;
+          
+          return {
+            id: table.id,
+            name: table.name,
+            description: table.description || '',
+            minimumRate: table.minimum_rate as PriceTable['minimumRate'],
+            excessWeight: table.excess_weight as PriceTable['excessWeight'],
+            doorToDoor: table.door_to_door as PriceTable['doorToDoor'],
+            waitingHour: waitingHour as PriceTable['waitingHour'],
+            insurance: insurance as PriceTable['insurance'],
+            allowCustomPricing: table.allow_custom_pricing,
+            defaultDiscount: table.default_discount || 0,
+            createdAt: table.created_at || new Date().toISOString(),
+            updatedAt: table.updated_at || new Date().toISOString(),
+          };
+        });
         
         setPriceTables(mappedPriceTables);
       } catch (error) {
@@ -234,12 +252,10 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
           variant: "destructive"
         });
         
-        // Load from localStorage as fallback
         const storedTables = localStorage.getItem('velomax_price_tables');
         if (storedTables) {
           try {
             const parsedTables = JSON.parse(storedTables);
-            // Validate and fix any missing properties in the price tables
             const validatedTables = parsedTables.map((table: PriceTable) => {
               const updatedTable = { ...table };
               
@@ -251,12 +267,10 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
                 };
               }
               
-              // Ensure minimumRate has all required properties
               if (!updatedTable.minimumRate.doorToDoorInterior) {
                 updatedTable.minimumRate.doorToDoorInterior = 200.00;
               }
               
-              // Ensure excessWeight has all required properties
               if (!updatedTable.excessWeight.biologicalPerKg) {
                 updatedTable.excessWeight.biologicalPerKg = 0.72;
               }
@@ -285,7 +299,6 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [toast, user]);
   
-  // Save price tables to localStorage as a backup
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_price_tables', JSON.stringify(priceTables));
@@ -298,7 +311,6 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
     try {
       const timestamp = new Date().toISOString();
       
-      // Prepare data for Supabase insert
       const supabasePriceTable = {
         name: priceTable.name,
         description: priceTable.description,
@@ -322,7 +334,6 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      // Map the returned data to our PriceTable type
       const newPriceTable: PriceTable = {
         id: data.id,
         name: data.name,
@@ -358,12 +369,10 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
     try {
       const timestamp = new Date().toISOString();
       
-      // Prepare data for Supabase update
       const supabasePriceTable: any = {
         updated_at: timestamp
       };
       
-      // Map properties from priceTable to supabasePriceTable
       if (priceTable.name !== undefined) supabasePriceTable.name = priceTable.name;
       if (priceTable.description !== undefined) supabasePriceTable.description = priceTable.description;
       if (priceTable.minimumRate !== undefined) supabasePriceTable.minimum_rate = priceTable.minimumRate;
@@ -445,13 +454,14 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
     const table = getPriceTable(priceTableId);
     if (!table || !table.insurance) return 0;
     
-    // For reshipment, always apply 1% insurance regardless of cargo type
     if (isReshipment) {
-      return invoiceValue * 0.01;  // Fixed 1% for reshipment
+      return invoiceValue * 0.01;
     }
     
-    // For other deliveries, apply standard or perishable rate based on cargo type
-    const rate = cargoType === 'perishable' ? table.insurance.perishable : table.insurance.standard;
+    const rate = cargoType === 'perishable' 
+      ? (table.insurance.perishable || table.insurance.rate) 
+      : (table.insurance.standard || table.insurance.rate);
+      
     return invoiceValue * rate;
   };
   
