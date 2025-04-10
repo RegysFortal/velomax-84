@@ -1,6 +1,5 @@
 
-import { Delivery, doorToDoorDeliveryTypes } from '@/types';
-import { PriceTable, City } from '@/types';
+import { Delivery, PriceTable, City, doorToDoorDeliveryTypes, DeliveryType } from '@/types';
 
 /**
  * Calculate the freight cost for a delivery
@@ -8,7 +7,7 @@ import { PriceTable, City } from '@/types';
 export const calculateFreight = (
   priceTable: PriceTable | undefined,
   weight: number,
-  deliveryType: Delivery['deliveryType'],
+  deliveryType: DeliveryType,
   cargoType: Delivery['cargoType'],
   cargoValue: number = 0,
   _distance?: number,
@@ -83,6 +82,12 @@ export const calculateFreight = (
         const insurance = cargoValue * insuranceRate;
         totalFreight += insurance;
         break;
+      // Add default cases for remaining delivery types
+      case 'door_to_door':
+      case 'scheduled':
+        baseRate = priceTable.minimumRate.standardDelivery;
+        excessWeightRate = priceTable.excessWeight.minPerKg;
+        break;
     }
     
     if (weight <= weightLimit) {
@@ -106,7 +111,7 @@ export const calculateFreight = (
 /**
  * Check if a delivery type is a door-to-door delivery
  */
-export const isDoorToDoorDelivery = (deliveryType: Delivery['deliveryType']): boolean => {
+export const isDoorToDoorDelivery = (deliveryType: DeliveryType): boolean => {
   return doorToDoorDeliveryTypes.includes(deliveryType);
 };
 

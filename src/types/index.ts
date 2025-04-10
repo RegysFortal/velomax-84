@@ -1,3 +1,4 @@
+
 export interface ActivityLog {
   id: string;
   timestamp: string;
@@ -43,6 +44,24 @@ export interface City {
   userId?: string;
 }
 
+export type DeliveryType = 
+  | 'standard' 
+  | 'emergency' 
+  | 'door_to_door' 
+  | 'exclusive' 
+  | 'scheduled'
+  | 'saturday'
+  | 'difficultAccess'
+  | 'metropolitanRegion'
+  | 'sundayHoliday'
+  | 'normalBiological'
+  | 'infectiousBiological'
+  | 'tracked'
+  | 'doorToDoorInterior'
+  | 'reshipment';
+
+export type CargoType = 'standard' | 'perishable' | 'fragile' | 'dangerous' | 'valuable';
+
 export interface Delivery {
   id: string;
   minuteNumber: string;
@@ -50,11 +69,11 @@ export interface Delivery {
   deliveryDate: string;
   deliveryTime: string;
   receiver: string;
-  receiverId?: string; // Add receiverId as optional
+  receiverId?: string;
   weight: number;
   packages: number;
-  deliveryType: 'standard' | 'emergency' | 'door_to_door' | 'exclusive' | 'scheduled';
-  cargoType: 'standard' | 'perishable' | 'fragile' | 'dangerous' | 'valuable';
+  deliveryType: DeliveryType;
+  cargoType: CargoType;
   cargoValue?: number;
   totalFreight: number;
   notes?: string;
@@ -62,10 +81,16 @@ export interface Delivery {
   createdAt: string;
   updatedAt: string;
   cityId?: string;
-  pickupName?: string; // Add pickupName
-  pickupDate?: string; // Add pickupDate
-  pickupTime?: string; // Add pickupTime
+  pickupName?: string;
+  pickupDate?: string;
+  pickupTime?: string;
 }
+
+// Add the doorToDoorDeliveryTypes export
+export const doorToDoorDeliveryTypes: DeliveryType[] = [
+  'door_to_door',
+  'doorToDoorInterior'
+];
 
 export interface Employee {
   id: string;
@@ -146,6 +171,9 @@ export interface MaintenanceRecord {
   userId?: string;
 }
 
+// Add the Maintenance type alias for compatibility with existing code
+export type Maintenance = MaintenanceRecord;
+
 export interface PriceTable {
   id: string;
   name: string;
@@ -157,6 +185,7 @@ export interface PriceTable {
   waitingHour: any;
   defaultDiscount?: number;
   allowCustomPricing?: boolean;
+  multiplier?: number;
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
@@ -180,21 +209,37 @@ export interface TireMaintenanceRecord {
   userId?: string;
 }
 
+// Add the TireMaintenance type alias for compatibility with existing code
+export type TireMaintenance = TireMaintenanceRecord;
+
 export interface Vehicle {
   id: string;
   make: string;
   model: string;
   year: string;
   plate: string;
-  type: string;
+  type: 'truck' | 'van' | 'car' | 'motorcycle';
   brand: string;
   capacity: number;
-  fuelType: string;
-  status: string;
+  fuelType: 'diesel' | 'gasoline' | 'ethanol' | 'flex' | 'electric';
+  status: 'active' | 'maintenance' | 'inactive';
   currentOdometer: number;
   lastOilChange?: number;
   nextOilChangeKm?: number;
+  renavam?: string;
+  chassis?: string;
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
+}
+
+// Add User interface that is referenced in many places
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role?: string;
+  avatarUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

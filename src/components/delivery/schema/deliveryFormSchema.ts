@@ -1,5 +1,6 @@
 
 import { z } from 'zod';
+import { DeliveryType, CargoType } from '@/types';
 
 export const deliveryFormSchema = z.object({
   clientId: z.string({ required_error: 'Cliente é obrigatório' }),
@@ -14,8 +15,8 @@ export const deliveryFormSchema = z.object({
   packages: z.string({ required_error: 'Quantidade de volumes é obrigatória' }).refine(val => !isNaN(parseInt(val)) && parseInt(val) > 0, {
     message: 'Volumes devem ser maior que zero',
   }),
-  deliveryType: z.string({ required_error: 'Tipo de entrega é obrigatório' }),
-  cargoType: z.string({ required_error: 'Tipo de carga é obrigatório' }),
+  deliveryType: z.string({ required_error: 'Tipo de entrega é obrigatório' }) as z.ZodType<DeliveryType>,
+  cargoType: z.string({ required_error: 'Tipo de carga é obrigatório' }) as z.ZodType<CargoType>,
   cargoValue: z.string().optional(),
   cityId: z.string().optional(),
   notes: z.string().optional(),
