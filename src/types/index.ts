@@ -1,4 +1,3 @@
-
 export interface ActivityLog {
   id: string;
   timestamp: string;
@@ -18,6 +17,7 @@ export interface Client {
   tradingName?: string;
   document?: string;
   address?: string;
+  street?: string;
   number?: string;
   complement?: string;
   neighborhood?: string;
@@ -29,6 +29,7 @@ export interface Client {
   email?: string;
   notes?: string;
   price_table_id?: string;
+  priceTableId?: string;
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
@@ -86,7 +87,6 @@ export interface Delivery {
   pickupTime?: string;
 }
 
-// Add the doorToDoorDeliveryTypes export
 export const doorToDoorDeliveryTypes: DeliveryType[] = [
   'door_to_door',
   'doorToDoorInterior'
@@ -166,12 +166,12 @@ export interface MaintenanceRecord {
   odometer: number;
   provider?: string;
   notes?: string;
+  invoiceNumber?: string;
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
 }
 
-// Add the Maintenance type alias for compatibility with existing code
 export type Maintenance = MaintenanceRecord;
 
 export interface PriceTable {
@@ -209,7 +209,6 @@ export interface TireMaintenanceRecord {
   userId?: string;
 }
 
-// Add the TireMaintenance type alias for compatibility with existing code
 export type TireMaintenance = TireMaintenanceRecord;
 
 export interface Vehicle {
@@ -233,13 +232,46 @@ export interface Vehicle {
   userId?: string;
 }
 
-// Add User interface that is referenced in many places
 export interface User {
   id: string;
   email: string;
   name?: string;
-  role?: string;
+  username?: string;
+  role?: 'admin' | 'manager' | 'user';
   avatarUrl?: string;
+  password?: string;
+  department?: string;
+  position?: string;
+  phone?: string;
+  rg?: string;
+  cpf?: string;
+  birthDate?: string;
+  driverLicense?: string;
+  driverLicenseExpiry?: string;
+  driverLicenseCategory?: string;
+  fatherName?: string;
+  motherName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  employeeSince?: string;
+  permissions?: {
+    deliveries: boolean;
+    shipments: boolean;
+    clients: boolean;
+    cities: boolean;
+    reports: boolean;
+    financial: boolean;
+    priceTables: boolean;
+    dashboard: boolean;
+    logbook: boolean;
+    employees: boolean;
+    vehicles: boolean;
+    maintenance: boolean;
+    settings: boolean;
+    [key: string]: boolean;
+  };
   createdAt?: string;
   updatedAt?: string;
 }

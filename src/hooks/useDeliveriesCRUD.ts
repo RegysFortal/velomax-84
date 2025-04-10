@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { Delivery } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -107,7 +106,7 @@ export const useDeliveriesCRUD = (
     }
   }, [deliveries, setDeliveries, clients, toast, user]);
   
-  const updateDelivery = useCallback(async (id: string, delivery: Partial<Delivery>) => {
+  const updateDelivery = useCallback(async (id: string, updates: Partial<Delivery>): Promise<boolean> => {
     try {
       const timestamp = new Date().toISOString();
       
@@ -117,24 +116,24 @@ export const useDeliveriesCRUD = (
       };
       
       // Map properties from delivery to supabaseDelivery
-      if (delivery.minuteNumber !== undefined) supabaseDelivery.minute_number = delivery.minuteNumber;
-      if (delivery.clientId !== undefined) supabaseDelivery.client_id = delivery.clientId;
-      if (delivery.deliveryDate !== undefined) supabaseDelivery.delivery_date = delivery.deliveryDate;
-      if (delivery.deliveryTime !== undefined) supabaseDelivery.delivery_time = delivery.deliveryTime;
-      if (delivery.receiver !== undefined) supabaseDelivery.receiver = delivery.receiver;
-      if (delivery.receiverId !== undefined) supabaseDelivery.receiver_id = delivery.receiverId;
-      if (delivery.weight !== undefined) supabaseDelivery.weight = delivery.weight;
-      if (delivery.packages !== undefined) supabaseDelivery.packages = delivery.packages;
-      if (delivery.deliveryType !== undefined) supabaseDelivery.delivery_type = delivery.deliveryType;
-      if (delivery.cargoType !== undefined) supabaseDelivery.cargo_type = delivery.cargoType;
-      if (delivery.cargoValue !== undefined) supabaseDelivery.cargo_value = delivery.cargoValue;
-      if (delivery.totalFreight !== undefined) supabaseDelivery.total_freight = delivery.totalFreight;
-      if (delivery.notes !== undefined) supabaseDelivery.notes = delivery.notes;
-      if (delivery.occurrence !== undefined) supabaseDelivery.occurrence = delivery.occurrence;
-      if (delivery.cityId !== undefined) supabaseDelivery.city_id = delivery.cityId;
-      if (delivery.pickupName !== undefined) supabaseDelivery.pickup_name = delivery.pickupName;
-      if (delivery.pickupDate !== undefined) supabaseDelivery.pickup_date = delivery.pickupDate;
-      if (delivery.pickupTime !== undefined) supabaseDelivery.pickup_time = delivery.pickupTime;
+      if (updates.minuteNumber !== undefined) supabaseDelivery.minute_number = updates.minuteNumber;
+      if (updates.clientId !== undefined) supabaseDelivery.client_id = updates.clientId;
+      if (updates.deliveryDate !== undefined) supabaseDelivery.delivery_date = updates.deliveryDate;
+      if (updates.deliveryTime !== undefined) supabaseDelivery.delivery_time = updates.deliveryTime;
+      if (updates.receiver !== undefined) supabaseDelivery.receiver = updates.receiver;
+      if (updates.receiverId !== undefined) supabaseDelivery.receiver_id = updates.receiverId;
+      if (updates.weight !== undefined) supabaseDelivery.weight = updates.weight;
+      if (updates.packages !== undefined) supabaseDelivery.packages = updates.packages;
+      if (updates.deliveryType !== undefined) supabaseDelivery.delivery_type = updates.deliveryType;
+      if (updates.cargoType !== undefined) supabaseDelivery.cargo_type = updates.cargoType;
+      if (updates.cargoValue !== undefined) supabaseDelivery.cargo_value = updates.cargoValue;
+      if (updates.totalFreight !== undefined) supabaseDelivery.total_freight = updates.totalFreight;
+      if (updates.notes !== undefined) supabaseDelivery.notes = updates.notes;
+      if (updates.occurrence !== undefined) supabaseDelivery.occurrence = updates.occurrence;
+      if (updates.cityId !== undefined) supabaseDelivery.city_id = updates.cityId;
+      if (updates.pickupName !== undefined) supabaseDelivery.pickup_name = updates.pickupName;
+      if (updates.pickupDate !== undefined) supabaseDelivery.pickup_date = updates.pickupDate;
+      if (updates.pickupTime !== undefined) supabaseDelivery.pickup_time = updates.pickupTime;
       
       const { error } = await supabase
         .from('deliveries')
@@ -148,7 +147,7 @@ export const useDeliveriesCRUD = (
       setDeliveries(prev => 
         prev.map(d => 
           d.id === id 
-            ? { ...d, ...delivery, updatedAt: timestamp } 
+            ? { ...d, ...updates, updatedAt: timestamp } 
             : d
         )
       );
@@ -157,6 +156,8 @@ export const useDeliveriesCRUD = (
         title: "Entrega atualizada",
         description: `A entrega foi atualizada com sucesso.`,
       });
+      
+      return true;
     } catch (error) {
       console.error('Error updating delivery:', error);
       toast({
@@ -164,6 +165,7 @@ export const useDeliveriesCRUD = (
         description: "Ocorreu um erro ao atualizar a entrega. Tente novamente.",
         variant: "destructive"
       });
+      return false;
     }
   }, [setDeliveries, toast]);
   

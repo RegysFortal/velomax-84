@@ -25,6 +25,8 @@ export function useLogbookForm({ initialData, entryId, onSuccess }: UseLogbookFo
       date: initialData?.date || new Date().toISOString().split('T')[0],
       departureTime: initialData?.departureTime || "",
       departureOdometer: initialData?.departureOdometer || 0,
+      destination: initialData?.destination || "",  // Add default for required field
+      purpose: initialData?.purpose || "",          // Add default for required field
       returnTime: initialData?.returnTime || "",
       endOdometer: initialData?.endOdometer || undefined,
       notes: initialData?.notes || "",
@@ -41,6 +43,8 @@ export function useLogbookForm({ initialData, entryId, onSuccess }: UseLogbookFo
         form.setValue("date", entry.date);
         form.setValue("departureTime", entry.departureTime);
         form.setValue("departureOdometer", entry.departureOdometer);
+        form.setValue("destination", entry.destination);  // Set destination
+        form.setValue("purpose", entry.purpose);          // Set purpose
         form.setValue("returnTime", entry.returnTime || "");
         form.setValue("endOdometer", entry.endOdometer || undefined);
         form.setValue("notes", entry.notes || "");
@@ -57,6 +61,8 @@ export function useLogbookForm({ initialData, entryId, onSuccess }: UseLogbookFo
         departureTime: data.departureTime,
         departureOdometer: Number(data.departureOdometer),
         date: data.date,
+        destination: data.destination,  // Include destination
+        purpose: data.purpose,          // Include purpose
         returnTime: data.returnTime === "" ? undefined : data.returnTime,
         endOdometer: data.endOdometer ? Number(data.endOdometer) : undefined,
         notes: data.notes,
@@ -70,6 +76,8 @@ export function useLogbookForm({ initialData, entryId, onSuccess }: UseLogbookFo
         departureTime: data.departureTime,
         departureOdometer: Number(data.departureOdometer),
         date: data.date,
+        destination: data.destination,  // Include destination
+        purpose: data.purpose,          // Include purpose
         tripDistance: data.endOdometer && Number(data.endOdometer) > Number(data.departureOdometer) ? 
           Number(data.endOdometer) - Number(data.departureOdometer) : undefined,
         returnTime: data.returnTime === "" ? undefined : data.returnTime,

@@ -16,14 +16,15 @@ export const useFreightCalculation = () => {
     weight: number,
     deliveryType: Delivery['deliveryType'],
     cargoType: Delivery['cargoType'],
-    cargoValue?: number,
+    cargoValue: number = 0,
     _distance?: number,
     cityId?: string
   ): number => {
     const client = clients.find(c => c.id === clientId);
     if (!client) return 0;
     
-    const priceTable = priceTables.find(pt => pt.id === client.priceTableId);
+    // Use price_table_id instead of priceTableId
+    const priceTable = priceTables.find(pt => pt.id === client.price_table_id);
     if (!priceTable) return 0;
     
     const city = cityId ? cities.find(c => c.id === cityId) : undefined;
