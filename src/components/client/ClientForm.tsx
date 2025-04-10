@@ -25,13 +25,15 @@ interface ClientFormProps {
   submitButtonLabel: string;
   initialData?: Client;
   isSubmitting?: boolean;
+  onCancel?: () => void; // Added onCancel prop
 }
 
 export function ClientForm({ 
   onSubmit, 
   submitButtonLabel, 
   initialData,
-  isSubmitting = false 
+  isSubmitting = false,
+  onCancel 
 }: ClientFormProps) {
   const { priceTables } = usePriceTables();
   
@@ -120,6 +122,19 @@ export function ClientForm({
         />
 
         <DialogFooter>
+          {onCancel && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={(e) => {
+                e.stopPropagation();
+                onCancel();
+              }}
+              className="mr-2"
+            >
+              Cancelar
+            </Button>
+          )}
           <Button 
             type="submit" 
             disabled={isSubmitting}
