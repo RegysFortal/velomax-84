@@ -32,33 +32,33 @@ export function DeliveryFormDialog({
     setIsOpen(true);
   };
 
-  // Improved close handler with proper state management
+  // Melhorado para seguir o padrão do ClientAddDialog que funciona corretamente
   const handleCloseDialog = () => {
-    // First close the dialog
+    // Chame onComplete antes de fechar o diálogo
+    onComplete();
+    
+    // Primeiro feche o diálogo
     setIsOpen(false);
     
-    // After dialog animation completes, reset editing state
+    // Depois de um curto delay, limpe o estado de edição
     setTimeout(() => {
       setEditingDelivery(null);
-      // Call onComplete to notify parent component
-      onComplete();
-    }, 200); // Small delay to ensure dialog closes smoothly
+    }, 10); // Reduzido para 10ms como nos outros componentes
   };
 
-  // Form completion handler
+  // Manipulador quando o formulário é concluído
   const handleFormComplete = () => {
-    // Call onComplete and close dialog
-    onComplete();
+    // Fecha o diálogo usando nossa função segura
     handleCloseDialog();
   };
 
-  // Improved open change handler with safeguards
+  // Manipulador de mudança de estado com salvaguardas
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // If closing the dialog, use our safe close method
+      // Se estiver fechando o diálogo, use nosso método seguro
       handleCloseDialog();
     } else {
-      // If opening the dialog, just set the state
+      // Se estiver abrindo o diálogo, apenas defina o estado
       setIsOpen(true);
     }
   };
