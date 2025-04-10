@@ -34,24 +34,28 @@ export function DeliveryFormDialog({
   };
 
   const handleCancel = () => {
-    onComplete();
     setIsOpen(false);
     
     // Reset editing state with a small delay
     setTimeout(() => {
       setEditingDelivery(null);
-    }, 10);
+      onComplete();
+    }, 100);
   };
 
   const handleFormComplete = () => {
-    handleCancel();
+    setIsOpen(false);
+    
+    // Reset editing state with a small delay
+    setTimeout(() => {
+      setEditingDelivery(null);
+      onComplete();
+    }, 100);
   };
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       handleCancel();
-    } else {
-      setIsOpen(true);
     }
   };
 
@@ -66,10 +70,6 @@ export function DeliveryFormDialog({
         <DialogContent 
           className="sm:max-w-[800px] max-h-[90vh]" 
           onInteractOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => {
-            e.preventDefault();
-            handleCancel();
-          }}
         >
           <DialogHeader>
             <DialogTitle>
@@ -81,6 +81,7 @@ export function DeliveryFormDialog({
                 variant="ghost" 
                 size="icon" 
                 className="absolute right-4 top-4"
+                onClick={handleCancel}
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Fechar</span>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ interface DeliveryFormSectionsProps {
 
 export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({ 
   onComplete,
-  onCancel
+  onCancel 
 }) => {
   const { 
     form, 
@@ -58,8 +59,6 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
   const handleCancelClick = () => {
     if (onCancel) {
       onCancel();
-    } else {
-      onComplete();
     }
   };
 
