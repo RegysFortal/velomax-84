@@ -82,6 +82,7 @@ export function BudgetFormDialog() {
           <BudgetForm 
             onSubmit={handleAddBudget} 
             isSubmitting={isSubmitting}
+            onCancel={() => setIsDialogOpen(false)}
           />
         </ScrollArea>
       </DialogContent>

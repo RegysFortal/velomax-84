@@ -102,6 +102,7 @@ export interface PriceTable {
   };
   allowCustomPricing?: boolean;
   defaultDiscount?: number;
+  multiplier?: number;
   createdAt: string;
   updatedAt: string;
 }

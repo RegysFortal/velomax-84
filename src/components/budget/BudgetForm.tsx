@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -21,7 +22,8 @@ import { usePriceTables } from '@/contexts/PriceTablesContext';
 interface BudgetFormProps {
   initialData?: Budget;
   onSubmit: (data: Budget) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  isSubmitting?: boolean;
 }
 
 const mapDeliveryTypeToFreightType = (deliveryType: DeliveryType): "standard" | "perishable" => {
