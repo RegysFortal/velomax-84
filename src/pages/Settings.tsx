@@ -6,6 +6,8 @@ import { SystemSettings } from '@/components/settings/SystemSettings';
 import { NotificationSettings } from '@/components/settings/NotificationSettings';
 import { BudgetBackupTools } from '@/components/budget/BudgetBackupTools';
 import { SystemBackup } from '@/components/settings/SystemBackup';
+import { UserManagement } from '@/components/settings/UserManagement';
+import { CompanySettings } from '@/components/settings/CompanySettings';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('system');
@@ -23,12 +25,22 @@ const SettingsPage = () => {
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="system">Sistema</TabsTrigger>
+            <TabsTrigger value="company">Empresa</TabsTrigger>
+            <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="backup">Backup</TabsTrigger>
             <TabsTrigger value="notifications">Notificações</TabsTrigger>
           </TabsList>
           
           <TabsContent value="system" className="space-y-6">
             <SystemSettings />
+          </TabsContent>
+          
+          <TabsContent value="company" className="space-y-6">
+            <CompanySettings />
+          </TabsContent>
+          
+          <TabsContent value="users" className="space-y-6">
+            <UserManagement />
           </TabsContent>
           
           <TabsContent value="backup" className="space-y-6">
