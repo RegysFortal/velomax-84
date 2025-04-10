@@ -1,20 +1,10 @@
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/auth/AuthContext';
 
-type PriceTablesContextType = {
-  priceTables: PriceTable[];
-  addPriceTable: (priceTable: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updatePriceTable: (id: string, priceTable: Partial<PriceTable>) => Promise<void>;
-  deletePriceTable: (id: string) => Promise<void>;
-  getPriceTable: (id: string) => PriceTable | undefined;
-  calculateInsurance: (priceTableId: string, invoiceValue: number, isReshipment: boolean, cargoType: 'standard' | 'perishable') => number;
-  loading: boolean;
-};
-
+// Initial price tables data as fallback
 const INITIAL_PRICE_TABLES: PriceTable[] = [
   {
     id: 'table-a',
@@ -199,13 +189,10 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
   },
 ];
 
-const PriceTablesContext = createContext<PriceTablesContextType | undefined>(undefined);
-
-export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
+export const useFetchPriceTables = (userId?: string) => {
   const [priceTables, setPriceTables] = useState<PriceTable[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth();
   
   useEffect(() => {
     const fetchPriceTables = async () => {
@@ -298,196 +285,17 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     
-    if (user) {
+    if (userId) {
       fetchPriceTables();
     }
-  }, [toast, user]);
+  }, [toast, userId]);
   
+  // Save to localStorage when priceTables changes
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_price_tables', JSON.stringify(priceTables));
     }
   }, [priceTables, loading]);
   
-  const addPriceTable = async (
-    priceTable: Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'>
-  ) => {
-    try {
-      const timestamp = new Date().toISOString();
-      
-      const supabasePriceTable = {
-        name: priceTable.name,
-        description: priceTable.description,
-        minimum_rate: priceTable.minimumRate,
-        excess_weight: priceTable.excessWeight,
-        door_to_door: priceTable.doorToDoor,
-        waiting_hour: priceTable.waitingHour,
-        insurance: priceTable.insurance,
-        allow_custom_pricing: priceTable.allowCustomPricing,
-        default_discount: priceTable.defaultDiscount || 0,
-        user_id: user?.id
-      };
-      
-      const { data, error } = await supabase
-        .from('price_tables')
-        .insert(supabasePriceTable)
-        .select()
-        .single();
-      
-      if (error) {
-        throw error;
-      }
-      
-      const newPriceTable: PriceTable = {
-        id: data.id,
-        name: data.name,
-        description: data.description || '',
-        minimumRate: data.minimum_rate as PriceTable['minimumRate'],
-        excessWeight: data.excess_weight as PriceTable['excessWeight'],
-        doorToDoor: data.door_to_door as PriceTable['doorToDoor'],
-        waitingHour: data.waiting_hour as PriceTable['waitingHour'],
-        insurance: data.insurance as PriceTable['insurance'],
-        allowCustomPricing: data.allow_custom_pricing,
-        defaultDiscount: data.default_discount || 0,
-        createdAt: data.created_at || timestamp,
-        updatedAt: data.updated_at || timestamp,
-      };
-      
-      setPriceTables((prev) => [...prev, newPriceTable]);
-      
-      toast({
-        title: "Tabela de preços criada",
-        description: `A tabela "${priceTable.name}" foi criada com sucesso.`,
-      });
-    } catch (error) {
-      console.error("Error adding price table:", error);
-      toast({
-        title: "Erro ao criar tabela de preços",
-        description: "Ocorreu um erro ao criar a tabela de preços. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const updatePriceTable = async (id: string, priceTable: Partial<PriceTable>) => {
-    try {
-      const timestamp = new Date().toISOString();
-      
-      const supabasePriceTable: any = {
-        updated_at: timestamp
-      };
-      
-      if (priceTable.name !== undefined) supabasePriceTable.name = priceTable.name;
-      if (priceTable.description !== undefined) supabasePriceTable.description = priceTable.description;
-      if (priceTable.minimumRate !== undefined) supabasePriceTable.minimum_rate = priceTable.minimumRate;
-      if (priceTable.excessWeight !== undefined) supabasePriceTable.excess_weight = priceTable.excessWeight;
-      if (priceTable.doorToDoor !== undefined) supabasePriceTable.door_to_door = priceTable.doorToDoor;
-      if (priceTable.waitingHour !== undefined) supabasePriceTable.waiting_hour = priceTable.waitingHour;
-      if (priceTable.insurance !== undefined) supabasePriceTable.insurance = priceTable.insurance;
-      if (priceTable.allowCustomPricing !== undefined) supabasePriceTable.allow_custom_pricing = priceTable.allowCustomPricing;
-      if (priceTable.defaultDiscount !== undefined) supabasePriceTable.default_discount = priceTable.defaultDiscount;
-
-      const { error } = await supabase
-        .from('price_tables')
-        .update(supabasePriceTable)
-        .eq('id', id);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setPriceTables((prev) => 
-        prev.map((table) => 
-          table.id === id 
-            ? { ...table, ...priceTable, updatedAt: timestamp } 
-            : table
-        )
-      );
-      
-      toast({
-        title: "Tabela de preços atualizada",
-        description: `A tabela foi atualizada com sucesso.`,
-      });
-    } catch (error) {
-      console.error("Error updating price table:", error);
-      toast({
-        title: "Erro ao atualizar tabela de preços",
-        description: "Ocorreu um erro ao atualizar a tabela de preços. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const deletePriceTable = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('price_tables')
-        .delete()
-        .eq('id', id);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setPriceTables((prev) => prev.filter((table) => table.id !== id));
-      
-      toast({
-        title: "Tabela de preços removida",
-        description: `A tabela foi removida com sucesso.`,
-      });
-    } catch (error) {
-      console.error("Error deleting price table:", error);
-      toast({
-        title: "Erro ao remover tabela de preços",
-        description: "Ocorreu um erro ao remover a tabela de preços. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const getPriceTable = (id: string) => {
-    return priceTables.find((table) => table.id === id);
-  };
-  
-  const calculateInsurance = (
-    priceTableId: string, 
-    invoiceValue: number, 
-    isReshipment: boolean,
-    cargoType: 'standard' | 'perishable'
-  ) => {
-    const table = getPriceTable(priceTableId);
-    if (!table || !table.insurance) return 0;
-    
-    if (isReshipment) {
-      return invoiceValue * 0.01;
-    }
-    
-    const rate = cargoType === 'perishable' 
-      ? (table.insurance.perishable || table.insurance.rate) 
-      : (table.insurance.standard || table.insurance.rate);
-      
-    return invoiceValue * rate;
-  };
-  
-  return (
-    <PriceTablesContext.Provider value={{
-      priceTables,
-      addPriceTable,
-      updatePriceTable,
-      deletePriceTable,
-      getPriceTable,
-      calculateInsurance,
-      loading,
-    }}>
-      {children}
-    </PriceTablesContext.Provider>
-  );
-};
-
-export const usePriceTables = () => {
-  const context = useContext(PriceTablesContext);
-  if (context === undefined) {
-    throw new Error('usePriceTables must be used within a PriceTablesProvider');
-  }
-  return context;
+  return { priceTables, setPriceTables, loading };
 };
