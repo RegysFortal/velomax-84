@@ -27,6 +27,7 @@ import { BudgetProvider } from './contexts/BudgetContext';
 import { ClientsProvider } from './contexts/clients/ClientsContext';
 import { DeliveriesProvider } from './contexts/DeliveriesContext';
 import { ActivityLogProvider } from './contexts/ActivityLogContext';
+import { PriceTablesProvider } from './contexts/PriceTablesContext';
 import Index from './pages/Index';
 
 function App() {
@@ -37,36 +38,38 @@ function App() {
       <AuthProvider>
         <ActivityLogProvider>
           <ClientsProvider>
-            <DeliveriesProvider>
-              <BudgetProvider>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  
-                  {/* Protected routes */}
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/clients" element={<ClientsPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/vehicles" element={<VehiclesPage />} />
-                  <Route path="/deliveries" element={<DeliveriesPage />} />
-                  <Route path="/shipments" element={<ShipmentsPage />} />
-                  <Route path="/employees" element={<EmployeesPage />} />
-                  <Route path="/maintenance" element={<MaintenancePage />} />
-                  <Route path="/logbook" element={<LogbookPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/activity-logs" element={<ActivityLogsPage />} />
-                  <Route path="/financial" element={<FinancialPage />} />
-                  <Route path="/reports" element={<ReportsPage />} />
-                  <Route path="/shipment-reports" element={<ShipmentReportsPage />} />
-                  <Route path="/price-tables" element={<PriceTablesPage />} />
-                  <Route path="/cities" element={<CitiesPage />} />
-                  <Route path="/budgets" element={<BudgetsPage />} />
-                  
-                  <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-                <Toaster />
-              </BudgetProvider>
-            </DeliveriesProvider>
+            <PriceTablesProvider>
+              <DeliveriesProvider>
+                <BudgetProvider>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    
+                    {/* Protected routes */}
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/clients" element={<ClientsPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/vehicles" element={<VehiclesPage />} />
+                    <Route path="/deliveries" element={<DeliveriesPage />} />
+                    <Route path="/shipments" element={<ShipmentsPage />} />
+                    <Route path="/employees" element={<EmployeesPage />} />
+                    <Route path="/maintenance" element={<MaintenancePage />} />
+                    <Route path="/logbook" element={<LogbookPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/activity-logs" element={<ActivityLogsPage />} />
+                    <Route path="/financial" element={<FinancialPage />} />
+                    <Route path="/reports" element={<ReportsPage />} />
+                    <Route path="/shipment-reports" element={<ShipmentReportsPage />} />
+                    <Route path="/price-tables" element={<PriceTablesPage />} />
+                    <Route path="/cities" element={<CitiesPage />} />
+                    <Route path="/budgets" element={<BudgetsPage />} />
+                    
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                  <Toaster />
+                </BudgetProvider>
+              </DeliveriesProvider>
+            </PriceTablesProvider>
           </ClientsProvider>
         </ActivityLogProvider>
       </AuthProvider>
