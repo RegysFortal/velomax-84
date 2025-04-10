@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { Delivery } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -106,7 +107,7 @@ export const useDeliveriesCRUD = (
     }
   }, [deliveries, setDeliveries, clients, toast, user]);
   
-  const updateDelivery = useCallback(async (id: string, updates: Partial<Delivery>): Promise<boolean> => {
+  const updateDelivery = useCallback(async (id: string, updates: Partial<Delivery>): Promise<void> => {
     try {
       const timestamp = new Date().toISOString();
       
@@ -157,7 +158,6 @@ export const useDeliveriesCRUD = (
         description: `A entrega foi atualizada com sucesso.`,
       });
       
-      return true;
     } catch (error) {
       console.error('Error updating delivery:', error);
       toast({
@@ -165,7 +165,6 @@ export const useDeliveriesCRUD = (
         description: "Ocorreu um erro ao atualizar a entrega. Tente novamente.",
         variant: "destructive"
       });
-      return false;
     }
   }, [setDeliveries, toast]);
   
