@@ -122,29 +122,26 @@ export interface Delivery {
   clientId: string;
   deliveryDate: string;
   deliveryTime: string;
-  receiver?: string;
-  receiverId?: string; 
-  pickupName?: string; 
-  pickupId?: string; 
-  pickupDate?: string; 
-  pickupTime?: string; 
+  receiver: string;
   weight: number;
   packages: number;
   deliveryType: 'standard' | 'emergency' | 'exclusive' | 'saturday' | 'sundayHoliday' | 'difficultAccess' | 'metropolitanRegion' | 'doorToDoorInterior' | 'reshipment' | 'normalBiological' | 'infectiousBiological' | 'tracked';
   cargoType: 'standard' | 'perishable';
   cargoValue?: number;
   totalFreight: number;
-  notes: string;
+  notes?: string;
   occurrence?: string;
   createdAt: string;
   updatedAt: string;
   cityId?: string;
-  customPricing?: boolean;
-  discount?: number;
+  pickupName?: string;
+  pickupDate?: string;
+  pickupTime?: string;
 }
 
-export const doorToDoorDeliveryTypes: Delivery['deliveryType'][] = [
+export const doorToDoorDeliveryTypes = [
   'doorToDoorInterior',
+  'metropolitanRegion'
 ];
 
 export interface FinancialReport {

@@ -6,17 +6,13 @@ import { Control, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 
 interface PickupPersonFieldProps {
   control: Control<any>;
-  setValue: UseFormSetValue<any>;
-  getValues: UseFormGetValues<any>;
+  setValue?: UseFormSetValue<any>;
+  getValues?: UseFormGetValues<any>;
 }
 
 export function PickupPersonField({ control }: PickupPersonFieldProps) {
   return (
     <div className="space-y-4">
-      <div className="mb-2">
-        <h3 className="text-sm font-semibold text-gray-700">Informações de Retirada na Transportadora</h3>
-      </div>
-      
       <FormField
         control={control}
         name="pickupName"
@@ -27,6 +23,7 @@ export function PickupPersonField({ control }: PickupPersonFieldProps) {
               <Input
                 {...field}
                 placeholder="Nome de quem retirou na transportadora"
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />

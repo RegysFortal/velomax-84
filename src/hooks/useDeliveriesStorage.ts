@@ -82,6 +82,10 @@ export const useDeliveriesStorage = () => {
           occurrence: delivery.occurrence || '',
           createdAt: delivery.created_at || new Date().toISOString(),
           updatedAt: delivery.updated_at || new Date().toISOString(),
+          cityId: delivery.city_id || undefined,
+          pickupName: delivery.pickup_name || '',
+          pickupDate: delivery.pickup_date || '',
+          pickupTime: delivery.pickup_time || '',
         }));
         
         setDeliveries(mappedDeliveries);

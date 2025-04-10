@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -15,6 +16,8 @@ import { toast } from "sonner";
 import { DeliveryFormBasicFields } from './DeliveryFormBasicFields';
 import { DeliveryFormTypeFields } from './DeliveryFormTypeFields';
 import { DeliveryFormNotes } from './DeliveryFormNotes';
+import { deliveryFormSchema } from './schema/deliveryFormSchema';
+import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,26 +29,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const deliveryFormSchema = z.object({
-  clientId: z.string({ required_error: 'Cliente é obrigatório' }),
-  minuteNumber: z.string().optional(),
-  deliveryDate: z.string({ required_error: 'Data de entrega é obrigatória' }),
-  deliveryTime: z.string({ required_error: 'Hora de entrega é obrigatória' }),
-  receiver: z.string({ required_error: 'Destinatário é obrigatório' }).min(3, 'Mínimo de 3 caracteres'),
-  weight: z.string({ required_error: 'Peso é obrigatório' }).refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
-    message: 'Peso deve ser maior que zero',
-  }),
-  packages: z.string({ required_error: 'Quantidade de volumes é obrigatória' }).refine(val => !isNaN(parseInt(val)) && parseInt(val) > 0, {
-    message: 'Volumes devem ser maior que zero',
-  }),
-  deliveryType: z.string({ required_error: 'Tipo de entrega é obrigatório' }),
-  cargoType: z.string({ required_error: 'Tipo de carga é obrigatório' }),
-  cargoValue: z.string().optional(),
-  cityId: z.string().optional(),
-  notes: z.string().optional(),
-  occurrence: z.string().optional(),
-});
-
 type DeliveryFormValues = z.infer<typeof deliveryFormSchema>;
 
 interface DeliveryFormProps {
@@ -55,16 +38,24 @@ interface DeliveryFormProps {
 }
 
 export const DeliveryForm = ({ delivery, onComplete, onCancel }: DeliveryFormProps) => {
-  const { addDelivery, updateDelivery, calculateFreight, isDoorToDoorDelivery, checkMinuteNumberExists } = useDeliveries();
+  const { calculateFreight, isDoorToDoorDelivery, checkMinuteNumberExists } = useDeliveries();
   const { clients } = useClients();
   const { cities } = useCities();
-  const { addLog } = useActivityLog();
+  
   const [showDoorToDoor, setShowDoorToDoor] = useState(false);
   const [freight, setFreight] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [initialClientId, setInitialClientId] = useState('');
   const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
   const [formData, setFormData] = useState<any>(null);
+
+  const { handleSubmit, handleConfirmDuplicate } = useDeliveryFormSubmit({
+    isEditMode,
+    delivery,
+    setFormData,
+    setShowDuplicateAlert,
+    onComplete
+  });
 
   const form = useForm<DeliveryFormValues>({
     resolver: zodResolver(deliveryFormSchema),
@@ -82,6 +73,9 @@ export const DeliveryForm = ({ delivery, onComplete, onCancel }: DeliveryFormPro
       cityId: '',
       notes: '',
       occurrence: '',
+      pickupName: '',
+      pickupDate: '',
+      pickupTime: '',
     },
   });
 
@@ -130,6 +124,9 @@ export const DeliveryForm = ({ delivery, onComplete, onCancel }: DeliveryFormPro
         cityId: delivery.cityId || '',
         notes: delivery.notes || '',
         occurrence: delivery.occurrence || '',
+        pickupName: delivery.pickupName || '',
+        pickupDate: delivery.pickupDate || '',
+        pickupTime: delivery.pickupTime || '',
       });
       
       setFreight(delivery.totalFreight || 0);
@@ -177,177 +174,8 @@ export const DeliveryForm = ({ delivery, onComplete, onCancel }: DeliveryFormPro
     }
   }, [watchDeliveryType, isDoorToDoorDelivery]);
 
-  const handleConfirmDuplicate = async () => {
-    if (!formData) return;
-    
-    try {
-      if (isEditMode && delivery) {
-        updateDelivery(delivery.id, formData.updatedDelivery);
-        
-        addLog({
-          action: 'update',
-          entityType: 'delivery',
-          entityId: delivery.id,
-          entityName: `Minuta ${delivery.minuteNumber} - ${formData.clientName}`,
-          details: `Entrega atualizada: ${delivery.minuteNumber}`
-        });
-        
-        toast.success("Entrega atualizada com sucesso");
-      } else {
-        addDelivery(formData.newDelivery);
-        
-        addLog({
-          action: 'create',
-          entityType: 'delivery',
-          entityId: '',
-          entityName: `Nova entrega - ${formData.clientName}`,
-          details: `Nova entrega criada para ${formData.clientName}`
-        });
-        
-        toast.success("Entrega registrada com sucesso");
-      }
-      
-      setShowDuplicateAlert(false);
-      onComplete();
-    } catch (error) {
-      console.error('Error submitting delivery form:', error);
-      toast.error("Erro ao salvar entrega");
-    }
-  };
-
-  const onSubmit = async (data: DeliveryFormValues) => {
-    try {
-      console.log("DeliveryForm - Dados do formulário enviado:", data);
-      
-      const weight = parseFloat(data.weight);
-      const packages = parseInt(data.packages);
-      const cargoValue = data.cargoValue ? parseFloat(data.cargoValue) : undefined;
-      
-      const client = clients.find(c => c.id === data.clientId);
-      const clientName = client ? (client.tradingName || client.name) : 'Cliente desconhecido';
-      
-      console.log("DeliveryForm - Cliente selecionado:", client);
-      
-      if (data.minuteNumber && checkMinuteNumberExists(data.minuteNumber, data.clientId) && 
-          (!isEditMode || (isEditMode && delivery && delivery.minuteNumber !== data.minuteNumber))) {
-        
-        if (isEditMode && delivery) {
-          const updatedDelivery: Partial<Delivery> = {
-            clientId: data.clientId,
-            deliveryDate: data.deliveryDate,
-            deliveryTime: data.deliveryTime,
-            receiver: data.receiver,
-            weight,
-            packages,
-            deliveryType: data.deliveryType as Delivery['deliveryType'],
-            cargoType: data.cargoType as Delivery['cargoType'],
-            cargoValue,
-            totalFreight: freight,
-            notes: data.notes,
-            occurrence: data.occurrence,
-            cityId: data.cityId || undefined,
-          };
-          
-          setFormData({
-            updatedDelivery,
-            clientName
-          });
-        } else {
-          const newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
-            minuteNumber: data.minuteNumber || '',
-            clientId: data.clientId,
-            deliveryDate: data.deliveryDate,
-            deliveryTime: data.deliveryTime,
-            receiver: data.receiver,
-            weight,
-            packages,
-            deliveryType: data.deliveryType as Delivery['deliveryType'],
-            cargoType: data.cargoType as Delivery['cargoType'],
-            cargoValue,
-            totalFreight: freight,
-            notes: data.notes,
-            occurrence: data.occurrence,
-            cityId: data.cityId || undefined,
-          };
-          
-          setFormData({
-            newDelivery,
-            clientName
-          });
-        }
-        
-        setShowDuplicateAlert(true);
-        return;
-      }
-      
-      if (isEditMode && delivery) {
-        const updatedDelivery: Partial<Delivery> = {
-          clientId: data.clientId,
-          deliveryDate: data.deliveryDate,
-          deliveryTime: data.deliveryTime,
-          receiver: data.receiver,
-          weight,
-          packages,
-          deliveryType: data.deliveryType as Delivery['deliveryType'],
-          cargoType: data.cargoType as Delivery['cargoType'],
-          cargoValue,
-          totalFreight: freight,
-          notes: data.notes,
-          occurrence: data.occurrence,
-          cityId: data.cityId || undefined,
-        };
-        
-        console.log("DeliveryForm - Atualizando entrega:", updatedDelivery);
-        
-        updateDelivery(delivery.id, updatedDelivery);
-        
-        addLog({
-          action: 'update',
-          entityType: 'delivery',
-          entityId: delivery.id,
-          entityName: `Minuta ${delivery.minuteNumber} - ${clientName}`,
-          details: `Entrega atualizada: ${delivery.minuteNumber}`
-        });
-        
-        toast.success("Entrega atualizada com sucesso");
-      } else {
-        const newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
-          minuteNumber: data.minuteNumber || '',
-          clientId: data.clientId,
-          deliveryDate: data.deliveryDate,
-          deliveryTime: data.deliveryTime,
-          receiver: data.receiver,
-          weight,
-          packages,
-          deliveryType: data.deliveryType as Delivery['deliveryType'],
-          cargoType: data.cargoType as Delivery['cargoType'],
-          cargoValue,
-          totalFreight: freight,
-          notes: data.notes,
-          occurrence: data.occurrence,
-          cityId: data.cityId || undefined,
-        };
-        
-        console.log("DeliveryForm - Criando nova entrega:", newDelivery);
-        
-        addDelivery(newDelivery);
-        
-        addLog({
-          action: 'create',
-          entityType: 'delivery',
-          entityId: '',
-          entityName: `Nova entrega - ${clientName}`,
-          details: `Nova entrega criada para ${clientName}`
-        });
-        
-        toast.success("Entrega registrada com sucesso");
-      }
-      
-      onComplete();
-    } catch (error) {
-      console.error('Error submitting delivery form:', error);
-      toast.error("Erro ao salvar entrega");
-    }
+  const onSubmit = (data: DeliveryFormValues) => {
+    handleSubmit(data, freight);
   };
 
   const handleCancel = () => {
@@ -418,7 +246,7 @@ export const DeliveryForm = ({ delivery, onComplete, onCancel }: DeliveryFormPro
             <AlertDialogCancel onClick={() => setShowDuplicateAlert(false)}>
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDuplicate} className="bg-orange-600 hover:bg-orange-700">
+            <AlertDialogAction onClick={() => handleConfirmDuplicate(formData)} className="bg-orange-600 hover:bg-orange-700">
               Sim, criar mesmo assim
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -43,7 +43,10 @@ export const useDeliveriesCRUD = (
         notes: delivery.notes || '',
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
-        user_id: user?.id
+        user_id: user?.id,
+        pickup_name: delivery.pickupName || '',
+        pickup_date: delivery.pickupDate || '',
+        pickup_time: delivery.pickupTime || '',
       };
       
       const { data, error } = await supabase
@@ -74,6 +77,10 @@ export const useDeliveriesCRUD = (
         occurrence: data.occurrence || '',
         createdAt: data.created_at || timestamp,
         updatedAt: data.updated_at || timestamp,
+        cityId: data.city_id || undefined,
+        pickupName: data.pickup_name || '',
+        pickupDate: data.pickup_date || '',
+        pickupTime: data.pickup_time || '',
       };
       
       setDeliveries(prev => [...prev, newDelivery]);
@@ -122,6 +129,9 @@ export const useDeliveriesCRUD = (
       if (delivery.notes !== undefined) supabaseDelivery.notes = delivery.notes;
       if (delivery.occurrence !== undefined) supabaseDelivery.occurrence = delivery.occurrence;
       if (delivery.cityId !== undefined) supabaseDelivery.city_id = delivery.cityId;
+      if (delivery.pickupName !== undefined) supabaseDelivery.pickup_name = delivery.pickupName;
+      if (delivery.pickupDate !== undefined) supabaseDelivery.pickup_date = delivery.pickupDate;
+      if (delivery.pickupTime !== undefined) supabaseDelivery.pickup_time = delivery.pickupTime;
       
       const { error } = await supabase
         .from('deliveries')
