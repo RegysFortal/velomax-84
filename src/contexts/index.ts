@@ -9,3 +9,4 @@ export { DeliveriesProvider, useDeliveries } from './DeliveriesContext';
 export { PriceTablesProvider, usePriceTables } from './PriceTablesContext';
 export { CitiesProvider, useCities } from './CitiesContext';
 export { ShipmentsProvider, useShipments } from './shipments';
+export { FinancialProvider, useFinancial } from './FinancialContext';
