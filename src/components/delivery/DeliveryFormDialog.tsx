@@ -32,14 +32,15 @@ export function DeliveryFormDialog({
     setIsOpen(true);
   };
 
-  // Função segura para fechar o diálogo, seguindo o padrão de ClientAddDialog
+  // Função padronizada para fechar o diálogo, seguindo o padrão de ClientAddDialog
   const handleDialogClose = () => {
-    // Primeiro remova o estado de submissão
+    // Primeiro executamos a função de callback onComplete
+    onComplete();
     
-    // Em seguida, feche o diálogo 
+    // Em seguida, fechamos o diálogo
     setIsOpen(false);
     
-    // Após fechar o diálogo, com um pequeno atraso limpe o estado de edição
+    // Após fechar o diálogo, com um pequeno atraso limpamos o estado de edição
     setTimeout(() => {
       setEditingDelivery(null);
     }, 10);
@@ -47,19 +48,13 @@ export function DeliveryFormDialog({
 
   // Manipulador quando o formulário é concluído
   const handleFormComplete = () => {
-    // Executa o callback de conclusão
-    onComplete();
-    
-    // Depois fecha o diálogo
     handleDialogClose();
   };
 
   // Manipulador de mudança de estado do diálogo
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // Se estiver fechando o diálogo, primeiro execute o callback
-      onComplete();
-      // Depois use nosso método seguro para fechar
+      // Se estiver fechando o diálogo, use o método padronizado
       handleDialogClose();
     } else {
       // Se estiver abrindo o diálogo, apenas defina o estado
@@ -80,7 +75,6 @@ export function DeliveryFormDialog({
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => {
             e.preventDefault();
-            onComplete();
             handleDialogClose();
           }}
         >
@@ -94,10 +88,7 @@ export function DeliveryFormDialog({
               <DeliveryForm 
                 delivery={editingDelivery} 
                 onComplete={handleFormComplete}
-                onCancel={() => {
-                  onComplete();
-                  handleDialogClose();
-                }}
+                onCancel={handleDialogClose}
               />
             </div>
           </ScrollArea>
