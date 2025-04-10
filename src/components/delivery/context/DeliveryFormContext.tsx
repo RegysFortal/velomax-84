@@ -5,6 +5,7 @@ import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { deliveryFormSchema } from '../schema/deliveryFormSchema';
+import { useDuplicateMinuteCheck } from '../hooks/useDuplicateMinuteCheck';
 
 type DeliveryFormContextType = {
   form: UseFormReturn<any>;
@@ -41,8 +42,13 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
 }) => {
   const [freight, setFreight] = useState(0);
   const [showDoorToDoor, setShowDoorToDoor] = useState(false);
-  const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
-  const [formData, setFormData] = useState<any>(null);
+  const { 
+    showDuplicateAlert, 
+    setShowDuplicateAlert,
+    formData,
+    setFormData
+  } = useDuplicateMinuteCheck();
+  
   const isEditMode = !!delivery;
 
   const form = useForm({

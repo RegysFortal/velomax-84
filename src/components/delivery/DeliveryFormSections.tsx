@@ -38,7 +38,8 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     showDoorToDoor,
     showDuplicateAlert,
     setShowDuplicateAlert,
-    formData
+    formData,
+    setFormData 
   } = useDeliveryFormContext();
   
   const { cities } = useCities();
@@ -46,7 +47,7 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
   const { handleSubmit, handleConfirmDuplicate } = useDeliveryFormSubmit({
     isEditMode,
     delivery,
-    setFormData: () => {}, // This is handled by the context now
+    setFormData,
     setShowDuplicateAlert,
     onComplete
   });

@@ -1,10 +1,10 @@
 
-import { useDeliveries } from '@/contexts/DeliveriesContext';
-import { useClients } from '@/contexts';
-import { useActivityLog } from '@/contexts/ActivityLogContext';
 import { Delivery } from '@/types';
-import { toast } from 'sonner';
-import { generateMinuteNumber } from '@/utils/deliveryUtils';
+import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useActivityLogging } from './useActivityLogging';
+import { useNewDeliverySubmission } from './useNewDeliverySubmission';
+import { useDeliverySubmission } from './useDeliverySubmission';
+import { useDuplicateMinuteCheck } from './useDuplicateMinuteCheck';
 
 interface UseDeliveryFormSubmitProps {
   isEditMode: boolean;
@@ -21,9 +21,10 @@ export const useDeliveryFormSubmit = ({
   setShowDuplicateAlert,
   onComplete
 }: UseDeliveryFormSubmitProps) => {
-  const { addDelivery, updateDelivery, checkMinuteNumberExists } = useDeliveries();
-  const { clients } = useClients();
-  const { addLog } = useActivityLog();
+  const { checkMinuteNumberExists } = useDeliveries();
+  const { logDeliveryUpdate, logDeliveryCreation, getClientName } = useActivityLogging();
+  const { submitNewDelivery, generateNewMinuteNumber } = useNewDeliverySubmission({ onComplete });
+  const { submitUpdatedDelivery } = useDeliverySubmission({ isEditMode, delivery, onComplete });
 
   const handleSubmit = (data: any, freight: number) => {
     try {
@@ -33,11 +34,11 @@ export const useDeliveryFormSubmit = ({
       const packages = parseInt(data.packages);
       const cargoValue = data.cargoValue ? parseFloat(data.cargoValue) : undefined;
       
-      const client = clients.find(c => c.id === data.clientId);
-      const clientName = client ? (client.tradingName || client.name) : 'Cliente desconhecido';
+      const clientName = getClientName(data.clientId);
       
-      console.log("DeliveryForm - Cliente selecionado:", client);
+      console.log("DeliveryForm - Cliente selecionado:", clientName);
       
+      // Check for duplicate minute number
       if (data.minuteNumber && checkMinuteNumberExists(data.minuteNumber, data.clientId) && 
           (!isEditMode || (isEditMode && delivery && delivery.minuteNumber !== data.minuteNumber))) {
         
@@ -96,6 +97,7 @@ export const useDeliveryFormSubmit = ({
         return;
       }
       
+      // Handle update of existing delivery
       if (isEditMode && delivery) {
         const updatedDelivery: Partial<Delivery> = {
           clientId: data.clientId,
@@ -116,26 +118,12 @@ export const useDeliveryFormSubmit = ({
           pickupTime: data.pickupTime,
         };
         
-        console.log("DeliveryForm - Atualizando entrega:", updatedDelivery);
-        
-        updateDelivery(delivery.id, updatedDelivery);
-        
-        addLog({
-          action: 'update',
-          entityType: 'delivery',
-          entityId: delivery.id,
-          entityName: `Minuta ${delivery.minuteNumber} - ${clientName}`,
-          details: `Entrega atualizada: ${delivery.minuteNumber}`
-        });
-        
-        toast.success("Entrega atualizada com sucesso");
-      } else {
-        let minuteNumber = data.minuteNumber;
-        if (!minuteNumber) {
-          // This assumes that generateMinuteNumber is now imported from utils
-          // instead of being called from the context
-          minuteNumber = generateMinuteNumber([]);
-        }
+        submitUpdatedDelivery(updatedDelivery, delivery.id);
+        logDeliveryUpdate(delivery, data.clientId);
+      } 
+      // Handle creation of new delivery
+      else {
+        let minuteNumber = generateNewMinuteNumber(data.minuteNumber, []);
         
         const newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
           minuteNumber,
@@ -157,25 +145,11 @@ export const useDeliveryFormSubmit = ({
           pickupTime: data.pickupTime,
         };
         
-        console.log("DeliveryForm - Criando nova entrega:", newDelivery);
-        
-        addDelivery(newDelivery);
-        
-        addLog({
-          action: 'create',
-          entityType: 'delivery',
-          entityId: '',
-          entityName: `Nova entrega - ${clientName}`,
-          details: `Nova entrega criada para ${clientName}`
-        });
-        
-        toast.success("Entrega registrada com sucesso");
+        submitNewDelivery(newDelivery);
+        logDeliveryCreation(minuteNumber, data.clientId);
       }
-      
-      onComplete();
     } catch (error) {
       console.error('Error submitting delivery form:', error);
-      toast.error("Erro ao salvar entrega");
     }
   };
 
@@ -184,36 +158,16 @@ export const useDeliveryFormSubmit = ({
     
     try {
       if (isEditMode && delivery) {
-        updateDelivery(delivery.id, formData.updatedDelivery);
-        
-        addLog({
-          action: 'update',
-          entityType: 'delivery',
-          entityId: delivery.id,
-          entityName: `Minuta ${delivery.minuteNumber} - ${formData.clientName}`,
-          details: `Entrega atualizada: ${delivery.minuteNumber}`
-        });
-        
-        toast.success("Entrega atualizada com sucesso");
-      } else {
-        addDelivery(formData.newDelivery);
-        
-        addLog({
-          action: 'create',
-          entityType: 'delivery',
-          entityId: '',
-          entityName: `Nova entrega - ${formData.clientName}`,
-          details: `Nova entrega criada para ${formData.clientName}`
-        });
-        
-        toast.success("Entrega registrada com sucesso");
+        submitUpdatedDelivery(formData.updatedDelivery, delivery.id);
+        logDeliveryUpdate(delivery, formData.updatedDelivery.clientId);
+      } else if (formData.newDelivery) {
+        submitNewDelivery(formData.newDelivery);
+        logDeliveryCreation(formData.newDelivery.minuteNumber, formData.newDelivery.clientId);
       }
       
       setShowDuplicateAlert(false);
-      onComplete();
     } catch (error) {
       console.error('Error submitting delivery form:', error);
-      toast.error("Erro ao salvar entrega");
     }
   };
 
