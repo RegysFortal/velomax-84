@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Calculator } from "lucide-react";
+import { Calculator, FileText } from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
@@ -52,6 +52,16 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
               )}
             >
               Relatórios
+            </Link>
+            <Link
+              to="/budgets"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/budgets")
+              )}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Orçamentos
             </Link>
             <Link
               to="/price-tables"
