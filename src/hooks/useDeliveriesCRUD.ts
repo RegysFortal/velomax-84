@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { Delivery } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { generateMinuteNumber } from '@/utils/deliveryUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth/AuthContext';

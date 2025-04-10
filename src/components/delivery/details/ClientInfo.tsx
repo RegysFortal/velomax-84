@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Delivery } from '@/types';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 
 interface ClientInfoProps {
   delivery: Delivery;

@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { ClientForm } from '@/components/client/ClientForm';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { z } from 'zod';
 import { clientFormSchema } from '@/components/client/ClientFormSchema';
 

@@ -7,7 +7,7 @@ import {
   CardContent,
   CardHeader,
 } from '@/components/ui/card';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { Client } from '@/types';
 import { ClientTable } from '@/components/client/ClientTable';
 import { ClientAddDialog } from '@/components/client/ClientAddDialog';

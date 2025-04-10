@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { useDeliveries } from "@/contexts/DeliveriesContext";
 import { useShipments } from "@/contexts/ShipmentsContext";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@/contexts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";

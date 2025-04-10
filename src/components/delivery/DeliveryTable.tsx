@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Delivery } from '@/types';
 import { Table, TableBody, TableRow, TableCell } from '@/components/ui/table';
 import { DeliveryTableHeader } from './DeliveryTableHeader';
 import { DeliveryTableRow } from './DeliveryTableRow';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 
 interface DeliveryTableProps {
   deliveries: Delivery[];

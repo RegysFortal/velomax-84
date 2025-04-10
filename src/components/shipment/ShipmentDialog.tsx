@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +10,7 @@ import {
 import { useShipments } from "@/contexts/ShipmentsContext";
 import { ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@/contexts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShipmentFormSection } from "./ShipmentFormSection";
 import { RetentionFormSection } from "./RetentionFormSection";

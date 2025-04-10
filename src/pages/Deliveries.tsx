@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
 import { useFinancial } from '@/contexts/FinancialContext';
 import { AppLayout } from '@/components/AppLayout';
@@ -22,28 +22,21 @@ const Deliveries = () => {
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   
-  // Debug para verificar os problemas com os nomes de clientes
   useEffect(() => {
     console.log('Clientes disponíveis:', clients);
     console.log('Entregas com IDs de clientes:', deliveries.map(d => ({ deliveryId: d.id, clientId: d.clientId })));
   }, [clients, deliveries]);
 
-  // Verificar se uma entrega está em um relatório fechado
   const isDeliveryInClosedReport = (delivery: Delivery) => {
-    // Filtrar apenas relatórios fechados
     const closedReports = financialReports.filter(report => report.status === 'closed');
     
-    // Verificar se a entrega está em algum relatório fechado
     return closedReports.some(report => {
-      // Verificar se o cliente da entrega é o mesmo do relatório
       if (report.clientId !== delivery.clientId) return false;
       
-      // Verificar se a data da entrega está dentro do período do relatório
       const deliveryDate = new Date(delivery.deliveryDate);
       const reportStartDate = new Date(report.startDate);
       const reportEndDate = new Date(report.endDate);
       
-      // Ajustar para comparação correta de datas
       deliveryDate.setHours(0, 0, 0, 0);
       reportStartDate.setHours(0, 0, 0, 0);
       reportEndDate.setHours(23, 59, 59, 999);
@@ -53,7 +46,6 @@ const Deliveries = () => {
   };
 
   const filteredDeliveries = deliveries.filter(delivery => {
-    // Excluir entregas que estão em relatórios fechados
     if (isDeliveryInClosedReport(delivery)) {
       return false;
     }
@@ -72,11 +64,10 @@ const Deliveries = () => {
   }).sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime());
 
   const handleEditDelivery = (delivery: Delivery) => {
-    // Cria uma cópia profunda para evitar problemas de referência
     const deliveryCopy = JSON.parse(JSON.stringify(delivery));
     setEditingDelivery(deliveryCopy);
     setIsDialogOpen(true);
-    setSelectedDelivery(null); // Close details view if open
+    setSelectedDelivery(null);
   };
 
   const handleDeleteDelivery = (id: string) => {
@@ -89,7 +80,6 @@ const Deliveries = () => {
         
         deleteDelivery(id);
         
-        // Log activity
         addLog({
           action: 'delete',
           entityType: 'delivery',
@@ -104,14 +94,12 @@ const Deliveries = () => {
   };
 
   const handleDialogComplete = () => {
-    // Keep the dialog open after form submission
-    // The dialog should only close when the user explicitly closes it
   };
-  
+
   const handleViewDetails = (delivery: Delivery) => {
     setSelectedDelivery(delivery);
   };
-  
+
   const handleDetailClose = () => {
     setSelectedDelivery(null);
   };
@@ -151,7 +139,6 @@ const Deliveries = () => {
         </Card>
       </div>
       
-      {/* Delivery details dialog */}
       <DeliveryDetails
         delivery={selectedDelivery}
         open={!!selectedDelivery}

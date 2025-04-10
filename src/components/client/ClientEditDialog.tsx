@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -8,7 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ClientForm } from '@/components/client/ClientForm';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { Client } from '@/types';
 import { z } from 'zod';
 import { ScrollArea } from '@/components/ui/scroll-area';

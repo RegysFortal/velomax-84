@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { Delivery } from '@/types';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { usePriceTables } from '@/contexts/PriceTablesContext';
 import { useCities } from '@/contexts/CitiesContext';
 import { calculateFreight as calculateFreightUtil } from '@/utils/deliveryUtils';

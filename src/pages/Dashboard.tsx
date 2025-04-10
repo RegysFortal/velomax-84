@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -7,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, LineChart } from '@/components/ui/chart';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { useShipments } from '@/contexts/ShipmentsContext';
 import { format, subDays, subMonths, subYears, startOfDay, startOfMonth, startOfYear, endOfDay, differenceInDays, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

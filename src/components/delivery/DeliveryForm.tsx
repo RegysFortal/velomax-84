@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { useCities } from '@/contexts/CitiesContext';
 import { Delivery } from '@/types';
 import { Button } from '@/components/ui/button';

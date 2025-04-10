@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -7,13 +6,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 // Context Providers
 import { AuthProvider } from "./contexts/auth/AuthContext";
 import { PriceTablesProvider } from "./contexts/PriceTablesContext";
-import { ClientsProvider } from "./contexts/ClientsContext";
+import { ClientsProvider } from "./contexts";
 import { DeliveriesProvider } from "./contexts/DeliveriesContext";
 import { CitiesProvider } from "./contexts/CitiesContext";
 import { FinancialProvider } from "./contexts/FinancialContext";
 import { LogbookProvider } from "./contexts/LogbookContext";
 import { ShipmentsProvider } from "./contexts/ShipmentsContext";
-import { ActivityLogProvider } from "./contexts/ActivityLogContext";
+import { ActivityLogProvider } from "./contexts";
 
 // Pages
 import Index from "./pages/Index";

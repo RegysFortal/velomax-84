@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@/contexts";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";

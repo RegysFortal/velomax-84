@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { FileText } from 'lucide-react';
 import { useFinancial } from '@/contexts/FinancialContext';
-import { useClients } from '@/contexts/ClientsContext';
+import { useClients } from '@/contexts';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
