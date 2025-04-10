@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Client } from '@/types';
 import { User } from '@/types';
@@ -37,9 +36,8 @@ export const useClientsOperations = (
             phone: newClient.phone,
             document: newClient.document,
             address: newClient.address,
-            contact_person: newClient.contact_person,
+            contact: newClient.contact,
             price_table_id: newClient.priceTableId,
-            payment_terms: newClient.paymentTerms,
             notes: newClient.notes,
             user_id: user.id,
             created_at: timestamp,
@@ -85,18 +83,13 @@ export const useClientsOperations = (
         };
         
         // Convert camelCase to snake_case for Supabase
-        if ('contact_person' in clientUpdate) {
-          updateData.contact_person = clientUpdate.contact_person;
+        if ('contact' in clientUpdate) {
+          updateData.contact_person = clientUpdate.contact;
         }
         
         if ('priceTableId' in clientUpdate) {
           updateData.price_table_id = clientUpdate.priceTableId;
           delete updateData.priceTableId;
-        }
-        
-        if ('paymentTerms' in clientUpdate) {
-          updateData.payment_terms = clientUpdate.paymentTerms;
-          delete updateData.paymentTerms;
         }
         
         const { error } = await supabase
