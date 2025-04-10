@@ -29,9 +29,9 @@ export function ClientTable({
   onDeleteClient,
 }: ClientTableProps) {
   const filteredClients = clients.filter((client) =>
+    client.tradingName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.tradingName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -52,7 +52,8 @@ export function ClientTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[200px]">Nome</TableHead>
+            <TableHead>Nome Fantasia</TableHead>
+            <TableHead>Razão Social</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Telefone</TableHead>
             <TableHead className="text-right">Ações</TableHead>
@@ -61,7 +62,8 @@ export function ClientTable({
         <TableBody>
           {filteredClients.map((client) => (
             <TableRow key={client.id}>
-              <TableCell className="font-medium">{client.name}</TableCell>
+              <TableCell className="font-medium">{client.tradingName || '-'}</TableCell>
+              <TableCell>{client.name}</TableCell>
               <TableCell>{client.email}</TableCell>
               <TableCell>{client.phone}</TableCell>
               <TableCell className="text-right">
@@ -84,7 +86,7 @@ export function ClientTable({
           ))}
           {filteredClients.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center">
+              <TableCell colSpan={5} className="text-center">
                 Nenhum cliente encontrado.
               </TableCell>
             </TableRow>
