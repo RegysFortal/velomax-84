@@ -34,7 +34,6 @@ import {
   FinancialProvider,
   LogbookProvider 
 } from './contexts';
-import Index from './pages/Index';
 
 function App() {
   return (
@@ -50,7 +49,8 @@ function App() {
                       <LogbookProvider>
                         <BudgetProvider>
                           <Routes>
-                            <Route path="/" element={<Index />} />
+                            {/* Redirect from root to login page */}
+                            <Route path="/" element={<Navigate to="/login" replace />} />
                             <Route path="/login" element={<LoginPage />} />
                             
                             {/* Protected routes */}
