@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -540,17 +539,6 @@ const PriceTables = () => {
                         type="number"
                         step="0.01"
                         value={formData.minimumRate.trackedVehicle} 
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="doorToDoorInterior">Porta a Porta</Label>
-                      <Input 
-                        id="doorToDoorInterior" 
-                        name="minimumRate.doorToDoorInterior" 
-                        type="number"
-                        step="0.01"
-                        value={formData.minimumRate.doorToDoorInterior} 
                         onChange={handleChange}
                       />
                     </div>
