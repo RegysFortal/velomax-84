@@ -32,6 +32,7 @@ interface ShipmentFormSectionProps {
   setStatus: (status: ShipmentStatus) => void;
   clients: Client[];
   shipmentId: string;
+  disabled?: boolean; // Added the disabled prop as optional
 }
 
 export function ShipmentFormSection({
@@ -57,7 +58,8 @@ export function ShipmentFormSection({
   status,
   setStatus,
   clients,
-  shipmentId
+  shipmentId,
+  disabled
 }: ShipmentFormSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -66,6 +68,7 @@ export function ShipmentFormSection({
         setCompanyId={setCompanyId}
         setCompanyName={setCompanyName}
         clients={clients}
+        disabled={disabled}
       />
       
       <TransportSection 
@@ -75,6 +78,7 @@ export function ShipmentFormSection({
         setCarrierName={setCarrierName}
         trackingNumber={trackingNumber}
         setTrackingNumber={setTrackingNumber}
+        disabled={disabled}
       />
       
       <PackageDetailsSection 
@@ -82,6 +86,7 @@ export function ShipmentFormSection({
         setPackages={setPackages}
         weight={weight}
         setWeight={setWeight}
+        disabled={disabled}
       />
       
       <ShipmentInfoSection 
@@ -92,12 +97,14 @@ export function ShipmentFormSection({
         setArrivalDate={setArrivalDate}
         observations={observations}
         setObservations={setObservations}
+        disabled={disabled}
       />
       
       <StatusSection 
         status={status}
         setStatus={setStatus}
         shipmentId={shipmentId}
+        disabled={disabled}
       />
     </div>
   );

@@ -11,6 +11,7 @@ interface ShipmentInfoSectionProps {
   setArrivalDate: (date: string) => void;
   observations: string;
   setObservations: (observations: string) => void;
+  disabled?: boolean; // Added the disabled prop
 }
 
 export function ShipmentInfoSection({
@@ -20,41 +21,44 @@ export function ShipmentInfoSection({
   arrivalDate,
   setArrivalDate,
   observations,
-  setObservations
+  setObservations,
+  disabled
 }: ShipmentInfoSectionProps) {
   return (
-    <>
+    <div className="space-y-4">
       {transportMode === "air" && (
-        <div className="space-y-2">
+        <div>
           <label htmlFor="arrivalFlight" className="text-sm font-medium">Voo de Chegada</label>
           <Input 
-            id="arrivalFlight"
-            value={arrivalFlight}
+            id="arrivalFlight" 
+            value={arrivalFlight} 
             onChange={(e) => setArrivalFlight(e.target.value)}
-            placeholder="Ex: LA3456"
+            disabled={disabled}
           />
         </div>
       )}
       
-      <div className="space-y-2">
+      <div>
         <label htmlFor="arrivalDate" className="text-sm font-medium">Data de Chegada</label>
         <Input 
-          id="arrivalDate"
-          type="date"
-          value={arrivalDate}
+          id="arrivalDate" 
+          value={arrivalDate} 
           onChange={(e) => setArrivalDate(e.target.value)}
+          type="date"
+          disabled={disabled}
         />
       </div>
       
-      <div className="space-y-2 md:col-span-2">
+      <div>
         <label htmlFor="observations" className="text-sm font-medium">Observações</label>
         <Textarea 
-          id="observations"
-          value={observations}
+          id="observations" 
+          value={observations} 
           onChange={(e) => setObservations(e.target.value)}
-          placeholder="Observações sobre a carga (perecível, biológico, entrega dedicada, etc.)"
+          rows={3}
+          disabled={disabled}
         />
       </div>
-    </>
+    </div>
   );
 }

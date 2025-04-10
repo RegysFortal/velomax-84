@@ -8,13 +8,15 @@ interface ClientSelectionProps {
   setCompanyId: (id: string) => void;
   setCompanyName: (name: string) => void;
   clients: Client[];
+  disabled?: boolean; // Added the disabled prop
 }
 
 export function ClientSelection({
   companyId,
   setCompanyId,
   setCompanyName,
-  clients
+  clients,
+  disabled
 }: ClientSelectionProps) {
   return (
     <div className="space-y-2 md:col-span-2">
@@ -33,6 +35,7 @@ export function ClientSelection({
         disableAutoSelect={false}
         showCreateOption={true}
         createOptionLabel="Cadastrar novo cliente"
+        disabled={disabled}
       />
     </div>
   );

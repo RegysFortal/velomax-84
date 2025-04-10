@@ -7,40 +7,42 @@ interface PackageDetailsSectionProps {
   setPackages: (packages: string) => void;
   weight: string;
   setWeight: (weight: string) => void;
+  disabled?: boolean; // Added the disabled prop
 }
 
 export function PackageDetailsSection({
   packages,
   setPackages,
   weight,
-  setWeight
+  setWeight,
+  disabled
 }: PackageDetailsSectionProps) {
   return (
-    <>
-      <div className="space-y-2">
+    <div className="space-y-4">
+      <div>
         <label htmlFor="packages" className="text-sm font-medium">Volumes</label>
         <Input 
-          id="packages"
+          id="packages" 
+          value={packages} 
+          onChange={(e) => setPackages(e.target.value)}
           type="number"
           min="0"
-          value={packages}
-          onChange={(e) => setPackages(e.target.value)}
-          required
+          disabled={disabled}
         />
       </div>
-      
-      <div className="space-y-2">
+
+      <div>
         <label htmlFor="weight" className="text-sm font-medium">Peso (kg)</label>
         <Input 
-          id="weight"
+          id="weight" 
+          value={weight} 
+          onChange={(e) => setWeight(e.target.value)}
           type="number"
           min="0"
           step="0.01"
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-          required
+          disabled={disabled}
         />
       </div>
-    </>
+    </div>
   );
 }
