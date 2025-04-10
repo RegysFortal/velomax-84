@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useCallback } from 'react';
 import { User } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +12,19 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  
+  // Use try-catch with useNavigate to handle the case where it's not inside a Router
+  let navigate;
+  try {
+    navigate = useNavigate();
+  } catch (error) {
+    // Create a dummy navigate function for initial render
+    navigate = (path: string) => {
+      console.warn('Navigation attempted outside Router context:', path);
+      return false;
+    };
+  }
+  
   const { toast } = useToast();
 
   const login = async (username: string, password: string) => {

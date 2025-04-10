@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +10,21 @@ import { createDefaultAdminUser } from './authUtils';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  // Initialize with empty array, it will be populated in useEffect
+  const [initialUsers, setInitialUsers] = React.useState<User[]>([]);
+  
+  // Load initial users from localStorage
+  useEffect(() => {
+    const storedUsers = localStorage.getItem('velomax_users');
+    if (storedUsers) {
+      setInitialUsers(JSON.parse(storedUsers));
+    } else {
+      const defaultAdmin = createDefaultAdminUser();
+      setInitialUsers([defaultAdmin]);
+      localStorage.setItem('velomax_users', JSON.stringify([defaultAdmin]));
+    }
+  }, []);
+  
   const { 
     user, 
     currentUser, 
@@ -24,7 +40,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading,
     supabaseUser,
     session
-  } = useAuthentication([], () => {});
+  } = useAuthentication(initialUsers, (updatedUsers) => {
+    setInitialUsers(updatedUsers);
+    localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+  });
 
   const { 
     users, 
@@ -99,17 +118,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
-        const storedUsers = localStorage.getItem('velomax_users');
-        if (storedUsers) {
-          // Users already exist, keep them
-        } else {
-          const defaultAdmin = createDefaultAdminUser();
-          localStorage.setItem('velomax_users', JSON.stringify([defaultAdmin]));
-        }
+        setLoading(false);
       } catch (error) {
         console.error('Failed to load auth state', error);
-      } finally {
         setLoading(false);
       }
     };
@@ -121,16 +132,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  // Save users to localStorage whenever they change
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem('velomax_users', JSON.stringify(users));
-    }
-  }, [users, loading]);
-
   const value: AuthContextType = {
     user,
-    users,
+    users: initialUsers, // Use initialUsers instead of users from useUserManagement
     currentUser,
     login,
     logout,
