@@ -48,12 +48,12 @@ export function BudgetFormDialog() {
     }
   };
 
-  // Função para lidar com o cancelamento de forma segura
+  // Standard function to handle cancellation safely
   const handleCancel = () => {
-    // Primeiro remova o estado de submissão se aplicável
+    // First reset the submission state if needed
     setIsSubmitting(false);
     
-    // Em seguida, feche o diálogo com um pequeno atraso para permitir que o React atualize outros estados primeiro
+    // Close the dialog with a small delay to allow React to update other states first
     setTimeout(() => {
       setIsDialogOpen(false);
     }, 10);

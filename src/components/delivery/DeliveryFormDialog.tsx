@@ -32,32 +32,33 @@ export function DeliveryFormDialog({
     setIsOpen(true);
   };
 
-  // Função padronizada para fechar o diálogo, seguindo o padrão de ClientAddDialog
-  const handleDialogClose = () => {
-    // Primeiro executamos a função de callback onComplete
+  // Standard pattern for closing dialogs
+  const handleCancel = () => {
+    // First call onComplete callback
     onComplete();
     
-    // Em seguida, fechamos o diálogo
+    // Close the dialog
     setIsOpen(false);
     
-    // Após fechar o diálogo, com um pequeno atraso limpamos o estado de edição
+    // Reset editing state with a small delay
     setTimeout(() => {
       setEditingDelivery(null);
     }, 10);
   };
 
-  // Manipulador quando o formulário é concluído
+  // Handler for when form is completed
   const handleFormComplete = () => {
-    handleDialogClose();
+    // Call the standard close handler
+    handleCancel();
   };
 
-  // Manipulador de mudança de estado do diálogo
+  // Handler for dialog open state change
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // Se estiver fechando o diálogo, use o método padronizado
-      handleDialogClose();
+      // If dialog is closing, use the standard handler
+      handleCancel();
     } else {
-      // Se estiver abrindo o diálogo, apenas defina o estado
+      // If dialog is opening, simply set the open state
       setIsOpen(true);
     }
   };
@@ -75,7 +76,7 @@ export function DeliveryFormDialog({
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => {
             e.preventDefault();
-            handleDialogClose();
+            handleCancel();
           }}
         >
           <DialogHeader>
@@ -88,7 +89,7 @@ export function DeliveryFormDialog({
               <DeliveryForm 
                 delivery={editingDelivery} 
                 onComplete={handleFormComplete}
-                onCancel={handleDialogClose}
+                onCancel={handleCancel}
               />
             </div>
           </ScrollArea>
