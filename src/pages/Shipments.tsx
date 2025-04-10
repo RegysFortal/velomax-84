@@ -74,6 +74,19 @@ export default function Shipments() {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
+  const handleShipmentDetailClose = () => {
+    // Don't reset the selectedShipment right after an update
+    // This prevents the dialog from closing unexpectedly
+    setSelectedShipment(null);
+  };
+
+  const handleCreateDialogClose = (open: boolean) => {
+    // Only close if explicitly set to false
+    if (!open) {
+      setIsCreateDialogOpen(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col space-y-6 h-full">
@@ -177,14 +190,14 @@ export default function Shipments() {
         <ShipmentDetails
           shipment={selectedShipment}
           open={!!selectedShipment}
-          onClose={() => setSelectedShipment(null)}
+          onClose={handleShipmentDetailClose}
         />
       )}
       
       {/* Create shipment dialog */}
       <ShipmentDialog
         open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
+        onOpenChange={handleCreateDialogClose}
       />
     </AppLayout>
   );

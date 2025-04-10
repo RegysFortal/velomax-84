@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -105,12 +104,16 @@ const Deliveries = () => {
   };
 
   const handleDialogComplete = () => {
-    setIsDialogOpen(false);
-    setEditingDelivery(null);
+    // Keep the dialog open after form submission
+    // The dialog should only close when the user explicitly closes it
   };
   
   const handleViewDetails = (delivery: Delivery) => {
     setSelectedDelivery(delivery);
+  };
+  
+  const handleDetailClose = () => {
+    setSelectedDelivery(null);
   };
 
   return (
@@ -152,7 +155,7 @@ const Deliveries = () => {
       <DeliveryDetails
         delivery={selectedDelivery}
         open={!!selectedDelivery}
-        onClose={() => setSelectedDelivery(null)}
+        onClose={handleDetailClose}
         onEdit={handleEditDelivery}
       />
       

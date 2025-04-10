@@ -48,7 +48,7 @@ export function ClientEditDialog({
         notes: formData.notes || '',
         priceTableId: formData.priceTableId,
       });
-      onOpenChange(false);
+      // Don't close the dialog here, let the parent component handle it if needed
     }
   };
 

@@ -44,6 +44,14 @@ const Vehicles = () => {
     setDialogOpen(true);
   };
 
+  const handleDialogClose = (wasUpdated: boolean = false) => {
+    // Only close the dialog if explicitly requested
+    if (!wasUpdated) {
+      setDialogOpen(false);
+      setEditingVehicle(null);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">

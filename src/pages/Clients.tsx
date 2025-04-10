@@ -28,6 +28,14 @@ const ClientsPage = () => {
     deleteClient(id);
   };
 
+  const handleEditModalClose = (open: boolean) => {
+    // Only close if explicitly set to false
+    if (!open) {
+      setIsEditModalOpen(false);
+      // We don't reset the selectedClient here to prevent losing data during edits
+    }
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
@@ -57,7 +65,7 @@ const ClientsPage = () => {
 
         <ClientEditDialog 
           isOpen={isEditModalOpen}
-          onOpenChange={setIsEditModalOpen}
+          onOpenChange={handleEditModalClose}
           client={selectedClient}
         />
       </div>

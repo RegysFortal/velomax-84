@@ -38,6 +38,12 @@ export function DeliveryFormDialog({
     onComplete();
   };
 
+  // This function now handles the form completion without closing the dialog
+  const handleFormComplete = () => {
+    onComplete();
+    // We don't close the dialog here, just complete the action
+  };
+
   return (
     <>
       <Button onClick={handleOpenNewDelivery}>
@@ -55,7 +61,7 @@ export function DeliveryFormDialog({
             <div className="pr-4">
               <DeliveryForm 
                 delivery={editingDelivery} 
-                onComplete={handleCloseDialog} 
+                onComplete={handleFormComplete} 
               />
             </div>
           </ScrollArea>
