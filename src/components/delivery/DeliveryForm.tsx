@@ -51,9 +51,10 @@ type DeliveryFormValues = z.infer<typeof deliveryFormSchema>;
 interface DeliveryFormProps {
   delivery?: Delivery | null;
   onComplete: () => void;
+  onCancel?: () => void;
 }
 
-export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
+export const DeliveryForm = ({ delivery, onComplete, onCancel }: DeliveryFormProps) => {
   const { addDelivery, updateDelivery, calculateFreight, isDoorToDoorDelivery, checkMinuteNumberExists } = useDeliveries();
   const { clients } = useClients();
   const { cities } = useCities();
@@ -349,6 +350,14 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
     }
   };
 
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      onComplete();
+    }
+  };
+
   return (
     <>
       <Form {...form}>
@@ -386,7 +395,7 @@ export const DeliveryForm = ({ delivery, onComplete }: DeliveryFormProps) => {
           </div>
           
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onComplete}>
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancelar
             </Button>
             <Button type="submit">

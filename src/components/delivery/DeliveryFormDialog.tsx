@@ -45,10 +45,10 @@ export function DeliveryFormDialog({
     // We don't close the dialog here, just complete the action
   };
 
-  // Assegura que o fechamento do diálogo é feito de forma segura
+  // Ensure that dialog closing is done safely
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // Se estiver fechando o diálogo
+      // If closing the dialog
       handleCloseDialog();
     } else {
       setIsOpen(true);
@@ -73,19 +73,10 @@ export function DeliveryFormDialog({
               <DeliveryForm 
                 delivery={editingDelivery} 
                 onComplete={handleFormComplete}
+                onCancel={handleCloseDialog}
               />
             </div>
           </ScrollArea>
-          <DialogClose asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-2"
-              onClick={handleCloseDialog}
-            >
-              Cancelar
-            </Button>
-          </DialogClose>
         </DialogContent>
       </Dialog>
     </>
