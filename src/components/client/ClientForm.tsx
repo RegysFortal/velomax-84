@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Client } from '@/types';
-import { usePriceTables } from '@/contexts/PriceTablesContext';
+import { usePriceTables } from '@/contexts/priceTables'; // Fixed import path
 import { clientFormSchema, ClientFormValues } from './ClientFormSchema';
 import { ClientBasicInfoFields } from './form-sections/ClientBasicInfoFields';
 import { ContactInfoFields } from './form-sections/ContactInfoFields';

@@ -1,4 +1,3 @@
-
 import { Client, DeliveryType, CargoType, PriceTable } from '@/types';
 
 export const useFreightCalculation = (priceTables: PriceTable[] = []) => {

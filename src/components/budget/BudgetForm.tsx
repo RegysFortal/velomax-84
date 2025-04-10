@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -17,7 +16,7 @@ import { Budget, PackageMeasurement, budgetSchema, calculateCubicWeight, getEffe
 import { calculateFreight } from '@/lib/freight-calculator';
 import { formatCurrency } from '@/lib/utils';
 import { X, Plus, Calculator } from 'lucide-react';
-import { usePriceTables } from '@/contexts/PriceTablesContext';
+import { usePriceTables } from '@/contexts/priceTables';
 
 interface BudgetFormProps {
   initialData?: Budget;
@@ -27,7 +26,6 @@ interface BudgetFormProps {
 }
 
 const mapDeliveryTypeToFreightType = (deliveryType: DeliveryType): "standard" | "perishable" => {
-  // Map delivery types to standard or perishable
   if (deliveryType === "normalBiological" || deliveryType === "infectiousBiological") {
     return "perishable";
   }
@@ -74,7 +72,6 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
   const watchHasDelivery = form.watch("hasDelivery");
   const watchAdditionalServices = form.watch("additionalServices");
 
-  // Update client and price table when client changes
   useEffect(() => {
     const clientId = form.getValues("clientId");
     const client = clients.find(c => c.id === clientId);
@@ -90,40 +87,33 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
     }
   }, [form.watch("clientId"), clients, priceTables]);
 
-  // Calculate total volumes
   useEffect(() => {
     const totalVolumes = watchPackages.reduce((sum, pkg) => sum + (pkg.quantity || 1), 0);
     form.setValue("totalVolumes", totalVolumes);
   }, [watchPackages, form]);
 
-  // Calculate total value
   useEffect(() => {
     let totalValue = 0;
     
-    // Calculate freight for each package
     watchPackages.forEach(pkg => {
       if (pkg.width && pkg.length && pkg.height && pkg.weight) {
         const cubicWeight = calculateCubicWeight(pkg.width, pkg.length, pkg.height);
         const effectiveWeight = getEffectiveWeight(pkg.weight, cubicWeight);
         
-        // Use the mapped freight type for calculation
         const freightType = mapDeliveryTypeToFreightType(watchDeliveryType as DeliveryType);
         const packageFreight = calculateFreight(freightType, effectiveWeight);
         
-        // Apply price table multiplier if available
         const multiplier = priceTable?.multiplier || 1;
         totalValue += packageFreight * multiplier * (pkg.quantity || 1);
       }
     });
     
-    // Add additional services
     watchAdditionalServices.forEach(service => {
       if (service.value) {
         totalValue += service.value;
       }
     });
     
-    // Apply delivery type multipliers
     switch (watchDeliveryType) {
       case 'emergency':
         totalValue *= 1.5;
@@ -145,14 +135,12 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
         break;
     }
     
-    // Collection fee
     if (watchHasCollection) {
-      totalValue += 50; // Base collection fee
+      totalValue += 50;
     }
     
-    // If no delivery, reduce cost
     if (!watchHasDelivery) {
-      totalValue *= 0.7; // 30% discount for no delivery
+      totalValue *= 0.7;
     }
     
     form.setValue("totalValue", parseFloat(totalValue.toFixed(2)));
@@ -172,11 +160,9 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
       const cubicWeight = calculateCubicWeight(pkg.width, pkg.length, pkg.height);
       const effectiveWeight = getEffectiveWeight(pkg.weight, cubicWeight);
       
-      // Use the mapped freight type for calculation
       const freightType = mapDeliveryTypeToFreightType(watchDeliveryType as DeliveryType);
       const packageFreight = calculateFreight(freightType, effectiveWeight);
       
-      // Apply price table multiplier if available
       const multiplier = priceTable?.multiplier || 1;
       const totalPackageValue = packageFreight * multiplier * (pkg.quantity || 1);
       

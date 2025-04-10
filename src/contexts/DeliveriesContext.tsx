@@ -1,11 +1,10 @@
-
 import { createContext, useContext, ReactNode } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveriesStorage } from '@/hooks/useDeliveriesStorage';
 import { useDeliveriesCRUD } from '@/hooks/useDeliveriesCRUD';
 import { useFreightCalculation } from '@/hooks/useFreightCalculation';
 import { isDoorToDoorDelivery, isExclusiveDelivery, checkMinuteNumberExists } from '@/utils/deliveryUtils';
-import { usePriceTables } from '@/contexts/PriceTablesContext';
+import { usePriceTables } from '@/contexts/priceTables';
 
 type DeliveriesContextType = {
   deliveries: Delivery[];

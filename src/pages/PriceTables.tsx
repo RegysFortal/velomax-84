@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { usePriceTables } from '@/contexts/PriceTablesContext';
+import { usePriceTables } from '@/contexts/priceTables'; // Fixed import path
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { PriceTable } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
