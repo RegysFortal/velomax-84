@@ -48,22 +48,51 @@ export interface Delivery {
   pickupTime?: string;
 }
 
-// Re-export all types from other files
-export * from './activity';
-export * from './shipment';
-export * from './budget';
-export * from './client';
-export * from './city';
-export * from './priceTable';
-
-// Add placeholder export to silence TypeScript errors until we create these files
+// Update the User interface to include all required properties
 export interface User {
   id: string;
   email: string;
   name?: string;
-  role?: string;
+  role?: 'user' | 'admin' | 'manager';
   createdAt: string;
   updatedAt: string;
+  // Add missing properties that are being used in the application
+  username?: string;
+  password?: string;
+  department?: string;
+  position?: string;
+  phone?: string;
+  // Employee specific fields
+  rg?: string;
+  cpf?: string;
+  birthDate?: string;
+  driverLicense?: string;
+  driverLicenseExpiry?: string;
+  driverLicenseCategory?: string;
+  fatherName?: string;
+  motherName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  employeeSince?: string;
+  // Permissions object
+  permissions?: {
+    deliveries: boolean;
+    shipments: boolean;
+    clients: boolean;
+    cities: boolean;
+    reports: boolean;
+    financial: boolean;
+    priceTables: boolean;
+    dashboard: boolean;
+    logbook: boolean;
+    employees: boolean;
+    vehicles: boolean;
+    maintenance: boolean;
+    settings: boolean;
+    [key: string]: boolean;
+  };
 }
 
 export interface Employee {
@@ -87,16 +116,19 @@ export interface Vehicle {
   model: string;
   year: string;
   brand: string;
-  type: string;
+  type: 'car' | 'motorcycle' | 'truck' | 'van';
   capacity: number;
-  fuelType: string;
+  fuelType: 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric';
   currentOdometer: number;
   lastOilChange?: number;
   nextOilChangeKm?: number;
-  status: string;
+  status: 'active' | 'maintenance' | 'inactive';
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
+  // Add missing properties
+  renavam?: string;
+  chassis?: string;
 }
 
 export interface LogbookEntry {
@@ -149,6 +181,7 @@ export interface Maintenance {
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
+  invoiceNumber?: string;
 }
 
 export interface TireMaintenance {
@@ -181,3 +214,11 @@ export interface FinancialReport {
   updatedAt?: string;
   userId?: string;
 }
+
+// Re-export all types from other files
+export * from './activity';
+export * from './shipment';
+export * from './budget';
+export * from './client';
+export * from './city';
+export * from './priceTable';

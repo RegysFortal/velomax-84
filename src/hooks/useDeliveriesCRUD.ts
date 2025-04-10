@@ -34,7 +34,7 @@ export const useDeliveriesCRUD = (
         delivery_date: delivery.deliveryDate,
         delivery_time: delivery.deliveryTime || '',
         receiver: delivery.receiver || '',
-        receiver_id: delivery.receiverId || null, // Use receiver_id instead of receiver_document
+        receiver_id: delivery.receiverId || null, // Use receiver_id mapping
         weight: delivery.weight,
         packages: delivery.packages,
         delivery_type: delivery.deliveryType,
@@ -45,7 +45,7 @@ export const useDeliveriesCRUD = (
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
         user_id: user?.id,
-        pickup_name: delivery.pickupName || '', // Use pickup_name instead of pickup_person
+        pickup_name: delivery.pickupName || '', // Use pickup_name mapping
         pickup_date: delivery.pickupDate || '',
         pickup_time: delivery.pickupTime || '',
       };
