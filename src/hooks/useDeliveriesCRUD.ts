@@ -34,6 +34,7 @@ export const useDeliveriesCRUD = (
         delivery_date: delivery.deliveryDate,
         delivery_time: delivery.deliveryTime || '',
         receiver: delivery.receiver || '',
+        receiver_id: delivery.receiverId || null,
         weight: delivery.weight,
         packages: delivery.packages,
         delivery_type: delivery.deliveryType,
@@ -67,6 +68,7 @@ export const useDeliveriesCRUD = (
         deliveryDate: data.delivery_date,
         deliveryTime: data.delivery_time || '',
         receiver: data.receiver || '',
+        receiverId: data.receiver_id || undefined,
         weight: data.weight,
         packages: data.packages,
         deliveryType: data.delivery_type as Delivery['deliveryType'],
@@ -120,6 +122,7 @@ export const useDeliveriesCRUD = (
       if (delivery.deliveryDate !== undefined) supabaseDelivery.delivery_date = delivery.deliveryDate;
       if (delivery.deliveryTime !== undefined) supabaseDelivery.delivery_time = delivery.deliveryTime;
       if (delivery.receiver !== undefined) supabaseDelivery.receiver = delivery.receiver;
+      if (delivery.receiverId !== undefined) supabaseDelivery.receiver_id = delivery.receiverId;
       if (delivery.weight !== undefined) supabaseDelivery.weight = delivery.weight;
       if (delivery.packages !== undefined) supabaseDelivery.packages = delivery.packages;
       if (delivery.deliveryType !== undefined) supabaseDelivery.delivery_type = delivery.deliveryType;

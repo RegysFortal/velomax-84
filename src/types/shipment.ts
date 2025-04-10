@@ -52,7 +52,7 @@ export interface Shipment {
   deliveryDate?: string;
   deliveryTime?: string;
   receiverName?: string;
-  receiverId?: string; // Added the receiverId property to fix the TypeScript errors
+  receiverId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -64,11 +64,10 @@ export interface Delivery {
   deliveryDate: string;
   deliveryTime?: string;
   receiver?: string;
-  receiverId?: string; // Adding receiverId field for the employee who received
-  pickupName?: string; // Adding field for who picked up the shipment (name)
-  pickupId?: string; // Adding field for employee ID who picked up the shipment
-  pickupDate?: string; // Adding pickup date field
-  pickupTime?: string; // Adding pickup time field
+  receiverId?: string;
+  pickupName?: string;
+  pickupDate?: string;
+  pickupTime?: string;
   cityId?: string;
   weight: number;
   packages: number;
@@ -76,8 +75,6 @@ export interface Delivery {
   deliveryType: string;
   cargoValue: number;
   totalFreight: number;
-  customPricing: boolean;
-  discount: number;
   notes?: string;
   occurrence?: string;
   createdAt: string;

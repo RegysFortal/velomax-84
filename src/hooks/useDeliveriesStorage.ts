@@ -72,6 +72,7 @@ export const useDeliveriesStorage = () => {
           deliveryDate: delivery.delivery_date,
           deliveryTime: delivery.delivery_time || '',
           receiver: delivery.receiver || '',
+          receiverId: delivery.receiver_id || undefined,
           weight: delivery.weight,
           packages: delivery.packages,
           deliveryType: delivery.delivery_type as Delivery['deliveryType'],

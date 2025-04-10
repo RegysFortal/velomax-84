@@ -37,8 +37,6 @@ import {
 import Index from './pages/Index';
 
 function App() {
-  const [isReady, setIsReady] = useState(false);
-
   return (
     <Router>
       <AuthProvider>
