@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
+import { TireMaintenance } from '@/types';
 
 const tireMaintenanceSchema = z.object({
   date: z.string({ required_error: 'Data é obrigatória' }),
@@ -36,25 +38,26 @@ const tireMaintenanceSchema = z.object({
 
 type FormData = z.infer<typeof tireMaintenanceSchema>;
 
-interface TireMaintenanceFormProps {
+export interface TireMaintenanceFormProps {
+  maintenance?: TireMaintenance | null;
   onSubmit: (data: FormData) => void;
   onCancel: () => void;
 }
 
-export function TireMaintenanceForm({ onSubmit, onCancel }: TireMaintenanceFormProps) {
+export function TireMaintenanceForm({ maintenance, onSubmit, onCancel }: TireMaintenanceFormProps) {
   const form = useForm<FormData>({
     resolver: zodResolver(tireMaintenanceSchema),
     defaultValues: {
-      date: '',
-      maintenanceType: 'replacement',
-      mileage: '',
-      tirePosition: '',
-      cost: '',
-      brand: '',
-      tireSize: '',
-      description: '',
-      provider: '',
-      notes: '',
+      date: maintenance?.date || '',
+      maintenanceType: (maintenance?.maintenanceType as any) || 'replacement',
+      mileage: maintenance?.mileage?.toString() || '',
+      tirePosition: maintenance?.tirePosition || '',
+      cost: maintenance?.cost?.toString() || '',
+      brand: maintenance?.brand || '',
+      tireSize: maintenance?.tireSize || '',
+      description: maintenance?.description || '',
+      provider: maintenance?.provider || '',
+      notes: maintenance?.notes || '',
     },
   });
 
