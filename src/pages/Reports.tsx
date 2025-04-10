@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -17,6 +18,7 @@ import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts';
 import { ReportTable } from '@/components/report/ReportTable';
 import { ReportSummary } from '@/components/report/ReportSummary';
+import { FinancialReport } from '@/types';
 
 const Reports = () => {
   const location = useLocation();
@@ -51,14 +53,14 @@ const Reports = () => {
     // Calculate total freight
     const totalFreight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.totalFreight, 0);
 
-    // Create the report
-    const newReport = {
+    // Create the report with explicitly typed status
+    const newReport: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'> = {
       clientId: selectedClient,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       totalDeliveries: filteredDeliveries.length,
       totalFreight: totalFreight,
-      status: 'open',
+      status: 'open', // Explicitly using the union type value
     };
     
     const createdReport = await createReport(newReport);
@@ -144,4 +146,3 @@ const Reports = () => {
 };
 
 export default Reports;
-

@@ -49,7 +49,7 @@ export function ReportTable({ deliveries }: ReportTableProps) {
                 <TableCell>
                   {format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR })}
                 </TableCell>
-                <TableCell>{delivery.receiverName}</TableCell>
+                <TableCell>{delivery.receiver}</TableCell>
                 <TableCell>{delivery.deliveryType}</TableCell>
                 <TableCell className="text-right">{delivery.weight} kg</TableCell>
                 <TableCell className="text-right">{formatCurrency(delivery.totalFreight)}</TableCell>
