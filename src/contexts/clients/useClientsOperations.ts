@@ -77,15 +77,20 @@ export const useClientsOperations = (
       if (client.priceTableId !== undefined) supabaseClient.price_table_id = client.priceTableId;
       if (client.notes !== undefined) supabaseClient.notes = client.notes;
 
+      // Add console log for debugging
+      console.log("Updating client with data:", supabaseClient);
+
       const { error } = await supabase
         .from('clients')
         .update(supabaseClient)
         .eq('id', id);
       
       if (error) {
+        console.error("Supabase error:", error);
         throw error;
       }
       
+      // Update client in local state
       setClients((prev) => 
         prev.map((c) => 
           c.id === id 
@@ -94,17 +99,12 @@ export const useClientsOperations = (
         )
       );
       
-      toast({
-        title: "Cliente atualizado",
-        description: `O cliente foi atualizado com sucesso.`,
-      });
+      console.log("Cliente atualizado com sucesso");
+      
+      return { success: true };
     } catch (error) {
       console.error("Error updating client:", error);
-      toast({
-        title: "Erro ao atualizar cliente",
-        description: "Ocorreu um erro ao atualizar o cliente. Tente novamente.",
-        variant: "destructive"
-      });
+      throw error;
     }
   };
   

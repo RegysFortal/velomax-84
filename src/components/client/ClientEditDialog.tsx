@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -32,31 +33,40 @@ export function ClientEditDialog({
 
   const handleUpdateClient = async (formData: z.infer<typeof clientFormSchema>) => {
     if (client) {
-      await updateClient(client.id, {
-        name: formData.name,
-        tradingName: formData.tradingName,
-        document: formData.document || '',
-        address: formData.address || '',
-        street: formData.street,
-        number: formData.number,
-        complement: formData.complement,
-        neighborhood: formData.neighborhood,
-        city: formData.city,
-        state: formData.state,
-        zipCode: formData.zipCode,
-        contact: formData.contact,
-        phone: formData.phone,
-        email: formData.email,
-        notes: formData.notes || '',
-        priceTableId: formData.priceTableId,
-      });
-      
-      // Show a success toast but don't close the dialog
-      toast({
-        title: "Cliente atualizado",
-        description: "Os dados do cliente foram atualizados com sucesso."
-      });
-      // Don't close the dialog here, let the parent component handle it if needed
+      try {
+        await updateClient(client.id, {
+          name: formData.name,
+          tradingName: formData.tradingName,
+          document: formData.document || '',
+          address: formData.address || '',
+          street: formData.street,
+          number: formData.number,
+          complement: formData.complement,
+          neighborhood: formData.neighborhood,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          contact: formData.contact,
+          phone: formData.phone,
+          email: formData.email,
+          notes: formData.notes || '',
+          priceTableId: formData.priceTableId,
+        });
+        
+        // Show a success toast but don't close the dialog
+        toast({
+          title: "Cliente atualizado",
+          description: "Os dados do cliente foram atualizados com sucesso."
+        });
+        // Não fechamos o diálogo automaticamente para evitar problemas com a UI
+      } catch (error) {
+        console.error("Erro ao atualizar cliente:", error);
+        toast({
+          title: "Erro ao atualizar cliente",
+          description: "Ocorreu um erro ao atualizar os dados do cliente.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

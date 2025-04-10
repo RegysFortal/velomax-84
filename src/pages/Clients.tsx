@@ -29,10 +29,10 @@ const ClientsPage = () => {
   };
 
   const handleEditModalClose = (open: boolean) => {
-    // Only close if explicitly set to false
+    // Só fechamos o modal se explicitamente definido como false
     if (!open) {
       setIsEditModalOpen(false);
-      // We don't reset the selectedClient here to prevent losing data during edits
+      // Não resetamos o selectedClient aqui para não perder dados durante edições
     }
   };
 

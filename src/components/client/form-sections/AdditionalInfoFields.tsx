@@ -33,7 +33,11 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
         render={({ field }) => (
           <FormItem>
             <FormLabel>Tabela de Preços</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select 
+              onValueChange={field.onChange} 
+              defaultValue={field.value}
+              value={field.value} // Adicionando value para garantir que o componente seja controlado corretamente
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma tabela" />
