@@ -50,7 +50,7 @@ export const useClientsOperations = (
     }
   };
   
-  const updateClient = async (id: string, client: Partial<Client>) => {
+  const updateClient = async (id: string, client: Partial<Client>): Promise<void> => {
     try {
       const timestamp = new Date().toISOString();
       
@@ -101,7 +101,7 @@ export const useClientsOperations = (
       
       console.log("Cliente atualizado com sucesso");
       
-      return { success: true };
+      // No longer returning a success object, as the function is now Promise<void>
     } catch (error) {
       console.error("Error updating client:", error);
       throw error;
