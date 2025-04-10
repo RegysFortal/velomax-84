@@ -13,6 +13,22 @@ interface ActivityLogContextProps {
 
 const ActivityLogContext = createContext<ActivityLogContextProps | undefined>(undefined);
 
+// Helper function to convert database record to ActivityLog format
+const mapDatabaseRecordToActivityLog = (record: any): ActivityLog => {
+  return {
+    id: record.id,
+    userId: record.user_id,
+    userName: record.user_name,
+    action: record.action,
+    entityType: record.entity_type,
+    entityId: record.entity_id || '',
+    entityName: record.entity_name || '',
+    timestamp: record.timestamp,
+    details: record.details || '',
+    ipAddress: record.ip_address || '',
+  };
+};
+
 export const ActivityLogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activityLog, setActivityLog] = useState<ActivityLog[]>([]);
   const { user } = useAuth();
@@ -30,7 +46,9 @@ export const ActivityLogProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (error) {
             console.error('Error fetching activity logs:', error);
           } else if (data) {
-            setActivityLog(data as ActivityLog[]);
+            // Map the data from database format to our ActivityLog format
+            const mappedLogs = data.map(mapDatabaseRecordToActivityLog);
+            setActivityLog(mappedLogs);
           }
         } catch (error) {
           console.error('Error fetching activity logs:', error);
