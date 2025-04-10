@@ -57,6 +57,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
+    multiplier: 1.0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },

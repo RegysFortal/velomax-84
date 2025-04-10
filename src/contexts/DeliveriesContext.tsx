@@ -5,6 +5,7 @@ import { useDeliveriesStorage } from '@/hooks/useDeliveriesStorage';
 import { useDeliveriesCRUD } from '@/hooks/useDeliveriesCRUD';
 import { useFreightCalculation } from '@/hooks/useFreightCalculation';
 import { isDoorToDoorDelivery, isExclusiveDelivery, checkMinuteNumberExists } from '@/utils/deliveryUtils';
+import { usePriceTables } from '@/contexts/PriceTablesContext';
 
 type DeliveriesContextType = {
   deliveries: Delivery[];
@@ -32,7 +33,8 @@ const DeliveriesContext = createContext<DeliveriesContextType | undefined>(undef
 export const DeliveriesProvider = ({ children }: { children: ReactNode }) => {
   const { deliveries, setDeliveries, loading } = useDeliveriesStorage();
   const { addDelivery, updateDelivery, deleteDelivery, getDelivery } = useDeliveriesCRUD(deliveries, setDeliveries);
-  const { calculateFreight } = useFreightCalculation();
+  const { priceTables } = usePriceTables();
+  const { calculateFreight } = useFreightCalculation(priceTables);
   
   const checkMinuteNumberExistsForClient = (minuteNumber: string, clientId: string): boolean => {
     return checkMinuteNumberExists(deliveries, minuteNumber, clientId);

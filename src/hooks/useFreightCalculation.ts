@@ -1,9 +1,7 @@
 
-import { usePriceTables } from '@/contexts/PriceTablesContext';
-import { Client, DeliveryType, CargoType } from '@/types';
+import { Client, DeliveryType, CargoType, PriceTable } from '@/types';
 
-export const useFreightCalculation = () => {
-  const { priceTables } = usePriceTables();
+export const useFreightCalculation = (priceTables: PriceTable[] = []) => {
   
   const calculateFreightForClient = (client: Client, weight: number, deliveryType: string) => {
     // Fix the field name from price_table_id to priceTableId
@@ -51,11 +49,14 @@ export const useFreightCalculation = () => {
     distance?: number,
     cityId?: string
   ) => {
+    // Basic calculation for now - we'll implement the real logic later
+    let baseFreight = 0;
+    
     // Find the client
     const client = { id: clientId, priceTableId: 'default-price-table' } as Client;
     
-    // Basic calculation for now - we'll implement the real logic later
-    let baseFreight = calculateFreightForClient(client, weight, deliveryType);
+    // Basic calculation
+    baseFreight = calculateFreightForClient(client, weight, deliveryType);
     
     // Add insurance if cargo value is provided
     if (cargoValue && cargoValue > 0) {
