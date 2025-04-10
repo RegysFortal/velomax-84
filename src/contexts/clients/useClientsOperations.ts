@@ -1,160 +1,187 @@
 
 import { useState } from 'react';
 import { Client } from '@/types';
+import { User } from '../auth/types';
 import { useToast } from '@/hooks/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
-import { mapSupabaseClientToClient, mapClientToSupabaseClient } from './clientsUtils';
+import { UseClientsOperationsReturnType } from './types';
 
 export const useClientsOperations = (
   clients: Client[],
   setClients: React.Dispatch<React.SetStateAction<Client[]>>,
-  user?: { id: string } | null
-) => {
+  user: User | null
+): UseClientsOperationsReturnType => {
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
-  const addClient = async (
-    client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>
-  ) => {
+  const addClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
+      setLoading(true);
       const timestamp = new Date().toISOString();
+      const newClient: Client = {
+        ...clientData,
+        id: uuidv4(),
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
       
-      // Prepare data for Supabase insert
-      const supabaseClient = mapClientToSupabaseClient(client, user?.id);
-      
-      console.log("Inserting client with data:", supabaseClient);
-      console.log("Price table ID being sent to Supabase:", supabaseClient.price_table_id);
-      
-      const { data, error } = await supabase
-        .from('clients')
-        .insert(supabaseClient)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error("Supabase insert error:", error);
-        throw error;
+      // Add to Supabase if user is logged in
+      if (user) {
+        const { error } = await supabase
+          .from('clients')
+          .insert({
+            id: newClient.id,
+            name: newClient.name,
+            email: newClient.email,
+            phone: newClient.phone,
+            document: newClient.document,
+            address: newClient.address,
+            contact_person: newClient.contactPerson,
+            price_table_id: newClient.priceTableId,
+            payment_terms: newClient.paymentTerms,
+            notes: newClient.notes,
+            user_id: user.id,
+            created_at: timestamp,
+            updated_at: timestamp,
+          });
+        
+        if (error) {
+          throw error;
+        }
       }
       
-      // Map the returned data to our Client type
-      const newClient = mapSupabaseClientToClient(data);
-      console.log("Mapped new client after insert:", newClient);
-      
-      setClients((prev) => [...prev, newClient]);
+      setClients(prev => [...prev, newClient]);
       
       toast({
         title: "Cliente adicionado",
-        description: `O cliente "${client.name}" foi adicionado com sucesso.`,
+        description: `${newClient.name} foi adicionado com sucesso.`
       });
-
-      return newClient;
+      
+      // Don't return any value (void)
     } catch (error) {
-      console.error("Error adding client:", error);
+      console.error('Error adding client:', error);
       toast({
         title: "Erro ao adicionar cliente",
         description: "Ocorreu um erro ao adicionar o cliente. Tente novamente.",
         variant: "destructive"
       });
-      throw error; // Re-throw to be handled by the caller
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
   
-  const updateClient = async (id: string, client: Partial<Client>): Promise<void> => {
+  const updateClient = async (id: string, clientUpdate: Partial<Client>): Promise<void> => {
     try {
-      const timestamp = new Date().toISOString();
+      setLoading(true);
+      const updatedAt = new Date().toISOString();
       
-      // Prepare data for Supabase update
-      const supabaseClient: any = {
-        updated_at: timestamp
-      };
-      
-      // Map properties from client to supabaseClient
-      if (client.name !== undefined) supabaseClient.name = client.name;
-      if (client.tradingName !== undefined) supabaseClient.trading_name = client.tradingName;
-      if (client.document !== undefined) supabaseClient.document = client.document;
-      if (client.address !== undefined) supabaseClient.address = client.address;
-      if (client.street !== undefined) supabaseClient.street = client.street;
-      if (client.number !== undefined) supabaseClient.number = client.number;
-      if (client.complement !== undefined) supabaseClient.complement = client.complement;
-      if (client.neighborhood !== undefined) supabaseClient.neighborhood = client.neighborhood;
-      if (client.city !== undefined) supabaseClient.city = client.city;
-      if (client.state !== undefined) supabaseClient.state = client.state;
-      if (client.zipCode !== undefined) supabaseClient.zip_code = client.zipCode;
-      if (client.contact !== undefined) supabaseClient.contact = client.contact;
-      if (client.phone !== undefined) supabaseClient.phone = client.phone;
-      if (client.email !== undefined) supabaseClient.email = client.email;
-      if (client.priceTableId !== undefined) {
-        console.log("Setting price table ID in database to:", client.priceTableId);
-        // Ensure empty string is converted to null for database
-        supabaseClient.price_table_id = client.priceTableId === "" ? null : client.priceTableId;
-      }
-      if (client.notes !== undefined) supabaseClient.notes = client.notes;
-
-      console.log("Updating client with data:", supabaseClient);
-
-      const { error } = await supabase
-        .from('clients')
-        .update(supabaseClient)
-        .eq('id', id);
-      
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+      // Update in Supabase if user is logged in
+      if (user) {
+        const updateData: any = {
+          ...clientUpdate,
+          updated_at: updatedAt
+        };
+        
+        // Convert camelCase to snake_case for Supabase
+        if ('contactPerson' in clientUpdate) {
+          updateData.contact_person = clientUpdate.contactPerson;
+          delete updateData.contactPerson;
+        }
+        
+        if ('priceTableId' in clientUpdate) {
+          updateData.price_table_id = clientUpdate.priceTableId;
+          delete updateData.priceTableId;
+        }
+        
+        if ('paymentTerms' in clientUpdate) {
+          updateData.payment_terms = clientUpdate.paymentTerms;
+          delete updateData.paymentTerms;
+        }
+        
+        const { error } = await supabase
+          .from('clients')
+          .update(updateData)
+          .eq('id', id);
+        
+        if (error) {
+          throw error;
+        }
       }
       
-      // Update client in local state
-      setClients((prev) => {
-        const updated = prev.map((c) => 
-          c.id === id 
-            ? { ...c, ...client, updatedAt: timestamp } 
-            : c
-        );
-        console.log("Updated client state:", updated.find(c => c.id === id));
-        return updated;
+      setClients(prev => 
+        prev.map(client => 
+          client.id === id 
+            ? { ...client, ...clientUpdate, updatedAt }
+            : client
+        )
+      );
+      
+      toast({
+        title: "Cliente atualizado",
+        description: "As informações do cliente foram atualizadas com sucesso."
       });
       
-      console.log("Cliente atualizado com sucesso");
-      return;
+      // Don't return any value (void)
     } catch (error) {
-      console.error("Error updating client:", error);
+      console.error('Error updating client:', error);
+      toast({
+        title: "Erro ao atualizar cliente",
+        description: "Ocorreu um erro ao atualizar o cliente. Tente novamente.",
+        variant: "destructive"
+      });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
   
-  const deleteClient = async (id: string) => {
+  const deleteClient = async (id: string): Promise<void> => {
     try {
-      const { error } = await supabase
-        .from('clients')
-        .delete()
-        .eq('id', id);
+      setLoading(true);
       
-      if (error) {
-        throw error;
+      // Delete from Supabase if user is logged in
+      if (user) {
+        const { error } = await supabase
+          .from('clients')
+          .delete()
+          .eq('id', id);
+        
+        if (error) {
+          throw error;
+        }
       }
       
-      setClients((prev) => prev.filter((client) => client.id !== id));
+      setClients(prev => prev.filter(client => client.id !== id));
       
       toast({
         title: "Cliente removido",
-        description: `O cliente foi removido com sucesso.`,
+        description: "O cliente foi removido com sucesso."
       });
+      
+      // Don't return any value (void)
     } catch (error) {
-      console.error("Error deleting client:", error);
+      console.error('Error deleting client:', error);
       toast({
         title: "Erro ao remover cliente",
         description: "Ocorreu um erro ao remover o cliente. Tente novamente.",
         variant: "destructive"
       });
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
   
-  const getClient = (id: string) => {
-    return clients.find((client) => client.id === id);
+  const getClient = (id: string): Client | undefined => {
+    return clients.find(client => client.id === id);
   };
-
+  
   return {
     addClient,
     updateClient,
     deleteClient,
-    getClient
+    getClient,
   };
 };

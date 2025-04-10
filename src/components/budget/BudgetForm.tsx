@@ -106,8 +106,8 @@ export function BudgetForm({ onSubmit, initialData, isSubmitting = false }: Budg
         const deliveryCost = calculateFreight(
           clientId, 
           totalEffectiveWeight, 
-          deliveryType, 
-          'standard' as DeliveryType,
+          // Fixed: We need to pass "standard" for cargo type, not the delivery type
+          "standard", 
           merchandiseValue
         );
         totalValue += deliveryCost;
@@ -118,8 +118,8 @@ export function BudgetForm({ onSubmit, initialData, isSubmitting = false }: Budg
         const collectionCost = calculateFreight(
           clientId, 
           totalEffectiveWeight, 
-          'standard' as DeliveryType, // Use standard delivery type for collection
-          'standard' as DeliveryType,
+          // Fixed: We need to pass "standard" for cargo type, not the delivery type
+          "standard",
           merchandiseValue
         );
         totalValue += collectionCost;
