@@ -1,110 +1,36 @@
-export interface User {
+export interface ActivityLog {
   id: string;
-  name: string;
-  email: string;
-  username: string;
-  password?: string;
-  role: 'admin' | 'manager' | 'user';
-  createdAt: string;
-  updatedAt: string;
-  department?: string;
-  position?: string;
-  phone?: string;
-  rg?: string;
-  cpf?: string;
-  birthDate?: string;
-  driverLicense?: string;
-  driverLicenseExpiry?: string;
-  driverLicenseCategory?: string;
-  fatherName?: string;
-  motherName?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  employeeSince?: string;
-  permissions?: {
-    deliveries: boolean;
-    shipments: boolean;
-    clients: boolean;
-    cities: boolean;
-    reports: boolean;
-    financial: boolean;
-    priceTables: boolean;
-    dashboard: boolean;
-    logbook: boolean;
-    employees: boolean;
-    vehicles: boolean;
-    maintenance: boolean;
-    settings: boolean;
-  };
-  lastLogin?: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  entityName?: string;
+  details?: string;
+  ipAddress?: string;
 }
 
 export interface Client {
   id: string;
   name: string;
-  tradingName: string;
-  document: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  phone: string;
-  email: string;
-  contact: string;
-  notes: string;
-  priceTableId: string;
-  createdAt: string;
-  updatedAt: string;
-  street?: string;
+  tradingName?: string;
+  document?: string;
+  address?: string;
   number?: string;
   complement?: string;
   neighborhood?: string;
-}
-
-export interface PriceTable {
-  id: string;
-  name: string;
-  description: string;
-  minimumRate: {
-    standardDelivery: number;
-    emergencyCollection: number;
-    saturdayCollection: number;
-    exclusiveVehicle: number;
-    scheduledDifficultAccess: number;
-    metropolitanRegion: number;
-    sundayHoliday: number;
-    normalBiological: number;
-    infectiousBiological: number;
-    trackedVehicle: number;
-    doorToDoorInterior: number;
-    reshipment: number;
-  };
-  excessWeight: {
-    minPerKg: number;
-    maxPerKg: number;
-    biologicalPerKg: number;
-    reshipmentPerKg: number;
-  };
-  doorToDoor: {
-    ratePerKm: number;
-    maxWeight?: number;
-  };
-  waitingHour?: {
-    fiorino: number;
-    medium: number;
-    large: number;
-  };
-  insurance?: {
-    standard: number;
-    perishable: number;
-  };
-  allowCustomPricing?: boolean;
-  defaultDiscount?: number;
-  multiplier?: number;
-  createdAt: string;
-  updatedAt: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  contact?: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  price_table_id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
 }
 
 export interface City {
@@ -112,8 +38,9 @@ export interface City {
   name: string;
   state: string;
   distance: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
 }
 
 export interface Delivery {
@@ -123,10 +50,11 @@ export interface Delivery {
   deliveryDate: string;
   deliveryTime: string;
   receiver: string;
+  receiverId?: string; // Add receiverId as optional
   weight: number;
   packages: number;
-  deliveryType: 'standard' | 'emergency' | 'exclusive' | 'saturday' | 'sundayHoliday' | 'difficultAccess' | 'metropolitanRegion' | 'doorToDoorInterior' | 'reshipment' | 'normalBiological' | 'infectiousBiological' | 'tracked';
-  cargoType: 'standard' | 'perishable';
+  deliveryType: 'standard' | 'emergency' | 'door_to_door' | 'exclusive' | 'scheduled';
+  cargoType: 'standard' | 'perishable' | 'fragile' | 'dangerous' | 'valuable';
   cargoValue?: number;
   totalFreight: number;
   notes?: string;
@@ -134,15 +62,24 @@ export interface Delivery {
   createdAt: string;
   updatedAt: string;
   cityId?: string;
-  pickupName?: string;
-  pickupDate?: string;
-  pickupTime?: string;
+  pickupName?: string; // Add pickupName
+  pickupDate?: string; // Add pickupDate
+  pickupTime?: string; // Add pickupTime
 }
 
-export const doorToDoorDeliveryTypes = [
-  'doorToDoorInterior',
-  'metropolitanRegion'
-];
+export interface Employee {
+  id: string;
+  name: string;
+  position: string;
+  email?: string;
+  phone?: string;
+  hireDate?: string;
+  isActive?: boolean;
+  departmentId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
+}
 
 export interface FinancialReport {
   id: string;
@@ -151,105 +88,27 @@ export interface FinancialReport {
   endDate: string;
   totalDeliveries: number;
   totalFreight: number;
-  status: 'open' | 'closed';
-  createdAt: string;
-  updatedAt: string;
-  title?: string;
-  description?: string;
-  totalRevenue?: number;
-  totalExpenses?: number;
-  profit?: number;
-}
-
-export interface ActivityLog {
-  id: string;
-  userId: string;
-  userName: string;
-  action: string;
-  entityType: string;
-  entityId: string;
-  entityName: string;
-  timestamp: string;
-  details?: string;
-  ipAddress?: string;
-}
-
-export interface Shipment {
-  id: string;
-  companyId: string;
-  carrierName: string;
-  trackingNumber: string;
-  shippingDate: string;
-  arrivalDate: string;
-  origin: string;
-  destination: string;
-  weight: number;
-  volume: number;
-  status: ShipmentStatus;
-  isRetained: boolean;
-  notes?: string;
-  documents: Document[];
-  fiscalAction?: FiscalAction;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type ShipmentStatus = "pending" | "inTransit" | "retained" | "delivered" | "returned" | "canceled";
-
-export interface Document {
-  id: string;
-  filename: string;
-  url: string;
-  type: "invoice" | "packingList" | "other";
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface FiscalAction {
-  id: string;
-  reason: string;
-  details: string;
-  requiresAction: boolean;
-  actionTaken?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TireMaintenance {
-  id: string;
-  vehicleId: string;
-  maintenanceType: 'replacement' | 'puncture' | 'purchase';
-  date: string;
-  tirePosition?: string;
-  tireSize?: string;
-  brand?: string;
-  cost?: number;
-  mileage?: number;
-  description?: string;
-  provider?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Vehicle {
-  id: string;
-  plate: string;
-  model: string;
-  year: string;
-  make: string;
-  brand: string;
-  type: 'car' | 'motorcycle' | 'truck' | 'van';
-  fuelType: 'gasoline' | 'diesel' | 'ethanol' | 'flex' | 'electric';
-  currentOdometer: number;
-  lastOilChange: number;
-  nextOilChangeKm: number;
-  capacity: number;
-  status?: 'active' | 'maintenance' | 'inactive';
-  renavam?: string;
-  chassis?: string;
+  status: 'open' | 'closed' | 'pending';
   createdAt?: string;
   updatedAt?: string;
+  userId?: string;
+}
+
+export interface FuelRecord {
+  id: string;
+  vehicleId: string;
+  date: string;
+  fuelType: string;
+  liters: number;
+  pricePerLiter: number;
+  totalCost: number;
+  odometer: number;
+  station?: string;
+  isFull?: boolean;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
 }
 
 export interface LogbookEntry {
@@ -258,63 +117,84 @@ export interface LogbookEntry {
   driverId: string;
   assistantId?: string;
   date: string;
-  departureDate?: string;
   departureTime: string;
   departureOdometer: number;
+  destination: string;
+  purpose: string;
   returnTime?: string;
   endOdometer?: number;
-  startOdometer?: number;
   tripDistance?: number;
-  arrivalTime?: string;
-  destination?: string;
-  purpose?: string;
+  status: string;
   notes?: string;
-  status?: 'ongoing' | 'completed';
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
 }
 
-export interface Employee {
-  id: string;
-  name: string;
-  position: string;
-  departmentId: string;
-  role?: string;
-  email: string;
-  phone: string;
-  hireDate: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface FuelRecord {
+export interface MaintenanceRecord {
   id: string;
   vehicleId: string;
   date: string;
-  odometer: number;
-  liters: number;
-  pricePerLiter: number;
-  totalCost: number;
-  fuelType: 'gasoline' | 'diesel' | 'ethanol' | 'other';
-  isFull: boolean;
-  station?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Maintenance {
-  id: string;
-  vehicleId: string;
   maintenanceType: string;
-  date: string;
-  odometer: number;
   description: string;
   cost: number;
+  odometer: number;
   provider?: string;
-  invoiceNumber?: string;
   notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
+}
+
+export interface PriceTable {
+  id: string;
+  name: string;
+  description?: string;
+  minimumRate: any;
+  doorToDoor: any;
+  excessWeight: any;
+  insurance: any;
+  waitingHour: any;
+  defaultDiscount?: number;
+  allowCustomPricing?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
+}
+
+export interface TireMaintenanceRecord {
+  id: string;
+  vehicleId: string;
+  date: string;
+  maintenanceType: string;
+  mileage: number;
+  tirePosition: string;
+  cost: number;
+  brand?: string;
+  tireSize?: string;
+  description?: string;
+  provider?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
+}
+
+export interface Vehicle {
+  id: string;
+  make: string;
+  model: string;
+  year: string;
+  plate: string;
+  type: string;
+  brand: string;
+  capacity: number;
+  fuelType: string;
+  status: string;
+  currentOdometer: number;
+  lastOilChange?: number;
+  nextOilChangeKm?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
 }
