@@ -25,12 +25,7 @@ interface AdditionalInfoFieldsProps {
 }
 
 export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFieldsProps) {
-  // Adicionando log para debugging dos priceTables
-  useEffect(() => {
-    console.log("Price tables available:", priceTables);
-  }, [priceTables]);
-  
-  // Observamos o valor atual de priceTableId para debugging
+  // Observa o valor atual de priceTableId para debugging
   const priceTableId = useWatch({
     control,
     name: "priceTableId"
@@ -56,6 +51,7 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
                   field.onChange(value);
                 }} 
                 value={field.value || ""}
+                defaultValue={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -63,7 +59,7 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {priceTables.length > 0 ? (
+                  {priceTables && priceTables.length > 0 ? (
                     priceTables.map((priceTable) => (
                       <SelectItem 
                         key={priceTable.id} 

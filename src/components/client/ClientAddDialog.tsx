@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,36 +15,65 @@ import { ClientForm } from '@/components/client/ClientForm';
 import { useClients } from '@/contexts';
 import { z } from 'zod';
 import { clientFormSchema } from '@/components/client/ClientFormSchema';
+import { useToast } from '@/hooks/use-toast';
 
 export function ClientAddDialog() {
   const { addClient } = useClients();
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAddClient = (formData: z.infer<typeof clientFormSchema>) => {
-    addClient({
-      name: formData.name,
-      tradingName: formData.tradingName,
-      document: formData.document || '',
-      address: formData.address || '',
-      street: formData.street,
-      number: formData.number,
-      complement: formData.complement,
-      neighborhood: formData.neighborhood,
-      city: formData.city,
-      state: formData.state,
-      zipCode: formData.zipCode,
-      contact: formData.contact,
-      phone: formData.phone,
-      email: formData.email,
-      notes: formData.notes || '',
-      priceTableId: formData.priceTableId,
-    });
-    
-    setIsDialogOpen(false);
+  const handleAddClient = async (formData: z.infer<typeof clientFormSchema>) => {
+    try {
+      setIsSubmitting(true);
+      console.log("Adding client with data:", formData);
+      console.log("Price table ID from form:", formData.priceTableId);
+      
+      await addClient({
+        name: formData.name,
+        tradingName: formData.tradingName,
+        document: formData.document || '',
+        address: formData.address || '',
+        street: formData.street,
+        number: formData.number,
+        complement: formData.complement,
+        neighborhood: formData.neighborhood,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        contact: formData.contact,
+        phone: formData.phone,
+        email: formData.email,
+        notes: formData.notes || '',
+        priceTableId: formData.priceTableId,
+      });
+      
+      // Fechar o diálogo após um breve delay para permitir que a animação ocorra
+      setTimeout(() => {
+        setIsDialogOpen(false);
+      }, 300);
+    } catch (error) {
+      console.error("Error adding client:", error);
+      toast({
+        title: "Erro ao adicionar cliente",
+        description: "Ocorreu um erro ao adicionar o cliente. Verifique os dados e tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Previne o fechamento automático do modal durante submissão
+  const handleOpenChange = (open: boolean) => {
+    if (isSubmitting && !open) {
+      return; // Não fecha o modal se estiver submetendo
+    }
+    setIsDialogOpen(open);
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
@@ -63,10 +92,10 @@ export function ClientAddDialog() {
             onSubmit={handleAddClient} 
             submitButtonLabel="Adicionar" 
             initialData={undefined}
+            isSubmitting={isSubmitting}
           />
         </ScrollArea>
       </DialogContent>
     </Dialog>
   );
 }
-

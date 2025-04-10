@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Client } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { mapSupabaseClientToClient, mapClientToSupabaseClient } from './clientsUtils';
 
@@ -21,6 +21,8 @@ export const useClientsOperations = (
       // Prepare data for Supabase insert
       const supabaseClient = mapClientToSupabaseClient(client, user?.id);
       
+      console.log("Inserting client with data:", supabaseClient);
+      
       const { data, error } = await supabase
         .from('clients')
         .insert(supabaseClient)
@@ -28,6 +30,7 @@ export const useClientsOperations = (
         .single();
       
       if (error) {
+        console.error("Supabase insert error:", error);
         throw error;
       }
       
@@ -47,6 +50,7 @@ export const useClientsOperations = (
         description: "Ocorreu um erro ao adicionar o cliente. Tente novamente.",
         variant: "destructive"
       });
+      throw error; // Re-throw to be handled by the caller
     }
   };
   
@@ -76,11 +80,11 @@ export const useClientsOperations = (
       if (client.email !== undefined) supabaseClient.email = client.email;
       if (client.priceTableId !== undefined) {
         console.log("Setting price table ID in database to:", client.priceTableId);
-        supabaseClient.price_table_id = client.priceTableId;
+        // Ensure empty string is converted to null for database
+        supabaseClient.price_table_id = client.priceTableId === "" ? null : client.priceTableId;
       }
       if (client.notes !== undefined) supabaseClient.notes = client.notes;
 
-      // Add console log for debugging
       console.log("Updating client with data:", supabaseClient);
 
       const { error } = await supabase

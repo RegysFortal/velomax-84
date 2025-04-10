@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,9 +12,7 @@ import { useClients } from '@/contexts';
 import { Client } from '@/types';
 import { z } from 'zod';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/components/ui/use-toast';
-
-// For type safety, we're using the same form schema here
+import { useToast } from '@/hooks/use-toast';
 import { clientFormSchema } from '@/components/client/ClientFormSchema';
 
 interface ClientEditDialogProps {
@@ -30,6 +28,7 @@ export function ClientEditDialog({
 }: ClientEditDialogProps) {
   const { updateClient } = useClients();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Log para verificar quando o diálogo é aberto/fechado
   useEffect(() => {
@@ -44,6 +43,7 @@ export function ClientEditDialog({
     console.log("Price table ID from form:", formData.priceTableId);
     
     try {
+      setIsSubmitting(true);
       await updateClient(client.id, {
         name: formData.name,
         tradingName: formData.tradingName,
@@ -70,7 +70,9 @@ export function ClientEditDialog({
       });
       
       // Explicitamente fechar o diálogo após a atualização bem-sucedida
-      onOpenChange(false);
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 300);
     } catch (error) {
       console.error("Erro ao atualizar cliente:", error);
       toast({
@@ -78,11 +80,21 @@ export function ClientEditDialog({
         description: "Ocorreu um erro ao atualizar os dados do cliente.",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // Previne o fechamento automático do modal durante submissão
+  const handleOpenChange = (open: boolean) => {
+    if (isSubmitting && !open) {
+      return; // Não fecha o modal se estiver submetendo
+    }
+    onOpenChange(open);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[625px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Editar Cliente</DialogTitle>
@@ -97,6 +109,7 @@ export function ClientEditDialog({
                 onSubmit={handleUpdateClient}
                 submitButtonLabel="Atualizar"
                 initialData={client}
+                isSubmitting={isSubmitting}
               />
             </div>
           </ScrollArea>

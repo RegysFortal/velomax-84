@@ -24,9 +24,15 @@ interface ClientFormProps {
   onSubmit: (data: ClientFormValues) => void;
   submitButtonLabel: string;
   initialData?: Client;
+  isSubmitting?: boolean;
 }
 
-export function ClientForm({ onSubmit, submitButtonLabel, initialData }: ClientFormProps) {
+export function ClientForm({ 
+  onSubmit, 
+  submitButtonLabel, 
+  initialData,
+  isSubmitting = false 
+}: ClientFormProps) {
   const { priceTables } = usePriceTables();
   
   // Log dos dados iniciais para debugging
@@ -35,7 +41,8 @@ export function ClientForm({ onSubmit, submitButtonLabel, initialData }: ClientF
       console.log("Initial data loaded into form:", initialData);
       console.log("Price table ID from initial data:", initialData.priceTableId);
     }
-  }, [initialData]);
+    console.log("Available price tables:", priceTables);
+  }, [initialData, priceTables]);
   
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
@@ -95,7 +102,9 @@ export function ClientForm({ onSubmit, submitButtonLabel, initialData }: ClientF
         />
 
         <DialogFooter>
-          <Button type="submit">{submitButtonLabel}</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Processando..." : submitButtonLabel}
+          </Button>
         </DialogFooter>
       </form>
     </Form>
