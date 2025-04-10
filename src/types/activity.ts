@@ -23,6 +23,7 @@ export type ActivityAction =
   | 'import'
   | 'register'
   | 'password_reset'
+  | 'view_toggle'
   | 'system';
 
 export type EntityType = 
