@@ -68,7 +68,7 @@ export const useDeliveriesCRUD = (
         deliveryDate: data.delivery_date,
         deliveryTime: data.delivery_time || '',
         receiver: data.receiver || '',
-        receiverId: data.receiver_document || undefined, // Using receiver_document
+        receiverId: data.receiver_document || undefined, // Using the correct field name
         weight: data.weight,
         packages: data.packages,
         deliveryType: data.delivery_type as Delivery['deliveryType'],
@@ -80,7 +80,7 @@ export const useDeliveriesCRUD = (
         createdAt: data.created_at || timestamp,
         updatedAt: data.updated_at || timestamp,
         cityId: data.city_id || undefined,
-        pickupName: data.pickup_person || '', // Using pickup_person
+        pickupName: data.pickup_person || '', // Using the correct field name
         pickupDate: data.pickup_date || '',
         pickupTime: data.pickup_time || '',
       };
@@ -122,7 +122,7 @@ export const useDeliveriesCRUD = (
       if (updates.deliveryDate !== undefined) supabaseDelivery.delivery_date = updates.deliveryDate;
       if (updates.deliveryTime !== undefined) supabaseDelivery.delivery_time = updates.deliveryTime;
       if (updates.receiver !== undefined) supabaseDelivery.receiver = updates.receiver;
-      if (updates.receiverId !== undefined) supabaseDelivery.receiver_id = updates.receiverId;
+      if (updates.receiverId !== undefined) supabaseDelivery.receiver_document = updates.receiverId;
       if (updates.weight !== undefined) supabaseDelivery.weight = updates.weight;
       if (updates.packages !== undefined) supabaseDelivery.packages = updates.packages;
       if (updates.deliveryType !== undefined) supabaseDelivery.delivery_type = updates.deliveryType;
@@ -132,7 +132,7 @@ export const useDeliveriesCRUD = (
       if (updates.notes !== undefined) supabaseDelivery.notes = updates.notes;
       if (updates.occurrence !== undefined) supabaseDelivery.occurrence = updates.occurrence;
       if (updates.cityId !== undefined) supabaseDelivery.city_id = updates.cityId;
-      if (updates.pickupName !== undefined) supabaseDelivery.pickup_name = updates.pickupName;
+      if (updates.pickupName !== undefined) supabaseDelivery.pickup_person = updates.pickupName;
       if (updates.pickupDate !== undefined) supabaseDelivery.pickup_date = updates.pickupDate;
       if (updates.pickupTime !== undefined) supabaseDelivery.pickup_time = updates.pickupTime;
       
