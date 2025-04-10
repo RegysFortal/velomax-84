@@ -5,7 +5,7 @@ export interface PriceTable {
   description?: string;
   allowCustomPricing?: boolean;
   defaultDiscount?: number;
-  multiplier?: number; // Add the missing multiplier property
+  multiplier?: number;
   minimumRate: {
     standardDelivery: number;
     emergencyCollection: number;
@@ -28,18 +28,18 @@ export interface PriceTable {
   };
   doorToDoor: {
     ratePerKm: number;
-    maxWeight?: number; // Add the missing property
+    maxWeight?: number;
   };
   waitingHour: {
     standard: number;
     exclusive: number;
-    fiorino?: number; // Add the missing properties
+    fiorino?: number;
     medium?: number;
     large?: number;
   };
   insurance: {
     rate: number;
-    standard?: number; // Add the missing properties
+    standard?: number;
     perishable?: number;
   };
   createdAt: string;
