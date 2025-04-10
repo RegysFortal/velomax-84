@@ -15,7 +15,7 @@ interface ClientSearchSelectProps {
   disableAutoSelect?: boolean;
   showCreateOption?: boolean;
   createOptionLabel?: string;
-  disabled?: boolean; // Added the disabled prop
+  disabled?: boolean;
 }
 
 export function ClientSearchSelect({
@@ -28,19 +28,13 @@ export function ClientSearchSelect({
   disableAutoSelect = false,
   showCreateOption = true,
   createOptionLabel = "Cadastrar novo cliente",
-  disabled = false // Default value added
+  disabled = false
 }: ClientSearchSelectProps) {
   const { clients } = useClients();
   const [clientOptions, setClientOptions] = useState<any[]>([]);
   const navigate = useNavigate();
   
-  // Debug logs to trace the component behavior
-  useEffect(() => {
-    console.log("ClientSearchSelect - Rendering with value:", value);
-    console.log("ClientSearchSelect - Clients available:", clients.length);
-    console.log("ClientSearchSelect - showCreateOption:", showCreateOption);
-  }, [value, clients.length, showCreateOption]);
-  
+  // Format client options and handle auto-selection
   useEffect(() => {
     if (clients.length > 0) {
       // Format client options for the searchable select
@@ -91,7 +85,7 @@ export function ClientSearchSelect({
       showCreateOption={showCreateOption}
       onCreateNew={handleCreateNewClient}
       createOptionLabel={createOptionLabel}
-      disabled={disabled} // Pass the disabled prop to SearchableSelect
+      disabled={disabled}
     />
   );
 }

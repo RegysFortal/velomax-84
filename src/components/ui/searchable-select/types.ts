@@ -1,0 +1,20 @@
+
+import { ReactNode } from "react";
+
+export interface SearchableSelectOption {
+  value: string;
+  label: string;
+  description?: string;
+}
+
+export interface SearchableSelectProps {
+  options: SearchableSelectOption[];
+  value: string;
+  onValueChange: (value: string) => void;
+  placeholder?: string;
+  emptyMessage?: string;
+  onCreateNew?: () => void;
+  showCreateOption?: boolean;
+  createOptionLabel?: string;
+  disabled?: boolean;
+}
