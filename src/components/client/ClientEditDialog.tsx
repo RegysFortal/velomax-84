@@ -63,7 +63,8 @@ export function ClientEditDialog({
         description: "Os dados do cliente foram atualizados com sucesso."
       });
       
-      // Não fechamos o diálogo automaticamente para evitar a tela em branco
+      // Não fechamos o diálogo automaticamente para evitar problemas com a tela em branco
+      // onOpenChange(false); - Comentado para evitar o fechamento automático
     } catch (error) {
       console.error("Erro ao atualizar cliente:", error);
       toast({
@@ -74,10 +75,10 @@ export function ClientEditDialog({
     }
   };
 
-  // Prevenimos o fechamento automático do diálogo quando onOpenChange é chamado
+  // Controlamos manualmente quando o diálogo pode ser fechado
   const handleOpenChange = (open: boolean) => {
-    // Se estiver tentando fechar, permitimos o fechamento
     if (!open) {
+      // Permitimos o fechamento explícito pelo usuário
       onOpenChange(false);
     }
   };

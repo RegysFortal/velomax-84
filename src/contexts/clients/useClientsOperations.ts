@@ -105,8 +105,6 @@ export const useClientsOperations = (
       });
       
       console.log("Cliente atualizado com sucesso");
-      
-      // Não retornamos mais um objeto de sucesso, pois a função agora é Promise<void>
     } catch (error) {
       console.error("Error updating client:", error);
       throw error;

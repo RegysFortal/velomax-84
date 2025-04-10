@@ -33,12 +33,10 @@ const ClientsPage = () => {
     console.log("Edit modal state change:", open);
     if (!open) {
       setIsEditModalOpen(false);
-      // Agora só resetamos o selectedClient quando o modal é fechado definitivamente
-      if (!open) {
-        setTimeout(() => {
-          setSelectedClient(null);
-        }, 300); // Pequeno delay para evitar problemas de UI
-      }
+      // Só resetamos o selectedClient quando o modal é fechado definitivamente
+      setTimeout(() => {
+        setSelectedClient(null);
+      }, 300); // Pequeno delay para evitar problemas de UI
     }
   }, []);
 
