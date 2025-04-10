@@ -73,7 +73,6 @@ export function DeliveryFormDialog({
               <DeliveryForm 
                 delivery={editingDelivery} 
                 onComplete={handleFormComplete}
-                onCancel={handleCloseDialog}
               />
             </div>
           </ScrollArea>
