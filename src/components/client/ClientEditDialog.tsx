@@ -36,17 +36,8 @@ export function ClientEditDialog({
     setInternalIsOpen(isOpen);
   }, [isOpen]);
 
-  // Log para verificar quando o diálogo é aberto/fechado
-  useEffect(() => {
-    console.log("ClientEditDialog - isOpen:", isOpen);
-    console.log("ClientEditDialog - client:", client);
-  }, [isOpen, client]);
-
   const handleUpdateClient = async (formData: z.infer<typeof clientFormSchema>) => {
     if (!client) return;
-    
-    console.log("Submitting form with data:", formData);
-    console.log("Price table ID from form:", formData.priceTableId);
     
     try {
       setIsSubmitting(true);
@@ -75,11 +66,8 @@ export function ClientEditDialog({
         description: "Os dados do cliente foram atualizados com sucesso."
       });
       
-      // Explicitamente fechar o diálogo após a atualização bem-sucedida
-      setTimeout(() => {
-        setInternalIsOpen(false);
-        onOpenChange(false);
-      }, 300);
+      // Fechar o diálogo de forma segura
+      handleDialogClose();
     } catch (error) {
       console.error("Erro ao atualizar cliente:", error);
       toast({
@@ -92,17 +80,30 @@ export function ClientEditDialog({
     }
   };
 
-  // Previne o fechamento automático do modal durante submissão ou seleção
-  const handleOpenChange = (open: boolean) => {
-    console.log("Dialog open change requested:", open, "isSubmitting:", isSubmitting);
+  // Função segura para fechar o diálogo
+  const handleDialogClose = () => {
+    // Primeiro remova o estado de submissão
+    setIsSubmitting(false);
     
+    // Em seguida, feche o diálogo com um pequeno atraso
+    setTimeout(() => {
+      setInternalIsOpen(false);
+      onOpenChange(false);
+    }, 10);
+  };
+
+  // Previne o fechamento automático do modal durante submissão
+  const handleOpenChange = (open: boolean) => {
     if (!open && isSubmitting) {
-      console.log("Preventing dialog from closing during submission");
       return; // Não fecha o modal se estiver submetendo
     }
     
-    setInternalIsOpen(open);
-    onOpenChange(open);
+    if (!open) {
+      handleDialogClose();
+    } else {
+      setInternalIsOpen(true);
+      onOpenChange(true);
+    }
   };
 
   return (
@@ -110,13 +111,12 @@ export function ClientEditDialog({
       <DialogContent 
         className="sm:max-w-[625px] max-h-[90vh]" 
         onInteractOutside={(e) => {
-          if (isSubmitting) {
-            e.preventDefault();
-          }
+          e.preventDefault(); // Impede o fechamento ao clicar fora
         }}
         onEscapeKeyDown={(e) => {
-          if (isSubmitting) {
+          if (!isSubmitting) {
             e.preventDefault();
+            handleDialogClose();
           }
         }}
       >
@@ -134,6 +134,7 @@ export function ClientEditDialog({
                 submitButtonLabel="Atualizar"
                 initialData={client}
                 isSubmitting={isSubmitting}
+                onCancel={handleDialogClose}
               />
             </div>
           </ScrollArea>

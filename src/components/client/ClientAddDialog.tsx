@@ -27,7 +27,6 @@ export function ClientAddDialog() {
     try {
       setIsSubmitting(true);
       console.log("Adding client with data:", formData);
-      console.log("Price table ID from form:", formData.priceTableId);
       
       await addClient({
         name: formData.name,
@@ -53,10 +52,8 @@ export function ClientAddDialog() {
         description: "Cliente adicionado com sucesso!",
       });
       
-      // Fechar o diálogo após um breve delay para permitir que a animação ocorra
-      setTimeout(() => {
-        setIsDialogOpen(false);
-      }, 300);
+      // Fechar o diálogo de forma segura
+      handleDialogClose();
     } catch (error) {
       console.error("Error adding client:", error);
       toast({
@@ -69,17 +66,28 @@ export function ClientAddDialog() {
     }
   };
 
+  // Função segura para fechar o diálogo
+  const handleDialogClose = () => {
+    // Primeiro remova o estado de submissão
+    setIsSubmitting(false);
+    
+    // Em seguida, feche o diálogo com um pequeno atraso
+    setTimeout(() => {
+      setIsDialogOpen(false);
+    }, 10);
+  };
+
   // Previne o fechamento automático do modal durante submissão
   const handleOpenChange = (open: boolean) => {
-    console.log("Dialog open state changing to:", open);
-    console.log("Is currently submitting:", isSubmitting);
-    
     if (!open && isSubmitting) {
-      console.log("Preventing dialog from closing during submission");
       return; // Não fecha o modal se estiver submetendo
     }
     
-    setIsDialogOpen(open);
+    if (!open) {
+      handleDialogClose();
+    } else {
+      setIsDialogOpen(true);
+    }
   };
 
   return (
@@ -90,11 +98,18 @@ export function ClientAddDialog() {
           Adicionar Cliente
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[625px] max-h-[90vh]" onInteractOutside={(e) => {
-        if (isSubmitting) {
-          e.preventDefault();
-        }
-      }}>
+      <DialogContent 
+        className="sm:max-w-[625px] max-h-[90vh]" 
+        onInteractOutside={(e) => {
+          e.preventDefault(); // Impede o fechamento ao clicar fora
+        }}
+        onEscapeKeyDown={(e) => {
+          if (!isSubmitting) {
+            e.preventDefault();
+            handleDialogClose();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Adicionar Cliente</DialogTitle>
           <DialogDescription>
@@ -107,6 +122,7 @@ export function ClientAddDialog() {
             submitButtonLabel="Adicionar" 
             initialData={undefined}
             isSubmitting={isSubmitting}
+            onCancel={handleDialogClose}
           />
         </ScrollArea>
       </DialogContent>

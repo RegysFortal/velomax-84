@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -7,7 +6,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { useShipments } from "@/contexts/shipments";
 import { ShipmentStatus } from "@/types/shipment";
@@ -83,7 +81,6 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       setShowDuplicateAlert(false);
       setSubmissionData(null);
       
-      // Debug logs
       console.log("ShipmentDialog - Reset form");
     }
   }, [open]);
@@ -214,7 +211,11 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       e.preventDefault();
       e.stopPropagation();
     }
-    onOpenChange(false);
+    
+    // Primeiro altere o estado local para evitar renderizações indesejadas
+    setTimeout(() => {
+      onOpenChange(false);
+    }, 0);
   };
 
   // Verificar se o diálogo está sendo fechado corretamente
@@ -222,15 +223,24 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     if (!open) {
       // Se estiver fechando, faça isso de maneira segura
       handleCancel();
-    } else {
-      onOpenChange(true);
     }
   };
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-w-xl max-h-[95vh]">
+        <DialogContent 
+          className="max-w-xl max-h-[95vh]"
+          onEscapeKeyDown={(e) => {
+            // Impedir o comportamento padrão e usar nossa função de cancelamento
+            e.preventDefault();
+            handleCancel();
+          }}
+          onInteractOutside={(e) => {
+            // Impedir fechamento ao clicar fora, usaremos apenas os botões
+            e.preventDefault();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Novo Embarque</DialogTitle>
           </DialogHeader>
@@ -284,17 +294,6 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
               </DialogFooter>
             </form>
           </ScrollArea>
-          <DialogClose asChild>
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="mt-2"
-              onClick={handleCancel}
-              style={{display: 'none'}} // Oculto porque já temos botões de cancelar visíveis
-            >
-              Cancelar
-            </Button>
-          </DialogClose>
         </DialogContent>
       </Dialog>
       

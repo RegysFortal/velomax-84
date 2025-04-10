@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DeliveryForm } from './DeliveryForm';
@@ -34,21 +33,25 @@ export function DeliveryFormDialog({
   };
 
   const handleCloseDialog = () => {
+    // Certifique-se de que o estado é atualizado corretamente
     setIsOpen(false);
-    setEditingDelivery(null);
+    setTimeout(() => {
+      setEditingDelivery(null);
+    }, 100);
     onComplete();
   };
 
-  // This function now handles the form completion without closing the dialog
+  // Este evento será passado para o DeliveryForm quando o formulário for concluído
   const handleFormComplete = () => {
     onComplete();
-    // We don't close the dialog here, just complete the action
+    // Feche o diálogo após completar
+    handleCloseDialog();
   };
 
-  // Ensure that dialog closing is done safely
+  // Manipule o evento onOpenChange de forma mais segura
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // If closing the dialog
+      // Se fechando o diálogo
       handleCloseDialog();
     } else {
       setIsOpen(true);
@@ -61,8 +64,10 @@ export function DeliveryFormDialog({
         <PlusCircle className="mr-2 h-4 w-4" />
         Nova Entrega
       </Button>
+      
+      {/* Usamos o prop open para controle explícito do estado do diálogo */}
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh]" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>
               {editingDelivery ? 'Editar Entrega' : 'Nova Entrega'}

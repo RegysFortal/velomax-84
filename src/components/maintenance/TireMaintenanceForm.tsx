@@ -42,9 +42,10 @@ export interface TireMaintenanceFormProps {
   maintenance?: TireMaintenance | null;
   onSubmit: (data: FormData) => void;
   onCancel: () => void;
+  onComplete?: () => void; // Adicionando onComplete opcional para compatibilidade
 }
 
-export function TireMaintenanceForm({ maintenance, onSubmit, onCancel }: TireMaintenanceFormProps) {
+export function TireMaintenanceForm({ maintenance, onSubmit, onCancel, onComplete }: TireMaintenanceFormProps) {
   const form = useForm<FormData>({
     resolver: zodResolver(tireMaintenanceSchema),
     defaultValues: {
@@ -66,6 +67,8 @@ export function TireMaintenanceForm({ maintenance, onSubmit, onCancel }: TireMai
     const maintenanceType = data.maintenanceType as "replacement" | "puncture" | "purchase";
   
     onSubmit({ ...data, maintenanceType });
+    // Chama onComplete se estiver definido
+    if (onComplete) onComplete();
   };
 
   return (

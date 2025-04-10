@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -35,10 +34,8 @@ export function BudgetFormDialog() {
         description: "Orçamento criado com sucesso!",
       });
       
-      // Close the dialog after a brief delay to allow animation
-      setTimeout(() => {
-        setIsDialogOpen(false);
-      }, 300);
+      // Close the dialog after operation is complete
+      handleCancel();
     } catch (error) {
       console.error("Error adding budget:", error);
       toast({
@@ -52,12 +49,14 @@ export function BudgetFormDialog() {
   };
 
   // Função para lidar com o cancelamento de forma segura
-  const handleCancel = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    setIsDialogOpen(false);
+  const handleCancel = () => {
+    // Primeiro remova o estado de submissão se aplicável
+    setIsSubmitting(false);
+    
+    // Em seguida, feche o diálogo com um pequeno atraso para permitir que o React atualize outros estados primeiro
+    setTimeout(() => {
+      setIsDialogOpen(false);
+    }, 10);
   };
 
   // Prevent automatic closing during submission
@@ -66,7 +65,11 @@ export function BudgetFormDialog() {
       return; // Don't close the modal during submission
     }
     
-    setIsDialogOpen(open);
+    if (!open) {
+      handleCancel();
+    } else {
+      setIsDialogOpen(open);
+    }
   };
 
   return (
@@ -77,11 +80,18 @@ export function BudgetFormDialog() {
           Novo Orçamento
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh]" onInteractOutside={(e) => {
-        if (isSubmitting) {
-          e.preventDefault();
-        }
-      }}>
+      <DialogContent 
+        className="sm:max-w-[800px] max-h-[90vh]" 
+        onInteractOutside={(e) => {
+          e.preventDefault(); // Prevent closing when clicking outside
+        }}
+        onEscapeKeyDown={(e) => {
+          if (!isSubmitting) {
+            e.preventDefault();
+            handleCancel();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Criar Orçamento</DialogTitle>
           <DialogDescription>
@@ -95,17 +105,6 @@ export function BudgetFormDialog() {
             onCancel={handleCancel}
           />
         </ScrollArea>
-        <DialogClose asChild>
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="mt-2" 
-            onClick={handleCancel}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </Button>
-        </DialogClose>
       </DialogContent>
     </Dialog>
   );

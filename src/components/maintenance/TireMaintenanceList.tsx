@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLogbook } from '@/contexts/LogbookContext';
 import { format } from 'date-fns';
@@ -82,9 +81,21 @@ export function TireMaintenanceList() {
     }
   };
 
-  const handleComplete = () => {
-    setIsDialogOpen(false);
-    setEditingMaintenance(null);
+  const handleDialogClose = () => {
+    setTimeout(() => {
+      setIsDialogOpen(false);
+      setTimeout(() => {
+        setEditingMaintenance(null);
+      }, 50);
+    }, 10);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      handleDialogClose();
+    } else {
+      setIsDialogOpen(true);
+    }
   };
 
   const formatCurrency = (value?: number) => {
@@ -167,8 +178,17 @@ export function TireMaintenanceList() {
         </Table>
       </CardContent>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogContent 
+          className="sm:max-w-[600px]"
+          onInteractOutside={(e) => {
+            e.preventDefault();
+          }}
+          onEscapeKeyDown={(e) => {
+            e.preventDefault();
+            handleDialogClose();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>
               {editingMaintenance ? 'Editar Registro de Manutenção' : 'Novo Registro de Manutenção'}
@@ -176,8 +196,11 @@ export function TireMaintenanceList() {
           </DialogHeader>
           <TireMaintenanceForm
             maintenance={editingMaintenance}
-            onComplete={handleComplete}
-            onCancel={() => setIsDialogOpen(false)}
+            onSubmit={(data) => {
+              console.log('Form submitted:', data);
+              handleDialogClose();
+            }}
+            onCancel={handleDialogClose}
           />
         </DialogContent>
       </Dialog>
