@@ -11,6 +11,8 @@ import { ClientForm } from '@/components/client/ClientForm';
 import { useClients } from '@/contexts/ClientsContext';
 import { Client } from '@/types';
 import { z } from 'zod';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/components/ui/use-toast';
 
 // For type safety, we're using the same form schema here
 import { clientFormSchema } from '@/components/client/ClientFormSchema';
@@ -27,10 +29,11 @@ export function ClientEditDialog({
   client,
 }: ClientEditDialogProps) {
   const { updateClient } = useClients();
+  const { toast } = useToast();
 
-  const handleUpdateClient = (formData: z.infer<typeof clientFormSchema>) => {
+  const handleUpdateClient = async (formData: z.infer<typeof clientFormSchema>) => {
     if (client) {
-      updateClient(client.id, {
+      await updateClient(client.id, {
         name: formData.name,
         tradingName: formData.tradingName,
         document: formData.document || '',
@@ -48,13 +51,19 @@ export function ClientEditDialog({
         notes: formData.notes || '',
         priceTableId: formData.priceTableId,
       });
+      
+      // Show a success toast but don't close the dialog
+      toast({
+        title: "Cliente atualizado",
+        description: "Os dados do cliente foram atualizados com sucesso."
+      });
       // Don't close the dialog here, let the parent component handle it if needed
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[625px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Editar Cliente</DialogTitle>
           <DialogDescription>
@@ -62,11 +71,15 @@ export function ClientEditDialog({
           </DialogDescription>
         </DialogHeader>
         {client && (
-          <ClientForm 
-            onSubmit={handleUpdateClient}
-            submitButtonLabel="Atualizar"
-            initialData={client}
-          />
+          <ScrollArea className="max-h-[calc(90vh-130px)]">
+            <div className="pr-4">
+              <ClientForm 
+                onSubmit={handleUpdateClient}
+                submitButtonLabel="Atualizar"
+                initialData={client}
+              />
+            </div>
+          </ScrollArea>
         )}
       </DialogContent>
     </Dialog>
