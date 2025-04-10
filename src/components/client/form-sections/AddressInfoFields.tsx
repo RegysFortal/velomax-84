@@ -24,9 +24,9 @@ export function AddressInfoFields({ control }: AddressInfoFieldsProps) {
           name="street"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Rua</FormLabel>
+              <FormLabel>Endereço</FormLabel>
               <FormControl>
-                <Input placeholder="Rua" {...field} />
+                <Input placeholder="Endereço" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
