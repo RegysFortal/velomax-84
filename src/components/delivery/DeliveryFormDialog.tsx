@@ -32,28 +32,33 @@ export function DeliveryFormDialog({
     setIsOpen(true);
   };
 
+  // Improved close handler with proper state management
   const handleCloseDialog = () => {
-    // Certifique-se de que o estado é atualizado corretamente
+    // First close the dialog
     setIsOpen(false);
+    
+    // After dialog animation completes, reset editing state
     setTimeout(() => {
       setEditingDelivery(null);
-    }, 100);
-    onComplete();
+      // Call onComplete to notify parent component
+      onComplete();
+    }, 200); // Small delay to ensure dialog closes smoothly
   };
 
-  // Este evento será passado para o DeliveryForm quando o formulário for concluído
+  // Form completion handler
   const handleFormComplete = () => {
+    // Call onComplete and close dialog
     onComplete();
-    // Feche o diálogo após completar
     handleCloseDialog();
   };
 
-  // Manipule o evento onOpenChange de forma mais segura
+  // Improved open change handler with safeguards
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // Se fechando o diálogo
+      // If closing the dialog, use our safe close method
       handleCloseDialog();
     } else {
+      // If opening the dialog, just set the state
       setIsOpen(true);
     }
   };
@@ -65,9 +70,15 @@ export function DeliveryFormDialog({
         Nova Entrega
       </Button>
       
-      {/* Usamos o prop open para controle explícito do estado do diálogo */}
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh]" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent 
+          className="sm:max-w-[800px] max-h-[90vh]" 
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => {
+            e.preventDefault();
+            handleCloseDialog();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>
               {editingDelivery ? 'Editar Entrega' : 'Nova Entrega'}
