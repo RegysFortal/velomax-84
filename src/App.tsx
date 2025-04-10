@@ -25,6 +25,7 @@ import PriceTablesPage from './pages/PriceTables';
 import CitiesPage from './pages/Cities';
 import BudgetsPage from './pages/Budgets';
 import { BudgetProvider } from './contexts/BudgetContext';
+import { ClientsProvider } from './contexts/clients/ClientsContext';
 
 function App() {
   const { user, loading } = useAuth();
@@ -42,7 +43,7 @@ function App() {
   }
 
   return (
-    <ThemeProvider>
+    <ClientsProvider>
       <BudgetProvider>
         <Router>
           <Routes>
@@ -73,7 +74,7 @@ function App() {
           <Toaster />
         </Router>
       </BudgetProvider>
-    </ThemeProvider>
+    </ClientsProvider>
   );
 }
 

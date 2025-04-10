@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Client } from '@/types';
-import { User } from '../auth/types';
+import { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,7 +37,7 @@ export const useClientsOperations = (
             phone: newClient.phone,
             document: newClient.document,
             address: newClient.address,
-            contact_person: newClient.contactPerson,
+            contact_person: newClient.contact_person,
             price_table_id: newClient.priceTableId,
             payment_terms: newClient.paymentTerms,
             notes: newClient.notes,
@@ -85,9 +85,8 @@ export const useClientsOperations = (
         };
         
         // Convert camelCase to snake_case for Supabase
-        if ('contactPerson' in clientUpdate) {
-          updateData.contact_person = clientUpdate.contactPerson;
-          delete updateData.contactPerson;
+        if ('contact_person' in clientUpdate) {
+          updateData.contact_person = clientUpdate.contact_person;
         }
         
         if ('priceTableId' in clientUpdate) {

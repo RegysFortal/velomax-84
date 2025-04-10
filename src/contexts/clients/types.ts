@@ -1,6 +1,6 @@
 
 import { Client } from "@/types";
-import { User } from "../auth/types";
+import { User } from "@/types";
 
 export type ClientsContextType = {
   clients: Client[];
