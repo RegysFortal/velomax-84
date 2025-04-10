@@ -34,7 +34,7 @@ export const useDeliveriesCRUD = (
         delivery_date: delivery.deliveryDate,
         delivery_time: delivery.deliveryTime || '',
         receiver: delivery.receiver || '',
-        receiver_document: delivery.receiverId || null, // Renamed to match Supabase field
+        receiver_id: delivery.receiverId || null, // Use receiver_id instead of receiver_document
         weight: delivery.weight,
         packages: delivery.packages,
         delivery_type: delivery.deliveryType,
@@ -45,7 +45,7 @@ export const useDeliveriesCRUD = (
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
         user_id: user?.id,
-        pickup_person: delivery.pickupName || '', // Renamed to match Supabase field
+        pickup_name: delivery.pickupName || '', // Use pickup_name instead of pickup_person
         pickup_date: delivery.pickupDate || '',
         pickup_time: delivery.pickupTime || '',
       };
@@ -68,7 +68,7 @@ export const useDeliveriesCRUD = (
         deliveryDate: data.delivery_date,
         deliveryTime: data.delivery_time || '',
         receiver: data.receiver || '',
-        receiverId: data.receiver_document || undefined, // Using the correct field name
+        receiverId: data.receiver_id || undefined, // Using receiver_id
         weight: data.weight,
         packages: data.packages,
         deliveryType: data.delivery_type as Delivery['deliveryType'],
@@ -80,7 +80,7 @@ export const useDeliveriesCRUD = (
         createdAt: data.created_at || timestamp,
         updatedAt: data.updated_at || timestamp,
         cityId: data.city_id || undefined,
-        pickupName: data.pickup_person || '', // Using the correct field name
+        pickupName: data.pickup_name || '', // Using pickup_name
         pickupDate: data.pickup_date || '',
         pickupTime: data.pickup_time || '',
       };
