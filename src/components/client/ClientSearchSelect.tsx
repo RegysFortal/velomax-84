@@ -15,6 +15,7 @@ interface ClientSearchSelectProps {
   disableAutoSelect?: boolean;
   showCreateOption?: boolean;
   createOptionLabel?: string;
+  disabled?: boolean; // Added the disabled prop
 }
 
 export function ClientSearchSelect({
@@ -26,7 +27,8 @@ export function ClientSearchSelect({
   allOptionValue = "all",
   disableAutoSelect = false,
   showCreateOption = true,
-  createOptionLabel = "Cadastrar novo cliente"
+  createOptionLabel = "Cadastrar novo cliente",
+  disabled = false // Default value added
 }: ClientSearchSelectProps) {
   const { clients } = useClients();
   const [clientOptions, setClientOptions] = useState<any[]>([]);
@@ -89,6 +91,7 @@ export function ClientSearchSelect({
       showCreateOption={showCreateOption}
       onCreateNew={handleCreateNewClient}
       createOptionLabel={createOptionLabel}
+      disabled={disabled} // Pass the disabled prop to SearchableSelect
     />
   );
 }

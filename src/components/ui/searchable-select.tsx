@@ -21,6 +21,7 @@ interface SearchableSelectProps {
   onCreateNew?: () => void;
   showCreateOption?: boolean;
   createOptionLabel?: string;
+  disabled?: boolean; // Added the disabled prop
 }
 
 export function SearchableSelect({
@@ -31,7 +32,8 @@ export function SearchableSelect({
   emptyMessage = "Nenhum resultado encontrado.",
   onCreateNew,
   showCreateOption = false,
-  createOptionLabel = "Cadastrar novo"
+  createOptionLabel = "Cadastrar novo",
+  disabled = false // Default value added
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,6 +91,7 @@ export function SearchableSelect({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between text-left"
+          disabled={disabled} // Add disabled prop to Button
         >
           <span className="truncate">{displayValue}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -106,6 +109,7 @@ export function SearchableSelect({
             className="h-9" 
             value={searchQuery}
             onValueChange={setSearchQuery}
+            disabled={disabled} // Add disabled prop to CommandInput
           />
           <CommandList>
             <CommandEmpty>
