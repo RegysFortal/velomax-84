@@ -32,31 +32,35 @@ export function DeliveryFormDialog({
     setIsOpen(true);
   };
 
-  // Melhorado para seguir o padrão do ClientAddDialog que funciona corretamente
-  const handleCloseDialog = () => {
-    // Chame onComplete antes de fechar o diálogo
-    onComplete();
+  // Função segura para fechar o diálogo, seguindo o padrão de ClientAddDialog
+  const handleDialogClose = () => {
+    // Primeiro remova o estado de submissão
     
-    // Primeiro feche o diálogo
+    // Em seguida, feche o diálogo 
     setIsOpen(false);
     
-    // Depois de um curto delay, limpe o estado de edição
+    // Após fechar o diálogo, com um pequeno atraso limpe o estado de edição
     setTimeout(() => {
       setEditingDelivery(null);
-    }, 10); // Reduzido para 10ms como nos outros componentes
+    }, 10);
   };
 
   // Manipulador quando o formulário é concluído
   const handleFormComplete = () => {
-    // Fecha o diálogo usando nossa função segura
-    handleCloseDialog();
+    // Executa o callback de conclusão
+    onComplete();
+    
+    // Depois fecha o diálogo
+    handleDialogClose();
   };
 
-  // Manipulador de mudança de estado com salvaguardas
+  // Manipulador de mudança de estado do diálogo
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // Se estiver fechando o diálogo, use nosso método seguro
-      handleCloseDialog();
+      // Se estiver fechando o diálogo, primeiro execute o callback
+      onComplete();
+      // Depois use nosso método seguro para fechar
+      handleDialogClose();
     } else {
       // Se estiver abrindo o diálogo, apenas defina o estado
       setIsOpen(true);
@@ -76,7 +80,8 @@ export function DeliveryFormDialog({
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => {
             e.preventDefault();
-            handleCloseDialog();
+            onComplete();
+            handleDialogClose();
           }}
         >
           <DialogHeader>
@@ -89,7 +94,10 @@ export function DeliveryFormDialog({
               <DeliveryForm 
                 delivery={editingDelivery} 
                 onComplete={handleFormComplete}
-                onCancel={handleCloseDialog}
+                onCancel={() => {
+                  onComplete();
+                  handleDialogClose();
+                }}
               />
             </div>
           </ScrollArea>
