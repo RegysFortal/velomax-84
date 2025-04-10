@@ -10,15 +10,18 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 import { Link } from "react-router-dom"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const NavigationMenuDemo = () => {
+  const { isMobile } = useIsMobile();
+  
   return (
     <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>Operacional</NavigationMenuTrigger>
+      <NavigationMenuList className={isMobile ? "flex-col items-start" : ""}>
+        <NavigationMenuItem className={isMobile ? "w-full" : ""}>
+          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Operacional</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-3 p-4 w-[240px]">
+            <ul className={`grid gap-3 p-4 ${isMobile ? "w-full" : "w-[240px]"}`}>
               <ListItem href="/deliveries" title="Entregas">
                 Gerenciamento de entregas
               </ListItem>
@@ -32,10 +35,10 @@ const NavigationMenuDemo = () => {
           </NavigationMenuContent>
         </NavigationMenuItem>
         
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>Financeiro</NavigationMenuTrigger>
+        <NavigationMenuItem className={isMobile ? "w-full" : ""}>
+          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Financeiro</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-3 p-4 w-[240px]">
+            <ul className={`grid gap-3 p-4 ${isMobile ? "w-full" : "w-[240px]"}`}>
               <ListItem href="/financial" title="Financeiro">
                 Gerenciamento financeiro
               </ListItem>
@@ -52,10 +55,10 @@ const NavigationMenuDemo = () => {
           </NavigationMenuContent>
         </NavigationMenuItem>
         
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>Gerência</NavigationMenuTrigger>
+        <NavigationMenuItem className={isMobile ? "w-full" : ""}>
+          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Gerência</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-3 p-4 w-[240px]">
+            <ul className={`grid gap-3 p-4 ${isMobile ? "w-full" : "w-[240px]"}`}>
               <ListItem href="/dashboard" title="Dashboard">
                 Painel de controle
               </ListItem>
@@ -92,14 +95,17 @@ const ListItem = React.forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a"> & { title: string }
 >(({ className, title, children, ...props }, ref) => {
+  const { isMobile } = useIsMobile();
+  
   return (
-    <li>
+    <li className={isMobile ? "w-full" : ""}>
       <Link to={props.href || ""} className="no-underline">
         <NavigationMenuLink asChild>
           <a
             ref={ref}
             className={cn(
               "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+              isMobile ? "w-full" : "",
               className
             )}
             {...props}
@@ -117,9 +123,11 @@ const ListItem = React.forwardRef<
 ListItem.displayName = "ListItem"
 
 export function MainNav({ className }: React.HTMLAttributes<HTMLElement>) {
+  const { isMobile } = useIsMobile();
+  
   return (
-    <nav className={cn("flex items-center space-x-6 lg:space-x-6", className)}>
-      <div className="flex items-center space-x-6">
+    <nav className={cn(`flex items-center ${isMobile ? "w-full" : "space-x-6 lg:space-x-6"}`, className)}>
+      <div className={`flex items-center ${isMobile ? "w-full" : "space-x-6"}`}>
         <NavigationMenuDemo />
       </div>
     </nav>
