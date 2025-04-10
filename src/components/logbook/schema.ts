@@ -21,4 +21,7 @@ export const logbookFormSchema = z.object({
   returnTime: z.string().optional(),
   endOdometer: z.coerce.number().optional(),
   notes: z.string().optional(),
+  destination: z.string().optional(),
+  purpose: z.string().optional(),
+  status: z.enum(['ongoing', 'completed']).optional(),
 });
