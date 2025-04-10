@@ -1,3 +1,6 @@
 
 // This file is kept for backward compatibility
-export { SearchableSelect, type SearchableSelectProps, type SearchableSelectOption } from './searchable-select';
+import { SearchableSelect } from './searchable-select/index';
+import type { SearchableSelectProps, SearchableSelectOption } from './searchable-select/types';
+
+export { SearchableSelect, type SearchableSelectProps, type SearchableSelectOption };

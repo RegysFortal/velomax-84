@@ -1,12 +1,12 @@
 
 import React, { useState, useRef, useEffect } from "react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandList } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Plus } from "lucide-react";
 import { SearchTrigger } from "./trigger";
 import { CreateOption } from "./create-option";
 import { OptionItem } from "./option-item";
-import { SearchableSelectProps, SearchableSelectOption } from "./types";
+import { SearchableSelectProps } from "./types";
 
 export type { SearchableSelectOption, SearchableSelectProps } from "./types";
 
