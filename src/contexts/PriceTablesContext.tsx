@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -262,6 +263,8 @@ export const PriceTablesProvider = ({ children }: { children: ReactNode }) => {
               
               if (!updatedTable.waitingHour) {
                 updatedTable.waitingHour = {
+                  standard: 44.00,
+                  exclusive: 55.00,
                   fiorino: 44.00,
                   medium: 55.00,
                   large: 66.00,
