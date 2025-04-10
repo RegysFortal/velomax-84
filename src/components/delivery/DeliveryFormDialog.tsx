@@ -2,12 +2,13 @@
 import React from 'react';
 import { Delivery } from '@/types';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DeliveryForm } from './DeliveryForm';
@@ -32,12 +33,8 @@ export function DeliveryFormDialog({
     setIsOpen(true);
   };
 
-  // Standard pattern for closing dialogs
   const handleCancel = () => {
-    // First call onComplete callback
     onComplete();
-    
-    // Close the dialog
     setIsOpen(false);
     
     // Reset editing state with a small delay
@@ -46,19 +43,14 @@ export function DeliveryFormDialog({
     }, 10);
   };
 
-  // Handler for when form is completed
   const handleFormComplete = () => {
-    // Call the standard close handler
     handleCancel();
   };
 
-  // Handler for dialog open state change
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // If dialog is closing, use the standard handler
       handleCancel();
     } else {
-      // If dialog is opening, simply set the open state
       setIsOpen(true);
     }
   };
@@ -83,6 +75,17 @@ export function DeliveryFormDialog({
             <DialogTitle>
               {editingDelivery ? 'Editar Entrega' : 'Nova Entrega'}
             </DialogTitle>
+            <DialogClose asChild>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className="absolute right-4 top-4"
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Fechar</span>
+              </Button>
+            </DialogClose>
           </DialogHeader>
           <ScrollArea className="max-h-[calc(90vh-130px)]">
             <div className="pr-4">

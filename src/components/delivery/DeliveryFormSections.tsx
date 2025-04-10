@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -56,7 +55,7 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     handleSubmit(data, freight);
   };
 
-  const handleCancel = () => {
+  const handleCancelClick = () => {
     if (onCancel) {
       onCancel();
     } else {
@@ -101,7 +100,7 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
           </div>
           
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={handleCancel}>
+            <Button type="button" variant="outline" onClick={handleCancelClick}>
               Cancelar
             </Button>
             <Button type="submit">
@@ -121,9 +120,7 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowDuplicateAlert(false)}>
-              Cancelar
-            </AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={() => handleConfirmDuplicate(formData)} className="bg-orange-600 hover:bg-orange-700">
               Sim, criar mesmo assim
             </AlertDialogAction>
