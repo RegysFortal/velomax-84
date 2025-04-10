@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getActiveClass, hasOperationalAccess } from "./navUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface OperationalMenuProps {
   user: User | null;
@@ -19,19 +20,20 @@ interface OperationalMenuProps {
 
 export const OperationalMenu: React.FC<OperationalMenuProps> = ({ user, hasPermission }) => {
   const location = useLocation();
+  const { isMobile } = useIsMobile();
   
   if (!hasOperationalAccess(user, hasPermission)) {
     return null;
   }
 
   return (
-    <NavigationMenuItem>
-      <NavigationMenuTrigger>
+    <NavigationMenuItem className={isMobile ? "w-full" : ""}>
+      <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
         <Truck className="mr-2 h-4 w-4" />
         Operacional
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className="h-[300px] w-[400px]">
+        <ScrollArea className={`h-[300px] ${isMobile ? "w-[250px]" : "w-[400px]"}`}>
           <div className="grid gap-3 p-4">
             <Link
               to="/deliveries"

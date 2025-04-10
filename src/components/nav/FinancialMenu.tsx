@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getActiveClass, hasFinancialAccess } from "./navUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FinancialMenuProps {
   user: User | null;
@@ -19,19 +20,20 @@ interface FinancialMenuProps {
 
 export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermission }) => {
   const location = useLocation();
+  const { isMobile } = useIsMobile();
   
   if (!hasFinancialAccess(user, hasPermission)) {
     return null;
   }
 
   return (
-    <NavigationMenuItem>
-      <NavigationMenuTrigger>
+    <NavigationMenuItem className={isMobile ? "w-full" : ""}>
+      <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
         <Calculator className="mr-2 h-4 w-4" />
         Financeiro
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className="h-[300px] w-[400px]">
+        <ScrollArea className={`h-[300px] ${isMobile ? "w-[250px]" : "w-[400px]"}`}>
           <div className="grid gap-3 p-4">
             <Link
               to="/financial"

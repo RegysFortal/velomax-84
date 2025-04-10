@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getActiveClass, hasManagementAccess } from "./navUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ManagementMenuProps {
   user: User | null;
@@ -19,19 +20,20 @@ interface ManagementMenuProps {
 
 export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermission }) => {
   const location = useLocation();
+  const { isMobile } = useIsMobile();
   
   if (!hasManagementAccess(user, hasPermission)) {
     return null;
   }
 
   return (
-    <NavigationMenuItem>
-      <NavigationMenuTrigger>
+    <NavigationMenuItem className={isMobile ? "w-full" : ""}>
+      <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
         <Settings className="mr-2 h-4 w-4" />
         Gerência
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className="h-[300px] w-[400px]">
+        <ScrollArea className={`h-[300px] ${isMobile ? "w-[250px]" : "w-[400px]"}`}>
           <div className="grid gap-3 p-4">
             <Link
               to="/dashboard"

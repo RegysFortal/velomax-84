@@ -12,8 +12,8 @@ export function NavMenu() {
   const { isMobile } = useIsMobile();
 
   return (
-    <NavigationMenu className={isMobile ? "fixed top-0 z-50 w-full bg-background/95 backdrop-blur" : ""}>
-      <NavigationMenuList className={isMobile ? "flex-col w-full items-start" : ""}>
+    <NavigationMenu className={isMobile ? "w-full" : ""}>
+      <NavigationMenuList className={isMobile ? "flex-col w-full items-start space-y-2" : ""}>
         <OperationalMenu user={user} hasPermission={hasPermission} />
         <FinancialMenu user={user} hasPermission={hasPermission} />
         <ManagementMenu user={user} hasPermission={hasPermission} />
