@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
@@ -43,7 +44,7 @@ export default function ShipmentReports() {
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [filterStatus, setFilterStatus] = useState<ShipmentStatus | 'all'>('all');
-  const [filterCarrier, setFilterCarrier] = useState('');
+  const [filterCarrier, setFilterCarrier] = useState('all'); // Changed from "" to "all"
   const [filterMode, setFilterMode] = useState<'air' | 'road' | 'all'>('all');
   
   const filteredShipments = shipments.filter(shipment => {
@@ -55,7 +56,7 @@ export default function ShipmentReports() {
     
     const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
     
-    const matchesCarrier = !filterCarrier || 
+    const matchesCarrier = filterCarrier === 'all' || 
       shipment.carrierName.toLowerCase().includes(filterCarrier.toLowerCase());
       
     const matchesMode = filterMode === 'all' || shipment.transportMode === filterMode;
@@ -404,9 +405,12 @@ export default function ShipmentReports() {
                       <SelectValue placeholder="Selecione a transportadora" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="all">Todas</SelectItem> {/* Changed from "" to "all" */}
                       {uniqueCarriers.map((carrier) => (
-                        <SelectItem key={carrier as React.Key} value={carrier as string}>
+                        <SelectItem 
+                          key={carrier as React.Key} 
+                          value={carrier as string}
+                        >
                           {carrier as React.ReactNode}
                         </SelectItem>
                       ))}

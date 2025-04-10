@@ -50,8 +50,7 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
                   console.log("Price table selected:", value);
                   field.onChange(value);
                 }} 
-                value={field.value || ""}
-                // Removido defaultValue para evitar conflito com value
+                value={field.value || "none"} // Changed from "" to "none"
               >
                 <FormControl>
                   <SelectTrigger>
@@ -69,7 +68,7 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="empty" disabled>
+                    <SelectItem value="none" disabled> {/* Changed from "empty" to "none" */}
                       Nenhuma tabela disponível
                     </SelectItem>
                   )}
