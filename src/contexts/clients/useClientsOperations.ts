@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Client } from '@/types';
 import { User } from '@/types';
@@ -32,10 +33,18 @@ export const useClientsOperations = (
           .insert({
             id: newClient.id,
             name: newClient.name,
+            trading_name: newClient.tradingName,
             email: newClient.email,
             phone: newClient.phone,
             document: newClient.document,
             address: newClient.address,
+            street: newClient.street,
+            number: newClient.number,
+            complement: newClient.complement,
+            neighborhood: newClient.neighborhood,
+            city: newClient.city,
+            state: newClient.state,
+            zip_code: newClient.zipCode,
             contact: newClient.contact,
             price_table_id: newClient.priceTableId,
             notes: newClient.notes,
@@ -77,20 +86,26 @@ export const useClientsOperations = (
       
       // Update in Supabase if user is logged in
       if (user) {
-        const updateData: any = {
-          ...clientUpdate,
+        // Create a data object with snake_case field names for Supabase
+        const updateData = {
+          name: clientUpdate.name,
+          trading_name: clientUpdate.tradingName,
+          email: clientUpdate.email,
+          phone: clientUpdate.phone,
+          document: clientUpdate.document,
+          address: clientUpdate.address,
+          street: clientUpdate.street,
+          number: clientUpdate.number,
+          complement: clientUpdate.complement,
+          neighborhood: clientUpdate.neighborhood,
+          city: clientUpdate.city,
+          state: clientUpdate.state,
+          zip_code: clientUpdate.zipCode,
+          contact: clientUpdate.contact,
+          price_table_id: clientUpdate.priceTableId,
+          notes: clientUpdate.notes,
           updated_at: updatedAt
         };
-        
-        // Convert camelCase to snake_case for Supabase
-        if ('contact' in clientUpdate) {
-          updateData.contact_person = clientUpdate.contact;
-        }
-        
-        if ('priceTableId' in clientUpdate) {
-          updateData.price_table_id = clientUpdate.priceTableId;
-          delete updateData.priceTableId;
-        }
         
         const { error } = await supabase
           .from('clients')

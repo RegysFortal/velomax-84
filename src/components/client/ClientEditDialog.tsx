@@ -34,6 +34,7 @@ export function ClientEditDialog({ isOpen, onOpenChange, client }: ClientEditDia
     
     try {
       setIsSubmitting(true);
+      console.log("Updating client with data:", formData);
       
       await updateClient(client.id, {
         name: formData.name,
