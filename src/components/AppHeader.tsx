@@ -25,7 +25,7 @@ export function AppHeader() {
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="pr-0 sm:max-w-xs">
+              <SheetContent side="left" className="pr-0 pt-10 w-[85%] overflow-y-auto">
                 <NavMenu />
               </SheetContent>
             </Sheet>

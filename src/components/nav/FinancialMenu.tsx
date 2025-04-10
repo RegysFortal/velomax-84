@@ -33,7 +33,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
         Financeiro
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className={`h-[300px] ${isMobile ? "w-[250px]" : "w-[400px]"}`}>
+        <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
             <Link
               to="/financial"
