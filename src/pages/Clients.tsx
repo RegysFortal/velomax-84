@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,22 +19,28 @@ const ClientsPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const handleEditClient = (client: Client) => {
+  const handleEditClient = useCallback((client: Client) => {
+    console.log("Editing client:", client);
     setSelectedClient(client);
     setIsEditModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteClient = (id: string) => {
+  const handleDeleteClient = useCallback((id: string) => {
     deleteClient(id);
-  };
+  }, [deleteClient]);
 
-  const handleEditModalClose = (open: boolean) => {
-    // Só fechamos o modal se explicitamente definido como false
+  const handleEditModalClose = useCallback((open: boolean) => {
+    console.log("Edit modal state change:", open);
     if (!open) {
       setIsEditModalOpen(false);
-      // Não resetamos o selectedClient aqui para não perder dados durante edições
+      // Agora só resetamos o selectedClient quando o modal é fechado definitivamente
+      if (!open) {
+        setTimeout(() => {
+          setSelectedClient(null);
+        }, 300); // Pequeno delay para evitar problemas de UI
+      }
     }
-  };
+  }, []);
 
   return (
     <AppLayout>

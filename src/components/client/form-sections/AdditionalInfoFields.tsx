@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Control } from 'react-hook-form';
+import React, { useEffect } from 'react';
+import { Control, useWatch } from 'react-hook-form';
 import {
   FormControl,
   FormField,
@@ -25,35 +25,55 @@ interface AdditionalInfoFieldsProps {
 }
 
 export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFieldsProps) {
+  // Adicionando log para debugging dos priceTables
+  useEffect(() => {
+    console.log("Price tables available:", priceTables);
+  }, [priceTables]);
+  
+  // Observamos o valor atual de priceTableId para debugging
+  const priceTableId = useWatch({
+    control,
+    name: "priceTableId"
+  });
+  
+  useEffect(() => {
+    console.log("Current priceTableId value:", priceTableId);
+  }, [priceTableId]);
+
   return (
     <>
       <FormField
         control={control}
         name="priceTableId"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Tabela de Preços</FormLabel>
-            <Select 
-              onValueChange={field.onChange} 
-              defaultValue={field.value}
-              value={field.value} // Adicionando value para garantir que o componente seja controlado corretamente
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma tabela" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {priceTables.map((priceTable) => (
-                  <SelectItem key={priceTable.id} value={priceTable.id}>
-                    {priceTable.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field }) => {
+          console.log("Rendering price table field with value:", field.value);
+          return (
+            <FormItem>
+              <FormLabel>Tabela de Preços</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  console.log("Price table selected:", value);
+                  field.onChange(value);
+                }} 
+                value={field.value || ""} // Garantindo que sempre temos um valor válido
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma tabela" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {priceTables.map((priceTable) => (
+                    <SelectItem key={priceTable.id} value={priceTable.id}>
+                      {priceTable.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
 
       <FormField

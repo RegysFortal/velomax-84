@@ -32,46 +32,58 @@ export function ClientEditDialog({
   const { toast } = useToast();
 
   const handleUpdateClient = async (formData: z.infer<typeof clientFormSchema>) => {
-    if (client) {
-      try {
-        await updateClient(client.id, {
-          name: formData.name,
-          tradingName: formData.tradingName,
-          document: formData.document || '',
-          address: formData.address || '',
-          street: formData.street,
-          number: formData.number,
-          complement: formData.complement,
-          neighborhood: formData.neighborhood,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          contact: formData.contact,
-          phone: formData.phone,
-          email: formData.email,
-          notes: formData.notes || '',
-          priceTableId: formData.priceTableId,
-        });
-        
-        // Show a success toast but don't close the dialog
-        toast({
-          title: "Cliente atualizado",
-          description: "Os dados do cliente foram atualizados com sucesso."
-        });
-        // Não fechamos o diálogo automaticamente para evitar problemas com a UI
-      } catch (error) {
-        console.error("Erro ao atualizar cliente:", error);
-        toast({
-          title: "Erro ao atualizar cliente",
-          description: "Ocorreu um erro ao atualizar os dados do cliente.",
-          variant: "destructive"
-        });
-      }
+    if (!client) return;
+    
+    console.log("Submitting form with data:", formData);
+    console.log("Price table ID:", formData.priceTableId);
+    
+    try {
+      await updateClient(client.id, {
+        name: formData.name,
+        tradingName: formData.tradingName,
+        document: formData.document || '',
+        address: formData.address || '',
+        street: formData.street,
+        number: formData.number,
+        complement: formData.complement,
+        neighborhood: formData.neighborhood,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        contact: formData.contact,
+        phone: formData.phone,
+        email: formData.email,
+        notes: formData.notes || '',
+        priceTableId: formData.priceTableId,
+      });
+      
+      // Mostra um toast de sucesso
+      toast({
+        title: "Cliente atualizado",
+        description: "Os dados do cliente foram atualizados com sucesso."
+      });
+      
+      // Não fechamos o diálogo automaticamente para evitar a tela em branco
+    } catch (error) {
+      console.error("Erro ao atualizar cliente:", error);
+      toast({
+        title: "Erro ao atualizar cliente",
+        description: "Ocorreu um erro ao atualizar os dados do cliente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Prevenimos o fechamento automático do diálogo quando onOpenChange é chamado
+  const handleOpenChange = (open: boolean) => {
+    // Se estiver tentando fechar, permitimos o fechamento
+    if (!open) {
+      onOpenChange(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[625px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Editar Cliente</DialogTitle>

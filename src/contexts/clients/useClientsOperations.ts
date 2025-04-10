@@ -74,7 +74,10 @@ export const useClientsOperations = (
       if (client.contact !== undefined) supabaseClient.contact = client.contact;
       if (client.phone !== undefined) supabaseClient.phone = client.phone;
       if (client.email !== undefined) supabaseClient.email = client.email;
-      if (client.priceTableId !== undefined) supabaseClient.price_table_id = client.priceTableId;
+      if (client.priceTableId !== undefined) {
+        console.log("Setting price table ID in database to:", client.priceTableId);
+        supabaseClient.price_table_id = client.priceTableId;
+      }
       if (client.notes !== undefined) supabaseClient.notes = client.notes;
 
       // Add console log for debugging
@@ -91,17 +94,19 @@ export const useClientsOperations = (
       }
       
       // Update client in local state
-      setClients((prev) => 
-        prev.map((c) => 
+      setClients((prev) => {
+        const updated = prev.map((c) => 
           c.id === id 
             ? { ...c, ...client, updatedAt: timestamp } 
             : c
-        )
-      );
+        );
+        console.log("Updated client state:", updated.find(c => c.id === id));
+        return updated;
+      });
       
       console.log("Cliente atualizado com sucesso");
       
-      // No longer returning a success object, as the function is now Promise<void>
+      // Não retornamos mais um objeto de sucesso, pois a função agora é Promise<void>
     } catch (error) {
       console.error("Error updating client:", error);
       throw error;
