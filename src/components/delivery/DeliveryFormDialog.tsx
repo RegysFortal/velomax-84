@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DeliveryForm } from './DeliveryForm';
@@ -44,13 +45,23 @@ export function DeliveryFormDialog({
     // We don't close the dialog here, just complete the action
   };
 
+  // Assegura que o fechamento do diálogo é feito de forma segura
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Se estiver fechando o diálogo
+      handleCloseDialog();
+    } else {
+      setIsOpen(true);
+    }
+  };
+
   return (
     <>
       <Button onClick={handleOpenNewDelivery}>
         <PlusCircle className="mr-2 h-4 w-4" />
         Nova Entrega
       </Button>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>
@@ -61,10 +72,21 @@ export function DeliveryFormDialog({
             <div className="pr-4">
               <DeliveryForm 
                 delivery={editingDelivery} 
-                onComplete={handleFormComplete} 
+                onComplete={handleFormComplete}
+                onCancel={handleCloseDialog}
               />
             </div>
           </ScrollArea>
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-2"
+              onClick={handleCloseDialog}
+            >
+              Cancelar
+            </Button>
+          </DialogClose>
         </DialogContent>
       </Dialog>
     </>

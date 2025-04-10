@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { useShipments } from "@/contexts/shipments";
 import { ShipmentStatus } from "@/types/shipment";
@@ -207,9 +208,28 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     }
   };
 
+  // Função de cancelamento segura
+  const handleCancel = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    onOpenChange(false);
+  };
+
+  // Verificar se o diálogo está sendo fechado corretamente
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // Se estiver fechando, faça isso de maneira segura
+      handleCancel();
+    } else {
+      onOpenChange(true);
+    }
+  };
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="max-w-xl max-h-[95vh]">
           <DialogHeader>
             <DialogTitle>Novo Embarque</DialogTitle>
@@ -255,7 +275,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
               )}
               
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancelar
                 </Button>
                 <Button type="submit">
@@ -264,6 +284,17 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
               </DialogFooter>
             </form>
           </ScrollArea>
+          <DialogClose asChild>
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="mt-2"
+              onClick={handleCancel}
+              style={{display: 'none'}} // Oculto porque já temos botões de cancelar visíveis
+            >
+              Cancelar
+            </Button>
+          </DialogClose>
         </DialogContent>
       </Dialog>
       

@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,15 @@ export function BudgetFormDialog() {
     }
   };
 
+  // Função para lidar com o cancelamento de forma segura
+  const handleCancel = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setIsDialogOpen(false);
+  };
+
   // Prevent automatic closing during submission
   const handleOpenChange = (open: boolean) => {
     if (!open && isSubmitting) {
@@ -82,9 +92,20 @@ export function BudgetFormDialog() {
           <BudgetForm 
             onSubmit={handleAddBudget} 
             isSubmitting={isSubmitting}
-            onCancel={() => setIsDialogOpen(false)}
+            onCancel={handleCancel}
           />
         </ScrollArea>
+        <DialogClose asChild>
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="mt-2" 
+            onClick={handleCancel}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </Button>
+        </DialogClose>
       </DialogContent>
     </Dialog>
   );
