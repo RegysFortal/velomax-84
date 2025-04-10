@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,7 +82,7 @@ const LogbookEntryForm = ({
     defaultValues: {
       vehicleId: initialData?.vehicleId || "",
       driverId: initialData?.driverId || "",
-      assistantId: initialData?.assistantId || "",
+      assistantId: initialData?.assistantId || "none", // Changed from "" to "none"
       date: initialData?.date || new Date().toISOString().split('T')[0],
       departureTime: initialData?.departureTime || "",
       departureOdometer: initialData?.departureOdometer || 0,
@@ -97,7 +98,7 @@ const LogbookEntryForm = ({
       if (entry) {
         form.setValue("vehicleId", entry.vehicleId);
         form.setValue("driverId", entry.driverId);
-        form.setValue("assistantId", entry.assistantId || "");
+        form.setValue("assistantId", entry.assistantId || "none"); // Changed from "" to "none"
         form.setValue("date", entry.date);
         form.setValue("departureTime", entry.departureTime);
         form.setValue("departureOdometer", entry.departureOdometer);
@@ -113,7 +114,7 @@ const LogbookEntryForm = ({
       updateLogbookEntry(entryId, {
         vehicleId: data.vehicleId,
         driverId: data.driverId,
-        assistantId: data.assistantId === "" ? undefined : data.assistantId,
+        assistantId: data.assistantId === "none" ? undefined : data.assistantId, // Changed from "" to "none"
         departureTime: data.departureTime,
         departureOdometer: Number(data.departureOdometer),
         date: data.date,
@@ -126,7 +127,7 @@ const LogbookEntryForm = ({
       addLogbookEntry({
         vehicleId: data.vehicleId,
         driverId: data.driverId,
-        assistantId: data.assistantId === "" ? undefined : data.assistantId,
+        assistantId: data.assistantId === "none" ? undefined : data.assistantId, // Changed from "" to "none"
         departureTime: data.departureTime,
         departureOdometer: Number(data.departureOdometer),
         date: data.date,
@@ -207,7 +208,7 @@ const LogbookEntryForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem> {/* Changed from "" to "none" */}
                       {assistants.map((assistant) => (
                         <SelectItem key={assistant.id} value={assistant.id}>
                           {assistant.name}
