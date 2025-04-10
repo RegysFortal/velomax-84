@@ -6,8 +6,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 import { ClientForm } from '@/components/client/ClientForm';
 import { useClients } from '@/contexts';
 import { z } from 'zod';
@@ -99,12 +102,8 @@ export function ClientEditDialog({ isOpen, onOpenChange, client }: ClientEditDia
       <DialogContent 
         className="sm:max-w-[625px] max-h-[90vh]"
         onInteractOutside={(e) => {
-          e.preventDefault(); // Prevent closing when clicking outside
-        }}
-        onEscapeKeyDown={(e) => {
-          if (!isSubmitting) {
-            e.preventDefault();
-            handleDialogClose();
+          if (isSubmitting) {
+            e.preventDefault(); // Prevent closing when clicking outside during submission
           }
         }}
       >
@@ -113,6 +112,19 @@ export function ClientEditDialog({ isOpen, onOpenChange, client }: ClientEditDia
           <DialogDescription>
             Edite as informações do cliente.
           </DialogDescription>
+          <DialogClose asChild>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="icon" 
+              className="absolute right-4 top-4"
+              onClick={handleDialogClose}
+              disabled={isSubmitting}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Fechar</span>
+            </Button>
+          </DialogClose>
         </DialogHeader>
         
         <ScrollArea className="h-[60vh] pr-4">

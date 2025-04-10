@@ -7,10 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { ClientForm } from '@/components/client/ClientForm';
 import { useClients } from '@/contexts';
 import { z } from 'zod';
@@ -74,7 +75,7 @@ export function ClientAddDialog() {
     // Then close the dialog with a small delay to allow React to update other states first
     setTimeout(() => {
       setIsDialogOpen(false);
-    }, 100); // Increased delay slightly for better reliability
+    }, 100); // Small delay for better reliability
   };
 
   // Prevent automatic closing during submission
@@ -101,12 +102,8 @@ export function ClientAddDialog() {
       <DialogContent 
         className="sm:max-w-[625px] max-h-[90vh]" 
         onInteractOutside={(e) => {
-          e.preventDefault(); // Prevent closing when clicking outside
-        }}
-        onEscapeKeyDown={(e) => {
-          if (!isSubmitting) {
-            e.preventDefault();
-            handleDialogClose();
+          if (isSubmitting) {
+            e.preventDefault(); // Prevent closing when clicking outside during submission
           }
         }}
       >
@@ -115,6 +112,19 @@ export function ClientAddDialog() {
           <DialogDescription>
             Adicione um novo cliente à sua empresa.
           </DialogDescription>
+          <DialogClose asChild>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="icon" 
+              className="absolute right-4 top-4"
+              onClick={handleDialogClose}
+              disabled={isSubmitting}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Fechar</span>
+            </Button>
+          </DialogClose>
         </DialogHeader>
         <ScrollArea className="h-[60vh] pr-4">
           <ClientForm 
