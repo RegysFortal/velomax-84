@@ -1,0 +1,134 @@
+
+import React from 'react';
+import { Form } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { DeliveryFormBasicFields } from './DeliveryFormBasicFields';
+import { DeliveryFormTypeFields } from './DeliveryFormTypeFields';
+import { DeliveryFormNotes } from './DeliveryFormNotes';
+import { useDeliveryFormContext } from './context/DeliveryFormContext';
+import { useDeliveryFormEffects } from './hooks/useDeliveryFormEffects';
+import { useCities } from '@/contexts/CitiesContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
+
+interface DeliveryFormSectionsProps {
+  onComplete: () => void;
+  onCancel?: () => void;
+}
+
+export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({ 
+  onComplete,
+  onCancel
+}) => {
+  const { 
+    form, 
+    delivery, 
+    isEditMode, 
+    freight, 
+    showDoorToDoor,
+    showDuplicateAlert,
+    setShowDuplicateAlert,
+    formData
+  } = useDeliveryFormContext();
+  
+  const { cities } = useCities();
+  const { watchDeliveryType } = useDeliveryFormEffects();
+  const { handleSubmit, handleConfirmDuplicate } = useDeliveryFormSubmit({
+    isEditMode,
+    delivery,
+    setFormData: () => {}, // This is handled by the context now
+    setShowDuplicateAlert,
+    onComplete
+  });
+
+  const onSubmit = (data: any) => {
+    handleSubmit(data, freight);
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      onComplete();
+    }
+  };
+
+  return (
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <DeliveryFormBasicFields 
+              control={form.control}
+              isEditMode={isEditMode}
+              setValue={form.setValue}
+              getValues={form.getValues}
+            />
+            
+            <DeliveryFormTypeFields 
+              control={form.control}
+              watchDeliveryType={watchDeliveryType}
+              showDoorToDoor={showDoorToDoor}
+              cities={cities}
+            />
+            
+            <DeliveryFormNotes 
+              control={form.control}
+            />
+          </div>
+          
+          <div className="bg-muted p-4 rounded-md">
+            <div className="flex justify-between items-center">
+              <Label className="font-semibold">Valor Total do Frete:</Label>
+              <div className="text-xl font-bold">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(freight)}
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              Cancelar
+            </Button>
+            <Button type="submit">
+              {isEditMode ? 'Atualizar Entrega' : 'Registrar Entrega'}
+            </Button>
+          </div>
+        </form>
+      </Form>
+      
+      <AlertDialog open={showDuplicateAlert} onOpenChange={setShowDuplicateAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Número de minuta duplicado</AlertDialogTitle>
+            <AlertDialogDescription>
+              Já existe uma entrega com o número de minuta <span className="font-semibold">{form.watch('minuteNumber')}</span> para este cliente.
+              Deseja realmente criar outra entrega com o mesmo número?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDuplicateAlert(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleConfirmDuplicate(formData)} className="bg-orange-600 hover:bg-orange-700">
+              Sim, criar mesmo assim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
