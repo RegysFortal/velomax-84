@@ -1,5 +1,6 @@
 
 import * as React from "react"
+import { useActivityLog } from "@/contexts";
 
 const MOBILE_BREAKPOINT = 768
 
@@ -36,6 +37,8 @@ export function useIsMobile() {
       forcedMode: null
     };
   });
+
+  const { addLog } = useActivityLog();
 
   // Efeito para detectar alterações de tamanho da tela
   React.useEffect(() => {
@@ -79,9 +82,22 @@ export function useIsMobile() {
         localStorage.setItem(MOBILE_VIEW_STORAGE_KEY, JSON.stringify(newState));
       }
       
+      // Log the view toggle activity
+      try {
+        addLog({
+          action: 'view_toggle',
+          entityType: 'system',
+          entityId: 'app_view',
+          entityName: `View changed to ${newState.isMobile ? 'Mobile' : 'Desktop'}`,
+          details: `User toggled view to ${newState.isMobile ? 'Mobile' : 'Desktop'} mode`
+        });
+      } catch (error) {
+        console.error('Error logging view toggle:', error);
+      }
+      
       return newState;
     });
-  }, []);
+  }, [addLog]);
 
   return {
     isMobile: state.isMobile,
