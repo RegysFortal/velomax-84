@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Budget } from '@/types/budget';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
@@ -20,8 +20,9 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  // Retrieve budgets from localStorage on mount
-  useState(() => {
+  // Retrieve budgets from localStorage on mount and save budgets to localStorage whenever they change
+  useEffect(() => {
+    // Load data from localStorage on mount
     const storedBudgets = localStorage.getItem('velomax_budgets');
     if (storedBudgets) {
       try {
@@ -30,11 +31,11 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         console.error("Failed to parse stored budgets", error);
       }
     }
-  });
 
-  // Save budgets to localStorage whenever they change
-  useState(() => {
-    localStorage.setItem('velomax_budgets', JSON.stringify(budgets));
+    // Save data to localStorage whenever budgets change
+    if (budgets.length > 0) {
+      localStorage.setItem('velomax_budgets', JSON.stringify(budgets));
+    }
   }, [budgets]);
 
   const addBudget = async (budgetData: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {

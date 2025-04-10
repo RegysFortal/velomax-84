@@ -11,6 +11,24 @@ export const packageMeasurementSchema = z.object({
   quantity: z.number().int().min(1, "Quantidade deve ser pelo menos 1").default(1),
 });
 
+// Define the allowed delivery types
+export const DeliveryTypes = {
+  standard: "standard",
+  emergency: "emergency",
+  exclusive: "exclusive",
+  metropolitanRegion: "metropolitanRegion",
+  doorToDoorInterior: "doorToDoorInterior",
+  saturday: "saturday",
+  sundayHoliday: "sundayHoliday",
+  difficultAccess: "difficultAccess",
+  reshipment: "reshipment",
+  normalBiological: "normalBiological",
+  infectiousBiological: "infectiousBiological",
+  tracked: "tracked",
+} as const;
+
+export type DeliveryType = keyof typeof DeliveryTypes;
+
 // Schema for budget
 export const budgetSchema = z.object({
   id: z.string().optional(),
@@ -18,7 +36,20 @@ export const budgetSchema = z.object({
     required_error: "O cliente é obrigatório",
   }),
   totalVolumes: z.number().int().min(1, "Deve haver pelo menos 1 volume"),
-  deliveryType: z.string({
+  deliveryType: z.enum([
+    "standard", 
+    "emergency", 
+    "exclusive", 
+    "metropolitanRegion", 
+    "doorToDoorInterior",
+    "saturday",
+    "sundayHoliday",
+    "difficultAccess",
+    "reshipment",
+    "normalBiological",
+    "infectiousBiological",
+    "tracked"
+  ], {
     required_error: "O tipo de entrega é obrigatório",
   }),
   merchandiseValue: z.number().min(0, "O valor da mercadoria não pode ser negativo"),

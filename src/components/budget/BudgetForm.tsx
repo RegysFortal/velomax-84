@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { budgetSchema, calculateCubicWeight, getEffectiveWeight } from '@/types/budget';
+import { budgetSchema, calculateCubicWeight, getEffectiveWeight, DeliveryType } from '@/types/budget';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,7 +60,7 @@ export function BudgetForm({ onSubmit, initialData, isSubmitting = false }: Budg
   const packages = form.watch('packages');
   const hasCollection = form.watch('hasCollection');
   const hasDelivery = form.watch('hasDelivery');
-  const deliveryType = form.watch('deliveryType');
+  const deliveryType = form.watch('deliveryType') as DeliveryType;
   const merchandiseValue = form.watch('merchandiseValue');
   const additionalServices = form.watch('additionalServices');
 
@@ -107,7 +107,7 @@ export function BudgetForm({ onSubmit, initialData, isSubmitting = false }: Budg
           clientId, 
           totalEffectiveWeight, 
           deliveryType, 
-          'standard',
+          'standard' as DeliveryType,
           merchandiseValue
         );
         totalValue += deliveryCost;
@@ -118,8 +118,8 @@ export function BudgetForm({ onSubmit, initialData, isSubmitting = false }: Budg
         const collectionCost = calculateFreight(
           clientId, 
           totalEffectiveWeight, 
-          'standard', // Use standard delivery type for collection
-          'standard',
+          'standard' as DeliveryType, // Use standard delivery type for collection
+          'standard' as DeliveryType,
           merchandiseValue
         );
         totalValue += collectionCost;
@@ -174,7 +174,7 @@ export function BudgetForm({ onSubmit, initialData, isSubmitting = false }: Budg
                   <FormControl>
                     <ClientSearchSelect
                       value={field.value}
-                      onChange={field.onChange}
+                      onValueChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
