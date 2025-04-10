@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,14 @@ interface ClientFormProps {
 
 export function ClientForm({ onSubmit, submitButtonLabel, initialData }: ClientFormProps) {
   const { priceTables } = usePriceTables();
+  
+  // Log dos dados iniciais para debugging
+  useEffect(() => {
+    if (initialData) {
+      console.log("Initial data loaded into form:", initialData);
+      console.log("Price table ID from initial data:", initialData.priceTableId);
+    }
+  }, [initialData]);
   
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
@@ -68,9 +76,16 @@ export function ClientForm({ onSubmit, submitButtonLabel, initialData }: ClientF
     }
   });
 
+  // Log quando o formulário é submetido
+  const handleSubmit = (data: ClientFormValues) => {
+    console.log("Form submitted with data:", data);
+    console.log("Price table ID at submission:", data.priceTableId);
+    onSubmit(data);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <ClientBasicInfoFields control={form.control} />
         <ContactInfoFields control={form.control} />
         <AddressInfoFields control={form.control} />

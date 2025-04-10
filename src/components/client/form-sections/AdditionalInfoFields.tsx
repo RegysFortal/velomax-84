@@ -55,8 +55,7 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
                   console.log("Price table selected:", value);
                   field.onChange(value);
                 }} 
-                value={field.value || ""} // Garantindo que sempre temos um valor válido
-                defaultValue={field.value || ""}
+                value={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -66,12 +65,15 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
                 <SelectContent>
                   {priceTables.length > 0 ? (
                     priceTables.map((priceTable) => (
-                      <SelectItem key={priceTable.id} value={priceTable.id}>
+                      <SelectItem 
+                        key={priceTable.id} 
+                        value={priceTable.id}
+                      >
                         {priceTable.name}
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>
+                    <SelectItem value="empty" disabled>
                       Nenhuma tabela disponível
                     </SelectItem>
                   )}

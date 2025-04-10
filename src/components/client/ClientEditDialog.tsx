@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -31,11 +31,17 @@ export function ClientEditDialog({
   const { updateClient } = useClients();
   const { toast } = useToast();
 
+  // Log para verificar quando o diálogo é aberto/fechado
+  useEffect(() => {
+    console.log("ClientEditDialog - isOpen:", isOpen);
+    console.log("ClientEditDialog - client:", client);
+  }, [isOpen, client]);
+
   const handleUpdateClient = async (formData: z.infer<typeof clientFormSchema>) => {
     if (!client) return;
     
     console.log("Submitting form with data:", formData);
-    console.log("Price table ID:", formData.priceTableId);
+    console.log("Price table ID from form:", formData.priceTableId);
     
     try {
       await updateClient(client.id, {
@@ -63,8 +69,8 @@ export function ClientEditDialog({
         description: "Os dados do cliente foram atualizados com sucesso."
       });
       
-      // Não fechamos o diálogo automaticamente para evitar problemas com a tela em branco
-      // onOpenChange(false); - Comentado para evitar o fechamento automático
+      // Explicitamente fechar o diálogo após a atualização bem-sucedida
+      onOpenChange(false);
     } catch (error) {
       console.error("Erro ao atualizar cliente:", error);
       toast({
@@ -75,16 +81,8 @@ export function ClientEditDialog({
     }
   };
 
-  // Controlamos manualmente quando o diálogo pode ser fechado
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      // Permitimos o fechamento explícito pelo usuário
-      onOpenChange(false);
-    }
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[625px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Editar Cliente</DialogTitle>

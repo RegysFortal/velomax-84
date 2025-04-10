@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
@@ -114,9 +113,7 @@ const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >(({ className, children, ...props }, ref) => {
-  // Make sure we handle empty values properly
-  const value = props.value === "" ? "empty" : props.value;
-  
+  // Usando o valor original, sem modificar
   return (
     <SelectPrimitive.Item
       ref={ref}
@@ -125,7 +122,6 @@ const SelectItem = React.forwardRef<
         className
       )}
       {...props}
-      value={value}
     >
       <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
