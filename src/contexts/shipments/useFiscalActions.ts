@@ -1,6 +1,6 @@
 
 import { v4 as uuidv4 } from "uuid";
-import { Shipment, FiscalAction } from "@/types/shipment";
+import { Shipment, FiscalAction, ShipmentStatus } from "@/types/shipment";
 import { FiscalActionCreateData } from "./types";
 
 export const useFiscalActions = (
@@ -22,7 +22,7 @@ export const useFiscalActions = (
           ...s, 
           fiscalAction,
           isRetained: true,
-          status: "retained",
+          status: "retained" as ShipmentStatus,
           updatedAt: now
         };
       }

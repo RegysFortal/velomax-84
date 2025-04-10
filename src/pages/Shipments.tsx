@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useShipments } from '@/contexts/ShipmentsContext';
+import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { 

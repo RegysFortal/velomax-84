@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useDeliveries } from "@/contexts/DeliveriesContext";
-import { useShipments } from "@/contexts/ShipmentsContext";
+import { useShipments } from "@/contexts/shipments";
 import { useClients } from "@/contexts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";

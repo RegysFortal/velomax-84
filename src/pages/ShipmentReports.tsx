@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { useShipments } from '@/contexts/ShipmentsContext';
+import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,7 +46,6 @@ export default function ShipmentReports() {
   const [filterCarrier, setFilterCarrier] = useState('');
   const [filterMode, setFilterMode] = useState<'air' | 'road' | 'all'>('all');
   
-  // Filter shipments based on criteria
   const filteredShipments = shipments.filter(shipment => {
     const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
     
@@ -64,14 +62,12 @@ export default function ShipmentReports() {
     
     return matchesDateRange && matchesStatus && matchesCarrier && matchesMode;
   }).sort((a, b) => {
-    // Sort by arrival date (newest first)
     if (a.arrivalDate && b.arrivalDate) {
       return new Date(b.arrivalDate).getTime() - new Date(a.arrivalDate).getTime();
     }
     return 0;
   });
   
-  // Count shipments by status for chart
   const statusCounts = {
     in_transit: filteredShipments.filter(s => s.status === 'in_transit').length,
     retained: filteredShipments.filter(s => s.status === 'retained').length,
@@ -86,7 +82,6 @@ export default function ShipmentReports() {
     { name: 'Entregue', value: statusCounts.delivered_final },
   ];
   
-  // Get unique carriers for the filter
   const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName)));
   
   const generatePDF = () => {
@@ -96,7 +91,6 @@ export default function ShipmentReports() {
       format: 'a4'
     });
     
-    // Add title and date
     doc.setFontSize(16);
     doc.text("Relatório de Embarques", 14, 20);
     
@@ -121,7 +115,6 @@ export default function ShipmentReports() {
       doc.text(`Modo: ${filterMode === 'air' ? 'Aéreo' : 'Rodoviário'}`, 14, 45);
     }
     
-    // Summary section
     doc.setFontSize(12);
     doc.text("Resumo", 14, 55);
     
@@ -130,7 +123,6 @@ export default function ShipmentReports() {
     doc.text(`Total de Volumes: ${filteredShipments.reduce((sum, s) => sum + s.packages, 0)}`, 14, 65);
     doc.text(`Peso Total: ${filteredShipments.reduce((sum, s) => sum + s.weight, 0).toFixed(2)} kg`, 14, 70);
     
-    // Create table
     const tableColumn = [
       "Empresa", 
       "Conhecimento", 
@@ -164,7 +156,6 @@ export default function ShipmentReports() {
       headStyles: { fillColor: [41, 128, 185] }
     });
     
-    // Add page number
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -176,7 +167,6 @@ export default function ShipmentReports() {
       );
     }
     
-    // Save the PDF
     doc.save(`relatorio-embarques-${format(new Date(), 'yyyyMMdd')}.pdf`);
     
     toast.success("Relatório PDF gerado e baixado com sucesso!");
@@ -198,7 +188,6 @@ export default function ShipmentReports() {
       'Observações': shipment.observations || ''
     }));
     
-    // Add summary row
     excelData.push({
       'Empresa': '',
       'Conhecimento': '',
@@ -215,35 +204,31 @@ export default function ShipmentReports() {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Embarques");
     
-    // Auto-size columns
     const colWidths = [
-      { wch: 30 }, // Empresa
-      { wch: 15 }, // Conhecimento
-      { wch: 20 }, // Transportadora
-      { wch: 10 }, // Modo
-      { wch: 10 }, // Volumes
-      { wch: 10 }, // Peso
-      { wch: 15 }, // Data
-      { wch: 15 }, // Status
-      { wch: 40 }  // Observações
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 40 }
     ];
     
     worksheet["!cols"] = colWidths;
     
-    // Save the Excel file
     XLSX.writeFile(workbook, `relatorio-embarques-${format(new Date(), 'yyyyMMdd')}.xlsx`);
     
     toast.success("Dados exportados para Excel com sucesso!");
   };
   
-  // Calculate summary statistics
   const totalShipments = filteredShipments.length;
   const totalPackages = filteredShipments.reduce((sum, s) => sum + s.packages, 0);
   const totalWeight = filteredShipments.reduce((sum, s) => sum + s.weight, 0);
   const retainedCount = statusCounts.retained;
   const retainedPercentage = totalShipments ? (retainedCount / totalShipments * 100).toFixed(1) : '0';
   
-  // Status translation map for display
   const statusTranslation: Record<ShipmentStatus, string> = {
     'in_transit': 'Em Trânsito',
     'retained': 'Retida',
@@ -421,8 +406,8 @@ export default function ShipmentReports() {
                     <SelectContent>
                       <SelectItem value="">Todas</SelectItem>
                       {uniqueCarriers.map((carrier) => (
-                        <SelectItem key={carrier} value={carrier}>
-                          {carrier}
+                        <SelectItem key={carrier as React.Key} value={carrier as string}>
+                          {carrier as React.ReactNode}
                         </SelectItem>
                       ))}
                     </SelectContent>

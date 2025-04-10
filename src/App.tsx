@@ -29,7 +29,7 @@ import { DeliveriesProvider } from './contexts/DeliveriesContext';
 import { ActivityLogProvider } from './contexts/ActivityLogContext';
 import { PriceTablesProvider } from './contexts/PriceTablesContext';
 import { CitiesProvider } from './contexts/CitiesContext';
-import { ShipmentsProvider } from './contexts/ShipmentsContext';
+import { ShipmentsProvider } from './contexts/shipments';
 import Index from './pages/Index';
 
 function App() {

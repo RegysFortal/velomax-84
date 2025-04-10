@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -7,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useShipments } from "@/contexts/ShipmentsContext";
+import { useShipments } from "@/contexts/shipments";
 import { ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
 import { useClients } from "@/contexts";

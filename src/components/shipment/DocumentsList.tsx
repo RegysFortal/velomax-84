@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useShipments } from "@/contexts/ShipmentsContext";
+import { useShipments } from "@/contexts/shipments";
 import { Document } from "@/types/shipment";
 import { FileText, Trash2, PlusCircle, FileEdit } from "lucide-react";
 import {
