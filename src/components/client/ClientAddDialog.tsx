@@ -52,7 +52,7 @@ export function ClientAddDialog() {
         description: "Cliente adicionado com sucesso!",
       });
       
-      // Fechar o diálogo de forma segura
+      // Close the dialog safely
       handleDialogClose();
     } catch (error) {
       console.error("Error adding client:", error);
@@ -66,21 +66,21 @@ export function ClientAddDialog() {
     }
   };
 
-  // Função segura para fechar o diálogo
+  // Safe function to close the dialog
   const handleDialogClose = () => {
-    // Primeiro remova o estado de submissão
+    // First, reset submission state
     setIsSubmitting(false);
     
-    // Em seguida, feche o diálogo com um pequeno atraso
+    // Then close the dialog with a small delay to allow React to update other states first
     setTimeout(() => {
       setIsDialogOpen(false);
-    }, 10);
+    }, 100); // Increased delay slightly for better reliability
   };
 
-  // Previne o fechamento automático do modal durante submissão
+  // Prevent automatic closing during submission
   const handleOpenChange = (open: boolean) => {
     if (!open && isSubmitting) {
-      return; // Não fecha o modal se estiver submetendo
+      return; // Don't close the modal during submission
     }
     
     if (!open) {
@@ -101,7 +101,7 @@ export function ClientAddDialog() {
       <DialogContent 
         className="sm:max-w-[625px] max-h-[90vh]" 
         onInteractOutside={(e) => {
-          e.preventDefault(); // Impede o fechamento ao clicar fora
+          e.preventDefault(); // Prevent closing when clicking outside
         }}
         onEscapeKeyDown={(e) => {
           if (!isSubmitting) {
