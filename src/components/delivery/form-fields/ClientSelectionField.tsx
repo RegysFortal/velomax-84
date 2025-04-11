@@ -1,9 +1,18 @@
 
 import React, { useEffect, useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { Control } from 'react-hook-form';
 import { useDeliveryFormContext } from '../context/DeliveryFormContext';
+import { 
+  Command, 
+  CommandEmpty, 
+  CommandGroup, 
+  CommandInput, 
+  CommandItem, 
+  CommandList 
+} from '@/components/ui/command';
+import { Card } from '@/components/ui/card';
+import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
 
 interface ClientSelectionFieldProps {
   control: Control<any>;
@@ -12,24 +21,33 @@ interface ClientSelectionFieldProps {
 
 export function ClientSelectionField({ control, isEditMode }: ClientSelectionFieldProps) {
   const { clients } = useDeliveryFormContext();
-  const [initialized, setInitialized] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (clients.length > 0 && !initialized) {
+    if (clients.length > 0) {
       console.log("ClientSelectionField - Clients loaded:", clients.length);
-      setInitialized(true);
       setLoading(false);
-    } else if (clients.length === 0) {
+    } else {
       console.log("ClientSelectionField - No clients available");
       setLoading(true);
-    } else {
-      setLoading(false);
     }
     
     // Log at the component level for easier debugging
     console.log("ClientSelectionField - Current clients count:", clients.length);
-  }, [clients, initialized]);
+  }, [clients]);
+
+  const filteredClients = clients.filter(client => {
+    const searchFields = [
+      client.tradingName || '',
+      client.name || '',
+      client.document || '',
+      client.phone || '',
+      client.email || ''
+    ].join(' ').toLowerCase();
+    
+    return searchFields.includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="md:col-span-2">
@@ -43,18 +61,47 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
           <FormItem>
             <FormLabel>Selecione um cliente</FormLabel>
             <FormControl>
-              <ClientSearchSelect
-                value={field.value || ""}
-                onValueChange={(value) => {
-                  console.log("ClientSelectionField - ClientId changed to:", value);
-                  field.onChange(value);
-                }}
-                placeholder="Selecione um cliente"
-                clients={clients}
-                disabled={loading || (isEditMode && field.value)}
-                showCreateOption={!isEditMode}
-                createOptionLabel="Cadastrar novo cliente"
-              />
+              <Card className="overflow-hidden border p-0">
+                <div className="border-b px-3 py-2">
+                  <SearchWithMagnifier
+                    placeholder="Buscar cliente..."
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    className="w-full"
+                  />
+                </div>
+                <Command className="border-0">
+                  <CommandList className="max-h-[300px] overflow-y-auto">
+                    <CommandEmpty>Nenhum cliente encontrado</CommandEmpty>
+                    <CommandGroup>
+                      {filteredClients.map(client => (
+                        <CommandItem
+                          key={client.id}
+                          value={client.id}
+                          onSelect={(value) => {
+                            console.log("ClientSelectionField - Client selected:", value);
+                            field.onChange(value);
+                          }}
+                          className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground"
+                          disabled={isEditMode && field.value}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {client.tradingName || client.name}
+                            </span>
+                            {client.tradingName && (
+                              <span className="text-xs text-muted-foreground">
+                                {client.name}
+                              </span>
+                            )}
+                          </div>
+                          {field.value === client.id && <span className="ml-2">✓</span>}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </Card>
             </FormControl>
             <FormMessage />
           </FormItem>
