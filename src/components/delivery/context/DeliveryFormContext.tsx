@@ -1,9 +1,10 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import { useForm, FieldValues, UseFormReturn } from 'react-hook-form';
-import { Delivery, DeliveryType } from '@/types';
+import { Delivery, DeliveryType, Client } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useDeliveryFormCalculations } from '../hooks/useDeliveryFormCalculations';
+import { useClients } from '@/contexts';
 
 // Define the form values interface
 export interface DeliveryFormValues {
@@ -36,6 +37,7 @@ interface DeliveryFormContextType {
   setShowDuplicateAlert: React.Dispatch<React.SetStateAction<boolean>>;
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
+  clients: Client[];
 }
 
 interface DeliveryFormProviderProps {
@@ -50,6 +52,7 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   delivery 
 }) => {
   const { isDoorToDoorDelivery } = useDeliveries();
+  const { clients } = useClients();
   const isEditMode = !!delivery;
   
   const [freight, setFreight] = useState(delivery?.totalFreight || 0);
@@ -117,7 +120,8 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
       showDuplicateAlert,
       setShowDuplicateAlert,
       formData,
-      setFormData
+      setFormData,
+      clients
     }}>
       {children}
     </DeliveryFormContext.Provider>

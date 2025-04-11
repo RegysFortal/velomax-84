@@ -14,7 +14,7 @@ import { DeliveryDetails } from '@/components/delivery/DeliveryDetails';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
-  const { clients } = useClients();
+  const { clients, loading: clientsLoading } = useClients();
   const { addLog } = useActivityLog();
   const { financialReports } = useFinancial();
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,9 +23,10 @@ const Deliveries = () => {
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   
   useEffect(() => {
-    console.log('Clientes disponíveis:', clients);
+    console.log('Clientes disponíveis:', clients.length);
+    console.log('Status carregamento de clientes:', clientsLoading ? 'carregando' : 'completo');
     console.log('Entregas com IDs de clientes:', deliveries.map(d => ({ deliveryId: d.id, clientId: d.clientId })));
-  }, [clients, deliveries]);
+  }, [clients, deliveries, clientsLoading]);
 
   const isDeliveryInClosedReport = (delivery: Delivery) => {
     const closedReports = financialReports.filter(report => report.status === 'closed');
@@ -94,6 +95,7 @@ const Deliveries = () => {
   };
 
   const handleDialogComplete = () => {
+    console.log('Dialog complete - refreshing deliveries view');
   };
 
   const handleViewDetails = (delivery: Delivery) => {

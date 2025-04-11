@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { Control } from 'react-hook-form';
-import { useClients } from '@/contexts';
+import { useDeliveryFormContext } from '../context/DeliveryFormContext';
 import { toast } from 'sonner';
 
 interface ClientSelectionFieldProps {
@@ -12,13 +12,20 @@ interface ClientSelectionFieldProps {
 }
 
 export function ClientSelectionField({ control, isEditMode }: ClientSelectionFieldProps) {
-  const { clients, loading } = useClients();
+  const { clients } = useDeliveryFormContext();
   const [initialized, setInitialized] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (clients.length > 0 && !initialized) {
       console.log("ClientSelectionField - Clients loaded:", clients.length);
       setInitialized(true);
+      setLoading(false);
+    } else if (clients.length === 0) {
+      console.log("ClientSelectionField - No clients available");
+      setLoading(true);
+    } else {
+      setLoading(false);
     }
     
     // Log at the component level for easier debugging
