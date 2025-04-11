@@ -28,46 +28,46 @@ export function useBudgetCalculation() {
     
     switch (budget.deliveryType) {
       case 'standard':
-        totalValue += priceTable.minimumRate.standardDelivery;
+        totalValue = priceTable.minimumRate.standardDelivery;
         break;
       case 'emergency':
-        totalValue += priceTable.minimumRate.emergencyCollection;
+        totalValue = priceTable.minimumRate.emergencyCollection;
         break;
       case 'exclusive':
-        totalValue += priceTable.minimumRate.exclusiveVehicle;
+        totalValue = priceTable.minimumRate.exclusiveVehicle;
         break;
       case 'metropolitanRegion':
-        totalValue += priceTable.minimumRate.metropolitanRegion;
+        totalValue = priceTable.minimumRate.metropolitanRegion;
         break;
       case 'doorToDoorInterior':
-        totalValue += priceTable.minimumRate.doorToDoorInterior;
+        totalValue = priceTable.minimumRate.doorToDoorInterior;
         break;
       case 'saturday':
-        totalValue += priceTable.minimumRate.saturdayCollection;
+        totalValue = priceTable.minimumRate.saturdayCollection;
         break;
       case 'sundayHoliday':
-        totalValue += priceTable.minimumRate.sundayHoliday;
+        totalValue = priceTable.minimumRate.sundayHoliday;
         break;
       case 'difficultAccess':
-        totalValue += priceTable.minimumRate.scheduledDifficultAccess;
+        totalValue = priceTable.minimumRate.scheduledDifficultAccess;
         break;
       case 'reshipment':
-        totalValue += priceTable.minimumRate.reshipment;
+        totalValue = priceTable.minimumRate.reshipment;
         break;
       case 'normalBiological':
-        totalValue += priceTable.minimumRate.normalBiological;
+        totalValue = priceTable.minimumRate.normalBiological;
         break;
       case 'infectiousBiological':
-        totalValue += priceTable.minimumRate.infectiousBiological;
+        totalValue = priceTable.minimumRate.infectiousBiological;
         break;
       case 'tracked':
-        totalValue += priceTable.minimumRate.trackedVehicle;
+        totalValue = priceTable.minimumRate.trackedVehicle;
         break;
       default:
-        totalValue += priceTable.minimumRate.standardDelivery;
+        totalValue = priceTable.minimumRate.standardDelivery;
     }
 
-    // Calculate additional costs for packages
+    // Calculate the total weight of packages
     let totalWeight = 0;
     
     budget.packages.forEach(pkg => {
@@ -79,12 +79,11 @@ export function useBudgetCalculation() {
       totalWeight += effectiveWeight * quantity;
     });
     
-    // Add cost for weight using the price table rates
-    if (totalWeight > 0) {
-      // Get the appropriate rate based on delivery type
+    // Calculate excess weight surcharge only if the total weight exceeds 10kg
+    if (totalWeight > 10) {
+      // Determine which rate to use based on delivery type
       let ratePerKg = priceTable.excessWeight.minPerKg;
       
-      // Adjust rate based on delivery type
       if (budget.deliveryType === 'emergency' || 
           budget.deliveryType === 'exclusive' || 
           budget.deliveryType === 'saturday' || 
@@ -93,10 +92,12 @@ export function useBudgetCalculation() {
       } else if (budget.deliveryType === 'normalBiological' || 
                 budget.deliveryType === 'infectiousBiological') {
         ratePerKg = priceTable.excessWeight.biologicalPerKg;
+      } else if (budget.deliveryType === 'reshipment') {
+        ratePerKg = priceTable.excessWeight.reshipmentPerKg;
       }
       
-      // Calculate the weight cost
-      totalValue += totalWeight * ratePerKg;
+      // Only apply the excess weight rate to weight above 10kg
+      totalValue += (totalWeight - 10) * ratePerKg;
     }
     
     // Add insurance if applicable
