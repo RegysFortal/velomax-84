@@ -27,7 +27,8 @@ export const DeliveryTypes = {
   tracked: "tracked",
 } as const;
 
-export type DeliveryType = keyof typeof DeliveryTypes;
+// Use the specific type name BudgetDeliveryType to avoid conflicts
+export type BudgetDeliveryType = keyof typeof DeliveryTypes;
 
 // Schema for budget
 export const budgetSchema = z.object({
