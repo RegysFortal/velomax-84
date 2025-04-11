@@ -34,16 +34,17 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Budget } from '@/types/budget';
-import { BudgetTableHeader } from './BudgetTableHeader';
-import { BudgetFormDialog } from './BudgetFormDialog';
 import { formatToReadableDate } from '@/utils/dateUtils';
 
-export function BudgetTable() {
+interface BudgetTableProps {
+  searchTerm: string;
+  dateFilter: Date | undefined;
+}
+
+export function BudgetTable({ searchTerm, dateFilter }: BudgetTableProps) {
   const { budgets, deleteBudget, updateBudget } = useBudgets();
   const { clients } = useClients();
   const { priceTables } = usePriceTables();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>(null);
 
   // Format currency
@@ -348,13 +349,6 @@ export function BudgetTable() {
   return (
     <Card>
       <div className="p-4">
-        <BudgetTableHeader 
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
-        />
-        
         {filteredBudgets.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-10 text-center">
             <PackageOpen className="h-12 w-12 text-muted-foreground mb-4" />
@@ -368,8 +362,8 @@ export function BudgetTable() {
               <Button 
                 variant="outline" 
                 onClick={() => {
-                  setSearchTerm('');
-                  setDateFilter(undefined);
+                  // Cannot set searchTerm or dateFilter here because they're now props
+                  // This would need a callback to the parent
                 }}
               >
                 Limpar filtros

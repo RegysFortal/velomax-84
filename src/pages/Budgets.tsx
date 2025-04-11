@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { BudgetTable } from '@/components/budget/BudgetTable';
 import { BudgetFormDialog } from '@/components/budget/BudgetFormDialog';
-import { FileText, Filter } from 'lucide-react';
 import { BudgetTableHeader } from '@/components/budget/BudgetTableHeader';
 
 const BudgetsPage = () => {
