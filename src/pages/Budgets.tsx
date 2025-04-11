@@ -3,9 +3,13 @@ import React, { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { BudgetTable } from '@/components/budget/BudgetTable';
 import { BudgetFormDialog } from '@/components/budget/BudgetFormDialog';
-import { FileText } from 'lucide-react';
+import { FileText, Filter } from 'lucide-react';
+import { BudgetTableHeader } from '@/components/budget/BudgetTableHeader';
 
 const BudgetsPage = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
@@ -19,7 +23,17 @@ const BudgetsPage = () => {
           <BudgetFormDialog />
         </div>
 
-        <BudgetTable />
+        <BudgetTableHeader 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+        />
+
+        <BudgetTable 
+          searchTerm={searchTerm}
+          dateFilter={dateFilter}
+        />
       </div>
     </AppLayout>
   );

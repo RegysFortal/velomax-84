@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -13,10 +14,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useClients } from '@/contexts';
 import { useToast } from '@/hooks/use-toast';
 import { Budget, PackageMeasurement, budgetSchema, calculateCubicWeight, getEffectiveWeight, DeliveryType } from '@/types/budget';
-import { calculateFreight } from '@/lib/freight-calculator';
 import { formatCurrency } from '@/lib/utils';
-import { X, Plus, Calculator } from 'lucide-react';
+import { X, Plus, Calculator, Trash2 } from 'lucide-react';
 import { usePriceTables } from '@/contexts/priceTables';
+import { useBudgetCalculation } from '@/hooks/useBudgetCalculation';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface BudgetFormProps {
   initialData?: Budget;
@@ -25,20 +27,19 @@ interface BudgetFormProps {
   isSubmitting?: boolean;
 }
 
-const mapDeliveryTypeToFreightType = (deliveryType: DeliveryType): "standard" | "perishable" => {
-  if (deliveryType === "normalBiological" || deliveryType === "infectiousBiological") {
-    return "perishable";
-  }
-  return "standard";
-};
-
-export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps) {
+export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting = false }: BudgetFormProps) {
   const { clients } = useClients();
   const { toast } = useToast();
   const { priceTables } = usePriceTables();
+  const { calculatePackageWeights } = useBudgetCalculation();
   const [selectedClient, setSelectedClient] = useState(clients.find(c => c.id === initialData?.clientId));
   const [priceTableId, setPriceTableId] = useState(selectedClient?.priceTableId || '');
   const [priceTable, setPriceTable] = useState(priceTables.find(pt => pt.id === priceTableId));
+  const [packageCalculations, setPackageCalculations] = useState<Array<{
+    realWeight: number;
+    cubicWeight: number;
+    effectiveWeight: number;
+  }>>([{ realWeight: 0, cubicWeight: 0, effectiveWeight: 0 }]);
 
   const form = useForm<z.infer<typeof budgetSchema>>({
     resolver: zodResolver(budgetSchema),
@@ -70,11 +71,12 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
   const watchDeliveryType = form.watch("deliveryType");
   const watchHasCollection = form.watch("hasCollection");
   const watchHasDelivery = form.watch("hasDelivery");
-  const watchAdditionalServices = form.watch("additionalServices");
+  const watchClientId = form.watch("clientId");
+  const watchMerchandiseValue = form.watch("merchandiseValue");
 
+  // Update client and price table when client changes
   useEffect(() => {
-    const clientId = form.getValues("clientId");
-    const client = clients.find(c => c.id === clientId);
+    const client = clients.find(c => c.id === watchClientId);
     setSelectedClient(client);
     
     if (client?.priceTableId) {
@@ -85,69 +87,21 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
       setPriceTableId('');
       setPriceTable(undefined);
     }
-  }, [form.watch("clientId"), clients, priceTables]);
+  }, [watchClientId, clients, priceTables]);
 
+  // Update total volumes when packages change
   useEffect(() => {
     const totalVolumes = watchPackages.reduce((sum, pkg) => sum + (pkg.quantity || 1), 0);
     form.setValue("totalVolumes", totalVolumes);
-  }, [watchPackages, form]);
-
-  useEffect(() => {
-    let totalValue = 0;
     
-    watchPackages.forEach(pkg => {
-      if (pkg.width && pkg.length && pkg.height && pkg.weight) {
-        const cubicWeight = calculateCubicWeight(pkg.width, pkg.length, pkg.height);
-        const effectiveWeight = getEffectiveWeight(pkg.weight, cubicWeight);
-        
-        const freightType = mapDeliveryTypeToFreightType(watchDeliveryType as DeliveryType);
-        const packageFreight = calculateFreight(freightType, effectiveWeight);
-        
-        const multiplier = priceTable?.multiplier || 1;
-        totalValue += packageFreight * multiplier * (pkg.quantity || 1);
-      }
-    });
-    
-    watchAdditionalServices.forEach(service => {
-      if (service.value) {
-        totalValue += service.value;
-      }
-    });
-    
-    switch (watchDeliveryType) {
-      case 'emergency':
-        totalValue *= 1.5;
-        break;
-      case 'exclusive':
-        totalValue *= 2;
-        break;
-      case 'saturday':
-        totalValue *= 1.3;
-        break;
-      case 'sundayHoliday':
-        totalValue *= 1.5;
-        break;
-      case 'difficultAccess':
-        totalValue *= 1.2;
-        break;
-      case 'infectiousBiological':
-        totalValue *= 1.5;
-        break;
-    }
-    
-    if (watchHasCollection) {
-      totalValue += 50;
-    }
-    
-    if (!watchHasDelivery) {
-      totalValue *= 0.7;
-    }
-    
-    form.setValue("totalValue", parseFloat(totalValue.toFixed(2)));
-  }, [watchPackages, watchDeliveryType, watchHasCollection, watchHasDelivery, watchAdditionalServices, priceTable, form]);
+    // Calculate package weights
+    const calculations = watchPackages.map(pkg => calculatePackageWeights(pkg));
+    setPackageCalculations(calculations);
+  }, [watchPackages, form, calculatePackageWeights]);
 
   const onAddPackage = () => {
     append({ width: 0, length: 0, height: 0, weight: 0, quantity: 1 });
+    setPackageCalculations([...packageCalculations, { realWeight: 0, cubicWeight: 0, effectiveWeight: 0 }]);
   };
 
   const onAddService = () => {
@@ -156,33 +110,25 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
 
   const calculatePackageDetails = (index: number) => {
     const pkg = watchPackages[index];
-    if (pkg.width && pkg.length && pkg.height && pkg.weight) {
-      const cubicWeight = calculateCubicWeight(pkg.width, pkg.length, pkg.height);
-      const effectiveWeight = getEffectiveWeight(pkg.weight, cubicWeight);
-      
-      const freightType = mapDeliveryTypeToFreightType(watchDeliveryType as DeliveryType);
-      const packageFreight = calculateFreight(freightType, effectiveWeight);
-      
-      const multiplier = priceTable?.multiplier || 1;
-      const totalPackageValue = packageFreight * multiplier * (pkg.quantity || 1);
+    if (pkg.weight) {
+      const { realWeight, cubicWeight, effectiveWeight } = calculatePackageWeights(pkg);
       
       toast({
         title: `Detalhes do Volume ${index + 1}`,
         description: (
           <div className="space-y-1 mt-2">
-            <p>Peso real: {pkg.weight} kg</p>
-            <p>Peso cúbico: {cubicWeight.toFixed(2)} kg</p>
-            <p>Peso considerado: {effectiveWeight.toFixed(2)} kg</p>
-            <p>Valor unitário: {formatCurrency(packageFreight * multiplier)}</p>
-            <p>Valor total: {formatCurrency(totalPackageValue)}</p>
-            {priceTable && <p>Tabela aplicada: {priceTable.name} ({multiplier}x)</p>}
+            <p>Peso real: {realWeight} kg</p>
+            <p>Peso cúbico: {cubicWeight} kg</p>
+            <p>Peso considerado: {effectiveWeight} kg</p>
+            <p>Quantidade: {pkg.quantity || 1}</p>
+            <p>Total: {effectiveWeight * (pkg.quantity || 1)} kg</p>
           </div>
         ),
       });
     } else {
       toast({
         title: "Dados incompletos",
-        description: "Preencha todas as dimensões e peso do volume para calcular.",
+        description: "Preencha pelo menos o peso do volume para calcular.",
         variant: "destructive",
       });
     }
@@ -236,7 +182,7 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
                         <SelectValue placeholder="Selecione o tipo de entrega" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-52 overflow-y-auto">
                       <SelectItem value="standard">Padrão</SelectItem>
                       <SelectItem value="emergency">Emergencial</SelectItem>
                       <SelectItem value="exclusive">Exclusiva</SelectItem>
@@ -266,6 +212,7 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
                     <Input 
                       type="number" 
                       step="0.01" 
+                      placeholder="Digite o valor da mercadoria"
                       {...field} 
                       onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
                     />
@@ -385,72 +332,93 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
                             size="sm" 
                             onClick={() => remove(index)}
                           >
-                            <X className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         )}
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-2">
-                      <div>
-                        <Label htmlFor={`packages.${index}.width`}>Largura (cm)</Label>
-                        <Input
-                          id={`packages.${index}.width`}
-                          type="number"
-                          step="0.01"
-                          {...form.register(`packages.${index}.width` as const, {
-                            valueAsNumber: true,
-                          })}
-                        />
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor={`packages.${index}.weight`}>Peso (kg)</Label>
+                          <Input
+                            id={`packages.${index}.weight`}
+                            type="number"
+                            step="0.01"
+                            placeholder="Peso real"
+                            {...form.register(`packages.${index}.weight` as const, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`packages.${index}.quantity`}>Quantidade</Label>
+                          <Input
+                            id={`packages.${index}.quantity`}
+                            type="number"
+                            min="1"
+                            {...form.register(`packages.${index}.quantity` as const, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor={`packages.${index}.length`}>Comprimento (cm)</Label>
-                        <Input
-                          id={`packages.${index}.length`}
-                          type="number"
-                          step="0.01"
-                          {...form.register(`packages.${index}.length` as const, {
-                            valueAsNumber: true,
-                          })}
-                        />
+                      
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor={`packages.${index}.width`}>Largura (cm)</Label>
+                          <Input
+                            id={`packages.${index}.width`}
+                            type="number"
+                            step="0.01"
+                            {...form.register(`packages.${index}.width` as const, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`packages.${index}.length`}>Comprimento (cm)</Label>
+                          <Input
+                            id={`packages.${index}.length`}
+                            type="number"
+                            step="0.01"
+                            {...form.register(`packages.${index}.length` as const, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`packages.${index}.height`}>Altura (cm)</Label>
+                          <Input
+                            id={`packages.${index}.height`}
+                            type="number"
+                            step="0.01"
+                            {...form.register(`packages.${index}.height` as const, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-2">
-                      <div>
-                        <Label htmlFor={`packages.${index}.height`}>Altura (cm)</Label>
-                        <Input
-                          id={`packages.${index}.height`}
-                          type="number"
-                          step="0.01"
-                          {...form.register(`packages.${index}.height` as const, {
-                            valueAsNumber: true,
-                          })}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`packages.${index}.weight`}>Peso (kg)</Label>
-                        <Input
-                          id={`packages.${index}.weight`}
-                          type="number"
-                          step="0.01"
-                          {...form.register(`packages.${index}.weight` as const, {
-                            valueAsNumber: true,
-                          })}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor={`packages.${index}.quantity`}>Quantidade</Label>
-                      <Input
-                        id={`packages.${index}.quantity`}
-                        type="number"
-                        min="1"
-                        {...form.register(`packages.${index}.quantity` as const, {
-                          valueAsNumber: true,
-                        })}
-                      />
+                      
+                      {packageCalculations[index] && (
+                        <div className="text-sm text-muted-foreground mt-2 p-2 bg-muted rounded">
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <span className="block">Peso real:</span>
+                              <span className="font-medium">{packageCalculations[index].realWeight} kg</span>
+                            </div>
+                            <div>
+                              <span className="block">Peso cubado:</span>
+                              <span className="font-medium">{packageCalculations[index].cubicWeight} kg</span>
+                            </div>
+                            <div>
+                              <span className="block">Peso considerado:</span>
+                              <span className="font-medium">{packageCalculations[index].effectiveWeight} kg</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -496,7 +464,7 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
                     size="sm" 
                     onClick={() => removeService(index)}
                   >
-                    <X className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
               ))}
@@ -518,6 +486,12 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
                       <span>{priceTable.name} ({priceTable.multiplier}x)</span>
                     </div>
                   )}
+                  {watchHasCollection && watchHasDelivery && (
+                    <div className="flex justify-between text-amber-600">
+                      <span>Coleta + Entrega:</span>
+                      <span>Valor x2</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-lg pt-2">
                     <span>Valor total:</span>
                     <span>{formatCurrency(form.getValues("totalValue"))}</span>
@@ -529,10 +503,10 @@ export function BudgetForm({ initialData, onSubmit, onCancel }: BudgetFormProps)
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit">
+          <Button type="submit" disabled={isSubmitting}>
             {initialData ? 'Atualizar Orçamento' : 'Criar Orçamento'}
           </Button>
         </div>

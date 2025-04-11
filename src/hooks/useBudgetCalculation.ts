@@ -68,26 +68,35 @@ export function useBudgetCalculation() {
     }
 
     // Calculate additional costs for packages
-    let totalExcessWeight = 0;
+    let totalWeight = 0;
     
     budget.packages.forEach(pkg => {
       const quantity = pkg.quantity || 1;
       const cubicWeight = calculateCubicWeight(pkg.width, pkg.length, pkg.height);
       const effectiveWeight = getEffectiveWeight(pkg.weight, cubicWeight);
       
-      // Calculate how much this exceeds the base weight (assumed to be included in minimum rate)
-      const baseWeightIncluded = 5; // Assuming 5kg is included in base rate
-      const excessWeight = Math.max(0, (effectiveWeight * quantity) - baseWeightIncluded);
-      
-      if (excessWeight > 0) {
-        totalExcessWeight += excessWeight;
-      }
+      // Add the effective weight (per package * quantity)
+      totalWeight += effectiveWeight * quantity;
     });
     
-    // Add cost for excess weight
-    if (totalExcessWeight > 0) {
-      const ratePerKg = priceTable.excessWeight.minPerKg;
-      totalValue += totalExcessWeight * ratePerKg;
+    // Add cost for weight using the price table rates
+    if (totalWeight > 0) {
+      // Get the appropriate rate based on delivery type
+      let ratePerKg = priceTable.excessWeight.minPerKg;
+      
+      // Adjust rate based on delivery type
+      if (budget.deliveryType === 'emergency' || 
+          budget.deliveryType === 'exclusive' || 
+          budget.deliveryType === 'saturday' || 
+          budget.deliveryType === 'sundayHoliday') {
+        ratePerKg = priceTable.excessWeight.maxPerKg;
+      } else if (budget.deliveryType === 'normalBiological' || 
+                budget.deliveryType === 'infectiousBiological') {
+        ratePerKg = priceTable.excessWeight.biologicalPerKg;
+      }
+      
+      // Calculate the weight cost
+      totalValue += totalWeight * ratePerKg;
     }
     
     // Add insurance if applicable
@@ -102,6 +111,14 @@ export function useBudgetCalculation() {
       });
     }
     
+    // If both collection and delivery are selected, multiply by 2
+    if (budget.hasCollection && budget.hasDelivery) {
+      totalValue *= 2;
+    } else if (!budget.hasDelivery) {
+      // If only collection is selected (no delivery), reduce value
+      totalValue *= 0.7;
+    }
+    
     // Apply discount if configured in price table
     if (priceTable.defaultDiscount && priceTable.defaultDiscount > 0) {
       totalValue = totalValue * (1 - priceTable.defaultDiscount / 100);
@@ -110,8 +127,21 @@ export function useBudgetCalculation() {
     return totalValue;
   };
 
+  const calculatePackageWeights = (pkg: PackageMeasurement) => {
+    const realWeight = pkg.weight || 0;
+    const cubicWeight = calculateCubicWeight(pkg.width || 0, pkg.length || 0, pkg.height || 0);
+    const effectiveWeight = getEffectiveWeight(realWeight, cubicWeight);
+    
+    return {
+      realWeight,
+      cubicWeight: parseFloat(cubicWeight.toFixed(2)),
+      effectiveWeight: parseFloat(effectiveWeight.toFixed(2))
+    };
+  };
+
   return {
     calculateBudgetValue,
-    getClientPriceTable
+    getClientPriceTable,
+    calculatePackageWeights
   };
 }
