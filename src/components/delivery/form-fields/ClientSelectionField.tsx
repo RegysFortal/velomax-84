@@ -37,6 +37,7 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                 showCreateOption={true}
                 createOptionLabel="Cadastrar novo cliente"
                 clients={clients}
+                disabled={false}
               />
             </FormControl>
             <FormMessage />

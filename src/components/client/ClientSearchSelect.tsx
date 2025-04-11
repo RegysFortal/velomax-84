@@ -41,7 +41,7 @@ export function ClientSearchSelect({
     console.log("ClientSearchSelect - Current value:", value);
   }, [clients, value]);
   
-  // Format client options and handle auto-selection
+  // Format client options
   useEffect(() => {
     if (clients.length > 0) {
       // Format client options for the searchable select
@@ -62,15 +62,13 @@ export function ClientSearchSelect({
       // Auto-select first client if conditions are met
       if (!value && clients.length > 0 && !includeAllOption && !disableAutoSelect) {
         console.log("ClientSearchSelect - Auto-selecting first client:", clients[0].id);
-        // Use setTimeout to ensure this happens after render
-        setTimeout(() => {
-          onValueChange(clients[0].id);
-        }, 0);
+        onValueChange(clients[0].id);
       }
     } else {
       console.log("ClientSearchSelect - No clients available");
+      setClientOptions([]);
     }
-  }, [clients, includeAllOption, allOptionLabel, allOptionValue, value, onValueChange, disableAutoSelect]);
+  }, [clients, includeAllOption, allOptionLabel, allOptionValue, disableAutoSelect]);
   
   const handleCreateNewClient = () => {
     // Store current route to return after client creation

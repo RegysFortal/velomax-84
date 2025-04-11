@@ -74,7 +74,7 @@ export function SearchableSelect({
         <SearchTrigger 
           displayValue={displayValue}
           open={open}
-          onClick={() => setOpen(!open)}
+          onClick={() => !disabled && setOpen(!open)}
           disabled={disabled}
         />
       </PopoverTrigger>
@@ -91,6 +91,7 @@ export function SearchableSelect({
             value={searchQuery}
             onValueChange={setSearchQuery}
             disabled={disabled}
+            autoFocus
           />
           <CommandList className="max-h-[300px] overflow-auto">
             <CommandEmpty>
@@ -105,15 +106,21 @@ export function SearchableSelect({
               </div>
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
-                <OptionItem
-                  key={option.value}
-                  label={option.label}
-                  description={option.description}
-                  isSelected={value === option.value}
-                  onSelect={() => handleSelect(option.value)}
-                />
-              ))}
+              {options.length > 0 ? (
+                options.map((option) => (
+                  <OptionItem
+                    key={option.value}
+                    label={option.label}
+                    description={option.description}
+                    isSelected={value === option.value}
+                    onSelect={() => handleSelect(option.value)}
+                  />
+                ))
+              ) : (
+                <CommandItem disabled className="py-2 px-2 text-sm text-muted-foreground">
+                  Carregando opções...
+                </CommandItem>
+              )}
               {showCreateOption && onCreateNew && options.length > 0 && (
                 <CommandItem
                   value="__create-new__"
