@@ -35,6 +35,12 @@ export function ClientSearchSelect({
   const [clientOptions, setClientOptions] = useState<any[]>([]);
   const navigate = useNavigate();
   
+  // Debug logs
+  useEffect(() => {
+    console.log("ClientSearchSelect - Clients count:", clients.length);
+    console.log("ClientSearchSelect - Current value:", value);
+  }, [clients, value]);
+  
   // Format client options and handle auto-selection
   useEffect(() => {
     if (clients.length > 0) {
@@ -61,6 +67,8 @@ export function ClientSearchSelect({
           onValueChange(clients[0].id);
         }, 0);
       }
+    } else {
+      console.log("ClientSearchSelect - No clients available");
     }
   }, [clients, includeAllOption, allOptionLabel, allOptionValue, value, onValueChange, disableAutoSelect]);
   

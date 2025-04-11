@@ -13,6 +13,10 @@ interface ClientSelectionFieldProps {
 export function ClientSelectionField({ control, isEditMode }: ClientSelectionFieldProps) {
   const { clients } = useClients();
 
+  useEffect(() => {
+    console.log("ClientSelectionField - Clientes disponíveis:", clients.length);
+  }, [clients]);
+
   return (
     <div className="md:col-span-2">
       <FormField

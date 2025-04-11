@@ -29,8 +29,7 @@ export function SearchableSelect({
   useEffect(() => {
     console.log("SearchableSelect - options count:", options.length);
     console.log("SearchableSelect - current value:", value);
-    console.log("SearchableSelect - showCreateOption:", showCreateOption);
-  }, [options.length, value, showCreateOption]);
+  }, [options.length, value]);
 
   // Find the selected option label
   const selectedOption = options.find(option => option.value === value);
@@ -93,7 +92,7 @@ export function SearchableSelect({
             onValueChange={setSearchQuery}
             disabled={disabled}
           />
-          <CommandList>
+          <CommandList className="max-h-[300px] overflow-auto">
             <CommandEmpty>
               <div className="py-2 px-2 text-sm text-muted-foreground">
                 {emptyMessage}
@@ -105,7 +104,7 @@ export function SearchableSelect({
                 )}
               </div>
             </CommandEmpty>
-            <CommandGroup className="max-h-64 overflow-auto">
+            <CommandGroup>
               {options.map((option) => (
                 <OptionItem
                   key={option.value}
@@ -115,7 +114,7 @@ export function SearchableSelect({
                   onSelect={() => handleSelect(option.value)}
                 />
               ))}
-              {showCreateOption && onCreateNew && (
+              {showCreateOption && onCreateNew && options.length > 0 && (
                 <CommandItem
                   value="__create-new__"
                   onSelect={handleCreateNew}
