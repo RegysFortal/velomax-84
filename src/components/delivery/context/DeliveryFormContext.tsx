@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Delivery } from '@/types';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { deliveryFormSchema } from '../schema/deliveryFormSchema';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -10,11 +10,13 @@ import { useClients } from '@/contexts';
 
 // Define the context type
 interface DeliveryFormContextType {
-  form: ReturnType<typeof useForm>;
+  form: UseFormReturn<any>;
   delivery: Delivery | null | undefined;
   isEditMode: boolean;
   freight: number;
+  setFreight: React.Dispatch<React.SetStateAction<number>>;
   showDoorToDoor: boolean;
+  setShowDoorToDoor: React.Dispatch<React.SetStateAction<boolean>>;
   showDuplicateAlert: boolean;
   setShowDuplicateAlert: React.Dispatch<React.SetStateAction<boolean>>;
   formData: any;
@@ -116,15 +118,21 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({ chil
       }
     });
     
-    return () => subscription.unsubscribe();
-  }, [form, calculateFreight, isDoorToDoorDelivery]);
+    return () => {
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
+    };
+  }, [form, calculateFreight, isDoorToDoorDelivery, setFreight, setShowDoorToDoor]);
   
-  const contextValue = {
+  const contextValue: DeliveryFormContextType = {
     form,
     delivery,
     isEditMode,
     freight,
+    setFreight,
     showDoorToDoor,
+    setShowDoorToDoor,
     showDuplicateAlert,
     setShowDuplicateAlert,
     formData,
