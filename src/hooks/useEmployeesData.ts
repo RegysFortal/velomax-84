@@ -36,6 +36,20 @@ export const useEmployeesData = () => {
         // Additional employee fields - only add if they exist in the database
         ...(employee.department_id && { department: employee.department_id }),
         ...(employee.hire_date && { employeeSince: employee.hire_date }),
+        
+        // Map additional employee fields from the database if they exist
+        ...(employee.rg && { rg: employee.rg }),
+        ...(employee.cpf && { cpf: employee.cpf }),
+        ...(employee.birth_date && { birthDate: employee.birth_date }),
+        ...(employee.driver_license && { driverLicense: employee.driver_license }),
+        ...(employee.driver_license_expiry && { driverLicenseExpiry: employee.driver_license_expiry }),
+        ...(employee.driver_license_category && { driverLicenseCategory: employee.driver_license_category }),
+        ...(employee.father_name && { fatherName: employee.father_name }),
+        ...(employee.mother_name && { motherName: employee.mother_name }),
+        ...(employee.address && { address: employee.address }),
+        ...(employee.city && { city: employee.city }),
+        ...(employee.state && { state: employee.state }),
+        ...(employee.zip_code && { zipCode: employee.zip_code })
       }));
       
       setEmployees(formattedEmployees);
@@ -78,6 +92,19 @@ export const useEmployeesData = () => {
         is_active: true,
         department_id: employee.department,
         hire_date: employee.employeeSince,
+        // Additional employee fields for the database
+        rg: employee.rg,
+        cpf: employee.cpf,
+        birth_date: employee.birthDate,
+        driver_license: employee.driverLicense,
+        driver_license_expiry: employee.driverLicenseExpiry,
+        driver_license_category: employee.driverLicenseCategory,
+        father_name: employee.fatherName,
+        mother_name: employee.motherName,
+        address: employee.address,
+        city: employee.city,
+        state: employee.state,
+        zip_code: employee.zipCode,
         // Get the current user's id
         user_id: (await supabase.auth.getUser()).data.user?.id
       };
@@ -115,6 +142,19 @@ export const useEmployeesData = () => {
         phone: employee.phone,
         department_id: employee.department,
         hire_date: employee.employeeSince,
+        // Additional employee fields for the database
+        rg: employee.rg,
+        cpf: employee.cpf,
+        birth_date: employee.birthDate,
+        driver_license: employee.driverLicense,
+        driver_license_expiry: employee.driverLicenseExpiry,
+        driver_license_category: employee.driverLicenseCategory,
+        father_name: employee.fatherName,
+        mother_name: employee.motherName,
+        address: employee.address,
+        city: employee.city,
+        state: employee.state,
+        zip_code: employee.zipCode,
         updated_at: new Date().toISOString()
       };
       
