@@ -4,6 +4,7 @@ import { Budget, PackageMeasurement, calculateCubicWeight, getEffectiveWeight } 
 import { Client, PriceTable } from '@/types';
 
 export function useBudgetCalculation() {
+  console.log("useBudgetCalculation hook initialized");
   const { clients } = useClients();
   const { priceTables } = usePriceTables();
 
