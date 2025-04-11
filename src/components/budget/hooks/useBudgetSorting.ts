@@ -1,5 +1,4 @@
 
-import { useMemo } from 'react';
 import { Budget } from '@/types/budget';
 
 interface UseBudgetSortingProps {
@@ -15,48 +14,60 @@ export function useBudgetSorting({
   getClientName,
   calculateTotalWeight
 }: UseBudgetSortingProps) {
+  if (!sortConfig) {
+    return budgets;
+  }
   
-  const sortedBudgets = useMemo(() => {
-    if (!sortConfig) return budgets;
+  return [...budgets].sort((a, b) => {
+    if (sortConfig.key === 'clientName') {
+      const aName = getClientName(a.clientId);
+      const bName = getClientName(b.clientId);
+      
+      if (sortConfig.direction === 'ascending') {
+        return aName.localeCompare(bName);
+      } else {
+        return bName.localeCompare(aName);
+      }
+    }
     
-    return [...budgets].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
-
-      switch (sortConfig.key) {
-        case 'client':
-          aValue = getClientName(a.clientId).toLowerCase();
-          bValue = getClientName(b.clientId).toLowerCase();
-          break;
-        case 'date':
-          aValue = new Date(a.createdAt || '').getTime();
-          bValue = new Date(b.createdAt || '').getTime();
-          break;
-        case 'volumes':
-          aValue = a.totalVolumes;
-          bValue = b.totalVolumes;
-          break;
-        case 'weight':
-          aValue = calculateTotalWeight(a);
-          bValue = calculateTotalWeight(b);
-          break;
-        case 'value':
-          aValue = a.totalValue;
-          bValue = b.totalValue;
-          break;
-        default:
-          return 0;
+    if (sortConfig.key === 'date') {
+      const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      
+      if (sortConfig.direction === 'ascending') {
+        return aDate - bDate;
+      } else {
+        return bDate - aDate;
       }
-
-      if (aValue < bValue) {
-        return sortConfig.direction === 'ascending' ? -1 : 1;
+    }
+    
+    if (sortConfig.key === 'volumes') {
+      if (sortConfig.direction === 'ascending') {
+        return a.totalVolumes - b.totalVolumes;
+      } else {
+        return b.totalVolumes - a.totalVolumes;
       }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'ascending' ? 1 : -1;
+    }
+    
+    if (sortConfig.key === 'weight') {
+      const aWeight = calculateTotalWeight(a);
+      const bWeight = calculateTotalWeight(b);
+      
+      if (sortConfig.direction === 'ascending') {
+        return aWeight - bWeight;
+      } else {
+        return bWeight - aWeight;
       }
-      return 0;
-    });
-  }, [budgets, sortConfig, getClientName, calculateTotalWeight]);
-
-  return sortedBudgets;
+    }
+    
+    if (sortConfig.key === 'value') {
+      if (sortConfig.direction === 'ascending') {
+        return a.totalValue - b.totalValue;
+      } else {
+        return b.totalValue - a.totalValue;
+      }
+    }
+    
+    return 0;
+  });
 }

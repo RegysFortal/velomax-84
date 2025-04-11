@@ -7,12 +7,10 @@ interface UseClientLookupProps {
 
 export function useClientLookup({ clients }: UseClientLookupProps) {
   // Get client name by ID
-  const getClientName = (clientId: string) => {
+  const getClientName = (clientId: string): string => {
     const client = clients.find(c => c.id === clientId);
-    return client ? (client.tradingName || client.name) : 'Cliente não encontrado';
+    return client ? client.name : 'Cliente não encontrado';
   };
 
-  return {
-    getClientName
-  };
+  return { getClientName };
 }
