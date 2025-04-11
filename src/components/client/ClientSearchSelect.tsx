@@ -79,7 +79,9 @@ export function ClientSearchSelect({
   
   const handleValueChange = (newValue: string) => {
     console.log("ClientSearchSelect - Value changed to:", newValue);
-    onValueChange(newValue);
+    if (newValue && newValue !== value) {
+      onValueChange(newValue);
+    }
   };
   
   return (

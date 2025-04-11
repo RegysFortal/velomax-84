@@ -4,7 +4,6 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { Control } from 'react-hook-form';
 import { useDeliveryFormContext } from '../context/DeliveryFormContext';
-import { toast } from 'sonner';
 
 interface ClientSelectionFieldProps {
   control: Control<any>;

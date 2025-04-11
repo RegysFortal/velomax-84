@@ -5,7 +5,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Plus } from "lucide-react";
 import { SearchTrigger } from "./trigger";
 import { CreateOption } from "./create-option";
-import { OptionItem } from "./option-item";
 import { SearchableSelectProps } from "./types";
 
 export type { SearchableSelectOption, SearchableSelectProps } from "./types";
@@ -40,23 +39,17 @@ export function SearchableSelect({
   const displayValue = selectedOption ? selectedOption.label : placeholder;
 
   // Handle option selection
-  const handleSelect = (optionValue: string) => {
-    console.log("SearchableSelect - Item selected:", optionValue);
-    // Encontra a opção correspondente no array de opções
-    const selectedOpt = options.find(opt => opt.value === optionValue || opt.label === optionValue);
+  const handleSelect = (currentValue: string) => {
+    console.log("SearchableSelect - Item selected:", currentValue);
     
-    if (selectedOpt) {
-      console.log("SearchableSelect - Found matching option:", selectedOpt);
-      onValueChange(selectedOpt.value);
+    // Find the exact option object that matches the value or label
+    const selectedOption = options.find(option => option.value === currentValue);
+    
+    if (selectedOption) {
+      console.log("SearchableSelect - Selected option found:", selectedOption);
+      onValueChange(selectedOption.value);
     } else {
-      // Se não encontrar exatamente, talvez seja o label que foi selecionado
-      const optByLabel = options.find(opt => opt.label.toLowerCase() === optionValue.toLowerCase());
-      if (optByLabel) {
-        console.log("SearchableSelect - Found by label:", optByLabel);
-        onValueChange(optByLabel.value);
-      } else {
-        console.log("SearchableSelect - No matching option found for:", optionValue);
-      }
+      console.log("SearchableSelect - No matching option found for:", currentValue);
     }
     
     setOpen(false);
