@@ -2,6 +2,7 @@
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface RetentionFormSectionProps {
   retentionReason: string;
@@ -54,11 +55,10 @@ export function RetentionFormSection({
       
       <div className="space-y-2">
         <label htmlFor="paymentDate" className="text-sm font-medium">Data de Pagamento</label>
-        <Input 
-          id="paymentDate"
-          type="date"
-          value={paymentDate}
-          onChange={(e) => setPaymentDate(e.target.value)}
+        <DatePicker
+          date={paymentDate ? new Date(paymentDate) : undefined}
+          onSelect={(date) => setPaymentDate(date ? date.toISOString().split('T')[0] : '')}
+          placeholder="Selecione a data de pagamento"
         />
       </div>
     </div>

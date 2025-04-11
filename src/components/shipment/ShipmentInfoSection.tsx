@@ -2,6 +2,7 @@
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface ShipmentInfoSectionProps {
   transportMode: "air" | "road";
@@ -40,12 +41,10 @@ export function ShipmentInfoSection({
       
       <div>
         <label htmlFor="arrivalDate" className="text-sm font-medium">Data de Chegada</label>
-        <Input 
-          id="arrivalDate" 
-          value={arrivalDate} 
-          onChange={(e) => setArrivalDate(e.target.value)}
-          type="date"
-          disabled={disabled}
+        <DatePicker
+          date={arrivalDate ? new Date(arrivalDate) : undefined}
+          onSelect={(date) => setArrivalDate(date ? date.toISOString().split('T')[0] : '')}
+          placeholder="Selecione a data de chegada"
         />
       </div>
       

@@ -11,6 +11,7 @@ import {
 import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { logbookFormSchema } from '../schema';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface DateAndTimeSectionProps {
   form: UseFormReturn<z.infer<typeof logbookFormSchema>>;
@@ -26,7 +27,13 @@ export function DateAndTimeSection({ form }: DateAndTimeSectionProps) {
           <FormItem>
             <FormLabel>Data</FormLabel>
             <FormControl>
-              <Input type="date" {...field} />
+              <DatePicker
+                date={field.value ? new Date(field.value) : undefined}
+                onSelect={(date) => {
+                  field.onChange(date ? date.toISOString().split('T')[0] : '');
+                }}
+                placeholder="Selecione a data"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

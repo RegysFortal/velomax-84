@@ -3,6 +3,7 @@ import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Control } from 'react-hook-form';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface DeliveryDateTimeFieldsProps {
   control: Control<any>;
@@ -28,7 +29,13 @@ export function DeliveryDateTimeFields({
           <FormItem>
             <FormLabel>{dateLabel}</FormLabel>
             <FormControl>
-              <Input type="date" {...field} />
+              <DatePicker
+                date={field.value ? new Date(field.value) : undefined}
+                onSelect={(date) => {
+                  // Convert to ISO string format or empty string
+                  field.onChange(date ? date.toISOString().split('T')[0] : '');
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
