@@ -35,7 +35,7 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
             <FormLabel>Selecione um cliente</FormLabel>
             <FormControl>
               <ClientSearchSelect
-                value={field.value || ""}
+                value={field.value}
                 onValueChange={(value) => {
                   console.log("ClientSelectionField - ClientId changed to:", value);
                   field.onChange(value);
