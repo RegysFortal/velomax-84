@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -32,11 +33,11 @@ export function DeliveryFormTypeFields({
               value={field.value}
             >
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Selecione o tipo de entrega" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="max-h-80">
+              <SelectContent className="max-h-80 bg-background">
                 <SelectItem value="standard">Normal</SelectItem>
                 <SelectItem value="emergency">Emergencial</SelectItem>
                 <SelectItem value="exclusive">Veículo Exclusivo</SelectItem>
@@ -68,11 +69,11 @@ export function DeliveryFormTypeFields({
               value={field.value}
             >
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Selecione o tipo de carga" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent>
+              <SelectContent className="bg-background">
                 <SelectItem value="standard">Padrão</SelectItem>
                 <SelectItem value="perishable">Perecível</SelectItem>
               </SelectContent>
@@ -96,6 +97,7 @@ export function DeliveryFormTypeFields({
                   step="0.01"
                   min="0"
                   placeholder="0.00"
+                  className="bg-background"
                 />
               </FormControl>
               <FormMessage />
@@ -117,11 +119,11 @@ export function DeliveryFormTypeFields({
                 value={field.value}
               >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Selecione a cidade" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="max-h-80">
+                <SelectContent className="max-h-80 bg-background">
                   {cities.map((city) => (
                     <SelectItem key={city.id} value={city.id}>
                       {city.name} - {city.distance}km

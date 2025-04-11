@@ -49,7 +49,7 @@ export function DeliveryDateTimeFields({
           <FormItem>
             <FormLabel>{timeLabel}</FormLabel>
             <FormControl>
-              <Input type="time" {...field} />
+              <Input type="time" {...field} className="bg-background" />
             </FormControl>
             <FormMessage />
           </FormItem>

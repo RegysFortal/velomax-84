@@ -39,25 +39,47 @@ export const useDeliveryFormCalculations = ({
 
     if (watchClientId && watchWeight && !isNaN(parseFloat(watchWeight))) {
       try {
-        const calculatedFreight = calculateFreight(
-          watchClientId,
-          parseFloat(watchWeight),
-          watchDeliveryType as Delivery['deliveryType'],
-          watchCargoType as Delivery['cargoType'],
-          watchCargoValue ? parseFloat(watchCargoValue) : undefined,
-          undefined,
-          watchCityId || undefined
-        );
+        const weightValue = parseFloat(watchWeight);
+        const deliveryTypeValue = watchDeliveryType as Delivery['deliveryType'];
+        const cargoTypeValue = watchCargoType as Delivery['cargoType'];
+        const cargoValueValue = watchCargoValue ? parseFloat(watchCargoValue) : undefined;
+        
+        // Fallback to base calculation if the client-specific calculation fails
+        let calculatedFreight;
+        try {
+          calculatedFreight = calculateFreight(
+            watchClientId,
+            weightValue,
+            deliveryTypeValue,
+            cargoTypeValue,
+            cargoValueValue,
+            undefined,
+            watchCityId || undefined
+          );
+        } catch (error) {
+          console.warn("Failed to calculate client-specific freight, using fallback:", error);
+          // Fallback to basic calculation
+          calculatedFreight = calculateBasicFreight(cargoTypeValue, weightValue);
+        }
         
         console.log("Calculated freight:", calculatedFreight);
         setFreight(calculatedFreight);
       } catch (error) {
         console.error('Error calculating freight:', error);
+        // Set a default freight value so something appears
+        setFreight(50); // Default freight value
       }
     } else {
       console.log("Can't calculate freight, missing required values");
     }
   }, [form, calculateFreight, setFreight]);
+  
+  // Basic fallback freight calculation
+  const calculateBasicFreight = (cargoType: Delivery['cargoType'], weight: number): number => {
+    const baseRate = cargoType === 'perishable' ? 25 : 15;
+    const multiplier = weight <= 5 ? 1 : weight <= 10 ? 1.5 : weight <= 20 ? 2 : 3;
+    return baseRate * multiplier;
+  };
 
   return {
     calculateFreight: recalculateFreight

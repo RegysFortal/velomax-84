@@ -35,7 +35,7 @@ export const useAddDelivery = (
         delivery_date: delivery.deliveryDate,
         delivery_time: delivery.deliveryTime || '',
         receiver: delivery.receiver || '',
-        receiver_document: delivery.receiverId || null, // Using receiver_document for Supabase
+        receiver_document: delivery.receiverId || null,
         weight: delivery.weight,
         packages: delivery.packages,
         delivery_type: delivery.deliveryType,
@@ -46,9 +46,8 @@ export const useAddDelivery = (
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
         user_id: user?.id,
-        pickup_person: delivery.pickupName || '', // Using pickup_person for Supabase
-        pickup_date: delivery.pickupDate || '',
-        pickup_time: delivery.pickupTime || '',
+        // Removendo campos não existentes na tabela do Supabase
+        // pickup_date, pickup_time e pickup_name não existem no schema
       };
       
       // Insert the delivery into Supabase
@@ -71,7 +70,7 @@ export const useAddDelivery = (
         deliveryDate: responseData.delivery_date,
         deliveryTime: responseData.delivery_time || '',
         receiver: responseData.receiver || '',
-        receiverId: responseData.receiver_document || undefined, // Map from receiver_document to receiverId
+        receiverId: responseData.receiver_document || undefined,
         weight: responseData.weight,
         packages: responseData.packages,
         deliveryType: responseData.delivery_type as Delivery['deliveryType'],
@@ -83,9 +82,10 @@ export const useAddDelivery = (
         createdAt: responseData.created_at || timestamp,
         updatedAt: responseData.updated_at || timestamp,
         cityId: responseData.city_id || undefined,
-        pickupName: responseData.pickup_person || '', // Map from pickup_person to pickupName
-        pickupDate: responseData.pickup_date || '',
-        pickupTime: responseData.pickup_time || '',
+        // Adicionando campos que existem em nosso tipo mas não na tabela
+        pickupName: '',
+        pickupDate: '',
+        pickupTime: '',
       };
       
       setDeliveries(prev => [...prev, newDelivery]);
@@ -96,6 +96,14 @@ export const useAddDelivery = (
       toast({
         title: "Entrega registrada",
         description: `A entrega ${minuteNumber} foi registrada com sucesso.`,
+      });
+      
+      addLog({
+        action: 'create',
+        entityType: 'delivery',
+        entityId: newDelivery.id,
+        entityName: `Minuta ${minuteNumber} - ${clientName}`,
+        details: `Nova entrega registrada: ${minuteNumber}`
       });
       
       return newDelivery;

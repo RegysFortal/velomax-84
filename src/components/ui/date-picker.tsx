@@ -69,7 +69,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
     // Reset the input to the current date format if typing produced an invalid date
     if (date) {
       setInputValue(format(date, "dd/MM/yyyy"));
-    } else if (inputValue && inputValue.length > 0 && (allowTyping || !allowTyping)) {
+    } else if (inputValue && inputValue.length > 0) {
       // Clear invalid input
       setInputValue("");
     }
@@ -84,7 +84,6 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
         onBlur={handleInputBlur}
         placeholder="DD/MM/YYYY"
         className="flex-1"
-        readOnly={!allowTyping}
       />
       <Popover>
         <PopoverTrigger asChild>
@@ -96,7 +95,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
             <CalendarIcon className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+        <PopoverContent className="w-auto p-0 bg-background" align="end">
           <Calendar
             mode="single"
             selected={date}
