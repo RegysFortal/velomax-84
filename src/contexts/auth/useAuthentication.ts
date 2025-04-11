@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { User } from '@/types';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { logUserActivity } from './authUtils';
@@ -24,8 +24,6 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
       return false;
     };
   }
-  
-  const { toast } = useToast();
 
   const login = async (username: string, password: string) => {
     try {
@@ -33,10 +31,8 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
         const foundUser = users.find(u => u.username === username);
         
         if (!foundUser) {
-          toast({
-            title: "Erro de autenticação",
+          toast("Erro de autenticação", {
             description: "Nome de usuário ou senha incorretos",
-            variant: "destructive",
           });
           return false;
         }
@@ -62,8 +58,7 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
           'Usuário fez login no sistema (modo demo)'
         );
 
-        toast({
-          title: "Login bem-sucedido (modo demo)",
+        toast("Login bem-sucedido (modo demo)", {
           description: `Bem-vindo, ${foundUser.name}!`,
         });
         
@@ -80,27 +75,22 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
         if (error) throw error;
         
         if (data.user) {
-          toast({
-            title: "Login bem-sucedido",
+          toast("Login bem-sucedido", {
             description: `Bem-vindo, ${data.user.email}!`,
           });
           navigate('/dashboard');
           return true;
         }
         
-        toast({
-          title: "Erro de autenticação",
+        toast("Erro de autenticação", {
           description: "Nome de usuário ou senha incorretos",
-          variant: "destructive",
         });
         return false;
       }
     } catch (error) {
       console.error("Erro ao fazer login:", error);
-      toast({
-        title: "Erro no sistema",
+      toast("Erro no sistema", {
         description: "Ocorreu um erro durante o login. Tente novamente.",
-        variant: "destructive",
       });
       return false;
     }
@@ -160,7 +150,7 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
         'user',
         user.id,
         updatedUser.name,
-        'Perfil de usu��rio atualizado'
+        'Perfil de usuário atualizado'
       );
       
       return true;
@@ -216,8 +206,10 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
   const hasPermission = (feature: keyof User['permissions']) => {
     if (!user) return false;
     
+    // Admin role bypass permission checks
     if (user.role === 'admin') return true;
     
+    // For other roles, check the specific permission
     return user.permissions && user.permissions[feature] === true;
   };
 

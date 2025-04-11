@@ -35,33 +35,39 @@ export const OperationalMenu: React.FC<OperationalMenuProps> = ({ user, hasPermi
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
-            <Link
-              to="/deliveries"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/deliveries")
-              )}
-            >
-              Entregas
-            </Link>
-            <Link
-              to="/shipments"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/shipments")
-              )}
-            >
-              Embarques
-            </Link>
-            <Link
-              to="/shipment-reports"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/shipment-reports")
-              )}
-            >
-              Relatórios de Embarques
-            </Link>
+            {hasPermission('deliveries') && (
+              <Link
+                to="/deliveries"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/deliveries")
+                )}
+              >
+                Entregas
+              </Link>
+            )}
+            {hasPermission('shipments') && (
+              <Link
+                to="/shipments"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/shipments")
+                )}
+              >
+                Embarques
+              </Link>
+            )}
+            {hasPermission('reports') && (
+              <Link
+                to="/shipment-reports"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/shipment-reports")
+                )}
+              >
+                Relatórios de Embarques
+              </Link>
+            )}
           </div>
         </ScrollArea>
       </NavigationMenuContent>

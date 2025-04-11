@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Delivery } from '@/types';
 import { generateMinuteNumber } from '@/utils/deliveryUtils';
 import { useClients } from '@/contexts';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 interface UseNewDeliverySubmissionProps {
   onComplete: () => void;
@@ -14,12 +15,19 @@ export const useNewDeliverySubmission = ({
 }: UseNewDeliverySubmissionProps) => {
   const { addDelivery } = useDeliveries();
   const { clients } = useClients();
+  const { user, hasPermission } = useAuth();
 
   const submitNewDelivery = async (
     newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> 
   ) => {
     try {
       console.log("DeliveryForm - Criando nova entrega:", newDelivery);
+      
+      // Check for deliveries permission
+      if (!hasPermission('deliveries')) {
+        toast.error("Você não tem permissão para criar entregas");
+        return false;
+      }
       
       // Verificar se há um clientId válido
       if (!newDelivery.clientId) {
@@ -46,7 +54,8 @@ export const useNewDeliverySubmission = ({
         ...newDelivery,
         weight: parseFloat(String(newDelivery.weight)),
         packages: parseInt(String(newDelivery.packages)),
-        cargoValue: newDelivery.cargoValue ? parseFloat(String(newDelivery.cargoValue)) : 0
+        cargoValue: newDelivery.cargoValue ? parseFloat(String(newDelivery.cargoValue)) : 0,
+        user_id: user?.id // Add current user ID to the delivery
       };
       
       try {

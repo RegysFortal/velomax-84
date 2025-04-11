@@ -3,7 +3,7 @@ import { ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { AppHeader } from './AppHeader';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { User } from '@/types';
 
 interface AppLayoutProps {
@@ -14,7 +14,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading, hasPermission } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   
   useEffect(() => {
     if (!loading && !user) {
@@ -41,14 +40,13 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/vehicles': 'vehicles',
         '/maintenance': 'maintenance',
         '/settings': 'settings',
+        '/budgets': 'financial'
       };
 
       // Special case for activity logs (admin only)
       if (location.pathname === '/activity-logs' && user.role !== 'admin') {
-        toast({
-          title: "Acesso restrito",
+        toast("Acesso restrito", {
           description: "Você não tem permissão para acessar esta página.",
-          variant: "destructive",
         });
         navigate('/dashboard');
         return;
@@ -63,12 +61,15 @@ export function AppLayout({ children }: AppLayoutProps) {
       const requiredPermission = pathPermissions[location.pathname];
       
       if (requiredPermission) {
-        // Check if user has required permission (hasPermission handles admin role automatically)
+        // Admin users bypass permission checks
+        if (user.role === 'admin') {
+          return;
+        }
+        
+        // Check if user has required permission
         if (!hasPermission(requiredPermission)) {
-          toast({
-            title: "Acesso restrito",
+          toast("Acesso restrito", {
             description: "Você não tem permissão para acessar esta página.",
-            variant: "destructive",
           });
           
           // Redirect to dashboard or first accessible page
@@ -82,7 +83,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         }
       }
     }
-  }, [location.pathname, user, loading, hasPermission, navigate, toast]);
+  }, [location.pathname, user, loading, hasPermission, navigate]);
   
   if (loading) {
     return (

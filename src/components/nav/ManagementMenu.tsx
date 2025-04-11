@@ -35,60 +35,72 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
-            <Link
-              to="/dashboard"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/dashboard")
-              )}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/logbook"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/logbook")
-              )}
-            >
-              Diário de Bordo
-            </Link>
-            <Link
-              to="/clients"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/clients")
-              )}
-            >
-              Clientes
-            </Link>
-            <Link
-              to="/employees"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/employees")
-              )}
-            >
-              Funcionários
-            </Link>
-            <Link
-              to="/vehicles"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/vehicles")
-              )}
-            >
-              Veículos
-            </Link>
-            <Link
-              to="/maintenance"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/maintenance")
-              )}
-            >
-              Manutenções
-            </Link>
+            {hasPermission('dashboard') && (
+              <Link
+                to="/dashboard"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/dashboard")
+                )}
+              >
+                Dashboard
+              </Link>
+            )}
+            {hasPermission('logbook') && (
+              <Link
+                to="/logbook"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/logbook")
+                )}
+              >
+                Diário de Bordo
+              </Link>
+            )}
+            {hasPermission('clients') && (
+              <Link
+                to="/clients"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/clients")
+                )}
+              >
+                Clientes
+              </Link>
+            )}
+            {hasPermission('employees') && (
+              <Link
+                to="/employees"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/employees")
+                )}
+              >
+                Funcionários
+              </Link>
+            )}
+            {hasPermission('vehicles') && (
+              <Link
+                to="/vehicles"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/vehicles")
+                )}
+              >
+                Veículos
+              </Link>
+            )}
+            {hasPermission('maintenance') && (
+              <Link
+                to="/maintenance"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/maintenance")
+                )}
+              >
+                Manutenções
+              </Link>
+            )}
             {user?.role === 'admin' && (
               <Link
                 to="/activity-logs"
@@ -100,15 +112,17 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                 Logs de Atividades
               </Link>
             )}
-            <Link
-              to="/settings"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/settings")
-              )}
-            >
-              Configurações do Sistema
-            </Link>
+            {hasPermission('settings') && (
+              <Link
+                to="/settings"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/settings")
+                )}
+              >
+                Configurações do Sistema
+              </Link>
+            )}
           </div>
         </ScrollArea>
       </NavigationMenuContent>

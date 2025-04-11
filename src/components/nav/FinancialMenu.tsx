@@ -35,52 +35,62 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
-            <Link
-              to="/financial"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/financial")
-              )}
-            >
-              Financeiro
-            </Link>
-            <Link
-              to="/reports"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/reports")
-              )}
-            >
-              Relatórios
-            </Link>
-            <Link
-              to="/budgets"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/budgets")
-              )}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Orçamentos
-            </Link>
-            <Link
-              to="/price-tables"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/price-tables")
-              )}
-            >
-              Tabelas de Preços
-            </Link>
-            <Link
-              to="/cities"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/cities")
-              )}
-            >
-              Cidades
-            </Link>
+            {hasPermission('financial') && (
+              <Link
+                to="/financial"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/financial")
+                )}
+              >
+                Financeiro
+              </Link>
+            )}
+            {hasPermission('reports') && (
+              <Link
+                to="/reports"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/reports")
+                )}
+              >
+                Relatórios
+              </Link>
+            )}
+            {hasPermission('financial') && (
+              <Link
+                to="/budgets"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/budgets")
+                )}
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Orçamentos
+              </Link>
+            )}
+            {hasPermission('priceTables') && (
+              <Link
+                to="/price-tables"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/price-tables")
+                )}
+              >
+                Tabelas de Preços
+              </Link>
+            )}
+            {hasPermission('cities') && (
+              <Link
+                to="/cities"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/cities")
+                )}
+              >
+                Cidades
+              </Link>
+            )}
           </div>
         </ScrollArea>
       </NavigationMenuContent>
