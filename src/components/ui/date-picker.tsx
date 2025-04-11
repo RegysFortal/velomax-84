@@ -18,9 +18,10 @@ interface DatePickerProps {
   date?: Date
   onSelect?: (date: Date | undefined) => void
   placeholder?: string
+  allowTyping?: boolean
 }
 
-export function DatePicker({ date, onSelect, placeholder = "Selecionar data" }: DatePickerProps) {
+export function DatePicker({ date, onSelect, placeholder = "Selecionar data", allowTyping = false }: DatePickerProps) {
   const [inputValue, setInputValue] = React.useState<string>("");
   
   // Update input value when date changes externally
@@ -43,8 +44,8 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data" }: 
     const value = e.target.value;
     setInputValue(value);
     
-    // Try to parse the input as a date
-    if (value.length === 10) { // Complete date format: DD/MM/YYYY
+    // Only attempt to parse input as date if allowTyping is true
+    if (allowTyping && value.length === 10) { // Complete date format: DD/MM/YYYY
       const [day, month, year] = value.split('/').map(Number);
       
       // Validate date components
@@ -68,7 +69,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data" }: 
     // Reset the input to the current date format if typing produced an invalid date
     if (date) {
       setInputValue(format(date, "dd/MM/yyyy"));
-    } else if (inputValue && inputValue.length > 0) {
+    } else if (inputValue && inputValue.length > 0 && (allowTyping || !allowTyping)) {
       // Clear invalid input
       setInputValue("");
     }
@@ -83,6 +84,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data" }: 
         onBlur={handleInputBlur}
         placeholder="DD/MM/YYYY"
         className="flex-1"
+        readOnly={!allowTyping}
       />
       <Popover>
         <PopoverTrigger asChild>

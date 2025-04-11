@@ -6,10 +6,11 @@ import { DatePicker } from '@/components/ui/date-picker';
 
 interface DatePickerFieldProps {
   id: string;
-  label: string;
+  label?: string;
   value: Date | undefined;
   onChange: (date: Date | undefined) => void;
   placeholder?: string;
+  allowTyping?: boolean;
 }
 
 export function DatePickerField({
@@ -17,7 +18,8 @@ export function DatePickerField({
   label,
   value,
   onChange,
-  placeholder = "Selecione uma data"
+  placeholder = "Selecione uma data",
+  allowTyping = false
 }: DatePickerFieldProps) {
   // When value changes externally, ensure the component reflects it
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(value);
@@ -34,11 +36,12 @@ export function DatePickerField({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
+      {label && <Label htmlFor={id}>{label}</Label>}
       <DatePicker 
         date={selectedDate} 
         onSelect={handleDateSelect} 
         placeholder={placeholder}
+        allowTyping={allowTyping}
       />
     </div>
   );
