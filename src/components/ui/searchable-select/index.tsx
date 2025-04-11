@@ -29,7 +29,10 @@ export function SearchableSelect({
   useEffect(() => {
     console.log("SearchableSelect - options count:", options.length);
     console.log("SearchableSelect - current value:", value);
-    console.log("SearchableSelect - options:", options);
+    
+    if (options.length > 0) {
+      console.log("SearchableSelect - First few options:", options.slice(0, 3));
+    }
   }, [options, value]);
 
   // Find the selected option label

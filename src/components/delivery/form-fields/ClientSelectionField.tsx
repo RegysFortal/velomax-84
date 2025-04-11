@@ -20,6 +20,9 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
       console.log("ClientSelectionField - Clients loaded:", clients.length);
       setInitialized(true);
     }
+    
+    // Log at the component level for easier debugging
+    console.log("ClientSelectionField - Current clients count:", clients.length);
   }, [clients, initialized]);
 
   return (

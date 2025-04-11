@@ -28,6 +28,15 @@ export const useDeliveryFormCalculations = ({
     const watchCargoValue = form.watch('cargoValue');
     const watchCityId = form.watch('cityId');
 
+    console.log("Recalculating freight with values:", {
+      clientId: watchClientId,
+      weight: watchWeight,
+      deliveryType: watchDeliveryType,
+      cargoType: watchCargoType,
+      cargoValue: watchCargoValue,
+      cityId: watchCityId
+    });
+
     if (watchClientId && watchWeight && !isNaN(parseFloat(watchWeight))) {
       try {
         const calculatedFreight = calculateFreight(
@@ -40,10 +49,13 @@ export const useDeliveryFormCalculations = ({
           watchCityId || undefined
         );
         
+        console.log("Calculated freight:", calculatedFreight);
         setFreight(calculatedFreight);
       } catch (error) {
         console.error('Error calculating freight:', error);
       }
+    } else {
+      console.log("Can't calculate freight, missing required values");
     }
   }, [form, calculateFreight, setFreight]);
 
