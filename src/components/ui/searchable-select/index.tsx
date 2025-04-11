@@ -75,10 +75,13 @@ export function SearchableSelect({
         />
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[var(--radix-popover-trigger-width)] p-0 bg-white z-50" 
+        className="w-[var(--radix-popover-trigger-width)] p-0 bg-white dark:bg-gray-900 z-[100]" 
         ref={popoverRef}
         align="start"
         sideOffset={4}
+        avoidCollisions={true}
+        collisionPadding={20}
+        style={{ maxHeight: "80vh", overflowY: "auto" }}
       >
         <Command>
           <CommandInput 
@@ -107,7 +110,7 @@ export function SearchableSelect({
                   key={option.value}
                   value={option.value}
                   onSelect={handleSelect}
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground"
                 >
                   <div>
                     <div>{option.label}</div>
@@ -124,7 +127,7 @@ export function SearchableSelect({
                 <CommandItem
                   value="__create-new__"
                   onSelect={handleCreateNew}
-                  className="flex items-center border-t"
+                  className="flex items-center border-t hover:bg-accent hover:text-accent-foreground"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   {createOptionLabel}
