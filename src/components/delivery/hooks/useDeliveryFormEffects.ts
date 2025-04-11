@@ -60,9 +60,6 @@ export const useDeliveryFormEffects = (
         cityId: delivery.cityId || '',
         notes: delivery.notes || '',
         occurrence: delivery.occurrence || '',
-        pickupName: delivery.pickupName || '',
-        pickupDate: delivery.pickupDate || '',
-        pickupTime: delivery.pickupTime || '',
       });
       
       setFreight(delivery.totalFreight || 0);

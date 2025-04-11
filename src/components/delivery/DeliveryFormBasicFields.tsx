@@ -4,7 +4,6 @@ import { Control, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 import { ClientSelectionField } from './form-fields/ClientSelectionField';
 import { MinuteNumberField } from './form-fields/MinuteNumberField';
 import { DeliveryDateTimeFields } from './form-fields/DeliveryDateTimeFields';
-import { PickupPersonField } from './form-fields/PickupPersonField';
 import { ReceiverFields } from './form-fields/ReceiverFields';
 import { ShipmentDetailsFields } from './form-fields/ShipmentDetailsFields';
 import { Separator } from '@/components/ui/separator';
@@ -33,17 +32,6 @@ export function DeliveryFormBasicFields({
         control={control} 
         isEditMode={isEditMode} 
       />
-      
-      <div className="space-y-4">
-        <Separator className="my-4" />
-        <h3 className="text-md font-medium">Informações de Retirada na Transportadora</h3>
-        
-        <PickupPersonField 
-          control={control}
-          setValue={setValue}
-          getValues={getValues}
-        />
-      </div>
       
       <div className="space-y-4">
         <Separator className="my-4" />
