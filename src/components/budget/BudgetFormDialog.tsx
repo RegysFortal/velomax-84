@@ -11,8 +11,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { BudgetForm } from './BudgetForm';
-import { useBudgets } from '@/contexts';
+import { BudgetForm } from './form/BudgetForm';
+import { useBudgets } from '@/contexts/budget';
 import { useToast } from '@/hooks/use-toast';
 import { Budget } from '@/types/budget';
 
