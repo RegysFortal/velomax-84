@@ -17,7 +17,7 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
 
   useEffect(() => {
     if (clients.length > 0 && !initialized) {
-      console.log("ClientSelectionField - Clientes carregados:", clients.length);
+      console.log("ClientSelectionField - Clients loaded:", clients.length);
       setInitialized(true);
     }
   }, [clients, initialized]);
@@ -39,7 +39,6 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                 onValueChange={(value) => {
                   console.log("ClientSelectionField - ClientId changed to:", value);
                   field.onChange(value);
-                  field.onBlur();
                 }}
                 placeholder="Selecione um cliente"
                 clients={clients}

@@ -3,9 +3,10 @@ import { useCallback } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { UseFormReturn } from 'react-hook-form';
+import { DeliveryFormValues } from '../context/DeliveryFormContext';
 
 interface UseDeliveryFormCalculationsProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<DeliveryFormValues>;
   setFreight: React.Dispatch<React.SetStateAction<number>>;
   delivery: Delivery | null | undefined;
   isEditMode: boolean;

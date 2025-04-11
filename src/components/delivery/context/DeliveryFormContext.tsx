@@ -32,7 +32,6 @@ interface DeliveryFormContextType {
   freight: number;
   setFreight: React.Dispatch<React.SetStateAction<number>>;
   showDoorToDoor: boolean;
-  setShowDoorToDoor?: React.Dispatch<React.SetStateAction<boolean>>;
   showDuplicateAlert: boolean;
   setShowDuplicateAlert: React.Dispatch<React.SetStateAction<boolean>>;
   formData: any;
@@ -115,7 +114,6 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
       freight,
       setFreight,
       showDoorToDoor,
-      setShowDoorToDoor,
       showDuplicateAlert,
       setShowDuplicateAlert,
       formData,
