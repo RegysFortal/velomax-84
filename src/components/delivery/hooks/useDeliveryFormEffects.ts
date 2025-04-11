@@ -2,16 +2,22 @@
 import { useEffect } from 'react';
 import { format } from 'date-fns';
 import { Delivery } from '@/types';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
 
 export const useDeliveryFormEffects = (
   form: any,
   delivery: Delivery | null,
   isEditMode: boolean,
-  setFreight: (value: number) => void
+  setFreight: (value: number) => void,
+  calculateFreight: (
+    clientId: string,
+    weight: number,
+    deliveryType: Delivery['deliveryType'],
+    cargoType: Delivery['cargoType'],
+    cargoValue?: number,
+    distance?: number,
+    cityId?: string
+  ) => number
 ) => {
-  const { calculateFreight } = useDeliveries();
-
   // Initialize form with delivery data for edit mode
   useEffect(() => {
     if (delivery) {

@@ -19,7 +19,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
-import { useDeliveryFormEffects } from './hooks/useDeliveryFormEffects';
 
 interface DeliveryFormSectionsProps {
   onComplete: () => void;
@@ -44,7 +43,6 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
   } = useDeliveryFormContext();
   
   const { cities } = useCities();
-  const { watchDeliveryType } = useDeliveryFormEffects(form, delivery, isEditMode, setFreight);
   const { handleSubmit, handleConfirmDuplicate } = useDeliveryFormSubmit({
     isEditMode,
     delivery,
@@ -62,6 +60,9 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
       onCancel();
     }
   };
+
+  // Get the current delivery type from form
+  const watchDeliveryType = form.watch('deliveryType');
 
   return (
     <>

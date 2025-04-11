@@ -6,6 +6,7 @@ import { deliveryFormSchema } from '../schema/deliveryFormSchema';
 import { Delivery, Client } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts';
+import { useDeliveryFormEffects } from '../hooks/useDeliveryFormEffects';
 
 export interface DeliveryFormValues {
   clientId: string;
@@ -79,6 +80,15 @@ export const DeliveryFormProvider: React.FC<{
       totalFreight: delivery?.totalFreight?.toString() || '',
     },
   });
+  
+  // Use the effects hook but pass all required dependencies directly instead of via context
+  const { watchDeliveryType } = useDeliveryFormEffects(
+    form, 
+    delivery, 
+    isEditMode, 
+    setFreight,
+    calculateFreight
+  );
   
   console.log("DeliveryFormContext initialized with", clients.length, "clients");
   
