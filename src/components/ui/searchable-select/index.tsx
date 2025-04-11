@@ -38,20 +38,19 @@ export function SearchableSelect({
   const selectedOption = options.find(option => option.value === value);
   const displayValue = selectedOption ? selectedOption.label : placeholder;
 
+  // Filter options based on search query
+  const filteredOptions = options.filter(option => {
+    const label = option.label.toLowerCase();
+    const description = option.description?.toLowerCase() || '';
+    const query = searchQuery.toLowerCase();
+    
+    return label.includes(query) || description.includes(query);
+  });
+
   // Handle option selection
   const handleSelect = (currentValue: string) => {
     console.log("SearchableSelect - Item selected:", currentValue);
-    
-    // Find the exact option object that matches the value or label
-    const selectedOption = options.find(option => option.value === currentValue);
-    
-    if (selectedOption) {
-      console.log("SearchableSelect - Selected option found:", selectedOption);
-      onValueChange(selectedOption.value);
-    } else {
-      console.log("SearchableSelect - No matching option found for:", currentValue);
-    }
-    
+    onValueChange(currentValue);
     setOpen(false);
   };
 
@@ -124,7 +123,7 @@ export function SearchableSelect({
               </div>
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}
@@ -142,7 +141,7 @@ export function SearchableSelect({
                   {value === option.value && <span className="ml-2">✓</span>}
                 </CommandItem>
               ))}
-              {showCreateOption && onCreateNew && options.length > 0 && (
+              {showCreateOption && onCreateNew && filteredOptions.length > 0 && (
                 <CommandItem
                   value="__create-new__"
                   onSelect={handleCreateNew}
