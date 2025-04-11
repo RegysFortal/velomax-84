@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
+import { Separator } from '@/components/ui/separator';
 
 interface DeliveryFormSectionsProps {
   onComplete: () => void;
@@ -68,7 +69,8 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            {/* 1. Informações Básicas: Cliente e Minuta */}
             <DeliveryFormBasicFields 
               control={form.control}
               isEditMode={isEditMode}
@@ -76,13 +78,21 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
               getValues={form.getValues}
             />
             
-            <DeliveryFormTypeFields 
-              control={form.control}
-              watchDeliveryType={watchDeliveryType}
-              showDoorToDoor={showDoorToDoor}
-              cities={cities}
-            />
+            {/* 2. Tipos de Entrega e Carga */}
+            <div className="space-y-4">
+              <Separator className="my-4" />
+              <h3 className="text-md font-medium">Tipo de Entrega e Carga</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <DeliveryFormTypeFields 
+                  control={form.control}
+                  watchDeliveryType={watchDeliveryType}
+                  showDoorToDoor={showDoorToDoor}
+                  cities={cities}
+                />
+              </div>
+            </div>
             
+            {/* 3. Observações e Ocorrências */}
             <DeliveryFormNotes 
               control={form.control}
             />
