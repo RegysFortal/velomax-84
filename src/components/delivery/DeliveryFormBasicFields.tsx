@@ -33,6 +33,16 @@ export function DeliveryFormBasicFields({
         isEditMode={isEditMode} 
       />
       
+      {/* Movendo os detalhes da carga para cima no formulário */}
+      <div className="space-y-4">
+        <Separator className="my-4" />
+        <h3 className="text-md font-medium">Detalhes da Carga</h3>
+        
+        <ShipmentDetailsFields 
+          control={control} 
+        />
+      </div>
+      
       <div className="space-y-4">
         <Separator className="my-4" />
         <h3 className="text-md font-medium">Informações de Entrega ao Destinatário</h3>
@@ -44,15 +54,6 @@ export function DeliveryFormBasicFields({
         <ReceiverFields 
           control={control}
           setValue={setValue}
-        />
-      </div>
-      
-      <div className="space-y-4">
-        <Separator className="my-4" />
-        <h3 className="text-md font-medium">Detalhes da Carga</h3>
-        
-        <ShipmentDetailsFields 
-          control={control} 
         />
       </div>
     </>
