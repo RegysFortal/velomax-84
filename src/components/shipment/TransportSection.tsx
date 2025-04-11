@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Select,
   SelectContent,
@@ -16,8 +16,12 @@ interface TransportSectionProps {
   setCarrierName: (name: string) => void;
   trackingNumber: string;
   setTrackingNumber: (number: string) => void;
-  disabled?: boolean; // Added the disabled prop
+  disabled?: boolean;
 }
+
+// Definindo as opções de transportadoras por tipo
+const AIR_CARRIERS = ["Latam", "Gol", "Azul", "outro"];
+const ROAD_CARRIERS = ["Concept", "Jem", "Global", "outro"];
 
 export function TransportSection({
   transportMode,
@@ -28,6 +32,51 @@ export function TransportSection({
   setTrackingNumber,
   disabled
 }: TransportSectionProps) {
+  const [selectedCarrier, setSelectedCarrier] = useState<string>(
+    carrierName && 
+    ((transportMode === "air" && AIR_CARRIERS.includes(carrierName)) || 
+     (transportMode === "road" && ROAD_CARRIERS.includes(carrierName))) 
+      ? carrierName 
+      : "outro"
+  );
+  
+  const [customCarrierName, setCustomCarrierName] = useState<string>(
+    selectedCarrier === "outro" ? carrierName : ""
+  );
+
+  // Atualizar o estado quando o modo de transporte muda
+  useEffect(() => {
+    // Reset o carrier selecionado quando muda o modo de transporte
+    const currentCarriers = transportMode === "air" ? AIR_CARRIERS : ROAD_CARRIERS;
+    if (carrierName && currentCarriers.includes(carrierName)) {
+      setSelectedCarrier(carrierName);
+      setCustomCarrierName("");
+    } else {
+      setSelectedCarrier("outro");
+      setCustomCarrierName(carrierName);
+    }
+  }, [transportMode, carrierName]);
+
+  // Atualizar o nome da transportadora quando mudar a seleção
+  const handleCarrierChange = (value: string) => {
+    setSelectedCarrier(value);
+    
+    if (value !== "outro") {
+      setCarrierName(value);
+      setCustomCarrierName("");
+    } else {
+      setCustomCarrierName(customCarrierName || "");
+      // Não limpar o carrierName aqui, para preservar o valor existente
+    }
+  };
+
+  // Atualizar o nome da transportadora quando o usuário digitar um nome personalizado
+  const handleCustomCarrierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCustomCarrierName(value);
+    setCarrierName(value);
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -49,12 +98,42 @@ export function TransportSection({
 
       <div>
         <label htmlFor="carrierName" className="text-sm font-medium">Transportadora</label>
-        <Input 
-          id="carrierName" 
-          value={carrierName} 
-          onChange={(e) => setCarrierName(e.target.value)} 
-          disabled={disabled}
-        />
+        <div className="space-y-2">
+          <Select 
+            value={selectedCarrier} 
+            onValueChange={handleCarrierChange}
+            disabled={disabled}
+          >
+            <SelectTrigger id="carrierSelect">
+              <SelectValue placeholder="Selecione a transportadora" />
+            </SelectTrigger>
+            <SelectContent>
+              {transportMode === "air" ? (
+                AIR_CARRIERS.map(carrier => (
+                  <SelectItem key={carrier} value={carrier}>
+                    {carrier === "outro" ? "Outro" : carrier}
+                  </SelectItem>
+                ))
+              ) : (
+                ROAD_CARRIERS.map(carrier => (
+                  <SelectItem key={carrier} value={carrier}>
+                    {carrier === "outro" ? "Outro" : carrier}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          
+          {selectedCarrier === "outro" && (
+            <Input
+              id="customCarrierName"
+              value={customCarrierName}
+              onChange={handleCustomCarrierChange}
+              placeholder="Digite o nome da transportadora"
+              disabled={disabled}
+            />
+          )}
+        </div>
       </div>
 
       <div>
