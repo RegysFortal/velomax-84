@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useClients } from '@/contexts';
 import { 
@@ -20,7 +19,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
 import { BudgetFormValues } from './BudgetFormSchema';
-import { Budget, BudgetDeliveryType } from '@/types/budget';
+import { Budget, BudgetDeliveryType, DeliveryTypes } from '@/types/budget';
+import { getDeliveryTypeText } from '@/utils/deliveryTypeUtils';
 
 interface ClientInfoSectionProps {
   form: UseFormReturn<BudgetFormValues>;
@@ -76,18 +76,11 @@ export function ClientInfoSection({ form }: ClientInfoSectionProps) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent className="max-h-52 overflow-y-auto">
-                <SelectItem value="standard">Normal</SelectItem>
-                <SelectItem value="emergency">Emergencial</SelectItem>
-                <SelectItem value="exclusive">Veículo Exclusivo</SelectItem>
-                <SelectItem value="saturday">Sábado</SelectItem>
-                <SelectItem value="sundayHoliday">Domingo/Feriado</SelectItem>
-                <SelectItem value="difficultAccess">Difícil Acesso</SelectItem>
-                <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
-                <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
-                <SelectItem value="reshipment">Redespacho</SelectItem>
-                <SelectItem value="normalBiological">Biológico Normal</SelectItem>
-                <SelectItem value="infectiousBiological">Biológico Infeccioso</SelectItem>
-                <SelectItem value="tracked">Veículo Rastreado</SelectItem>
+                {Object.keys(DeliveryTypes).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {getDeliveryTypeText(type)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <FormMessage />
