@@ -2,6 +2,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DatePickerField } from './DatePickerField';
+import { useState, useEffect } from 'react';
 
 interface PersonalInfoSectionProps {
   name: string;
@@ -36,6 +37,12 @@ export function PersonalInfoSection({
   phone,
   setPhone
 }: PersonalInfoSectionProps) {
+  // Handle date selection with proper logging
+  const handleBirthDateChange = (date: Date | undefined) => {
+    console.log('Birth date changed:', date);
+    setBirthDate(date);
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -75,7 +82,7 @@ export function PersonalInfoSection({
         id="birthDate"
         label="Data de Nascimento"
         value={birthDate}
-        onChange={setBirthDate}
+        onChange={handleBirthDateChange}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

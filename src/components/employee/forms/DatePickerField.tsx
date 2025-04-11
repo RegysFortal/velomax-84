@@ -7,6 +7,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 interface DatePickerFieldProps {
   id: string;
@@ -23,6 +24,19 @@ export function DatePickerField({
   onChange,
   placeholder = "Selecione uma data"
 }: DatePickerFieldProps) {
+  // When value changes externally, ensure the component reflects it
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(value);
+
+  useEffect(() => {
+    setSelectedDate(value);
+  }, [value]);
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    onChange(date);
+    console.log('Date selected:', date);
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -33,19 +47,20 @@ export function DatePickerField({
             variant={"outline"}
             className={cn(
               "w-full justify-start text-left font-normal",
-              !value && "text-muted-foreground"
+              !selectedDate && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {value ? format(value, "dd/MM/yyyy", {locale: ptBR}) : <span>{placeholder}</span>}
+            {selectedDate ? format(selectedDate, "dd/MM/yyyy", {locale: ptBR}) : <span>{placeholder}</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
           <Calendar
             mode="single"
-            selected={value}
-            onSelect={onChange}
+            selected={selectedDate}
+            onSelect={handleDateSelect}
             initialFocus
+            className="pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
