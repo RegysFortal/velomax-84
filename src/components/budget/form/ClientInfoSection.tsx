@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
 import { BudgetFormValues } from './BudgetFormSchema';
-import { Budget, DeliveryType } from '@/types/budget';
+import { Budget, BudgetDeliveryType } from '@/types/budget';
 
 interface ClientInfoSectionProps {
   form: UseFormReturn<BudgetFormValues>;
