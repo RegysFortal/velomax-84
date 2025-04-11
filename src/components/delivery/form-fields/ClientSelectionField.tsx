@@ -23,6 +23,7 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
   const { clients } = useDeliveryFormContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
     if (clients.length > 0) {
@@ -32,9 +33,6 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
       console.log("ClientSelectionField - No clients available");
       setLoading(true);
     }
-    
-    // Log at the component level for easier debugging
-    console.log("ClientSelectionField - Current clients count:", clients.length);
   }, [clients]);
 
   const filteredClients = clients.filter(client => {
@@ -71,7 +69,10 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                   />
                 </div>
                 <Command className="border-0">
-                  <CommandList className="max-h-[300px] overflow-y-auto">
+                  <CommandList 
+                    className="max-h-[300px] overflow-y-auto"
+                    onBlur={() => setIsOpen(false)}
+                  >
                     <CommandEmpty>Nenhum cliente encontrado</CommandEmpty>
                     <CommandGroup>
                       {filteredClients.map(client => (
@@ -81,6 +82,8 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                           onSelect={(value) => {
                             console.log("ClientSelectionField - Client selected:", value);
                             field.onChange(value);
+                            setIsOpen(false);
+                            setSearchTerm('');
                           }}
                           className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground"
                           disabled={isEditMode && field.value}
@@ -110,3 +113,4 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
     </div>
   );
 }
+
