@@ -57,7 +57,19 @@ export function useShipmentFormSubmit({
 
   const validateForm = (): boolean => {
     // Validate required fields
-    if (!companyId.trim() || !carrierName.trim() || !trackingNumber.trim()) {
+    if (!companyId.trim()) {
+      toast.error("Por favor, selecione um cliente");
+      return false;
+    }
+    
+    // Verify if client exists
+    const clientExists = clients.some(client => client.id === companyId);
+    if (!clientExists) {
+      toast.error("Cliente selecionado não é válido");
+      return false;
+    }
+    
+    if (!carrierName.trim() || !trackingNumber.trim()) {
       toast.error("Preencha todos os campos obrigatórios");
       return false;
     }
@@ -90,7 +102,7 @@ export function useShipmentFormSubmit({
       
       // Get company name from the selected client
       const selectedClient = clients.find(c => c.id === companyId);
-      const clientName = selectedClient ? selectedClient.name : "";
+      const clientName = selectedClient ? (selectedClient.tradingName || selectedClient.name) : "";
       
       console.log("ShipmentDialog - Cliente selecionado:", selectedClient);
       console.log("ShipmentDialog - CompanyId:", companyId);

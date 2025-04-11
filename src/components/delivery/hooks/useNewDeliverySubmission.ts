@@ -3,6 +3,7 @@ import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { toast } from 'sonner';
 import { Delivery } from '@/types';
 import { generateMinuteNumber } from '@/utils/deliveryUtils';
+import { useClients } from '@/contexts';
 
 interface UseNewDeliverySubmissionProps {
   onComplete: () => void;
@@ -12,6 +13,7 @@ export const useNewDeliverySubmission = ({
   onComplete
 }: UseNewDeliverySubmissionProps) => {
   const { addDelivery } = useDeliveries();
+  const { clients } = useClients();
 
   const submitNewDelivery = async (
     newDelivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> 
@@ -22,6 +24,13 @@ export const useNewDeliverySubmission = ({
       // Verificar se há um clientId válido
       if (!newDelivery.clientId) {
         toast.error("Por favor, selecione um cliente");
+        return false;
+      }
+      
+      // Verificar se o cliente existe
+      const clientExists = clients.some(client => client.id === newDelivery.clientId);
+      if (!clientExists) {
+        toast.error("Cliente selecionado não é válido");
         return false;
       }
       

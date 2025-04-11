@@ -1,9 +1,10 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { Control } from 'react-hook-form';
 import { useClients } from '@/contexts';
+import { toast } from 'sonner';
 
 interface ClientSelectionFieldProps {
   control: Control<any>;
@@ -12,20 +13,23 @@ interface ClientSelectionFieldProps {
 
 export function ClientSelectionField({ control, isEditMode }: ClientSelectionFieldProps) {
   const { clients, loading } = useClients();
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    console.log("ClientSelectionField - Clientes disponíveis:", clients.length);
-    console.log("ClientSelectionField - Modo de edição:", isEditMode);
-    if (clients.length > 0) {
-      console.log("ClientSelectionField - Exemplo de cliente:", clients[0]);
+    if (clients.length > 0 && !initialized) {
+      console.log("ClientSelectionField - Clientes carregados:", clients.length);
+      setInitialized(true);
     }
-  }, [clients, isEditMode]);
+  }, [clients, initialized]);
 
   return (
     <div className="md:col-span-2">
       <FormField
         control={control}
         name="clientId"
+        rules={{ 
+          required: "Selecione um cliente" 
+        }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Selecione um cliente</FormLabel>
@@ -34,14 +38,24 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                 value={field.value || ""}
                 onValueChange={(value) => {
                   console.log("ClientSelectionField - ClientId changed to:", value);
-                  field.onChange(value);
+                  if (value) {
+                    const client = clients.find(c => c.id === value);
+                    if (client) {
+                      console.log("ClientSelectionField - Cliente selecionado:", client.name);
+                      field.onChange(value);
+                    } else {
+                      console.error("Cliente não encontrado:", value);
+                      toast.error("Cliente não encontrado");
+                    }
+                  } else {
+                    field.onChange("");
+                  }
                 }}
                 placeholder="Selecione um cliente"
-                disableAutoSelect={true}
+                clients={clients}
+                disabled={loading || (isEditMode && field.value)}
                 showCreateOption={true}
                 createOptionLabel="Cadastrar novo cliente"
-                clients={clients}
-                disabled={loading}
               />
             </FormControl>
             <FormMessage />
