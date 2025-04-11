@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ptBR } from 'date-fns/locale';
@@ -14,89 +14,23 @@ import { PlusCircle, Edit, Trash, Repeat } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { addDays, addWeeks, addMonths, addYears, format } from 'date-fns';
-
-// Event types with corresponding colors
-const EVENT_TYPES = {
-  'birthday': { label: 'Aniversário', color: 'bg-pink-500' },
-  'delivery': { label: 'Entrega', color: 'bg-blue-500' },
-  'holiday': { label: 'Feriado', color: 'bg-purple-500' },
-  'meeting': { label: 'Reunião', color: 'bg-amber-500' },
-  'other': { label: 'Outro', color: 'bg-gray-500' }
-};
-
-// Recurrence types
-const RECURRENCE_TYPES = {
-  'none': { label: 'Sem repetição', getValue: (date: Date) => null },
-  'daily': { label: 'Diariamente', getValue: (date: Date) => addDays(date, 1) },
-  'weekly': { label: 'Semanalmente', getValue: (date: Date) => addWeeks(date, 1) },
-  'monthly': { label: 'Mensalmente', getValue: (date: Date) => addMonths(date, 1) },
-  'yearly': { label: 'Anualmente', getValue: (date: Date) => addYears(date, 1) }
-};
-
-type EventType = keyof typeof EVENT_TYPES;
-type RecurrenceType = keyof typeof RECURRENCE_TYPES;
-
-interface Event {
-  id: string;
-  date: Date;
-  title: string;
-  type: EventType;
-  description?: string;
-  recurrence?: RecurrenceType;
-  recurrenceEndDate?: Date;
-}
+import { format } from 'date-fns';
+import { useCalendarEvents, EVENT_TYPES, RECURRENCE_TYPES, EventType, RecurrenceType, CalendarEvent } from '@/hooks/useCalendarEvents';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 export function EventsCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [events, setEvents] = useState<Event[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
-  const [newEvent, setNewEvent] = useState<Partial<Event>>({
+  const [newEvent, setNewEvent] = useState<Partial<CalendarEvent>>({
     date: new Date(),
     type: 'other',
     recurrence: 'none'
   });
   const { toast } = useToast();
-
-  // Load events from localStorage when component mounts
-  useEffect(() => {
-    const storedEvents = localStorage.getItem('velomax_calendar_events');
-    if (storedEvents) {
-      try {
-        // Need to convert string dates back to Date objects
-        const parsedEvents = JSON.parse(storedEvents, (key, value) => {
-          if (key === 'date' || key === 'recurrenceEndDate') {
-            return new Date(value);
-          }
-          return value;
-        });
-        setEvents(parsedEvents);
-      } catch (error) {
-        console.error('Error parsing stored events:', error);
-        toast({
-          title: "Erro ao carregar eventos",
-          description: "Não foi possível carregar os eventos salvos",
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Default events if nothing in storage
-      setEvents([
-        { id: '1', date: new Date(), title: 'Reunião com Cliente', type: 'meeting', description: 'Reunião com cliente ABC para discutir próximas entregas', recurrence: 'none' },
-        { id: '2', date: new Date(new Date().setDate(new Date().getDate() + 2)), title: 'Aniversário João', type: 'birthday', description: 'Aniversário do motorista João', recurrence: 'yearly' },
-        { id: '3', date: new Date(new Date().setDate(new Date().getDate() + 5)), title: 'Feriado Municipal', type: 'holiday', recurrence: 'yearly' },
-      ]);
-    }
-  }, [toast]);
-
-  // Save events to localStorage whenever they change
-  useEffect(() => {
-    if (events.length > 0) {
-      localStorage.setItem('velomax_calendar_events', JSON.stringify(events));
-    }
-  }, [events]);
+  const { events, loading, addEvent, updateEvent, deleteEvent } = useCalendarEvents();
+  const { user } = useAuth();
 
   // Filter events for the selected date
   const eventsForSelectedDate = selectedDate 
@@ -117,6 +51,15 @@ export function EventsCalendar() {
 
   // Open the dialog for creating a new event
   const handleNewEvent = () => {
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para adicionar eventos.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsEditMode(false);
     setCurrentEventId(null);
     setNewEvent({
@@ -128,7 +71,16 @@ export function EventsCalendar() {
   };
 
   // Open the dialog for editing an existing event
-  const handleEditEvent = (event: Event) => {
+  const handleEditEvent = (event: CalendarEvent) => {
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para editar eventos.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsEditMode(true);
     setCurrentEventId(event.id);
     setNewEvent({
@@ -139,16 +91,38 @@ export function EventsCalendar() {
   };
 
   // Delete an event
-  const handleDeleteEvent = (id: string) => {
-    setEvents(events.filter(event => event.id !== id));
-    toast({
-      title: "Evento excluído",
-      description: "O evento foi excluído com sucesso"
-    });
+  const handleDeleteEvent = async (id: string) => {
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para excluir eventos.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      await deleteEvent(id);
+      toast({
+        title: "Evento excluído",
+        description: "O evento foi excluído com sucesso"
+      });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
   };
 
   // Add a new event or update an existing one
-  const handleSaveEvent = () => {
+  const handleSaveEvent = async () => {
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para salvar eventos.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!newEvent.title || !newEvent.date || !newEvent.type) {
       toast({
         title: "Campos obrigatórios",
@@ -158,46 +132,28 @@ export function EventsCalendar() {
       return;
     }
 
-    if (isEditMode && currentEventId) {
-      // Update existing event
-      setEvents(prevEvents => 
-        prevEvents.map(event => 
-          event.id === currentEventId 
-            ? { 
-                ...event, 
-                ...newEvent, 
-                date: newEvent.date as Date,
-                type: newEvent.type as EventType,
-                recurrence: newEvent.recurrence as RecurrenceType
-              } 
-            : event
-        )
-      );
-      toast({
-        title: "Evento atualizado",
-        description: "O evento foi atualizado com sucesso"
-      });
-    } else {
-      // Add new event
-      const event: Event = {
-        id: Date.now().toString(),
-        date: newEvent.date!,
-        title: newEvent.title!,
-        type: newEvent.type as EventType,
-        description: newEvent.description,
-        recurrence: newEvent.recurrence as RecurrenceType,
-        recurrenceEndDate: newEvent.recurrenceEndDate
-      };
+    try {
+      if (isEditMode && currentEventId) {
+        // Update existing event
+        await updateEvent(currentEventId, newEvent);
+        toast({
+          title: "Evento atualizado",
+          description: "O evento foi atualizado com sucesso"
+        });
+      } else {
+        // Add new event
+        await addEvent(newEvent as Omit<CalendarEvent, 'id'>);
+        toast({
+          title: "Evento adicionado",
+          description: "O evento foi adicionado com sucesso"
+        });
+      }
 
-      setEvents([...events, event]);
-      toast({
-        title: "Evento adicionado",
-        description: "O evento foi adicionado com sucesso"
-      });
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error saving event:', error);
     }
-
-    setIsDialogOpen(false);
-    resetForm();
   };
 
   // Reset the form
@@ -220,6 +176,23 @@ export function EventsCalendar() {
         addMonths(newEvent.date || new Date(), 6) : undefined
     });
   };
+
+  // Helper function to add months to a date
+  const addMonths = (date: Date, months: number) => {
+    const newDate = new Date(date);
+    newDate.setMonth(newDate.getMonth() + months);
+    return newDate;
+  };
+
+  if (loading) {
+    return (
+      <Card className="col-span-12 lg:col-span-6">
+        <CardContent className="flex items-center justify-center h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="col-span-12 lg:col-span-6">
@@ -318,7 +291,9 @@ export function EventsCalendar() {
                 </div>
               </ScrollArea>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancelar</Button>
+                </DialogClose>
                 <Button onClick={handleSaveEvent}>{isEditMode ? 'Atualizar' : 'Adicionar'}</Button>
               </DialogFooter>
             </DialogContent>
