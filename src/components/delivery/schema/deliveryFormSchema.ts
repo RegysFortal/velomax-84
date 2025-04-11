@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { DeliveryType, CargoType } from '@/types';
+import { DeliveryType, CargoType } from '@/types/delivery';
 
 export const deliveryFormSchema = z.object({
   clientId: z.string({ required_error: 'Cliente é obrigatório' }),

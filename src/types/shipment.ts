@@ -56,27 +56,3 @@ export interface Shipment {
   createdAt: string;
   updatedAt: string;
 }
-
-export interface Delivery {
-  id: string;
-  clientId: string;
-  minuteNumber: string;
-  deliveryDate: string;
-  deliveryTime?: string;
-  receiver?: string;
-  receiverId?: string;
-  pickupName?: string;
-  pickupDate?: string;
-  pickupTime?: string;
-  cityId?: string;
-  weight: number;
-  packages: number;
-  cargoType: string;
-  deliveryType: string;
-  cargoValue: number;
-  totalFreight: number;
-  notes?: string;
-  occurrence?: string;
-  createdAt: string;
-  updatedAt: string;
-}

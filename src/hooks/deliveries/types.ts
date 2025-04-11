@@ -1,5 +1,5 @@
 
-import { Delivery } from '@/types';
+import { Delivery } from '@/types/delivery';
 
 export interface DeliveryResponse {
   id: string;

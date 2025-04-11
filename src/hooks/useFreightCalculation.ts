@@ -1,4 +1,7 @@
-import { Client, DeliveryType, CargoType, PriceTable } from '@/types';
+
+import { Client } from '@/types/client';
+import { DeliveryType, CargoType } from '@/types/delivery';
+import { PriceTable } from '@/types/priceTable';
 
 export const useFreightCalculation = (priceTables: PriceTable[] = []) => {
   
