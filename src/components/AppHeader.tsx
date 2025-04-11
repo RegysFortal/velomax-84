@@ -7,8 +7,9 @@ import { GlobalSearch } from './GlobalSearch';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { NavMenu } from './NavMenu';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Home, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Link } from 'react-router-dom';
 
 export function AppHeader() {
   const { isMobile } = useIsMobile();
@@ -33,6 +34,14 @@ export function AppHeader() {
         ) : (
           <NavMenu />
         )}
+        
+        <Button variant="ghost" size="icon" asChild className="mr-2">
+          <Link to="/dashboard">
+            <Home className="h-5 w-5" />
+            <span className="sr-only">Home</span>
+          </Link>
+        </Button>
+
         <div className="flex flex-1 items-center justify-end space-x-2">
           <GlobalSearch />
           <ViewSizeToggle />

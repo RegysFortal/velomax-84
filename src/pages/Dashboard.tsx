@@ -9,7 +9,8 @@ import {
   DateFilter, 
   MetricCards, 
   ChartSection, 
-  SummaryCards 
+  SummaryCards,
+  EventsCalendar 
 } from '@/components/dashboard';
 
 const Dashboard = () => {
@@ -137,10 +138,16 @@ const Dashboard = () => {
           retainedShipments={retainedShipments}
         />
         
-        <ChartSection 
-          deliveriesChartData={deliveriesChartData}
-          shipmentStatusData={shipmentStatusData}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <EventsCalendar />
+          
+          <div className="col-span-12 lg:col-span-6">
+            <ChartSection 
+              deliveriesChartData={deliveriesChartData}
+              shipmentStatusData={shipmentStatusData}
+            />
+          </div>
+        </div>
         
         <SummaryCards 
           inTransitShipments={inTransitShipments}
