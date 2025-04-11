@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Event types with corresponding colors
 const EVENT_TYPES = {
@@ -33,17 +34,51 @@ interface Event {
 
 export function EventsCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [events, setEvents] = useState<Event[]>([
-    { id: '1', date: new Date(), title: 'Reunião com Cliente', type: 'meeting', description: 'Reunião com cliente ABC para discutir próximas entregas' },
-    { id: '2', date: new Date(new Date().setDate(new Date().getDate() + 2)), title: 'Aniversário João', type: 'birthday', description: 'Aniversário do motorista João' },
-    { id: '3', date: new Date(new Date().setDate(new Date().getDate() + 5)), title: 'Feriado Municipal', type: 'holiday' },
-  ]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newEvent, setNewEvent] = useState<Partial<Event>>({
     date: new Date(),
     type: 'other'
   });
   const { toast } = useToast();
+
+  // Load events from localStorage when component mounts
+  useEffect(() => {
+    const storedEvents = localStorage.getItem('velomax_calendar_events');
+    if (storedEvents) {
+      try {
+        // Need to convert string dates back to Date objects
+        const parsedEvents = JSON.parse(storedEvents, (key, value) => {
+          if (key === 'date') {
+            return new Date(value);
+          }
+          return value;
+        });
+        setEvents(parsedEvents);
+      } catch (error) {
+        console.error('Error parsing stored events:', error);
+        toast({
+          title: "Erro ao carregar eventos",
+          description: "Não foi possível carregar os eventos salvos",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Default events if nothing in storage
+      setEvents([
+        { id: '1', date: new Date(), title: 'Reunião com Cliente', type: 'meeting', description: 'Reunião com cliente ABC para discutir próximas entregas' },
+        { id: '2', date: new Date(new Date().setDate(new Date().getDate() + 2)), title: 'Aniversário João', type: 'birthday', description: 'Aniversário do motorista João' },
+        { id: '3', date: new Date(new Date().setDate(new Date().getDate() + 5)), title: 'Feriado Municipal', type: 'holiday' },
+      ]);
+    }
+  }, [toast]);
+
+  // Save events to localStorage whenever they change
+  useEffect(() => {
+    if (events.length > 0) {
+      localStorage.setItem('velomax_calendar_events', JSON.stringify(events));
+    }
+  }, [events]);
 
   // Filter events for the selected date
   const eventsForSelectedDate = selectedDate 
@@ -113,52 +148,54 @@ export function EventsCalendar() {
               <DialogHeader>
                 <DialogTitle>Adicionar Novo Evento</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="event-title">Título do Evento</Label>
-                  <Input 
-                    id="event-title" 
-                    value={newEvent.title || ''} 
-                    onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-                    placeholder="Ex: Reunião com cliente" 
-                  />
+              <ScrollArea className="max-h-[60vh] pr-3">
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="event-title">Título do Evento</Label>
+                    <Input 
+                      id="event-title" 
+                      value={newEvent.title || ''} 
+                      onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                      placeholder="Ex: Reunião com cliente" 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="event-type">Tipo de Evento</Label>
+                    <Select 
+                      value={newEvent.type} 
+                      onValueChange={(value: EventType) => setNewEvent({...newEvent, type: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo de evento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(EVENT_TYPES).map(([key, value]) => (
+                          <SelectItem key={key} value={key}>{value.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Data do Evento</Label>
+                    <Calendar
+                      mode="single"
+                      selected={newEvent.date}
+                      onSelect={(date) => setNewEvent({...newEvent, date})}
+                      locale={ptBR}
+                      className="rounded-md border mx-auto"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="event-description">Descrição (opcional)</Label>
+                    <Input 
+                      id="event-description" 
+                      value={newEvent.description || ''} 
+                      onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                      placeholder="Descrição do evento" 
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="event-type">Tipo de Evento</Label>
-                  <Select 
-                    value={newEvent.type} 
-                    onValueChange={(value: EventType) => setNewEvent({...newEvent, type: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de evento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                        <SelectItem key={key} value={key}>{value.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Data do Evento</Label>
-                  <Calendar
-                    mode="single"
-                    selected={newEvent.date}
-                    onSelect={(date) => setNewEvent({...newEvent, date})}
-                    locale={ptBR}
-                    className="rounded-md border mx-auto"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="event-description">Descrição (opcional)</Label>
-                  <Input 
-                    id="event-description" 
-                    value={newEvent.description || ''} 
-                    onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
-                    placeholder="Descrição do evento" 
-                  />
-                </div>
-              </div>
+              </ScrollArea>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
                 <Button onClick={handleAddEvent}>Adicionar Evento</Button>

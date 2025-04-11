@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +30,7 @@ import { Plus, Search, Edit, Trash2, UserPlus } from 'lucide-react';
 import { User } from '@/types';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { EmployeeEditForm } from '@/components/employee/EmployeeEditForm';
+import { toast } from 'sonner';
 
 const getRoleBadge = (role: string) => {
   switch (role) {
@@ -77,14 +78,24 @@ const getDepartmentLabel = (department: string | undefined) => {
 export default function Employees() {
   // Change from using users to a dedicated employees array
   const { user } = useAuth();
-  const [employees, setEmployees] = useState<User[]>(() => {
-    const storedEmployees = localStorage.getItem('velomax_employees');
-    return storedEmployees ? JSON.parse(storedEmployees) : [];
-  });
+  const [employees, setEmployees] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  // Load employees from localStorage when component mounts
+  useEffect(() => {
+    const storedEmployees = localStorage.getItem('velomax_employees');
+    if (storedEmployees) {
+      try {
+        setEmployees(JSON.parse(storedEmployees));
+      } catch (error) {
+        console.error('Error loading employees:', error);
+        toast.error('Erro ao carregar dados de colaboradores');
+      }
+    }
+  }, []);
 
   // Filter employees based on search term
   const filteredEmployees = employees.filter(emp => {
@@ -125,12 +136,14 @@ export default function Employees() {
         localStorage.setItem('velomax_employees', JSON.stringify(updated));
         return updated;
       });
+      toast.success("Colaborador adicionado com sucesso");
     } else {
       setEmployees(prev => {
         const updated = prev.map(emp => emp.id === employee.id ? employee : emp);
         localStorage.setItem('velomax_employees', JSON.stringify(updated));
         return updated;
       });
+      toast.success("Colaborador atualizado com sucesso");
     }
     setIsDialogOpen(false);
   };
@@ -142,6 +155,7 @@ export default function Employees() {
         localStorage.setItem('velomax_employees', JSON.stringify(updated));
         return updated;
       });
+      toast.success("Colaborador excluído com sucesso");
     }
   };
 
