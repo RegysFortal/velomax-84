@@ -11,11 +11,12 @@ interface ClientSelectionFieldProps {
 }
 
 export function ClientSelectionField({ control, isEditMode }: ClientSelectionFieldProps) {
-  const { clients } = useClients();
+  const { clients, loading } = useClients();
 
   useEffect(() => {
     console.log("ClientSelectionField - Clientes disponíveis:", clients.length);
-  }, [clients]);
+    console.log("ClientSelectionField - Modo de edição:", isEditMode);
+  }, [clients, isEditMode]);
 
   return (
     <div className="md:col-span-2">
@@ -37,7 +38,7 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                 showCreateOption={true}
                 createOptionLabel="Cadastrar novo cliente"
                 clients={clients}
-                disabled={false}
+                disabled={loading}
               />
             </FormControl>
             <FormMessage />

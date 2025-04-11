@@ -57,6 +57,7 @@ export function ClientSearchSelect({
         }))
       ];
       
+      console.log("ClientSearchSelect - Formatted options:", options.length);
       setClientOptions(options);
       
       // Auto-select first client if conditions are met
@@ -68,7 +69,7 @@ export function ClientSearchSelect({
       console.log("ClientSearchSelect - No clients available");
       setClientOptions([]);
     }
-  }, [clients, includeAllOption, allOptionLabel, allOptionValue, disableAutoSelect]);
+  }, [clients, includeAllOption, allOptionLabel, allOptionValue, disableAutoSelect, value, onValueChange]);
   
   const handleCreateNewClient = () => {
     // Store current route to return after client creation

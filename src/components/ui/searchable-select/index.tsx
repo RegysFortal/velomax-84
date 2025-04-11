@@ -35,6 +35,22 @@ export function SearchableSelect({
   const selectedOption = options.find(option => option.value === value);
   const displayValue = selectedOption ? selectedOption.label : placeholder;
 
+  // Handle option selection
+  const handleSelect = (optionValue: string) => {
+    console.log("SearchableSelect - Item selected:", optionValue);
+    onValueChange(optionValue);
+    setOpen(false);
+  };
+
+  // Handle create new option
+  const handleCreateNew = () => {
+    if (onCreateNew) {
+      console.log("SearchableSelect - Create new option clicked");
+      onCreateNew();
+      setOpen(false);
+    }
+  };
+
   // Close the popover when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,22 +68,6 @@ export function SearchableSelect({
     };
   }, [open]);
 
-  // Handle option selection
-  const handleSelect = (optionValue: string) => {
-    console.log("SearchableSelect - Item selected:", optionValue);
-    onValueChange(optionValue);
-    setOpen(false);
-  };
-
-  // Handle create new option
-  const handleCreateNew = () => {
-    if (onCreateNew) {
-      console.log("SearchableSelect - Create new option clicked");
-      onCreateNew();
-      setOpen(false);
-    }
-  };
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -83,6 +83,8 @@ export function SearchableSelect({
         ref={popoverRef}
         align="start"
         sideOffset={4}
+        onEscapeKeyDown={() => setOpen(false)}
+        onInteractOutside={() => setOpen(false)}
       >
         <Command>
           <CommandInput 
