@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/command';
 import { Card } from '@/components/ui/card';
 import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check } from 'lucide-react';
 
 interface ClientSelectionFieldProps {
   control: Control<any>;
@@ -25,6 +25,7 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedClientName, setSelectedClientName] = useState<string | null>(null);
 
   useEffect(() => {
     if (clients.length > 0) {
@@ -62,18 +63,29 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
             <FormControl>
               <Card className="overflow-hidden border p-0">
                 <div className="border-b px-3 py-2 flex items-center">
-                  <SearchWithMagnifier
-                    placeholder="Buscar cliente..."
-                    value={searchTerm}
-                    onChange={(value) => {
-                      setSearchTerm(value);
-                      setIsOpen(true);
-                    }}
-                    className="w-full"
-                  />
+                  {selectedClientName && !isOpen ? (
+                    <div className="flex-1 py-2 px-1 font-medium">
+                      {selectedClientName}
+                    </div>
+                  ) : (
+                    <SearchWithMagnifier
+                      placeholder="Buscar cliente..."
+                      value={searchTerm}
+                      onChange={(value) => {
+                        setSearchTerm(value);
+                        setIsOpen(true);
+                      }}
+                      className="w-full"
+                    />
+                  )}
                   <button 
                     type="button"
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={() => {
+                      setIsOpen(!isOpen);
+                      if (!isOpen && selectedClientName) {
+                        setSearchTerm('');
+                      }
+                    }}
                     className="ml-2 text-muted-foreground"
                   >
                     {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -83,7 +95,6 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                   <Command className="border-0">
                     <CommandList 
                       className="max-h-[300px] overflow-y-auto"
-                      onBlur={() => setIsOpen(false)}
                     >
                       <CommandEmpty>Nenhum cliente encontrado</CommandEmpty>
                       <CommandGroup>
@@ -96,6 +107,8 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                               field.onChange(value);
                               setIsOpen(false);
                               setSearchTerm('');
+                              const displayName = client.tradingName || client.name;
+                              setSelectedClientName(displayName);
                             }}
                             className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground"
                             disabled={isEditMode && field.value}
@@ -110,7 +123,7 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                                 </span>
                               )}
                             </div>
-                            {field.value === client.id && <span className="ml-2">✓</span>}
+                            {field.value === client.id && <Check className="h-4 w-4" />}
                           </CommandItem>
                         ))}
                       </CommandGroup>
