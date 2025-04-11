@@ -64,6 +64,20 @@ export function SearchableSelect({
     }
   };
 
+  // Force correct positioning
+  useEffect(() => {
+    const handleResize = () => {
+      if (open && popoverRef.current) {
+        // Force reposition of popover when window size changes
+        const event = new Event('resize');
+        window.dispatchEvent(event);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [open]);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -75,15 +89,20 @@ export function SearchableSelect({
         />
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[var(--radix-popover-trigger-width)] p-0 bg-white dark:bg-gray-900 z-[100]" 
+        className="w-[var(--radix-popover-trigger-width)] p-0 bg-white dark:bg-gray-900 z-[9999]" 
         ref={popoverRef}
         align="start"
         sideOffset={4}
         avoidCollisions={true}
         collisionPadding={20}
-        style={{ maxHeight: "80vh", overflowY: "auto" }}
+        style={{ 
+          maxHeight: "80vh", 
+          overflowY: "auto",
+          position: "absolute",
+          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+        }}
       >
-        <Command>
+        <Command className="bg-white dark:bg-gray-900 rounded-md">
           <CommandInput 
             placeholder={`Procurar ${placeholder.toLowerCase()}`} 
             className="h-9" 

@@ -16,7 +16,7 @@ export function SearchTrigger({ displayValue, open, onClick, disabled }: SearchT
       variant="outline"
       role="combobox"
       aria-expanded={open}
-      className="w-full justify-between text-left"
+      className="w-full justify-between text-left font-normal"
       onClick={onClick}
       disabled={disabled}
     >
