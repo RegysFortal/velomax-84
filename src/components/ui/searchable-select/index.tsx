@@ -42,7 +42,23 @@ export function SearchableSelect({
   // Handle option selection
   const handleSelect = (optionValue: string) => {
     console.log("SearchableSelect - Item selected:", optionValue);
-    onValueChange(optionValue);
+    // Encontra a opção correspondente no array de opções
+    const selectedOpt = options.find(opt => opt.value === optionValue || opt.label === optionValue);
+    
+    if (selectedOpt) {
+      console.log("SearchableSelect - Found matching option:", selectedOpt);
+      onValueChange(selectedOpt.value);
+    } else {
+      // Se não encontrar exatamente, talvez seja o label que foi selecionado
+      const optByLabel = options.find(opt => opt.label.toLowerCase() === optionValue.toLowerCase());
+      if (optByLabel) {
+        console.log("SearchableSelect - Found by label:", optByLabel);
+        onValueChange(optByLabel.value);
+      } else {
+        console.log("SearchableSelect - No matching option found for:", optionValue);
+      }
+    }
+    
     setOpen(false);
   };
 
@@ -94,13 +110,22 @@ export function SearchableSelect({
             </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
-                <OptionItem
+                <CommandItem
                   key={option.value}
-                  label={option.label}
-                  description={option.description}
-                  isSelected={value === option.value}
-                  onSelect={() => handleSelect(option.value)}
-                />
+                  value={option.value}
+                  onSelect={handleSelect}
+                  className="flex items-center justify-between"
+                >
+                  <div>
+                    <div>{option.label}</div>
+                    {option.description && (
+                      <div className="text-xs text-muted-foreground">
+                        {option.description}
+                      </div>
+                    )}
+                  </div>
+                  {value === option.value && <span className="ml-2">✓</span>}
+                </CommandItem>
               ))}
               {showCreateOption && onCreateNew && options.length > 0 && (
                 <CommandItem

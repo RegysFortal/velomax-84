@@ -58,6 +58,9 @@ export function ClientSearchSelect({
       ];
       
       console.log("ClientSearchSelect - Formatted options:", options.length);
+      if (options.length > 0) {
+        console.log("ClientSearchSelect - First option:", options[0]);
+      }
       setClientOptions(options);
     } else {
       console.log("ClientSearchSelect - No clients available");
@@ -74,11 +77,16 @@ export function ClientSearchSelect({
     navigate("/clients");
   };
   
+  const handleValueChange = (newValue: string) => {
+    console.log("ClientSearchSelect - Value changed to:", newValue);
+    onValueChange(newValue);
+  };
+  
   return (
     <SearchableSelect
       options={clientOptions}
       value={value}
-      onValueChange={onValueChange}
+      onValueChange={handleValueChange}
       placeholder={placeholder}
       emptyMessage="Nenhum cliente encontrado"
       showCreateOption={showCreateOption}

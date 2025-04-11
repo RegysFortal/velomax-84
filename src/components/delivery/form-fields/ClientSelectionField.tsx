@@ -48,7 +48,9 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                 value={field.value}
                 onValueChange={(value) => {
                   console.log("ClientSelectionField - ClientId changed to:", value);
-                  field.onChange(value);
+                  if (value) {
+                    field.onChange(value);
+                  }
                 }}
                 placeholder="Selecione um cliente"
                 clients={clients}
