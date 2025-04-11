@@ -11,6 +11,7 @@ import { EventDialog } from './calendar/EventDialog';
 import { EventsList } from './calendar/EventsList';
 import { EventCalendarView } from './calendar/EventCalendarView';
 import { EventLegend } from './calendar/EventLegend';
+import { addMonths } from 'date-fns';
 
 export function EventsCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -169,13 +170,6 @@ export function EventsCalendar() {
       recurrenceEndDate: recurrence !== 'none' ? 
         addMonths(newEvent.date || new Date(), 6) : undefined
     });
-  };
-
-  // Helper function to add months to a date
-  const addMonths = (date: Date, months: number) => {
-    const newDate = new Date(date);
-    newDate.setMonth(newDate.getMonth() + months);
-    return newDate;
   };
 
   if (loading) {

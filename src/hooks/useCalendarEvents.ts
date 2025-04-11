@@ -22,36 +22,63 @@ export const useCalendarEvents = () => {
       try {
         setLoading(true);
         
-        // Try to fetch from Supabase
-        const { data, error } = await supabase
-          .from('calendar_events')
-          .select('*')
-          .order('date', { ascending: true });
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data && data.length > 0) {
-          // Convert string dates to Date objects
-          const parsedEvents = data.map(event => ({
-            id: event.id,
-            date: new Date(event.date),
-            title: event.title,
-            type: event.type as EventType,
-            description: event.description,
-            recurrence: event.recurrence as RecurrenceType,
-            recurrenceEndDate: event.recurrence_end_date ? new Date(event.recurrence_end_date) : undefined
-          }));
+        if (user) {
+          // Try to fetch from Supabase
+          const { data, error } = await supabase
+            .from('calendar_events')
+            .select('*')
+            .order('date', { ascending: true });
           
-          setEvents(parsedEvents);
-          console.log("Loaded", parsedEvents.length, "events from Supabase");
+          if (error) {
+            console.error('Supabase fetch error:', error);
+            throw error;
+          }
+          
+          if (data && data.length > 0) {
+            // Convert string dates to Date objects
+            const parsedEvents = data.map(event => ({
+              id: event.id,
+              date: new Date(event.date),
+              title: event.title,
+              type: event.type as EventType,
+              description: event.description,
+              recurrence: event.recurrence as RecurrenceType,
+              recurrenceEndDate: event.recurrence_end_date ? new Date(event.recurrence_end_date) : undefined
+            }));
+            
+            setEvents(parsedEvents);
+            console.log("Loaded", parsedEvents.length, "events from Supabase");
+          } else {
+            // If no events from Supabase, try to load from localStorage
+            const storedEvents = localStorage.getItem('velomax_calendar_events');
+            if (storedEvents) {
+              try {
+                // Need to convert string dates back to Date objects
+                const parsedEvents = JSON.parse(storedEvents, (key, value) => {
+                  if (key === 'date' || key === 'recurrenceEndDate') {
+                    return new Date(value);
+                  }
+                  return value;
+                });
+                setEvents(parsedEvents);
+                
+                // If user is logged in, migrate localStorage events to Supabase
+                if (user && parsedEvents.length > 0) {
+                  migrateLocalEventsToSupabase(parsedEvents, user);
+                }
+              } catch (error) {
+                console.error('Error parsing stored events:', error);
+                setEvents([]);
+              }
+            } else {
+              setEvents([]);
+            }
+          }
         } else {
-          // If no events from Supabase, try to load from localStorage
+          // Not logged in, try to load from localStorage
           const storedEvents = localStorage.getItem('velomax_calendar_events');
           if (storedEvents) {
             try {
-              // Need to convert string dates back to Date objects
               const parsedEvents = JSON.parse(storedEvents, (key, value) => {
                 if (key === 'date' || key === 'recurrenceEndDate') {
                   return new Date(value);
@@ -59,13 +86,8 @@ export const useCalendarEvents = () => {
                 return value;
               });
               setEvents(parsedEvents);
-              
-              // If user is logged in, migrate localStorage events to Supabase
-              if (user && parsedEvents.length > 0) {
-                migrateLocalEventsToSupabase(parsedEvents, user);
-              }
-            } catch (error) {
-              console.error('Error parsing stored events:', error);
+            } catch (e) {
+              console.error('Error parsing stored events:', e);
               setEvents([]);
             }
           } else {

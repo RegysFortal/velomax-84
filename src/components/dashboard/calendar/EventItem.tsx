@@ -14,6 +14,14 @@ interface EventItemProps {
 }
 
 export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
+  const handleDelete = async () => {
+    try {
+      await onDelete(event.id);
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
+
   return (
     <div className="p-3 border rounded-md">
       <div className="flex items-center justify-between mb-1">
@@ -68,7 +76,7 @@ export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={() => onDelete(event.id)}>
+              <AlertDialogAction onClick={handleDelete}>
                 Excluir
               </AlertDialogAction>
             </AlertDialogFooter>

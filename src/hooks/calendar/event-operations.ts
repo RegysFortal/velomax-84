@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarEvent, EventType, RecurrenceType } from './event-types';
@@ -91,6 +90,7 @@ export const useEventOperations = (
         .eq('id', id);
 
       if (error) {
+        console.error('Supabase update error:', error);
         throw error;
       }
 
@@ -128,6 +128,7 @@ export const useEventOperations = (
         .eq('id', id);
 
       if (error) {
+        console.error('Supabase delete error:', error);
         throw error;
       }
 
