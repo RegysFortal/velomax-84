@@ -4,6 +4,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
 import { toast } from 'sonner';
 
+// Define a type for the Supabase employee data format
+type SupabaseEmployee = {
+  id: string;
+  name: string;
+  position: string;
+  email: string | null;
+  phone: string | null;
+  is_active: boolean;
+  department_id: string | null;
+  hire_date: string | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  // Additional fields that were added to the database
+  rg: string | null;
+  cpf: string | null;
+  birth_date: string | null;
+  driver_license: string | null;
+  driver_license_expiry: string | null;
+  driver_license_category: string | null;
+  father_name: string | null;
+  mother_name: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+};
+
 export const useEmployeesData = () => {
   const [employees, setEmployees] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +52,7 @@ export const useEmployeesData = () => {
       }
       
       // Convert Supabase data to User type
-      const formattedEmployees: User[] = data.map(employee => ({
+      const formattedEmployees: User[] = data.map((employee: SupabaseEmployee) => ({
         id: employee.id,
         name: employee.name,
         position: employee.position,

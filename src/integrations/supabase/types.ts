@@ -259,43 +259,79 @@ export type Database = {
       }
       employees: {
         Row: {
+          address: string | null
+          birth_date: string | null
+          city: string | null
+          cpf: string | null
           created_at: string | null
           department_id: string | null
+          driver_license: string | null
+          driver_license_category: string | null
+          driver_license_expiry: string | null
           email: string | null
+          father_name: string | null
           hire_date: string | null
           id: string
           is_active: boolean | null
+          mother_name: string | null
           name: string
           phone: string | null
           position: string
+          rg: string | null
+          state: string | null
           updated_at: string | null
           user_id: string | null
+          zip_code: string | null
         }
         Insert: {
+          address?: string | null
+          birth_date?: string | null
+          city?: string | null
+          cpf?: string | null
           created_at?: string | null
           department_id?: string | null
+          driver_license?: string | null
+          driver_license_category?: string | null
+          driver_license_expiry?: string | null
           email?: string | null
+          father_name?: string | null
           hire_date?: string | null
           id?: string
           is_active?: boolean | null
+          mother_name?: string | null
           name: string
           phone?: string | null
           position: string
+          rg?: string | null
+          state?: string | null
           updated_at?: string | null
           user_id?: string | null
+          zip_code?: string | null
         }
         Update: {
+          address?: string | null
+          birth_date?: string | null
+          city?: string | null
+          cpf?: string | null
           created_at?: string | null
           department_id?: string | null
+          driver_license?: string | null
+          driver_license_category?: string | null
+          driver_license_expiry?: string | null
           email?: string | null
+          father_name?: string | null
           hire_date?: string | null
           id?: string
           is_active?: boolean | null
+          mother_name?: string | null
           name?: string
           phone?: string | null
           position?: string
+          rg?: string | null
+          state?: string | null
           updated_at?: string | null
           user_id?: string | null
+          zip_code?: string | null
         }
         Relationships: []
       }
