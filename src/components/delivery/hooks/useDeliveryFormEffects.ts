@@ -11,8 +11,8 @@ export const useDeliveryFormEffects = () => {
     form, 
     delivery, 
     isEditMode, 
-    setFreight, 
-    setShowDoorToDoor 
+    setFreight,
+    setShowDoorToDoor
   } = useDeliveryFormContext();
   
   const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
@@ -68,7 +68,7 @@ export const useDeliveryFormEffects = () => {
       
       setFreight(delivery.totalFreight || 0);
       
-      if (isDoorToDoorDelivery(delivery.deliveryType)) {
+      if (setShowDoorToDoor && isDoorToDoorDelivery(delivery.deliveryType)) {
         setShowDoorToDoor(true);
       }
     }
@@ -109,7 +109,7 @@ export const useDeliveryFormEffects = () => {
 
   // Update door-to-door status when delivery type changes
   useEffect(() => {
-    if (watchDeliveryType) {
+    if (watchDeliveryType && setShowDoorToDoor) {
       setShowDoorToDoor(isDoorToDoorDelivery(watchDeliveryType as Delivery['deliveryType']));
     }
   }, [watchDeliveryType, isDoorToDoorDelivery, setShowDoorToDoor]);

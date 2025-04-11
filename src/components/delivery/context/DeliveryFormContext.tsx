@@ -1,24 +1,12 @@
 
 import React, { createContext, useContext, useState } from 'react';
-import { useForm, FieldValues } from 'react-hook-form';
+import { useForm, FieldValues, UseFormReturn } from 'react-hook-form';
 import { Delivery, DeliveryType } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useDeliveryFormCalculations } from '../hooks/useDeliveryFormCalculations';
 
-interface DeliveryFormContextType {
-  form: ReturnType<typeof useForm<DeliveryFormValues>>;
-  delivery: Delivery | null | undefined;
-  isEditMode: boolean;
-  freight: number;
-  setFreight: React.Dispatch<React.SetStateAction<number>>;
-  showDoorToDoor: boolean;
-  setShowDoorToDoor: React.Dispatch<React.SetStateAction<boolean>>;
-  showDuplicateAlert: boolean;
-  setShowDuplicateAlert: React.Dispatch<React.SetStateAction<boolean>>;
-  formData: any;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-}
-
-interface DeliveryFormValues {
+// Define the form values interface
+export interface DeliveryFormValues {
   clientId: string;
   minuteNumber: string;
   deliveryDate: string;
@@ -35,6 +23,20 @@ interface DeliveryFormValues {
   pickupName: string;
   pickupDate: string;
   pickupTime: string;
+}
+
+interface DeliveryFormContextType {
+  form: UseFormReturn<DeliveryFormValues>;
+  delivery: Delivery | null | undefined;
+  isEditMode: boolean;
+  freight: number;
+  setFreight: React.Dispatch<React.SetStateAction<number>>;
+  showDoorToDoor: boolean;
+  setShowDoorToDoor?: React.Dispatch<React.SetStateAction<boolean>>;
+  showDuplicateAlert: boolean;
+  setShowDuplicateAlert: React.Dispatch<React.SetStateAction<boolean>>;
+  formData: any;
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
 }
 
 interface DeliveryFormProviderProps {
@@ -79,7 +81,15 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   });
   
   // Watch delivery type to determine if it's a door-to-door delivery
-  const deliveryType = form.watch('deliveryType') as DeliveryType;
+  const deliveryType = form.watch('deliveryType');
+  
+  // Update freight when relevant fields change
+  const { calculateFreight } = useDeliveryFormCalculations({
+    form,
+    setFreight,
+    delivery,
+    isEditMode
+  });
   
   // Update door-to-door status when mounting or delivery type changes
   React.useEffect(() => {
@@ -89,6 +99,13 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
       setShowDoorToDoor(false);
     }
   }, [deliveryType, isDoorToDoorDelivery]);
+  
+  // Initial freight calculation
+  React.useEffect(() => {
+    if (!isEditMode) {
+      calculateFreight();
+    }
+  }, [calculateFreight, isEditMode]);
   
   return (
     <DeliveryFormContext.Provider value={{
