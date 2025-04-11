@@ -9,6 +9,11 @@ const BudgetsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
 
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setDateFilter(undefined);
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
@@ -32,6 +37,7 @@ const BudgetsPage = () => {
         <BudgetTable 
           searchTerm={searchTerm}
           dateFilter={dateFilter}
+          onClearFilters={handleClearFilters}
         />
       </div>
     </AppLayout>
