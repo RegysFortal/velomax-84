@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useBudgets } from '@/contexts/BudgetContext';
+import { useBudgets } from '@/contexts';
 import { useClients } from '@/contexts';
 import {
   Table,

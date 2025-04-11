@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
 import { FileDown, FileUp, Save } from "lucide-react";
-import { useBudgets } from '@/contexts/BudgetContext';
+import { useBudgets } from '@/contexts';
 import { Budget } from '@/types/budget';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 
