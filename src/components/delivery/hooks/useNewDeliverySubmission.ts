@@ -19,6 +19,12 @@ export const useNewDeliverySubmission = ({
     try {
       console.log("DeliveryForm - Criando nova entrega:", newDelivery);
       
+      // Verificar se há um clientId válido
+      if (!newDelivery.clientId) {
+        toast.error("Por favor, selecione um cliente");
+        return false;
+      }
+      
       await addDelivery(newDelivery);
       
       toast.success("Entrega registrada com sucesso");

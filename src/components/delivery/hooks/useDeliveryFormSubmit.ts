@@ -5,6 +5,7 @@ import { useActivityLogging } from './useActivityLogging';
 import { useNewDeliverySubmission } from './useNewDeliverySubmission';
 import { useDeliverySubmission } from './useDeliverySubmission';
 import { useDuplicateMinuteCheck } from './useDuplicateMinuteCheck';
+import { toast } from 'sonner';
 
 interface UseDeliveryFormSubmitProps {
   isEditMode: boolean;
@@ -29,6 +30,12 @@ export const useDeliveryFormSubmit = ({
   const handleSubmit = (data: any, freight: number) => {
     try {
       console.log("DeliveryForm - Dados do formulário enviado:", data);
+      
+      // Verifica se o cliente foi selecionado
+      if (!data.clientId) {
+        toast.error("Por favor, selecione um cliente");
+        return;
+      }
       
       const weight = parseFloat(data.weight);
       const packages = parseInt(data.packages);
