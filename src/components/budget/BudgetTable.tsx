@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { useBudgets } from '@/contexts/BudgetContext';
 import { useClients } from '@/contexts';
-import { usePriceTables } from '@/contexts/priceTables';
 import {
   Table,
   TableBody,
@@ -11,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Budget } from '@/types/budget';
 import { BudgetEmptyState } from './BudgetEmptyState';
 import { BudgetTableRow } from './BudgetTableRow';
-import { BudgetTableHeader } from './BudgetTableHeader';
+import { BudgetTableHeader as TableHeaderComponent } from './BudgetTableHeader';
 
 interface BudgetTableProps {
   searchTerm: string;
@@ -317,9 +316,13 @@ export function BudgetTable({
         ) : (
           <div className="rounded-md border">
             <Table>
-              <BudgetTableHeader 
+              <TableHeaderComponent 
                 requestSort={requestSort} 
                 sortConfig={sortConfig}
+                searchTerm=""
+                setSearchTerm={() => {}}
+                dateFilter={undefined}
+                setDateFilter={() => {}}
               />
               <TableBody>
                 {filteredBudgets.map((budget) => (
