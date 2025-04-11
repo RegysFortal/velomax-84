@@ -30,22 +30,12 @@ export const useEmployeesData = () => {
         position: employee.position,
         email: employee.email || '',
         phone: employee.phone || '',
-        rg: employee.rg || '',
-        cpf: employee.cpf || '',
-        birthDate: employee.birth_date || undefined,
-        driverLicense: employee.driver_license || undefined,
-        driverLicenseExpiry: employee.driver_license_expiry || undefined,
-        driverLicenseCategory: employee.driver_license_category || undefined,
-        fatherName: employee.father_name || undefined,
-        motherName: employee.mother_name || undefined,
-        address: employee.address || undefined,
-        city: employee.city || undefined,
-        state: employee.state || undefined,
-        zipCode: employee.zip_code || undefined,
-        employeeSince: employee.employee_since || undefined,
         role: 'user',
         createdAt: employee.created_at,
-        updatedAt: employee.updated_at
+        updatedAt: employee.updated_at,
+        // Additional employee fields - only add if they exist in the database
+        ...(employee.department_id && { department: employee.department_id }),
+        ...(employee.hire_date && { employeeSince: employee.hire_date }),
       }));
       
       setEmployees(formattedEmployees);
@@ -85,21 +75,11 @@ export const useEmployeesData = () => {
         position: employee.position,
         email: employee.email,
         phone: employee.phone,
-        rg: employee.rg,
-        cpf: employee.cpf,
-        birth_date: employee.birthDate,
-        driver_license: employee.driverLicense,
-        driver_license_expiry: employee.driverLicenseExpiry,
-        driver_license_category: employee.driverLicenseCategory,
-        father_name: employee.fatherName,
-        mother_name: employee.motherName,
-        address: employee.address,
-        city: employee.city,
-        state: employee.state,
-        zip_code: employee.zipCode,
-        employee_since: employee.employeeSince,
         is_active: true,
-        user_id: supabase.auth.getUser().then(({ data }) => data.user?.id)
+        department_id: employee.department,
+        hire_date: employee.employeeSince,
+        // Get the current user's id
+        user_id: (await supabase.auth.getUser()).data.user?.id
       };
       
       const { data, error } = await supabase
@@ -133,19 +113,8 @@ export const useEmployeesData = () => {
         position: employee.position,
         email: employee.email,
         phone: employee.phone,
-        rg: employee.rg,
-        cpf: employee.cpf,
-        birth_date: employee.birthDate,
-        driver_license: employee.driverLicense,
-        driver_license_expiry: employee.driverLicenseExpiry,
-        driver_license_category: employee.driverLicenseCategory,
-        father_name: employee.fatherName,
-        mother_name: employee.motherName,
-        address: employee.address,
-        city: employee.city,
-        state: employee.state,
-        zip_code: employee.zipCode,
-        employee_since: employee.employeeSince,
+        department_id: employee.department,
+        hire_date: employee.employeeSince,
         updated_at: new Date().toISOString()
       };
       
