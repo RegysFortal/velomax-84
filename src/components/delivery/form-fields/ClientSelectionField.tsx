@@ -16,6 +16,9 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
   useEffect(() => {
     console.log("ClientSelectionField - Clientes disponíveis:", clients.length);
     console.log("ClientSelectionField - Modo de edição:", isEditMode);
+    if (clients.length > 0) {
+      console.log("ClientSelectionField - Exemplo de cliente:", clients[0]);
+    }
   }, [clients, isEditMode]);
 
   return (
@@ -34,7 +37,7 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                   field.onChange(value);
                 }}
                 placeholder="Selecione um cliente"
-                disableAutoSelect={isEditMode}
+                disableAutoSelect={true}
                 showCreateOption={true}
                 createOptionLabel="Cadastrar novo cliente"
                 clients={clients}

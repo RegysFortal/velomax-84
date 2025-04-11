@@ -58,6 +58,7 @@ export function ClientSearchSelect({
       ];
       
       console.log("ClientSearchSelect - Formatted options:", options.length);
+      console.log("ClientSearchSelect - First few options:", options.slice(0, 3));
       setClientOptions(options);
     } else {
       console.log("ClientSearchSelect - No clients available");

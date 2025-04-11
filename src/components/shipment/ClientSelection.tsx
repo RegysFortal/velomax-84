@@ -23,11 +23,14 @@ export function ClientSelection({
   useEffect(() => {
     console.log("ClientSelection - Clients count:", clients.length);
     console.log("ClientSelection - Current companyId:", companyId);
+    if (clients.length > 0) {
+      console.log("ClientSelection - First client:", clients[0]);
+    }
   }, [clients, companyId]);
   
   return (
     <div className="space-y-2 md:col-span-2">
-      <FormField id="companyName" label="Selecione um cliente">
+      <FormField id="companyName" label="Selecione um cliente" required={true}>
         <ClientSearchSelect 
           value={companyId || ""}
           onValueChange={(value) => {
