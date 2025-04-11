@@ -1,9 +1,9 @@
 
 import React, { useEffect, useState } from "react";
-import { useClients } from "@/contexts";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Client } from "@/types";
 
 interface ClientSearchSelectProps {
   value: string;
@@ -16,6 +16,7 @@ interface ClientSearchSelectProps {
   showCreateOption?: boolean;
   createOptionLabel?: string;
   disabled?: boolean;
+  clients?: Client[];
 }
 
 export function ClientSearchSelect({
@@ -28,9 +29,9 @@ export function ClientSearchSelect({
   disableAutoSelect = false,
   showCreateOption = true,
   createOptionLabel = "Cadastrar novo cliente",
-  disabled = false
+  disabled = false,
+  clients = []
 }: ClientSearchSelectProps) {
-  const { clients } = useClients();
   const [clientOptions, setClientOptions] = useState<any[]>([]);
   const navigate = useNavigate();
   

@@ -37,6 +37,7 @@ export function ClientSelection({
           showCreateOption={true}
           createOptionLabel="Cadastrar novo cliente"
           disabled={disabled}
+          clients={clients}
         />
       </FormField>
     </div>

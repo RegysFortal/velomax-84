@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { Control } from 'react-hook-form';
+import { useClients } from '@/contexts';
 
 interface ClientSelectionFieldProps {
   control: Control<any>;
@@ -10,6 +11,8 @@ interface ClientSelectionFieldProps {
 }
 
 export function ClientSelectionField({ control, isEditMode }: ClientSelectionFieldProps) {
+  const { clients } = useClients();
+
   return (
     <div className="md:col-span-2">
       <FormField
@@ -22,13 +25,14 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
               <ClientSearchSelect
                 value={field.value || ""}
                 onValueChange={(value) => {
-                  console.log("DeliveryFormBasicFields - ClientId changed to:", value);
+                  console.log("ClientSelectionField - ClientId changed to:", value);
                   field.onChange(value);
                 }}
                 placeholder="Selecione um cliente"
                 disableAutoSelect={isEditMode}
                 showCreateOption={true}
                 createOptionLabel="Cadastrar novo cliente"
+                clients={clients}
               />
             </FormControl>
             <FormMessage />
