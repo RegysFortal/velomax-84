@@ -35,7 +35,7 @@ export function ClientSelection({
             setCompanyId(value);
             const client = clients.find(c => c.id === value);
             if (client) {
-              setCompanyName(client.name);
+              setCompanyName(client.tradingName || client.name);
             }
           }}
           placeholder="Selecione um cliente"

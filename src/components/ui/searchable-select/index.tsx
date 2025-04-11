@@ -51,23 +51,6 @@ export function SearchableSelect({
     }
   };
 
-  // Close the popover when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [open]);
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -79,12 +62,10 @@ export function SearchableSelect({
         />
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[var(--radix-popover-trigger-width)] p-0" 
+        className="w-[var(--radix-popover-trigger-width)] p-0 bg-white" 
         ref={popoverRef}
         align="start"
         sideOffset={4}
-        onEscapeKeyDown={() => setOpen(false)}
-        onInteractOutside={() => setOpen(false)}
       >
         <Command>
           <CommandInput 
@@ -108,21 +89,15 @@ export function SearchableSelect({
               </div>
             </CommandEmpty>
             <CommandGroup>
-              {options.length > 0 ? (
-                options.map((option) => (
-                  <OptionItem
-                    key={option.value}
-                    label={option.label}
-                    description={option.description}
-                    isSelected={value === option.value}
-                    onSelect={() => handleSelect(option.value)}
-                  />
-                ))
-              ) : (
-                <CommandItem disabled className="py-2 px-2 text-sm text-muted-foreground">
-                  Carregando opções...
-                </CommandItem>
-              )}
+              {options.map((option) => (
+                <OptionItem
+                  key={option.value}
+                  label={option.label}
+                  description={option.description}
+                  isSelected={value === option.value}
+                  onSelect={() => handleSelect(option.value)}
+                />
+              ))}
               {showCreateOption && onCreateNew && options.length > 0 && (
                 <CommandItem
                   value="__create-new__"
