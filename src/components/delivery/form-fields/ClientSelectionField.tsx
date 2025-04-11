@@ -38,23 +38,12 @@ export function ClientSelectionField({ control, isEditMode }: ClientSelectionFie
                 value={field.value || ""}
                 onValueChange={(value) => {
                   console.log("ClientSelectionField - ClientId changed to:", value);
-                  if (value) {
-                    const client = clients.find(c => c.id === value);
-                    if (client) {
-                      console.log("ClientSelectionField - Cliente selecionado:", client.name);
-                      field.onChange(value);
-                    } else {
-                      console.error("Cliente não encontrado:", value);
-                      toast.error("Cliente não encontrado");
-                    }
-                  } else {
-                    field.onChange("");
-                  }
+                  field.onChange(value);
                 }}
                 placeholder="Selecione um cliente"
                 clients={clients}
                 disabled={loading || (isEditMode && field.value)}
-                showCreateOption={true}
+                showCreateOption={!isEditMode}
                 createOptionLabel="Cadastrar novo cliente"
               />
             </FormControl>

@@ -1,156 +1,104 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Delivery } from '@/types';
-import { useForm, UseFormReturn } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { deliveryFormSchema } from '../schema/deliveryFormSchema';
+import React, { createContext, useContext, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Delivery, DeliveryType } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
-import { formatToLocaleDate } from '@/utils/dateUtils';
-import { useClients } from '@/contexts';
+import { useDeliveryFormCalculations } from '../hooks/useDeliveryFormCalculations';
 
-// Define the context type
 interface DeliveryFormContextType {
-  form: UseFormReturn<any>;
+  form: ReturnType<typeof useForm>;
   delivery: Delivery | null | undefined;
   isEditMode: boolean;
   freight: number;
-  setFreight: React.Dispatch<React.SetStateAction<number>>;
   showDoorToDoor: boolean;
-  setShowDoorToDoor: React.Dispatch<React.SetStateAction<boolean>>;
   showDuplicateAlert: boolean;
   setShowDuplicateAlert: React.Dispatch<React.SetStateAction<boolean>>;
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
 }
 
-// Create the context
-const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
-
 interface DeliveryFormProviderProps {
   children: React.ReactNode;
   delivery?: Delivery | null;
 }
 
-// Create the provider
-export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({ children, delivery }) => {
-  const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
-  const { clients } = useClients();
-  const [freight, setFreight] = useState(0);
-  const [showDoorToDoor, setShowDoorToDoor] = useState(false);
+const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
+
+export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({ 
+  children, 
+  delivery 
+}) => {
+  const { isDoorToDoorDelivery } = useDeliveries();
+  const isEditMode = !!delivery;
+  
+  const [freight, setFreight] = useState(delivery?.totalFreight || 0);
   const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
   const [formData, setFormData] = useState<any>(null);
   
-  const isEditMode = !!delivery;
-  
-  // Setup form with react-hook-form and zod validation
+  // Initialize form with default values from delivery (if in edit mode)
   const form = useForm({
-    resolver: zodResolver(deliveryFormSchema),
     defaultValues: {
       clientId: delivery?.clientId || '',
       minuteNumber: delivery?.minuteNumber || '',
-      deliveryDate: delivery?.deliveryDate || formatToLocaleDate(new Date()),
-      deliveryTime: delivery?.deliveryTime || '',
+      deliveryDate: delivery?.deliveryDate || new Date().toISOString().split('T')[0],
+      deliveryTime: delivery?.deliveryTime || '12:00',
       receiver: delivery?.receiver || '',
-      pickupName: delivery?.pickupName || '',
-      pickupDate: delivery?.pickupDate || formatToLocaleDate(new Date()),
-      pickupTime: delivery?.pickupTime || '',
-      weight: delivery?.weight ? delivery.weight.toString() : '',
-      packages: delivery?.packages ? delivery.packages.toString() : '',
+      weight: delivery?.weight?.toString() || '',
+      packages: delivery?.packages?.toString() || '',
       deliveryType: delivery?.deliveryType || 'standard',
-      cargoType: delivery?.cargoType || 'package',
-      cargoValue: delivery?.cargoValue ? delivery.cargoValue.toString() : '',
-      cityId: delivery?.cityId || '',
+      cargoType: delivery?.cargoType || 'standard',
+      cargoValue: delivery?.cargoValue?.toString() || '',
       notes: delivery?.notes || '',
       occurrence: delivery?.occurrence || '',
-    },
+      cityId: delivery?.cityId || '',
+      pickupName: delivery?.pickupName || '',
+      pickupDate: delivery?.pickupDate || '',
+      pickupTime: delivery?.pickupTime || '',
+    }
   });
   
-  // Update form values when delivery changes
-  useEffect(() => {
-    if (delivery) {
-      form.reset({
-        clientId: delivery.clientId,
-        minuteNumber: delivery.minuteNumber,
-        deliveryDate: delivery.deliveryDate,
-        deliveryTime: delivery.deliveryTime,
-        receiver: delivery.receiver,
-        pickupName: delivery.pickupName || '',
-        pickupDate: delivery.pickupDate || formatToLocaleDate(new Date()),
-        pickupTime: delivery.pickupTime || '',
-        weight: delivery.weight.toString(),
-        packages: delivery.packages.toString(),
-        deliveryType: delivery.deliveryType,
-        cargoType: delivery.cargoType,
-        cargoValue: delivery.cargoValue ? delivery.cargoValue.toString() : '',
-        cityId: delivery.cityId || '',
-        notes: delivery.notes || '',
-        occurrence: delivery.occurrence || '',
-      });
+  // Watch delivery type to determine if it's a door-to-door delivery
+  const deliveryType = form.watch('deliveryType') as DeliveryType;
+  const showDoorToDoor = isDoorToDoorDelivery(deliveryType);
+  
+  // Update freight when relevant fields change
+  const { calculateFreight } = useDeliveryFormCalculations({ 
+    form, 
+    setFreight, 
+    delivery, 
+    isEditMode 
+  });
+  
+  // Initial freight calculation
+  React.useEffect(() => {
+    if (!isEditMode) {
+      calculateFreight();
     }
-  }, [delivery, form]);
-  
-  // Watch for changes to calculate freight
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      if (value.clientId && value.weight && value.deliveryType && value.cargoType) {
-        const weightValue = parseFloat(value.weight as string);
-        const cargoValue = value.cargoValue ? parseFloat(value.cargoValue as string) : undefined;
-        const cityId = value.cityId as string || undefined;
-        
-        if (!isNaN(weightValue) && weightValue > 0) {
-          const calculatedFreight = calculateFreight(
-            value.clientId as string,
-            weightValue,
-            value.deliveryType as Delivery['deliveryType'],
-            value.cargoType as Delivery['cargoType'],
-            cargoValue,
-            undefined,
-            cityId
-          );
-          
-          setFreight(calculatedFreight);
-        }
-      }
-      
-      // Update showDoorToDoor based on deliveryType
-      if (value.deliveryType) {
-        setShowDoorToDoor(isDoorToDoorDelivery(value.deliveryType as Delivery['deliveryType']));
-      }
-    });
-    
-    return () => {
-      if (subscription && typeof subscription.unsubscribe === 'function') {
-        subscription.unsubscribe();
-      }
-    };
-  }, [form, calculateFreight, isDoorToDoorDelivery, setFreight, setShowDoorToDoor]);
-  
-  const contextValue: DeliveryFormContextType = {
-    form,
-    delivery,
-    isEditMode,
-    freight,
-    setFreight,
-    showDoorToDoor,
-    setShowDoorToDoor,
-    showDuplicateAlert,
-    setShowDuplicateAlert,
-    formData,
-    setFormData,
-  };
+  }, [calculateFreight, isEditMode]);
   
   return (
-    <DeliveryFormContext.Provider value={contextValue}>
+    <DeliveryFormContext.Provider value={{
+      form,
+      delivery,
+      isEditMode,
+      freight,
+      showDoorToDoor,
+      showDuplicateAlert,
+      setShowDuplicateAlert,
+      formData,
+      setFormData
+    }}>
       {children}
     </DeliveryFormContext.Provider>
   );
 };
 
-// Create a hook to use the context
 export const useDeliveryFormContext = () => {
   const context = useContext(DeliveryFormContext);
-  if (context === undefined) {
+  
+  if (!context) {
     throw new Error('useDeliveryFormContext must be used within a DeliveryFormProvider');
   }
+  
   return context;
 };

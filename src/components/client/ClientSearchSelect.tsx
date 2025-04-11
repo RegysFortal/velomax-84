@@ -43,7 +43,7 @@ export function ClientSearchSelect({
   
   // Format client options
   useEffect(() => {
-    if (clients.length > 0) {
+    if (clients && clients.length > 0) {
       // Format client options for the searchable select
       const options = [
         ...(includeAllOption ? [{ 
@@ -75,14 +75,18 @@ export function ClientSearchSelect({
     navigate("/clients");
   };
   
+  const handleValueChange = (newValue: string) => {
+    console.log("ClientSearchSelect - Value changed to:", newValue);
+    if (onValueChange) {
+      onValueChange(newValue);
+    }
+  };
+  
   return (
     <SearchableSelect
       options={clientOptions}
       value={value}
-      onValueChange={(newValue) => {
-        console.log("ClientSearchSelect - Value changed to:", newValue);
-        onValueChange(newValue);
-      }}
+      onValueChange={handleValueChange}
       placeholder={placeholder}
       emptyMessage="Nenhum cliente encontrado"
       showCreateOption={showCreateOption}
