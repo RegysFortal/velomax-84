@@ -4,6 +4,8 @@ import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { UseFormReturn } from 'react-hook-form';
 import { DeliveryFormValues } from '../context/DeliveryFormContext';
+import { usePriceTables } from '@/contexts';
+import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
 
 export interface UseDeliveryFormCalculationsProps {
   form: UseFormReturn<DeliveryFormValues>;
@@ -19,6 +21,8 @@ export const useDeliveryFormCalculations = ({
   isEditMode
 }: UseDeliveryFormCalculationsProps) => {
   const { calculateFreight } = useDeliveries();
+  const { priceTables } = usePriceTables();
+  const { getClientPriceTable } = useClientPriceTable();
 
   const recalculateFreight = useCallback(() => {
     const watchClientId = form.watch('clientId');
@@ -44,7 +48,10 @@ export const useDeliveryFormCalculations = ({
         const cargoTypeValue = watchCargoType as Delivery['cargoType'];
         const cargoValueValue = watchCargoValue ? parseFloat(watchCargoValue) : undefined;
         
-        // Fallback to base calculation if the client-specific calculation fails
+        // Try to get client-specific price table first
+        const priceTable = getClientPriceTable(watchClientId);
+        
+        // Calculate freight
         let calculatedFreight;
         try {
           calculatedFreight = calculateFreight(
@@ -64,7 +71,7 @@ export const useDeliveryFormCalculations = ({
         
         console.log("Calculated freight:", calculatedFreight);
         
-        // Se o valor calculado for zero ou muito baixo, use um valor padrão razoável
+        // If calculated value is too low, use a reasonable default
         if (calculatedFreight <= 0) {
           calculatedFreight = calculateBasicFreight(cargoTypeValue, weightValue);
         }
@@ -72,8 +79,8 @@ export const useDeliveryFormCalculations = ({
         setFreight(calculatedFreight);
       } catch (error) {
         console.error('Error calculating freight:', error);
-        // Set a default freight value so something appears
-        const defaultFreight = 50; // Default freight value
+        // Set a default freight value
+        const defaultFreight = 50;
         console.log("Using default freight value:", defaultFreight);
         setFreight(defaultFreight);
       }
@@ -81,12 +88,18 @@ export const useDeliveryFormCalculations = ({
       console.log("Can't calculate freight, missing required values");
       setFreight(50); // Ensure a default value is always set
     }
-  }, [form, calculateFreight, setFreight]);
+  }, [form, calculateFreight, setFreight, getClientPriceTable]);
   
-  // Execute initial calculation when component mounts
+  // Execute initial calculation when component mounts or when 
+  // delivery/isEditMode changes
   useEffect(() => {
-    recalculateFreight();
-  }, [recalculateFreight]);
+    // Initial calculation with a slight delay to ensure form values are loaded
+    const timer = setTimeout(() => {
+      recalculateFreight();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [recalculateFreight, delivery, isEditMode]);
   
   // Basic fallback freight calculation
   const calculateBasicFreight = (cargoType: Delivery['cargoType'], weight: number): number => {

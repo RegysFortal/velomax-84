@@ -35,13 +35,12 @@ export const useAddDelivery = (
         delivery_date: delivery.deliveryDate,
         delivery_time: delivery.deliveryTime || '',
         receiver: delivery.receiver || '',
-        // Removendo campo receiver_document que estava causando erro
-        weight: delivery.weight,
-        packages: delivery.packages,
+        weight: parseFloat(delivery.weight.toString()), // Ensure weight is a number
+        packages: parseInt(delivery.packages.toString()), // Ensure packages is a number
         delivery_type: delivery.deliveryType,
         cargo_type: delivery.cargoType,
-        cargo_value: delivery.cargoValue || 0,
-        total_freight: delivery.totalFreight,
+        cargo_value: delivery.cargoValue ? parseFloat(delivery.cargoValue.toString()) : 0,
+        total_freight: delivery.totalFreight || 50, // Ensure there's always a freight value
         notes: delivery.notes || '',
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
@@ -71,7 +70,7 @@ export const useAddDelivery = (
         deliveryDate: responseData.delivery_date,
         deliveryTime: responseData.delivery_time || '',
         receiver: responseData.receiver || '',
-        receiverId: undefined, // Campo removido da tabela
+        receiverId: undefined, // Field removed from table
         weight: responseData.weight,
         packages: responseData.packages,
         deliveryType: responseData.delivery_type as Delivery['deliveryType'],
@@ -83,7 +82,7 @@ export const useAddDelivery = (
         createdAt: responseData.created_at || timestamp,
         updatedAt: responseData.updated_at || timestamp,
         cityId: responseData.city_id || undefined,
-        // Adicionando campos que existem em nosso tipo mas não na tabela
+        // Adding fields that exist in our type but not in the table
         pickupName: '',
         pickupDate: '',
         pickupTime: '',

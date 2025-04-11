@@ -41,14 +41,16 @@ export const useNewDeliverySubmission = ({
         console.log("Definindo um valor padrão para o frete:", newDelivery.totalFreight);
       }
       
-      // Limpar ou remover campos problemáticos
-      // Remover o receiverId se ele estiver causando problemas
-      if (typeof newDelivery.receiverId === 'object') {
-        delete newDelivery.receiverId;
-      }
+      // Convert form values to proper types
+      const formattedDelivery = {
+        ...newDelivery,
+        weight: parseFloat(String(newDelivery.weight)),
+        packages: parseInt(String(newDelivery.packages)),
+        cargoValue: newDelivery.cargoValue ? parseFloat(String(newDelivery.cargoValue)) : 0
+      };
       
       try {
-        await addDelivery(newDelivery);
+        await addDelivery(formattedDelivery);
         
         toast.success("Entrega registrada com sucesso");
         onComplete();

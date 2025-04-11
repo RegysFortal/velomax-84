@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { formatToReadableDate } from '@/utils/dateUtils';
 
 interface DeliveryTableRowProps {
   delivery: Delivery;
@@ -36,7 +37,7 @@ export function DeliveryTableRow({
     >
       <TableCell>{delivery.minuteNumber}</TableCell>
       <TableCell>{clientName}</TableCell>
-      <TableCell>{delivery.deliveryDate}</TableCell>
+      <TableCell>{formatToReadableDate(delivery.deliveryDate)}</TableCell>
       <TableCell>{delivery.deliveryTime}</TableCell>
       <TableCell>{delivery.receiver}</TableCell>
       <TableCell>{delivery.weight} kg</TableCell>

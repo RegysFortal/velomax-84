@@ -36,6 +36,9 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     console.log('DatePicker - Date selected:', selectedDate);
+    if (selectedDate) {
+      console.log('Selected date:', format(selectedDate, 'yyyy-MM-dd'));
+    }
     if (onSelect) {
       onSelect(selectedDate);
     }
@@ -97,14 +100,14 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
             <CalendarIcon className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-background z-50" align="end">
+        <PopoverContent className="w-auto p-0 bg-background z-[1000]" align="end">
           <Calendar
             mode="single"
             selected={date}
             onSelect={handleDateSelect}
             initialFocus
             locale={ptBR}
-            className={cn("p-3 pointer-events-auto z-50")}
+            className="pointer-events-auto z-[1000]"
           />
         </PopoverContent>
       </Popover>

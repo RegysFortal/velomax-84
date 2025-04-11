@@ -4,6 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Control } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
+import { formatToReadableDate } from '@/utils/dateUtils';
 
 interface DeliveryDateTimeFieldsProps {
   control: Control<any>;
