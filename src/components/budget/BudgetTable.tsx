@@ -7,7 +7,6 @@ import {
   TableBody,
 } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
-import { Budget } from '@/types/budget';
 import { BudgetEmptyState } from './BudgetEmptyState';
 import { BudgetTableRow } from './BudgetTableRow';
 import { BudgetTableHeader } from './BudgetTableHeader';
