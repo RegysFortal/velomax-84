@@ -62,29 +62,33 @@ export const useFetchClients = (user?: { id: string } | null) => {
       } catch (error) {
         console.error('Error fetching clients:', error);
         
+        // Variable was missing in this scope, so let's define it
+        let localClientsLoaded = false;
+        
+        // Check if we already loaded from localStorage
+        const storedClients = localStorage.getItem('velomax_clients');
+        if (storedClients) {
+          try {
+            const parsedClients = JSON.parse(storedClients);
+            console.log("Loaded", parsedClients.length, "clients from localStorage as fallback");
+            setClients(parsedClients);
+            localClientsLoaded = true;
+          } catch (error) {
+            console.error('Failed to parse stored clients', error);
+            console.log("Using initial clients fallback");
+            setClients(INITIAL_CLIENTS);
+          }
+        } else {
+          console.log("No stored clients found, using initial clients fallback");
+          setClients(INITIAL_CLIENTS);
+        }
+        
         if (!localClientsLoaded) {
           toast({
             title: "Erro ao carregar clientes",
             description: "Usando dados locais como fallback.",
             variant: "destructive"
           });
-          
-          // Load from localStorage as fallback if not already loaded
-          const storedClients = localStorage.getItem('velomax_clients');
-          if (storedClients) {
-            try {
-              const parsedClients = JSON.parse(storedClients);
-              console.log("Loaded", parsedClients.length, "clients from localStorage as fallback");
-              setClients(parsedClients);
-            } catch (error) {
-              console.error('Failed to parse stored clients', error);
-              console.log("Using initial clients fallback");
-              setClients(INITIAL_CLIENTS);
-            }
-          } else {
-            console.log("No stored clients found, using initial clients fallback");
-            setClients(INITIAL_CLIENTS);
-          }
         }
       } finally {
         setLoading(false);
