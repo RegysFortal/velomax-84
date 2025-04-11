@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -40,16 +39,16 @@ export function DeliveryFormTypeFields({
               <SelectContent className="max-h-80">
                 <SelectItem value="standard">Normal</SelectItem>
                 <SelectItem value="emergency">Emergencial</SelectItem>
-                <SelectItem value="exclusive">Exclusivo</SelectItem>
+                <SelectItem value="exclusive">Veículo Exclusivo</SelectItem>
                 <SelectItem value="saturday">Sábado</SelectItem>
                 <SelectItem value="sundayHoliday">Domingo/Feriado</SelectItem>
-                <SelectItem value="difficultAccess">Acesso Difícil</SelectItem>
+                <SelectItem value="difficultAccess">Difícil Acesso</SelectItem>
                 <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
-                <SelectItem value="doorToDoorInterior">Interior</SelectItem>
+                <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
                 <SelectItem value="reshipment">Redespacho</SelectItem>
                 <SelectItem value="normalBiological">Biológico Normal</SelectItem>
                 <SelectItem value="infectiousBiological">Biológico Infeccioso</SelectItem>
-                <SelectItem value="tracked">Rastreado</SelectItem>
+                <SelectItem value="tracked">Veículo Rastreado</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -74,7 +73,6 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting = fal
   const watchClientId = form.watch("clientId");
   const watchMerchandiseValue = form.watch("merchandiseValue");
 
-  // Update client and price table when client changes
   useEffect(() => {
     const client = clients.find(c => c.id === watchClientId);
     setSelectedClient(client);
@@ -89,12 +87,10 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting = fal
     }
   }, [watchClientId, clients, priceTables]);
 
-  // Update total volumes when packages change
   useEffect(() => {
     const totalVolumes = watchPackages.reduce((sum, pkg) => sum + (pkg.quantity || 1), 0);
     form.setValue("totalVolumes", totalVolumes);
     
-    // Calculate package weights
     const calculations = watchPackages.map(pkg => calculatePackageWeights(pkg));
     setPackageCalculations(calculations);
   }, [watchPackages, form, calculatePackageWeights]);
@@ -183,18 +179,18 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting = fal
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="max-h-52 overflow-y-auto">
-                      <SelectItem value="standard">Padrão</SelectItem>
+                      <SelectItem value="standard">Normal</SelectItem>
                       <SelectItem value="emergency">Emergencial</SelectItem>
-                      <SelectItem value="exclusive">Exclusiva</SelectItem>
-                      <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
-                      <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
+                      <SelectItem value="exclusive">Veículo Exclusivo</SelectItem>
                       <SelectItem value="saturday">Sábado</SelectItem>
                       <SelectItem value="sundayHoliday">Domingo/Feriado</SelectItem>
                       <SelectItem value="difficultAccess">Difícil Acesso</SelectItem>
-                      <SelectItem value="reshipment">Reentrega</SelectItem>
-                      <SelectItem value="normalBiological">Material Biológico Normal</SelectItem>
-                      <SelectItem value="infectiousBiological">Material Biológico Infectante</SelectItem>
-                      <SelectItem value="tracked">Rastreada</SelectItem>
+                      <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
+                      <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
+                      <SelectItem value="reshipment">Redespacho</SelectItem>
+                      <SelectItem value="normalBiological">Biológico Normal</SelectItem>
+                      <SelectItem value="infectiousBiological">Biológico Infeccioso</SelectItem>
+                      <SelectItem value="tracked">Veículo Rastreado</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
