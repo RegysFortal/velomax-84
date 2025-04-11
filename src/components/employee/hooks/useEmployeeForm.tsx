@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@/types';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 export function useEmployeeForm(employee: User | null, isCreating: boolean, onComplete: () => void, onSave?: (employee: User, isNew: boolean) => void) {
   // Form state
@@ -104,7 +105,7 @@ export function useEmployeeForm(employee: User | null, isCreating: boolean, onCo
       const currentDate = new Date().toISOString();
       
       const userData: User = {
-        id: employee?.id || `emp-${Date.now()}`,
+        id: employee?.id || uuidv4(),
         name,
         rg,
         cpf,
@@ -129,8 +130,7 @@ export function useEmployeeForm(employee: User | null, isCreating: boolean, onCo
       };
 
       if (onSave) {
-        onSave(userData, isCreating);
-        toast.success(isCreating ? "Colaborador adicionado" : "Colaborador atualizado");
+        await onSave(userData, isCreating);
       }
       
       onComplete();

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -31,6 +30,7 @@ import { User } from '@/types';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { EmployeeEditForm } from '@/components/employee/EmployeeEditForm';
 import { toast } from 'sonner';
+import { useEmployeesData } from '@/hooks/useEmployeesData';
 
 const getRoleBadge = (role: string) => {
   switch (role) {
@@ -76,28 +76,13 @@ const getDepartmentLabel = (department: string | undefined) => {
 };
 
 export default function Employees() {
-  // Change from using users to a dedicated employees array
   const { user } = useAuth();
-  const [employees, setEmployees] = useState<User[]>([]);
+  const { employees, loading, addEmployee, updateEmployee, deleteEmployee } = useEmployeesData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Load employees from localStorage when component mounts
-  useEffect(() => {
-    const storedEmployees = localStorage.getItem('velomax_employees');
-    if (storedEmployees) {
-      try {
-        setEmployees(JSON.parse(storedEmployees));
-      } catch (error) {
-        console.error('Error loading employees:', error);
-        toast.error('Erro ao carregar dados de colaboradores');
-      }
-    }
-  }, []);
-
-  // Filter employees based on search term
   const filteredEmployees = employees.filter(emp => {
     const searchText = searchTerm.toLowerCase();
     return (
@@ -125,37 +110,31 @@ export default function Employees() {
     setSelectedEmployee(null);
   };
 
-  const handleSaveEmployee = (employee: User, isNew: boolean) => {
-    if (isNew) {
-      const newEmployee = {
-        ...employee,
-        id: `emp-${Date.now()}`
-      };
-      setEmployees(prev => {
-        const updated = [...prev, newEmployee];
-        localStorage.setItem('velomax_employees', JSON.stringify(updated));
-        return updated;
-      });
-      toast.success("Colaborador adicionado com sucesso");
-    } else {
-      setEmployees(prev => {
-        const updated = prev.map(emp => emp.id === employee.id ? employee : emp);
-        localStorage.setItem('velomax_employees', JSON.stringify(updated));
-        return updated;
-      });
-      toast.success("Colaborador atualizado com sucesso");
+  const handleSaveEmployee = async (employee: User, isNew: boolean) => {
+    try {
+      if (isNew) {
+        await addEmployee(employee);
+        toast.success("Colaborador adicionado com sucesso");
+      } else {
+        await updateEmployee(employee);
+        toast.success("Colaborador atualizado com sucesso");
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving employee:', error);
+      toast.error(isNew ? "Erro ao adicionar colaborador" : "Erro ao atualizar colaborador");
     }
-    setIsDialogOpen(false);
   };
 
-  const handleDeleteEmployee = (id: string) => {
+  const handleDeleteEmployee = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este funcionário?')) {
-      setEmployees(prev => {
-        const updated = prev.filter(emp => emp.id !== id);
-        localStorage.setItem('velomax_employees', JSON.stringify(updated));
-        return updated;
-      });
-      toast.success("Colaborador excluído com sucesso");
+      try {
+        await deleteEmployee(id);
+        toast.success("Colaborador excluído com sucesso");
+      } catch (error) {
+        console.error('Error deleting employee:', error);
+        toast.error("Erro ao excluir colaborador");
+      }
     }
   };
 
@@ -197,53 +176,59 @@ export default function Employees() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Cargo</TableHead>
-                  <TableHead>Departamento</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEmployees.length === 0 ? (
+            {loading ? (
+              <div className="py-8 text-center text-muted-foreground">
+                Carregando colaboradores...
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                      Nenhum colaborador encontrado
-                    </TableCell>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Cargo</TableHead>
+                    <TableHead>Departamento</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ) : (
-                  filteredEmployees.map((emp) => (
-                    <TableRow key={emp.id}>
-                      <TableCell className="font-medium">{emp.name}</TableCell>
-                      <TableCell>{emp.email}</TableCell>
-                      <TableCell>{emp.position ? getPositionBadge(emp.position) : '-'}</TableCell>
-                      <TableCell>{getDepartmentLabel(emp.department)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditClick(emp)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteEmployee(emp.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredEmployees.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                        Nenhum colaborador encontrado
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    filteredEmployees.map((emp) => (
+                      <TableRow key={emp.id}>
+                        <TableCell className="font-medium">{emp.name}</TableCell>
+                        <TableCell>{emp.email}</TableCell>
+                        <TableCell>{emp.position ? getPositionBadge(emp.position) : '-'}</TableCell>
+                        <TableCell>{getDepartmentLabel(emp.department)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditClick(emp)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteEmployee(emp.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
