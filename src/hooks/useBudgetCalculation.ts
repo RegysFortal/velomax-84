@@ -80,6 +80,8 @@ export function useBudgetCalculation() {
       totalWeight += effectiveWeight * quantity;
     });
     
+    console.log(`Total weight: ${totalWeight}kg, Base rate before excess weight: ${totalValue}`);
+    
     // Calculate excess weight surcharge only if the total weight exceeds 10kg
     if (totalWeight > 10) {
       // Determine which rate to use based on delivery type
@@ -97,35 +99,51 @@ export function useBudgetCalculation() {
         ratePerKg = priceTable.excessWeight.reshipmentPerKg;
       }
       
+      const excessWeightCharge = (totalWeight - 10) * ratePerKg;
+      console.log(`Excess weight: ${totalWeight - 10}kg at rate ${ratePerKg}/kg = ${excessWeightCharge}`);
+      
       // Only apply the excess weight rate to weight above 10kg
-      totalValue += (totalWeight - 10) * ratePerKg;
+      totalValue += excessWeightCharge;
     }
     
     // Add insurance if applicable
     if (budget.merchandiseValue > 0) {
-      totalValue += budget.merchandiseValue * (priceTable.insurance.rate || 0.01); // Default to 1%
+      const insuranceValue = budget.merchandiseValue * (priceTable.insurance.rate || 0.01);
+      console.log(`Insurance value: ${insuranceValue} (${budget.merchandiseValue} × ${priceTable.insurance.rate || 0.01})`);
+      totalValue += insuranceValue;
     }
     
     // Add additional services
     if (budget.additionalServices && budget.additionalServices.length > 0) {
-      budget.additionalServices.forEach(service => {
-        totalValue += service.value;
-      });
+      const additionalServicesValue = budget.additionalServices.reduce((sum, service) => sum + service.value, 0);
+      console.log(`Additional services value: ${additionalServicesValue}`);
+      totalValue += additionalServicesValue;
     }
     
     // If both collection and delivery are selected, multiply by 2
     if (budget.hasCollection && budget.hasDelivery) {
+      console.log(`Collection + Delivery: ${totalValue} * 2 = ${totalValue * 2}`);
       totalValue *= 2;
     } else if (!budget.hasDelivery) {
       // If only collection is selected (no delivery), reduce value
+      console.log(`Collection only: ${totalValue} * 0.7 = ${totalValue * 0.7}`);
       totalValue *= 0.7;
     }
     
     // Apply discount if configured in price table
     if (priceTable.defaultDiscount && priceTable.defaultDiscount > 0) {
-      totalValue = totalValue * (1 - priceTable.defaultDiscount / 100);
+      const discountValue = totalValue * (priceTable.defaultDiscount / 100);
+      console.log(`Discount: ${discountValue} (${priceTable.defaultDiscount}%)`);
+      totalValue = totalValue - discountValue;
     }
     
+    // Apply multiplier if exists
+    if (priceTable.multiplier && priceTable.multiplier > 0) {
+      console.log(`Multiplier: ${totalValue} * ${priceTable.multiplier} = ${totalValue * priceTable.multiplier}`);
+      totalValue *= priceTable.multiplier;
+    }
+    
+    console.log(`Final calculation: ${totalValue}`);
     return totalValue;
   };
 

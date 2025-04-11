@@ -46,7 +46,7 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting = fal
       clientId: '',
       totalVolumes: 1,
       deliveryType: 'standard',
-      merchandiseValue: 0,
+      merchandiseValue: undefined,
       hasCollection: false,
       hasDelivery: true,
       additionalServices: [],
@@ -210,7 +210,11 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting = fal
                       step="0.01" 
                       placeholder="Digite o valor da mercadoria"
                       {...field} 
-                      onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                      value={field.value === undefined || field.value === null ? '' : field.value}
+                      onChange={e => {
+                        const value = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                        field.onChange(value);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
