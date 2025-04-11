@@ -5,9 +5,9 @@ import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { UseFormReturn } from 'react-hook-form';
 import { DeliveryFormValues } from '../context/DeliveryFormContext';
 
-interface UseDeliveryFormCalculationsProps {
+export interface UseDeliveryFormCalculationsProps {
   form: UseFormReturn<DeliveryFormValues>;
-  setFreight: React.Dispatch<React.SetStateAction<number>>;
+  setFreight: (value: number) => void;
   delivery: Delivery | null | undefined;
   isEditMode: boolean;
 }

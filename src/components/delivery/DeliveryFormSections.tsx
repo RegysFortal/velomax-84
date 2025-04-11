@@ -7,7 +7,6 @@ import { DeliveryFormBasicFields } from './DeliveryFormBasicFields';
 import { DeliveryFormTypeFields } from './DeliveryFormTypeFields';
 import { DeliveryFormNotes } from './DeliveryFormNotes';
 import { useDeliveryFormContext } from './context/DeliveryFormContext';
-import { useDeliveryFormEffects } from './hooks/useDeliveryFormEffects';
 import { useCities } from '@/contexts/CitiesContext';
 import {
   AlertDialog,
@@ -20,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
+import { useDeliveryFormEffects } from './hooks/useDeliveryFormEffects';
 
 interface DeliveryFormSectionsProps {
   onComplete: () => void;
@@ -39,11 +39,12 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     showDuplicateAlert,
     setShowDuplicateAlert,
     formData,
-    setFormData 
+    setFormData,
+    setFreight
   } = useDeliveryFormContext();
   
   const { cities } = useCities();
-  const { watchDeliveryType } = useDeliveryFormEffects();
+  const { watchDeliveryType } = useDeliveryFormEffects(form, delivery, isEditMode, setFreight);
   const { handleSubmit, handleConfirmDuplicate } = useDeliveryFormSubmit({
     isEditMode,
     delivery,

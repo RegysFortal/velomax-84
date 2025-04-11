@@ -2,30 +2,23 @@
 import { useEffect } from 'react';
 import { format } from 'date-fns';
 import { Delivery } from '@/types';
-import { useDeliveryFormContext } from '../context/DeliveryFormContext';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
-import { useClients } from '@/contexts';
 
-export const useDeliveryFormEffects = () => {
-  const { 
-    form, 
-    delivery, 
-    isEditMode, 
-    setFreight,
-    showDoorToDoor
-  } = useDeliveryFormContext();
-  
-  const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
-  const { clients } = useClients();
+export const useDeliveryFormEffects = (
+  form: any,
+  delivery: Delivery | null,
+  isEditMode: boolean,
+  setFreight: (value: number) => void
+) => {
+  const { calculateFreight } = useDeliveries();
 
   // Initialize form with delivery data for edit mode
   useEffect(() => {
     if (delivery) {
       console.log("DeliveryForm - Entrega a ser editada:", delivery);
       console.log("DeliveryForm - Cliente ID:", delivery.clientId);
-      console.log("DeliveryForm - Clientes disponíveis:", clients);
     }
-  }, [delivery, clients]);
+  }, [delivery]);
 
   useEffect(() => {
     if (delivery) {
@@ -70,7 +63,7 @@ export const useDeliveryFormEffects = () => {
     }
   }, [delivery, form, setFreight]);
 
-  // Watch form values for freight calculation and door-to-door detection
+  // Watch form values for freight calculation
   const watchClientId = form.watch('clientId');
   const watchWeight = form.watch('weight');
   const watchDeliveryType = form.watch('deliveryType');

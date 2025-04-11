@@ -1,16 +1,35 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { deliveryFormSchema } from '../schema/deliveryFormSchema';
 import { Delivery, Client } from '@/types';
-import { useDeliveryFormCalculations } from '../hooks/useDeliveryFormCalculations';
-import { useDeliveryFormEffects } from '../hooks/useDeliveryFormEffects';
-import { useDuplicateMinuteCheck } from '../hooks/useDuplicateMinuteCheck';
+import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts';
 
+export interface DeliveryFormValues {
+  clientId: string;
+  minuteNumber: string;
+  pickupName: string;
+  pickupDate: string;
+  pickupTime: string;
+  receiver: string;
+  receiverId: string;
+  deliveryDate: string;
+  deliveryTime: string;
+  weight: string;
+  packages: string;
+  deliveryType: string;
+  cargoType: string;
+  cargoValue: string;
+  cityId: string;
+  notes: string;
+  occurrence: string;
+  totalFreight: string;
+}
+
 interface DeliveryFormContextType {
-  form: ReturnType<typeof useForm>;
+  form: ReturnType<typeof useForm<DeliveryFormValues>>;
   delivery: Delivery | null;
   isEditMode: boolean;
   freight: number;
@@ -20,6 +39,7 @@ interface DeliveryFormContextType {
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
   clients: Client[];
+  setFreight: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
@@ -30,11 +50,13 @@ export const DeliveryFormProvider: React.FC<{
 }> = ({ children, delivery = null }) => {
   const [formData, setFormData] = useState<any>(null);
   const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
+  const [freight, setFreight] = useState(0);
+  const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
   const isEditMode = !!delivery;
   const { clients, loading: clientsLoading } = useClients();
   
   // Initialize the form
-  const form = useForm({
+  const form = useForm<DeliveryFormValues>({
     resolver: zodResolver(deliveryFormSchema),
     defaultValues: {
       clientId: delivery?.clientId || '',
@@ -60,14 +82,9 @@ export const DeliveryFormProvider: React.FC<{
   
   console.log("DeliveryFormContext initialized with", clients.length, "clients");
   
-  // Calculate freight based on form values
-  const { freight, showDoorToDoor } = useDeliveryFormCalculations(form);
-  
-  // Setup form effects (watchers, etc)
-  useDeliveryFormEffects(form);
-  
-  // Check for duplicates
-  useDuplicateMinuteCheck(form);
+  // Calculate showDoorToDoor based on current delivery type
+  const deliveryType = form.watch('deliveryType');
+  const showDoorToDoor = isDoorToDoorDelivery(deliveryType as Delivery['deliveryType']);
 
   return (
     <DeliveryFormContext.Provider
@@ -81,7 +98,8 @@ export const DeliveryFormProvider: React.FC<{
         setShowDuplicateAlert,
         formData,
         setFormData,
-        clients
+        clients,
+        setFreight
       }}
     >
       {children}
