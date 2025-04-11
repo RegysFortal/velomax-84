@@ -1,66 +1,27 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Budget } from '@/types/budget';
-import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
-import { useBudgetCalculation } from '@/hooks/useBudgetCalculation';
+import { v4 as uuidv4 } from 'uuid';
+import { useClientPriceTable } from './useClientPriceTable';
 import { useBudgetCalculations } from '@/components/budget/hooks/useBudgetCalculations';
-import { useClients, usePriceTables } from '@/contexts';
 
-type BudgetContextType = {
+interface UseBudgetCRUDProps {
   budgets: Budget[];
-  addBudget: (budget: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateBudget: (id: string, budget: Partial<Budget>) => Promise<void>;
-  deleteBudget: (id: string) => Promise<void>;
-  getBudget: (id: string) => Budget | undefined;
-  loading: boolean;
-};
+  setBudgets: React.Dispatch<React.SetStateAction<Budget[]>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
-
-export const BudgetProvider = ({ children }: { children: ReactNode }) => {
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [loading, setLoading] = useState(false);
+export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUDProps) {
   const { toast } = useToast();
-  const { calculateBudgetValue: oldCalculateBudgetValue } = useBudgetCalculation();
+  const { getClientPriceTable } = useClientPriceTable();
   const { calculateBudgetValue } = useBudgetCalculations();
-  const { clients } = useClients();
-  const { priceTables } = usePriceTables();
-
-  // Retrieve budgets from localStorage on mount and save budgets to localStorage whenever they change
-  useEffect(() => {
-    // Load data from localStorage on mount
-    const storedBudgets = localStorage.getItem('velomax_budgets');
-    if (storedBudgets) {
-      try {
-        setBudgets(JSON.parse(storedBudgets));
-      } catch (error) {
-        console.error("Failed to parse stored budgets", error);
-      }
-    }
-  }, []);
-
-  // Save data to localStorage whenever budgets change
-  useEffect(() => {
-    if (budgets.length > 0) {
-      localStorage.setItem('velomax_budgets', JSON.stringify(budgets));
-    }
-  }, [budgets]);
-
-  // Helper function to get the price table for a client
-  const getClientPriceTable = (clientId: string) => {
-    const client = clients.find(c => c.id === clientId);
-    if (!client || !client.priceTableId) return undefined;
-    
-    return priceTables.find(pt => pt.id === client.priceTableId);
-  };
 
   const addBudget = async (budgetData: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
       setLoading(true);
       const timestamp = new Date().toISOString();
       
-      // Obter a tabela de preços do cliente
+      // Get the client's price table
       const priceTable = getClientPriceTable(budgetData.clientId);
       
       // Calculate the total value based on the client's price table
@@ -107,7 +68,7 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Budget not found");
       }
       
-      // If we're updating fields that affect the total value, recalculate it
+      // Check if we need to recalculate the total value
       const needsRecalculation = 
         'clientId' in budgetUpdate || 
         'packages' in budgetUpdate || 
@@ -184,24 +145,10 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     return budgets.find(budget => budget.id === id);
   };
 
-  return (
-    <BudgetContext.Provider value={{
-      budgets,
-      addBudget,
-      updateBudget,
-      deleteBudget,
-      getBudget,
-      loading,
-    }}>
-      {children}
-    </BudgetContext.Provider>
-  );
-};
-
-export const useBudgets = () => {
-  const context = useContext(BudgetContext);
-  if (context === undefined) {
-    throw new Error('useBudgets must be used within a BudgetProvider');
-  }
-  return context;
-};
+  return {
+    addBudget,
+    updateBudget,
+    deleteBudget,
+    getBudget
+  };
+}
