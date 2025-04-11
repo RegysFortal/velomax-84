@@ -12,7 +12,7 @@ export const useDeliveryFormEffects = () => {
     delivery, 
     isEditMode, 
     setFreight,
-    setShowDoorToDoor
+    showDoorToDoor
   } = useDeliveryFormContext();
   
   const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
@@ -67,12 +67,8 @@ export const useDeliveryFormEffects = () => {
       });
       
       setFreight(delivery.totalFreight || 0);
-      
-      if (setShowDoorToDoor && isDoorToDoorDelivery(delivery.deliveryType)) {
-        setShowDoorToDoor(true);
-      }
     }
-  }, [delivery, isDoorToDoorDelivery, form, setFreight, setShowDoorToDoor]);
+  }, [delivery, form, setFreight]);
 
   // Watch form values for freight calculation and door-to-door detection
   const watchClientId = form.watch('clientId');
@@ -106,13 +102,6 @@ export const useDeliveryFormEffects = () => {
       }
     }
   }, [watchClientId, watchWeight, watchDeliveryType, watchCargoType, watchCargoValue, watchCityId, calculateFreight, setFreight]);
-
-  // Update door-to-door status when delivery type changes
-  useEffect(() => {
-    if (watchDeliveryType && setShowDoorToDoor) {
-      setShowDoorToDoor(isDoorToDoorDelivery(watchDeliveryType as Delivery['deliveryType']));
-    }
-  }, [watchDeliveryType, isDoorToDoorDelivery, setShowDoorToDoor]);
 
   return {
     watchDeliveryType
