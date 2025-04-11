@@ -4,6 +4,8 @@ import { Budget } from '@/types/budget';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 import { useBudgetCalculation } from '@/hooks/useBudgetCalculation';
+import { useBudgetCalculations } from '@/components/budget/hooks/useBudgetCalculations';
+import { useClients, usePriceTables } from '@/contexts';
 
 type BudgetContextType = {
   budgets: Budget[];
@@ -20,7 +22,10 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { calculateBudgetValue } = useBudgetCalculation();
+  const { calculateBudgetValue: oldCalculateBudgetValue } = useBudgetCalculation();
+  const { calculateBudgetValue } = useBudgetCalculations();
+  const { clients } = useClients();
+  const { priceTables } = usePriceTables();
 
   // Retrieve budgets from localStorage on mount and save budgets to localStorage whenever they change
   useEffect(() => {
@@ -42,10 +47,21 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [budgets]);
 
+  // Helper function to get the price table for a client
+  const getClientPriceTable = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client || !client.priceTableId) return undefined;
+    
+    return priceTables.find(pt => pt.id === client.priceTableId);
+  };
+
   const addBudget = async (budgetData: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
       setLoading(true);
       const timestamp = new Date().toISOString();
+      
+      // Obter a tabela de preços do cliente
+      const priceTable = getClientPriceTable(budgetData.clientId);
       
       // Calculate the total value based on the client's price table
       const totalValue = calculateBudgetValue({
@@ -53,7 +69,7 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         id: '',
         createdAt: timestamp,
         updatedAt: timestamp
-      });
+      }, priceTable);
       
       const newBudget: Budget = {
         ...budgetData,
@@ -97,7 +113,9 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         'packages' in budgetUpdate || 
         'deliveryType' in budgetUpdate || 
         'merchandiseValue' in budgetUpdate ||
-        'additionalServices' in budgetUpdate;
+        'additionalServices' in budgetUpdate ||
+        'hasCollection' in budgetUpdate ||
+        'hasDelivery' in budgetUpdate;
       
       let updatedTotalValue = currentBudget.totalValue;
       
@@ -106,7 +124,11 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
           ...currentBudget,
           ...budgetUpdate
         };
-        updatedTotalValue = calculateBudgetValue(updatedBudget);
+        
+        const clientId = updatedBudget.clientId;
+        const priceTable = getClientPriceTable(clientId);
+        
+        updatedTotalValue = calculateBudgetValue(updatedBudget, priceTable);
       }
       
       setBudgets(prev => prev.map(budget => 
