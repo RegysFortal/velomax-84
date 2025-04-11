@@ -62,7 +62,7 @@ export function SearchableSelect({
         />
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[var(--radix-popover-trigger-width)] p-0 bg-white" 
+        className="w-[var(--radix-popover-trigger-width)] p-0 bg-white z-50" 
         ref={popoverRef}
         align="start"
         sideOffset={4}

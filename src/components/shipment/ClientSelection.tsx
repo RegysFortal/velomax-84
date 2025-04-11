@@ -36,10 +36,11 @@ export function ClientSelection({
             const client = clients.find(c => c.id === value);
             if (client) {
               setCompanyName(client.tradingName || client.name);
+              console.log("ClientSelection - Nome do cliente selecionado:", client.tradingName || client.name);
             }
           }}
           placeholder="Selecione um cliente"
-          disableAutoSelect={false}
+          disableAutoSelect={true}
           showCreateOption={true}
           createOptionLabel="Cadastrar novo cliente"
           disabled={disabled}

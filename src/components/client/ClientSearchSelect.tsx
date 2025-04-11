@@ -59,17 +59,11 @@ export function ClientSearchSelect({
       
       console.log("ClientSearchSelect - Formatted options:", options.length);
       setClientOptions(options);
-      
-      // Auto-select first client only when component first mounts
-      if (!value && clients.length > 0 && !includeAllOption && !disableAutoSelect && clientOptions.length === 0) {
-        console.log("ClientSearchSelect - Auto-selecting first client:", clients[0].id);
-        onValueChange(clients[0].id);
-      }
     } else {
       console.log("ClientSearchSelect - No clients available");
       setClientOptions([]);
     }
-  }, [clients, includeAllOption, allOptionLabel, allOptionValue, disableAutoSelect, value, onValueChange, clientOptions.length]);
+  }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
   
   const handleCreateNewClient = () => {
     // Store current route to return after client creation
