@@ -37,8 +37,12 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
   const handleDateSelect = (selectedDate: Date | undefined) => {
     console.log('DatePicker - Date selected:', selectedDate);
     if (selectedDate) {
+      setInputValue(format(selectedDate, "dd/MM/yyyy"));
       console.log('Selected date:', format(selectedDate, 'yyyy-MM-dd'));
+    } else {
+      setInputValue("");
     }
+    
     if (onSelect) {
       onSelect(selectedDate);
     }
@@ -75,6 +79,20 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
     if (date) {
       setInputValue(format(date, "dd/MM/yyyy"));
     } else if (inputValue && inputValue.length > 0) {
+      // Try to parse the input as a date
+      const dateParts = inputValue.split('/');
+      if (dateParts.length === 3) {
+        const [day, month, year] = dateParts.map(Number);
+        
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          const parsedDate = new Date(year, month - 1, day);
+          if (parsedDate.getDate() === day) {
+            handleDateSelect(parsedDate);
+            return;
+          }
+        }
+      }
+      
       // Clear invalid input
       setInputValue("");
     }

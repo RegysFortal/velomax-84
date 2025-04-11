@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
 import { Separator } from '@/components/ui/separator';
+import { useDeliveryFormCalculations } from './hooks/useDeliveryFormCalculations';
 
 interface DeliveryFormSectionsProps {
   onComplete: () => void;
@@ -51,6 +52,27 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     setShowDuplicateAlert,
     onComplete
   });
+
+  // Use the calculation hook to auto-update freight
+  const { calculateFreight } = useDeliveryFormCalculations({
+    form,
+    setFreight,
+    delivery,
+    isEditMode
+  });
+
+  // Trigger calculation when form values change
+  useEffect(() => {
+    calculateFreight();
+  }, [
+    form.watch('clientId'),
+    form.watch('weight'),
+    form.watch('deliveryType'),
+    form.watch('cargoType'),
+    form.watch('cargoValue'),
+    form.watch('cityId'),
+    calculateFreight
+  ]);
 
   const onSubmit = (data: any) => {
     handleSubmit(data, freight);

@@ -50,7 +50,12 @@ export const useNewDeliverySubmission = ({
       };
       
       try {
-        await addDelivery(formattedDelivery);
+        console.log("Submitting delivery to database:", formattedDelivery);
+        const result = await addDelivery(formattedDelivery);
+        
+        if (result && result.error) {
+          throw new Error(result.error.message || "Erro ao criar entrega");
+        }
         
         toast.success("Entrega registrada com sucesso");
         onComplete();

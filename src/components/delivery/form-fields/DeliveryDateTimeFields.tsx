@@ -42,6 +42,7 @@ export function DeliveryDateTimeFields({
                     field.onChange('');
                   }
                 }}
+                allowTyping={true}
               />
             </FormControl>
             <FormMessage />

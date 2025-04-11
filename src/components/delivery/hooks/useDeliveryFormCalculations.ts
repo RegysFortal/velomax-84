@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -6,6 +5,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { DeliveryFormValues } from '../context/DeliveryFormContext';
 import { usePriceTables } from '@/contexts';
 import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
+import { calculateFreight as utilsCalculateFreight } from '@/utils/deliveryUtils';
 
 export interface UseDeliveryFormCalculationsProps {
   form: UseFormReturn<DeliveryFormValues>;
@@ -20,7 +20,7 @@ export const useDeliveryFormCalculations = ({
   delivery,
   isEditMode
 }: UseDeliveryFormCalculationsProps) => {
-  const { calculateFreight } = useDeliveries();
+  const { calculateFreight: contextCalculateFreight } = useDeliveries();
   const { priceTables } = usePriceTables();
   const { getClientPriceTable } = useClientPriceTable();
 
@@ -48,13 +48,28 @@ export const useDeliveryFormCalculations = ({
         const cargoTypeValue = watchCargoType as Delivery['cargoType'];
         const cargoValueValue = watchCargoValue ? parseFloat(watchCargoValue) : undefined;
         
-        // Try to get client-specific price table first
+        // Get client's price table
         const priceTable = getClientPriceTable(watchClientId);
+        console.log("Using price table:", priceTable);
         
-        // Calculate freight
-        let calculatedFreight;
-        try {
-          calculatedFreight = calculateFreight(
+        let calculatedFreight = 0;
+        
+        if (priceTable) {
+          // Use deliveryUtils direct calculation with the price table
+          calculatedFreight = utilsCalculateFreight(
+            priceTable,
+            weightValue,
+            deliveryTypeValue,
+            cargoTypeValue,
+            cargoValueValue,
+            undefined,
+            undefined // We'll handle city in the utilsCalculateFreight function
+          );
+          
+          console.log("Calculated freight using price table:", calculatedFreight);
+        } else {
+          // Fall back to context calculation if price table isn't available
+          calculatedFreight = contextCalculateFreight(
             watchClientId,
             weightValue,
             deliveryTypeValue,
@@ -63,17 +78,13 @@ export const useDeliveryFormCalculations = ({
             undefined,
             watchCityId || undefined
           );
-        } catch (error) {
-          console.warn("Failed to calculate client-specific freight, using fallback:", error);
-          // Fallback to basic calculation
-          calculatedFreight = calculateBasicFreight(cargoTypeValue, weightValue);
+          console.log("Calculated freight using context:", calculatedFreight);
         }
         
-        console.log("Calculated freight:", calculatedFreight);
-        
-        // If calculated value is too low, use a reasonable default
+        // Ensure we have a reasonable minimum value
         if (calculatedFreight <= 0) {
           calculatedFreight = calculateBasicFreight(cargoTypeValue, weightValue);
+          console.log("Using basic freight calculation:", calculatedFreight);
         }
         
         setFreight(calculatedFreight);
@@ -81,14 +92,19 @@ export const useDeliveryFormCalculations = ({
         console.error('Error calculating freight:', error);
         // Set a default freight value
         const defaultFreight = 50;
-        console.log("Using default freight value:", defaultFreight);
+        console.log("Using default freight value due to error:", defaultFreight);
         setFreight(defaultFreight);
       }
     } else {
       console.log("Can't calculate freight, missing required values");
-      setFreight(50); // Ensure a default value is always set
+      if (delivery?.totalFreight) {
+        // Keep existing freight value for edit mode
+        setFreight(delivery.totalFreight);
+      } else {
+        setFreight(50); // Ensure a default value is always set
+      }
     }
-  }, [form, calculateFreight, setFreight, getClientPriceTable]);
+  }, [form, contextCalculateFreight, setFreight, getClientPriceTable, delivery]);
   
   // Execute initial calculation when component mounts or when 
   // delivery/isEditMode changes
@@ -100,6 +116,18 @@ export const useDeliveryFormCalculations = ({
     
     return () => clearTimeout(timer);
   }, [recalculateFreight, delivery, isEditMode]);
+  
+  // React to changes in form values that affect freight
+  useEffect(() => {
+    const subscription = form.watch((values, { name }) => {
+      if (['clientId', 'weight', 'deliveryType', 'cargoType', 'cargoValue', 'cityId'].includes(name || '')) {
+        console.log(`${name} changed, recalculating freight`);
+        recalculateFreight();
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, recalculateFreight]);
   
   // Basic fallback freight calculation
   const calculateBasicFreight = (cargoType: Delivery['cargoType'], weight: number): number => {
