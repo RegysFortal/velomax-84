@@ -24,6 +24,8 @@ export function useBudgetCalculation() {
       return 0;
     }
 
+    console.log('Iniciando cálculo do orçamento com tabela de preços:', priceTable.name);
+
     // Start with the base rate according to delivery type
     let totalValue = 0;
     
@@ -67,6 +69,8 @@ export function useBudgetCalculation() {
       default:
         totalValue = priceTable.minimumRate.standardDelivery;
     }
+    
+    console.log(`Taxa base para ${budget.deliveryType}: ${totalValue}`);
 
     // Calculate the total weight of packages
     let totalWeight = 0;
@@ -80,7 +84,7 @@ export function useBudgetCalculation() {
       totalWeight += effectiveWeight * quantity;
     });
     
-    console.log(`Total weight: ${totalWeight}kg, Base rate before excess weight: ${totalValue}`);
+    console.log(`Peso total: ${totalWeight}kg, Taxa base antes do excesso de peso: ${totalValue}`);
     
     // Calculate excess weight surcharge only if the total weight exceeds 10kg
     if (totalWeight > 10) {
@@ -100,51 +104,53 @@ export function useBudgetCalculation() {
       }
       
       const excessWeightCharge = (totalWeight - 10) * ratePerKg;
-      console.log(`Excess weight: ${totalWeight - 10}kg at rate ${ratePerKg}/kg = ${excessWeightCharge}`);
+      console.log(`Excesso de peso: ${totalWeight - 10}kg na taxa ${ratePerKg}/kg = ${excessWeightCharge}`);
       
       // Only apply the excess weight rate to weight above 10kg
       totalValue += excessWeightCharge;
     }
     
     // Add insurance if applicable
-    if (budget.merchandiseValue > 0) {
+    if (budget.merchandiseValue && budget.merchandiseValue > 0) {
       const insuranceValue = budget.merchandiseValue * (priceTable.insurance.rate || 0.01);
-      console.log(`Insurance value: ${insuranceValue} (${budget.merchandiseValue} × ${priceTable.insurance.rate || 0.01})`);
+      console.log(`Valor do seguro: ${insuranceValue} (${budget.merchandiseValue} × ${priceTable.insurance.rate || 0.01})`);
       totalValue += insuranceValue;
+    } else {
+      console.log('Nenhum valor de mercadoria definido para cálculo de seguro');
     }
     
     // Add additional services
     if (budget.additionalServices && budget.additionalServices.length > 0) {
       const additionalServicesValue = budget.additionalServices.reduce((sum, service) => sum + service.value, 0);
-      console.log(`Additional services value: ${additionalServicesValue}`);
+      console.log(`Valor dos serviços adicionais: ${additionalServicesValue}`);
       totalValue += additionalServicesValue;
     }
     
     // If both collection and delivery are selected, multiply by 2
     if (budget.hasCollection && budget.hasDelivery) {
-      console.log(`Collection + Delivery: ${totalValue} * 2 = ${totalValue * 2}`);
+      console.log(`Coleta + Entrega: ${totalValue} * 2 = ${totalValue * 2}`);
       totalValue *= 2;
-    } else if (!budget.hasDelivery) {
+    } else if (!budget.hasDelivery && budget.hasCollection) {
       // If only collection is selected (no delivery), reduce value
-      console.log(`Collection only: ${totalValue} * 0.7 = ${totalValue * 0.7}`);
+      console.log(`Apenas coleta: ${totalValue} * 0.7 = ${totalValue * 0.7}`);
       totalValue *= 0.7;
     }
     
     // Apply discount if configured in price table
     if (priceTable.defaultDiscount && priceTable.defaultDiscount > 0) {
       const discountValue = totalValue * (priceTable.defaultDiscount / 100);
-      console.log(`Discount: ${discountValue} (${priceTable.defaultDiscount}%)`);
+      console.log(`Desconto: ${discountValue} (${priceTable.defaultDiscount}%)`);
       totalValue = totalValue - discountValue;
     }
     
     // Apply multiplier if exists
     if (priceTable.multiplier && priceTable.multiplier > 0) {
-      console.log(`Multiplier: ${totalValue} * ${priceTable.multiplier} = ${totalValue * priceTable.multiplier}`);
+      console.log(`Multiplicador: ${totalValue} * ${priceTable.multiplier} = ${totalValue * priceTable.multiplier}`);
       totalValue *= priceTable.multiplier;
     }
     
-    console.log(`Final calculation: ${totalValue}`);
-    return totalValue;
+    console.log(`Cálculo final: ${totalValue}`);
+    return parseFloat(totalValue.toFixed(2));
   };
 
   const calculatePackageWeights = (pkg: PackageMeasurement) => {

@@ -32,6 +32,7 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         updatedAt: timestamp
       }, priceTable);
       
+      // Create new budget with calculated value
       const newBudget: Budget = {
         ...budgetData,
         id: uuidv4(),
@@ -40,13 +41,15 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         totalValue: totalValue || budgetData.totalValue // Use calculated value or fallback to provided value
       };
       
+      console.log("Novo orçamento sendo adicionado:", newBudget);
+      
       setBudgets(prev => [...prev, newBudget]);
       toast({
         title: "Orçamento criado",
         description: "O orçamento foi criado com sucesso.",
       });
     } catch (error) {
-      console.error("Error adding budget:", error);
+      console.error("Erro ao adicionar orçamento:", error);
       toast({
         title: "Erro ao criar orçamento",
         description: "Ocorreu um erro ao criar o orçamento. Tente novamente.",
@@ -65,7 +68,7 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
       // Get the current budget
       const currentBudget = budgets.find(budget => budget.id === id);
       if (!currentBudget) {
-        throw new Error("Budget not found");
+        throw new Error("Orçamento não encontrado");
       }
       
       // Check if we need to recalculate the total value
@@ -90,6 +93,7 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         const priceTable = getClientPriceTable(clientId);
         
         updatedTotalValue = calculateBudgetValue(updatedBudget, priceTable);
+        console.log("Recalculando valor total do orçamento:", updatedTotalValue);
       }
       
       setBudgets(prev => prev.map(budget => 
@@ -108,7 +112,7 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         description: "O orçamento foi atualizado com sucesso.",
       });
     } catch (error) {
-      console.error("Error updating budget:", error);
+      console.error("Erro ao atualizar orçamento:", error);
       toast({
         title: "Erro ao atualizar orçamento",
         description: "Ocorreu um erro ao atualizar o orçamento. Tente novamente.",
@@ -129,7 +133,7 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         description: "O orçamento foi removido com sucesso.",
       });
     } catch (error) {
-      console.error("Error deleting budget:", error);
+      console.error("Erro ao remover orçamento:", error);
       toast({
         title: "Erro ao remover orçamento",
         description: "Ocorreu um erro ao remover o orçamento. Tente novamente.",

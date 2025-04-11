@@ -52,7 +52,7 @@ export const budgetSchema = z.object({
   ], {
     required_error: "O tipo de entrega é obrigatório",
   }),
-  merchandiseValue: z.number().min(0, "O valor da mercadoria não pode ser negativo").optional(),
+  merchandiseValue: z.number().min(0, "O valor da mercadoria não pode ser negativo").nullable().optional(),
   hasCollection: z.boolean().default(false),
   collectionLocation: z.string().optional(),
   hasDelivery: z.boolean().default(true),
