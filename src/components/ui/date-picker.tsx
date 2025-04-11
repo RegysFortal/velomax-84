@@ -21,8 +21,9 @@ interface DatePickerProps {
   allowTyping?: boolean
 }
 
-export function DatePicker({ date, onSelect, placeholder = "Selecionar data", allowTyping = false }: DatePickerProps) {
+export function DatePicker({ date, onSelect, placeholder = "Selecionar data", allowTyping = true }: DatePickerProps) {
   const [inputValue, setInputValue] = React.useState<string>("");
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   
   // Update input value when date changes externally
   React.useEffect(() => {
@@ -38,6 +39,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
     if (onSelect) {
       onSelect(selectedDate);
     }
+    setIsPopoverOpen(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +87,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
         placeholder="DD/MM/YYYY"
         className="flex-1"
       />
-      <Popover>
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
           <Button
             variant={"outline"}
@@ -95,14 +97,14 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
             <CalendarIcon className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-background" align="end">
+        <PopoverContent className="w-auto p-0 bg-background z-50" align="end">
           <Calendar
             mode="single"
             selected={date}
             onSelect={handleDateSelect}
             initialFocus
             locale={ptBR}
-            className={cn("p-3 pointer-events-auto")}
+            className={cn("p-3 pointer-events-auto z-50")}
           />
         </PopoverContent>
       </Popover>

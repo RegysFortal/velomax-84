@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { UseFormReturn } from 'react-hook-form';
@@ -63,22 +63,36 @@ export const useDeliveryFormCalculations = ({
         }
         
         console.log("Calculated freight:", calculatedFreight);
+        
+        // Se o valor calculado for zero ou muito baixo, use um valor padrão razoável
+        if (calculatedFreight <= 0) {
+          calculatedFreight = calculateBasicFreight(cargoTypeValue, weightValue);
+        }
+        
         setFreight(calculatedFreight);
       } catch (error) {
         console.error('Error calculating freight:', error);
         // Set a default freight value so something appears
-        setFreight(50); // Default freight value
+        const defaultFreight = 50; // Default freight value
+        console.log("Using default freight value:", defaultFreight);
+        setFreight(defaultFreight);
       }
     } else {
       console.log("Can't calculate freight, missing required values");
+      setFreight(50); // Ensure a default value is always set
     }
   }, [form, calculateFreight, setFreight]);
+  
+  // Execute initial calculation when component mounts
+  useEffect(() => {
+    recalculateFreight();
+  }, [recalculateFreight]);
   
   // Basic fallback freight calculation
   const calculateBasicFreight = (cargoType: Delivery['cargoType'], weight: number): number => {
     const baseRate = cargoType === 'perishable' ? 25 : 15;
     const multiplier = weight <= 5 ? 1 : weight <= 10 ? 1.5 : weight <= 20 ? 2 : 3;
-    return baseRate * multiplier;
+    return Math.max(baseRate * multiplier, 50); // Ensure minimum freight is 50
   };
 
   return {

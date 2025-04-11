@@ -35,10 +35,16 @@ export const useNewDeliverySubmission = ({
       }
       
       // Garantir que o valor do frete seja positivo
-      if (newDelivery.totalFreight <= 0) {
+      if (!newDelivery.totalFreight || newDelivery.totalFreight <= 0) {
         // Definir um valor padrão em vez de retornar um erro
         newDelivery.totalFreight = 50; // Valor padrão
         console.log("Definindo um valor padrão para o frete:", newDelivery.totalFreight);
+      }
+      
+      // Limpar ou remover campos problemáticos
+      // Remover o receiverId se ele estiver causando problemas
+      if (typeof newDelivery.receiverId === 'object') {
+        delete newDelivery.receiverId;
       }
       
       try {

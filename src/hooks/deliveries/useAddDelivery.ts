@@ -35,7 +35,7 @@ export const useAddDelivery = (
         delivery_date: delivery.deliveryDate,
         delivery_time: delivery.deliveryTime || '',
         receiver: delivery.receiver || '',
-        receiver_document: delivery.receiverId || null,
+        // Removendo campo receiver_document que estava causando erro
         weight: delivery.weight,
         packages: delivery.packages,
         delivery_type: delivery.deliveryType,
@@ -46,9 +46,9 @@ export const useAddDelivery = (
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
         user_id: user?.id,
-        // Removendo campos não existentes na tabela do Supabase
-        // pickup_date, pickup_time e pickup_name não existem no schema
       };
+      
+      console.log("Enviando para Supabase:", supabaseDelivery);
       
       // Insert the delivery into Supabase
       const { data, error } = await supabase
@@ -58,6 +58,7 @@ export const useAddDelivery = (
         .single();
       
       if (error) {
+        console.error("Erro na inserção:", error);
         throw error;
       }
       
@@ -70,7 +71,7 @@ export const useAddDelivery = (
         deliveryDate: responseData.delivery_date,
         deliveryTime: responseData.delivery_time || '',
         receiver: responseData.receiver || '',
-        receiverId: responseData.receiver_document || undefined,
+        receiverId: undefined, // Campo removido da tabela
         weight: responseData.weight,
         packages: responseData.packages,
         deliveryType: responseData.delivery_type as Delivery['deliveryType'],

@@ -37,7 +37,7 @@ export function DeliveryFormTypeFields({
                   <SelectValue placeholder="Selecione o tipo de entrega" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="max-h-80 bg-background">
+              <SelectContent className="max-h-80 overflow-y-auto z-50 bg-background">
                 <SelectItem value="standard">Normal</SelectItem>
                 <SelectItem value="emergency">Emergencial</SelectItem>
                 <SelectItem value="exclusive">Veículo Exclusivo</SelectItem>
@@ -73,7 +73,7 @@ export function DeliveryFormTypeFields({
                   <SelectValue placeholder="Selecione o tipo de carga" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="bg-background">
+              <SelectContent className="z-50 bg-background">
                 <SelectItem value="standard">Padrão</SelectItem>
                 <SelectItem value="perishable">Perecível</SelectItem>
               </SelectContent>
@@ -123,7 +123,7 @@ export function DeliveryFormTypeFields({
                     <SelectValue placeholder="Selecione a cidade" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="max-h-80 bg-background">
+                <SelectContent className="max-h-80 z-50 bg-background">
                   {cities.map((city) => (
                     <SelectItem key={city.id} value={city.id}>
                       {city.name} - {city.distance}km

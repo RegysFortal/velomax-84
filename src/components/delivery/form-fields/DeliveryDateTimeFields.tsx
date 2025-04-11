@@ -32,8 +32,14 @@ export function DeliveryDateTimeFields({
               <DatePicker
                 date={field.value ? new Date(field.value) : undefined}
                 onSelect={(date) => {
-                  // Convert to ISO string format or empty string
-                  field.onChange(date ? date.toISOString().split('T')[0] : '');
+                  if (date) {
+                    // Convert to ISO string format (YYYY-MM-DD)
+                    const formattedDate = date.toISOString().split('T')[0];
+                    console.log("Selected date:", formattedDate);
+                    field.onChange(formattedDate);
+                  } else {
+                    field.onChange('');
+                  }
                 }}
               />
             </FormControl>
