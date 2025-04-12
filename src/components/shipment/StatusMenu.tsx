@@ -76,11 +76,15 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Use explicit string comparison to resolve type narrowing
+        // Use a type-safe approach by using a generic string comparison
+        const currentStatus = status as string;
+        const newStatusStr = newStatus as string;
+        const updatedStatus = updatedShipment.status as string;
+        
         const isRetained = 
-          status === "retained" || 
-          newStatus === "retained" || 
-          updatedShipment.status === "retained";
+          currentStatus === "retained" || 
+          newStatusStr === "retained" || 
+          updatedStatus === "retained";
         
         if (isRetained) {
           await updateFiscalAction(shipmentId, null);
