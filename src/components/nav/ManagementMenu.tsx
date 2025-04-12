@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Settings, BarChart2, BookOpen, Users, Truck, Tool, FileText } from "lucide-react";
+import { Settings, BarChart2, BookOpen, Users, Truck, Wrench, FileText } from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
@@ -103,7 +102,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                   getActiveClass(location.pathname, "/maintenance")
                 )}
               >
-                <Tool className="mr-2 h-4 w-4" />
+                <Wrench className="mr-2 h-4 w-4" />
                 Manutenções
               </Link>
             )}
