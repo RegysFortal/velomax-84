@@ -73,7 +73,7 @@ export function StatusMenu({
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
         // If status is no longer "retained", clear fiscal action
-        if (status === "retained") {
+        if (status === "retained" && newStatus !== "retained") {
           await updateFiscalAction(shipmentId, null);
         }
         
