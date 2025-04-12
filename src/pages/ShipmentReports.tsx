@@ -79,6 +79,7 @@ export default function ShipmentReports() {
     in_transit: filteredShipments.filter(s => s.status === 'in_transit').length,
     retained: filteredShipments.filter(s => s.status === 'retained').length,
     delivered: filteredShipments.filter(s => s.status === 'delivered').length,
+    partially_delivered: filteredShipments.filter(s => s.status === 'partially_delivered').length,
     delivered_final: filteredShipments.filter(s => s.status === 'delivered_final').length,
   };
   
@@ -86,6 +87,7 @@ export default function ShipmentReports() {
     { name: 'Em Trânsito', value: statusCounts.in_transit },
     { name: 'Retida', value: statusCounts.retained },
     { name: 'Retirada', value: statusCounts.delivered },
+    { name: 'Entregue Parcial', value: statusCounts.partially_delivered },
     { name: 'Entregue', value: statusCounts.delivered_final },
   ];
   
@@ -123,6 +125,7 @@ export default function ShipmentReports() {
         'in_transit': 'Em Trânsito',
         'retained': 'Retida',
         'delivered': 'Retirada',
+        'partially_delivered': 'Entregue Parcial',
         'delivered_final': 'Entregue'
       };
       doc.text(`Status: ${statusLabels[filterStatus]}`, 14, 35);
@@ -254,6 +257,7 @@ export default function ShipmentReports() {
     'in_transit': 'Em Trânsito',
     'retained': 'Retida',
     'delivered': 'Retirada',
+    'partially_delivered': 'Entregue Parcial',
     'delivered_final': 'Entregue'
   };
 
@@ -394,6 +398,7 @@ export default function ShipmentReports() {
                         <SelectItem value="in_transit">Em Trânsito</SelectItem>
                         <SelectItem value="retained">Retida</SelectItem>
                         <SelectItem value="delivered">Retirada</SelectItem>
+                        <SelectItem value="partially_delivered">Entregue Parcial</SelectItem>
                         <SelectItem value="delivered_final">Entregue</SelectItem>
                       </SelectContent>
                     </Select>

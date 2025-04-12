@@ -10,6 +10,7 @@ interface SummaryCardsProps {
   inTransitShipments: number;
   retainedShipments: number;
   deliveredShipments: number;
+  partiallyDeliveredShipments: number; // Added for the "partially_delivered" status
   finalDeliveredShipments: number; // For the "delivered_final" status
   totalWeight: number;
   totalDeliveries: number;
@@ -21,6 +22,7 @@ export const SummaryCards = ({
   inTransitShipments,
   retainedShipments,
   deliveredShipments,
+  partiallyDeliveredShipments, // New prop
   finalDeliveredShipments,
   totalWeight,
   totalDeliveries,
@@ -60,6 +62,13 @@ export const SummaryCards = ({
                 <span className="ml-2">Retiradas</span>
               </div>
               <span className="font-medium">{deliveredShipments}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <StatusBadge status="partially_delivered" />
+                <span className="ml-2">Entregues Parcial</span>
+              </div>
+              <span className="font-medium">{partiallyDeliveredShipments}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center">

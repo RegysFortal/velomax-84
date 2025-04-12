@@ -5,7 +5,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   Truck,
-  Box
+  Box,
+  PackageCheck
 } from "lucide-react";
 
 interface StatusBadgeProps {
@@ -39,6 +40,11 @@ export function StatusBadge({
       icon: CheckCircle2,
       label: "Entregue",
       className: "bg-green-100 text-green-800 border-green-200",
+    },
+    partially_delivered: {
+      icon: PackageCheck,
+      label: "Entregue Parcial",
+      className: "bg-orange-100 text-orange-800 border-orange-200",
     }
   };
   

@@ -3,7 +3,8 @@ export type ShipmentStatus =
   | "in_transit"  // Em trânsito 
   | "retained"    // Retida
   | "delivered"   // Retirada
-  | "delivered_final"; // Entregue
+  | "delivered_final" // Entregue
+  | "partially_delivered"; // Entregue Parcial
 
 export type TransportMode = "air" | "road";
 

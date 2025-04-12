@@ -69,6 +69,7 @@ const Dashboard = () => {
   const retainedShipments = filteredShipments.filter(s => s.status === 'retained').length;
   const deliveredShipments = filteredShipments.filter(s => s.status === 'delivered').length;
   const finalDeliveredShipments = filteredShipments.filter(s => s.status === 'delivered_final').length;
+  const partiallyDeliveredShipments = filteredShipments.filter(s => s.status === 'partially_delivered').length;
   const inTransitShipments = filteredShipments.filter(s => s.status === 'in_transit').length;
 
   // Prepare chart data
@@ -102,6 +103,7 @@ const Dashboard = () => {
         case 'in_transit': return 'Em Trânsito';
         case 'retained': return 'Retido';
         case 'delivered': return 'Retirado';
+        case 'partially_delivered': return 'Entregue Parcial';
         case 'delivered_final': return 'Entregue';
         default: return status;
       }
@@ -113,12 +115,14 @@ const Dashboard = () => {
         backgroundColor: [
           'rgba(54, 162, 235, 0.5)',
           'rgba(255, 99, 132, 0.5)',
+          'rgba(255, 159, 64, 0.5)',
           'rgba(75, 192, 192, 0.5)',
           'rgba(153, 102, 255, 0.5)',
         ],
         borderColor: [
           'rgba(54, 162, 235, 1)',
           'rgba(255, 99, 132, 1)',
+          'rgba(255, 159, 64, 1)',
           'rgba(75, 192, 192, 1)',
           'rgba(153, 102, 255, 1)',
         ],
@@ -152,7 +156,7 @@ const Dashboard = () => {
           key={`metrics-${refreshTrigger}`}
           totalDeliveries={totalDeliveries}
           totalShipments={totalShipments}
-          deliveredShipments={deliveredShipments + finalDeliveredShipments}
+          deliveredShipments={deliveredShipments + finalDeliveredShipments + partiallyDeliveredShipments}
           retainedShipments={retainedShipments}
         />
         
@@ -173,6 +177,7 @@ const Dashboard = () => {
           inTransitShipments={inTransitShipments}
           retainedShipments={retainedShipments}
           deliveredShipments={deliveredShipments}
+          partiallyDeliveredShipments={partiallyDeliveredShipments}
           finalDeliveredShipments={finalDeliveredShipments}
           totalWeight={totalWeight}
           totalDeliveries={totalDeliveries}

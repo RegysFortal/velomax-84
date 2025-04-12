@@ -61,6 +61,11 @@ export function useStatusChange({
         // If no documents or all already delivered, proceed directly to delivery dialog
         setShowDeliveryDialog(true);
         return;
+      } else if (newStatusStr === "partially_delivered") {
+        // For partially_delivered, we'll also show the delivery dialog
+        // but we'll need to handle the partial delivery differently
+        setShowDeliveryDialog(true);
+        return;
       } else if (newStatusStr === "retained") {
         setShowRetentionSheet(true);
         return;
@@ -87,6 +92,7 @@ export function useStatusChange({
           case "in_transit": return "Em Trânsito";
           case "retained": return "Retida";
           case "delivered": return "Retirada";
+          case "partially_delivered": return "Entregue Parcial";
           case "delivered_final": return "Entregue";
           default: return status;
         }
