@@ -71,7 +71,7 @@ export function useStatusChange({
         isRetained: newStatus === "retained"
       });
       
-      // Handle retention status
+      // Handle retention status - we need to check the previous status value
       if (status === "retained" && newStatus !== "retained") {
         // If we're changing from "retained" to something else, clear fiscal action
         await updateFiscalAction(shipmentId, null);

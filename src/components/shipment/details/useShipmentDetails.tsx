@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Shipment, ShipmentStatus, Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
@@ -184,8 +183,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
               };
               selectedDocuments.push(updatedDocuments[i]);
               
-              // Update document in the database
-              await updateDocument(shipment.id, updatedDocuments[i]);
+              // Update document in the database - pass all three required arguments
+              await updateDocument(shipment.id, updatedDocuments[i], updatedDocuments);
             }
           }
           
@@ -193,11 +192,21 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           console.log(`Creating ${selectedDocuments.length} deliveries from selected documents`);
           
           for (const document of selectedDocuments) {
-            // Generate unique minute number for each document
-            const minuteNumber = document.minuteNumber || 
-                              `${shipment.trackingNumber}-${document.id.substring(0, 4)}`;
-            
             try {
+              // Generate unique minute number for each document
+              const minuteNumber = document.minuteNumber || 
+                              `${shipment.trackingNumber}-${document.id.substring(0, 4)}`;
+              
+              console.log("Creating delivery from document with data:", {
+                minuteNumber,
+                clientId: shipment.companyId,
+                deliveryDate: details.deliveryDate,
+                deliveryTime: details.deliveryTime,
+                receiver: details.receiverName,
+                weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
+                packages: document.packages !== undefined ? document.packages : shipment.packages
+              });
+              
               const deliveryData = {
                 minuteNumber,
                 clientId: shipment.companyId,
@@ -225,6 +234,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
               console.error(`Error creating delivery for document ${document.name}:`, error);
             }
           }
+          
+          toast.success(`${selectedDocuments.length} entregas criadas com sucesso`);
           
           // Update the shipment with the modified document array
           updateData.documents = updatedDocuments;
@@ -275,7 +286,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           
           // Update documents in the database
           for (const doc of updatedDocuments) {
-            await updateDocument(shipment.id, doc);
+            await updateDocument(shipment.id, doc, updatedDocuments);
           }
           
           updateData.documents = updatedDocuments;

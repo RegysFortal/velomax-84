@@ -68,8 +68,8 @@ export function useDeliveryConfirm({
             };
             selectedDocuments.push(updatedDocuments[i]);
             
-            // Update document in the database
-            await updateDocument(shipmentId, updatedDocuments[i]);
+            // Update document in the database - pass all three required arguments
+            await updateDocument(shipmentId, updatedDocuments[i], updatedDocuments);
           }
         }
         
