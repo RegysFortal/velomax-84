@@ -165,8 +165,19 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         try {
           const minuteNumber = `${shipment.trackingNumber}-${new Date().getTime().toString().slice(-4)}`;
           
-          // Create a new delivery from this shipment
-          await addDelivery({
+          console.log("Creating delivery from shipment with data:", {
+            minuteNumber,
+            clientId: shipment.companyId,
+            deliveryDate: details.deliveryDate,
+            deliveryTime: details.deliveryTime,
+            receiver: details.receiverName,
+            weight: shipment.weight,
+            packages: shipment.packages
+          });
+          
+          // Create a new delivery from this shipment with improved error handling
+          const newDelivery = await addDelivery({
+            id: uuidv4(), // Generate a UUID for the new delivery
             minuteNumber,
             clientId: shipment.companyId,
             deliveryDate: details.deliveryDate,
@@ -177,9 +188,12 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
             deliveryType: 'standard', // Default delivery type
             cargoType: 'standard', // Default cargo type
             totalFreight: 0, // This might need calculation based on your business logic
-            notes: `Entrega gerada automaticamente do embarque ${shipment.trackingNumber}`
+            notes: `Entrega gerada automaticamente do embarque ${shipment.trackingNumber}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           });
           
+          console.log("Delivery created successfully:", newDelivery);
           toast.success("Embarque finalizado e entrega criada com sucesso");
         } catch (error) {
           console.error("Error creating delivery from shipment:", error);

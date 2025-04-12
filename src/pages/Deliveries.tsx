@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -18,8 +17,9 @@ import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { format, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { X } from 'lucide-react';
+import { X, RefreshCcw } from 'lucide-react';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
+import { supabase } from '@/integrations/supabase/client';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
@@ -30,6 +30,7 @@ const Deliveries = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
   
   // Filtering state
   const [selectedClientId, setSelectedClientId] = useState<string>('');
@@ -129,6 +130,7 @@ const Deliveries = () => {
 
   const handleDialogComplete = () => {
     console.log('Dialog complete - refreshing deliveries view');
+    handleRefreshDeliveries();
   };
 
   const handleViewDetails = (delivery: Delivery) => {
@@ -145,18 +147,33 @@ const Deliveries = () => {
     setEndDate(null);
   };
 
+  const handleRefreshDeliveries = () => {
+    toast.info("Atualizando lista de entregas...");
+    setRefreshCounter(prev => prev + 1);
+  };
+
   return (
     <AppLayout>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Entregas</h1>
-          <DeliveryFormDialog
-            isOpen={isDialogOpen}
-            setIsOpen={setIsDialogOpen}
-            editingDelivery={editingDelivery}
-            setEditingDelivery={setEditingDelivery}
-            onComplete={handleDialogComplete}
-          />
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleRefreshDeliveries}
+              title="Atualizar lista de entregas"
+            >
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+            <DeliveryFormDialog
+              isOpen={isDialogOpen}
+              setIsOpen={setIsDialogOpen}
+              editingDelivery={editingDelivery}
+              setEditingDelivery={setEditingDelivery}
+              onComplete={handleDialogComplete}
+            />
+          </div>
         </div>
 
         <Card className="mb-6">

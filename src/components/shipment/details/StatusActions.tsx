@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "../StatusBadge";
@@ -10,6 +9,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RetentionFormSection } from "../RetentionFormSection";
+import { toast } from "sonner";
 
 interface StatusActionsProps {
   status: ShipmentStatus;
@@ -20,7 +20,6 @@ interface DeliveryDetailsType {
   receiverName: string;
   deliveryDate: string;
   deliveryTime: string;
-  // Add the retention properties to the interface
   retentionReason?: string;
   retentionAmount?: string;
   paymentDate?: string;
@@ -36,7 +35,6 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   
-  // Retention form state
   const [retentionReason, setRetentionReason] = useState("");
   const [retentionAmount, setRetentionAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
@@ -55,30 +53,33 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
   };
 
   const handleDeliveryConfirm = () => {
-    // Validate inputs
     if (!receiverName.trim()) {
-      alert("Por favor, informe o nome do recebedor");
+      toast.error("Por favor, informe o nome do recebedor");
       return;
     }
 
     if (!deliveryDate) {
-      alert("Por favor, selecione a data de entrega");
+      toast.error("Por favor, selecione a data de entrega");
       return;
     }
 
     if (!deliveryTime.trim()) {
-      alert("Por favor, informe o horário da entrega");
+      toast.error("Por favor, informe o horário da entrega");
       return;
     }
 
-    // Submit delivery details and status change
+    console.log("Submitting delivery details:", {
+      receiverName,
+      deliveryDate,
+      deliveryTime
+    });
+
     onStatusChange("delivered_final", {
       receiverName,
       deliveryDate,
       deliveryTime
     });
 
-    // Close dialog and reset form
     setShowDeliveryDialog(false);
     setReceiverName("");
     setDeliveryDate("");
@@ -86,18 +87,15 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
   };
   
   const handleRetentionConfirm = () => {
-    // Validate inputs
     if (!retentionReason.trim()) {
-      alert("Por favor, informe o motivo da retenção");
+      toast.error("Por favor, informe o motivo da retenção");
       return;
     }
 
-    // Submit retention details and status change
     onStatusChange("retained", {
-      receiverName: "",  // These fields are required by the interface
+      receiverName: "",
       deliveryDate: "",
       deliveryTime: "",
-      // Now add the retention-specific fields
       retentionReason,
       retentionAmount,
       paymentDate,
@@ -106,7 +104,6 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
       fiscalNotes
     });
 
-    // Close sheet and reset form
     setShowRetentionSheet(false);
     setRetentionReason("");
     setRetentionAmount("");
@@ -162,7 +159,6 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
         )}
       </div>
 
-      {/* Delivery details dialog */}
       <Dialog open={showDeliveryDialog} onOpenChange={setShowDeliveryDialog}>
         <DialogContent>
           <DialogHeader>
@@ -207,7 +203,6 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
         </DialogContent>
       </Dialog>
       
-      {/* Retention details sheet */}
       <Sheet open={showRetentionSheet} onOpenChange={setShowRetentionSheet}>
         <SheetContent className="w-full md:max-w-md overflow-y-auto">
           <SheetHeader>
