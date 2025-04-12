@@ -76,8 +76,8 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Safely handle retention status by using string literals for exact comparison
-        const isRetained = status === "retained" || newStatus === "retained";
+        // Use string comparison to avoid TypeScript narrowing issues
+        const isRetained = String(status) === "retained" || String(newStatus) === "retained";
         
         if (isRetained) {
           await updateFiscalAction(shipmentId, null);
