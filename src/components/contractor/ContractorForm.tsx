@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -73,7 +74,7 @@ export function ContractorForm({ contractor, onContractorTypeChange, onComplete 
         birthDate: data.birthDate,
         address: data.address,
         role: data.contractorType as 'driver' | 'helper',
-        type: 'contractor',
+        type: 'contractor' as const,
         email: '', // Required by User type
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -146,12 +145,17 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           },
         });
       } else if (user) {
+        let roleValue: 'user' | 'admin' | 'manager' = 'user';
+        if (user.role === 'admin' || user.role === 'manager') {
+          roleValue = user.role;
+        }
+        
         form.reset({
           name: user.name,
           username: user.username,
           email: user.email,
-          password: '', // Don't prefill password
-          role: user.role,
+          password: '',
+          role: roleValue,
           department: user.department || '',
           position: user.position || '',
           phone: user.phone || '',

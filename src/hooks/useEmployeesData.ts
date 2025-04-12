@@ -31,7 +31,7 @@ type SupabaseEmployee = {
   city: string | null;
   state: string | null;
   zip_code: string | null;
-  type: string | null;
+  type: 'employee' | 'contractor' | null;
   role: string | null;
   vehicle: any | null;
   license: any | null;

@@ -116,7 +116,12 @@ export const useUserManagement = (currentUser: User | null) => {
         role = 'user';
       }
       
-      const permissions = userData.permissions || createUserPermissions(role);
+      // Make sure the role is valid for User type
+      if (role === 'driver' || role === 'helper') {
+        role = 'user';
+      }
+      
+      const permissions = userData.permissions || createUserPermissions(role as 'user' | 'admin' | 'manager');
       
       const newUser: User = {
         id: uuidv4(),
