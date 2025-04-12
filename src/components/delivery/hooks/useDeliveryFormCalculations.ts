@@ -1,5 +1,6 @@
+
 import { useCallback, useEffect } from 'react';
-import { Delivery } from '@/types';
+import { Delivery, DeliveryType, CargoType } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { UseFormReturn } from 'react-hook-form';
 import { DeliveryFormValues } from '../context/DeliveryFormContext';
@@ -44,8 +45,8 @@ export const useDeliveryFormCalculations = ({
     if (watchClientId && watchWeight && !isNaN(parseFloat(watchWeight))) {
       try {
         const weightValue = parseFloat(watchWeight);
-        const deliveryTypeValue = watchDeliveryType as Delivery['deliveryType'];
-        const cargoTypeValue = watchCargoType as Delivery['cargoType'];
+        const deliveryTypeValue = watchDeliveryType as DeliveryType;
+        const cargoTypeValue = watchCargoType as CargoType;
         const cargoValueValue = watchCargoValue ? parseFloat(watchCargoValue) : undefined;
         
         // Get client's price table
@@ -130,7 +131,7 @@ export const useDeliveryFormCalculations = ({
   }, [form, recalculateFreight]);
   
   // Basic fallback freight calculation
-  const calculateBasicFreight = (cargoType: Delivery['cargoType'], weight: number): number => {
+  const calculateBasicFreight = (cargoType: CargoType, weight: number): number => {
     const baseRate = cargoType === 'perishable' ? 25 : 15;
     const multiplier = weight <= 5 ? 1 : weight <= 10 ? 1.5 : weight <= 20 ? 2 : 3;
     return Math.max(baseRate * multiplier, 50); // Ensure minimum freight is 50

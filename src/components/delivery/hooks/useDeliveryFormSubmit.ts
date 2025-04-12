@@ -1,5 +1,5 @@
 
-import { Delivery } from '@/types';
+import { Delivery, DeliveryType, CargoType } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useActivityLogging } from './useActivityLogging';
 import { useNewDeliverySubmission } from './useNewDeliverySubmission';
@@ -57,8 +57,8 @@ export const useDeliveryFormSubmit = ({
             receiver: data.receiver,
             weight,
             packages,
-            deliveryType: data.deliveryType as Delivery['deliveryType'],
-            cargoType: data.cargoType as Delivery['cargoType'],
+            deliveryType: data.deliveryType as DeliveryType,
+            cargoType: data.cargoType as CargoType,
             cargoValue,
             totalFreight: freight,
             notes: data.notes,
@@ -82,8 +82,8 @@ export const useDeliveryFormSubmit = ({
             receiver: data.receiver,
             weight,
             packages,
-            deliveryType: data.deliveryType as Delivery['deliveryType'],
-            cargoType: data.cargoType as Delivery['cargoType'],
+            deliveryType: data.deliveryType as DeliveryType,
+            cargoType: data.cargoType as CargoType,
             cargoValue,
             totalFreight: freight,
             notes: data.notes,
@@ -113,8 +113,8 @@ export const useDeliveryFormSubmit = ({
           receiver: data.receiver,
           weight,
           packages,
-          deliveryType: data.deliveryType as Delivery['deliveryType'],
-          cargoType: data.cargoType as Delivery['cargoType'],
+          deliveryType: data.deliveryType as DeliveryType,
+          cargoType: data.cargoType as CargoType,
           cargoValue,
           totalFreight: freight,
           notes: data.notes,
@@ -140,8 +140,8 @@ export const useDeliveryFormSubmit = ({
           receiver: data.receiver,
           weight,
           packages,
-          deliveryType: data.deliveryType as Delivery['deliveryType'],
-          cargoType: data.cargoType as Delivery['cargoType'],
+          deliveryType: data.deliveryType as DeliveryType,
+          cargoType: data.cargoType as CargoType,
           cargoValue,
           totalFreight: freight,
           notes: data.notes,

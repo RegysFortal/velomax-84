@@ -55,22 +55,17 @@ export const useNewDeliverySubmission = ({
         weight: parseFloat(String(newDelivery.weight)),
         packages: parseInt(String(newDelivery.packages)),
         cargoValue: newDelivery.cargoValue ? parseFloat(String(newDelivery.cargoValue)) : 0,
-        user_id: user?.id // Add current user ID to the delivery
       };
       
       try {
         console.log("Submitting delivery to database:", formattedDelivery);
         const result = await addDelivery(formattedDelivery);
         
-        if (result && result.error) {
-          throw new Error(result.error.message || "Erro ao criar entrega");
-        }
-        
         toast.success("Entrega registrada com sucesso");
         onComplete();
         
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error creating delivery:', error);
         toast.error("Erro ao criar entrega");
         return false;

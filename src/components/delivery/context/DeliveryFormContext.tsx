@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { deliveryFormSchema } from '../schema/deliveryFormSchema';
-import { Delivery, Client } from '@/types';
+import { Delivery, Client, DeliveryType } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useClients } from '@/contexts';
 import { useDeliveryFormEffects } from '../hooks/useDeliveryFormEffects';
@@ -94,7 +94,7 @@ export const DeliveryFormProvider: React.FC<{
   
   // Calculate showDoorToDoor based on current delivery type
   const deliveryType = form.watch('deliveryType');
-  const showDoorToDoor = isDoorToDoorDelivery(deliveryType as Delivery['deliveryType']);
+  const showDoorToDoor = isDoorToDoorDelivery(deliveryType as DeliveryType);
 
   return (
     <DeliveryFormContext.Provider

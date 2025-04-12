@@ -1,17 +1,32 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Delivery } from '@/types';
+import { Delivery, DeliveryType, CargoType, City } from '@/types';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { calculateFreight as utilsCalculateFreight, isDoorToDoorDelivery as checkIfDoorToDoor, checkMinuteNumberExists as checkMinuteExists } from '@/utils/deliveryUtils';
+import { PriceTable } from '@/types';
+import { usePriceTables } from '@/contexts';
 
 interface DeliveriesContextType {
   deliveries: Delivery[];
   loading: boolean;
-  addDelivery: (delivery: Delivery) => Promise<Delivery>;
+  addDelivery: (delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Delivery>;
   updateDelivery: (id: string, delivery: Partial<Delivery>) => Promise<void>;
   deleteDelivery: (id: string) => Promise<void>;
   getDeliveryById: (id: string) => Delivery | undefined;
+  calculateFreight: (
+    clientId: string,
+    weight: number,
+    deliveryType: DeliveryType,
+    cargoType: CargoType,
+    cargoValue?: number,
+    distance?: number,
+    cityId?: string
+  ) => number;
+  isDoorToDoorDelivery: (deliveryType: DeliveryType) => boolean;
+  checkMinuteNumberExists: (minuteNumber: string, clientId: string) => boolean;
 }
 
 const DeliveriesContext = createContext<DeliveriesContextType | undefined>(undefined);
@@ -28,6 +43,7 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { priceTables } = usePriceTables();
   
   useEffect(() => {
     const loadDeliveries = async () => {
@@ -52,8 +68,8 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
           receiver: delivery.receiver,
           weight: delivery.weight,
           packages: delivery.packages,
-          deliveryType: delivery.delivery_type,
-          cargoType: delivery.cargo_type,
+          deliveryType: delivery.delivery_type as DeliveryType,
+          cargoType: delivery.cargo_type as CargoType,
           totalFreight: delivery.total_freight,
           notes: delivery.notes,
           occurrence: delivery.occurrence,
@@ -76,7 +92,7 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   // Improved addDelivery function to properly sync with Supabase
-  const addDelivery = async (deliveryData: Delivery): Promise<Delivery> => {
+  const addDelivery = async (deliveryData: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>): Promise<Delivery> => {
     try {
       console.log("Adding delivery with data:", deliveryData);
       
@@ -127,8 +143,8 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
         receiver: newDelivery.receiver,
         weight: newDelivery.weight,
         packages: newDelivery.packages,
-        deliveryType: newDelivery.delivery_type,
-        cargoType: newDelivery.cargo_type,
+        deliveryType: newDelivery.delivery_type as DeliveryType,
+        cargoType: newDelivery.cargo_type as CargoType,
         totalFreight: newDelivery.total_freight,
         notes: newDelivery.notes,
         occurrence: newDelivery.occurrence,
@@ -217,6 +233,40 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
     return deliveries.find(delivery => delivery.id === id);
   };
   
+  // Add the missing functions that were referenced in hooks
+  const calculateFreight = (
+    clientId: string,
+    weight: number,
+    deliveryType: DeliveryType,
+    cargoType: CargoType,
+    cargoValue?: number,
+    distance?: number,
+    cityId?: string
+  ): number => {
+    try {
+      const defaultPriceTable = priceTables.length > 0 ? priceTables[0] : undefined;
+      return utilsCalculateFreight(
+        defaultPriceTable,
+        weight,
+        deliveryType,
+        cargoType,
+        cargoValue,
+        distance
+      );
+    } catch (error) {
+      console.error('Error calculating freight:', error);
+      return 50; // Default fallback value
+    }
+  };
+  
+  const isDoorToDoorDelivery = (deliveryType: DeliveryType): boolean => {
+    return checkIfDoorToDoor(deliveryType);
+  };
+  
+  const checkMinuteNumberExists = (minuteNumber: string, clientId: string): boolean => {
+    return checkMinuteExists(deliveries, minuteNumber, clientId);
+  };
+  
   return (
     <DeliveriesContext.Provider value={{
       deliveries,
@@ -224,7 +274,10 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
       addDelivery,
       updateDelivery,
       deleteDelivery,
-      getDeliveryById
+      getDeliveryById,
+      calculateFreight,
+      isDoorToDoorDelivery,
+      checkMinuteNumberExists
     }}>
       {children}
     </DeliveriesContext.Provider>
