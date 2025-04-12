@@ -17,7 +17,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   
   useEffect(() => {
     if (!loading && !user) {
+      console.log("No authenticated user, redirecting to login");
       navigate('/login');
+      return;
     }
   }, [user, loading, navigate]);
 
@@ -52,6 +54,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         return;
       }
 
+      // Special case for settings (admin or has settings permission)
+      if (location.pathname === '/settings' && user.role !== 'admin' && !hasPermission('settings')) {
+        toast("Acesso restrito", {
+          description: "Você não tem permissão para acessar esta página de configurações.",
+        });
+        navigate('/dashboard');
+        return;
+      }
+
       // Profile is accessible to all authenticated users
       if (location.pathname === '/profile') {
         return;
@@ -68,6 +79,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         
         // Check if user has required permission
         if (!hasPermission(requiredPermission)) {
+          console.log(`User lacks permission: ${requiredPermission} for path: ${location.pathname}`);
           toast("Acesso restrito", {
             description: "Você não tem permissão para acessar esta página.",
           });

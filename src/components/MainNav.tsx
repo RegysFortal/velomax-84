@@ -11,84 +11,21 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Link } from "react-router-dom"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useAuth } from "@/contexts/auth/AuthContext"
+import { OperationalMenu } from "./nav/OperationalMenu"
+import { FinancialMenu } from "./nav/FinancialMenu"
+import { ManagementMenu } from "./nav/ManagementMenu"
 
 const NavigationMenuDemo = () => {
   const { isMobile } = useIsMobile();
+  const { user, hasPermission } = useAuth();
   
   return (
     <NavigationMenu>
       <NavigationMenuList className={isMobile ? "flex-col items-start" : ""}>
-        <NavigationMenuItem className={isMobile ? "w-full" : ""}>
-          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Operacional</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className={`grid gap-3 p-4 ${isMobile ? "w-full" : "w-[240px]"}`}>
-              <ListItem href="/deliveries" title="Entregas">
-                Gerenciamento de entregas
-              </ListItem>
-              <ListItem href="/shipments" title="Embarques">
-                Gerenciamento de embarques
-              </ListItem>
-              <ListItem href="/shipment-reports" title="Relatórios de Embarques">
-                Relatórios de embarques
-              </ListItem>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-        
-        <NavigationMenuItem className={isMobile ? "w-full" : ""}>
-          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Financeiro</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className={`grid gap-3 p-4 ${isMobile ? "w-full" : "w-[240px]"}`}>
-              <ListItem href="/financial" title="Fechamento">
-                Gerenciamento de fechamento financeiro
-              </ListItem>
-              <ListItem href="/reports" title="Relatórios">
-                Relatórios financeiros
-              </ListItem>
-              <ListItem href="/budgets" title="Orçamentos">
-                Gerenciar orçamentos
-              </ListItem>
-              <ListItem href="/price-tables" title="Tabela de Preços">
-                Gerenciar tabelas de preços
-              </ListItem>
-              <ListItem href="/cities" title="Cidades">
-                Gerenciar cidades
-              </ListItem>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-        
-        <NavigationMenuItem className={isMobile ? "w-full" : ""}>
-          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Gerência</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className={`grid gap-3 p-4 ${isMobile ? "w-full" : "w-[240px]"}`}>
-              <ListItem href="/dashboard" title="Dashboard">
-                Painel de controle
-              </ListItem>
-              <ListItem href="/logbook" title="Diário de Bordo">
-                Gerenciar diário de bordo
-              </ListItem>
-              <ListItem href="/clients" title="Clientes">
-                Gerenciar clientes
-              </ListItem>
-              <ListItem href="/employees" title="Funcionários">
-                Gerenciar funcionários
-              </ListItem>
-              <ListItem href="/vehicles" title="Veículos">
-                Gerenciar veículos
-              </ListItem>
-              <ListItem href="/maintenance" title="Manutenções">
-                Gerenciar manutenções
-              </ListItem>
-              <ListItem href="/activity-logs" title="Logs de Atividades">
-                Histórico de atividades
-              </ListItem>
-              <ListItem href="/settings" title="Configurações">
-                Configurações do sistema
-              </ListItem>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+        <OperationalMenu user={user} hasPermission={hasPermission} />
+        <FinancialMenu user={user} hasPermission={hasPermission} />
+        <ManagementMenu user={user} hasPermission={hasPermission} />
       </NavigationMenuList>
     </NavigationMenu>
   )

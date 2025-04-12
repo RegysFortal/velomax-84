@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Settings } from "lucide-react";
+import { Settings, BarChart2, BookOpen, Users, Truck, Tool, FileText } from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
@@ -43,6 +43,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                   getActiveClass(location.pathname, "/dashboard")
                 )}
               >
+                <BarChart2 className="mr-2 h-4 w-4" />
                 Dashboard
               </Link>
             )}
@@ -54,6 +55,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                   getActiveClass(location.pathname, "/logbook")
                 )}
               >
+                <BookOpen className="mr-2 h-4 w-4" />
                 Diário de Bordo
               </Link>
             )}
@@ -65,6 +67,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                   getActiveClass(location.pathname, "/clients")
                 )}
               >
+                <Users className="mr-2 h-4 w-4" />
                 Clientes
               </Link>
             )}
@@ -76,6 +79,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                   getActiveClass(location.pathname, "/employees")
                 )}
               >
+                <Users className="mr-2 h-4 w-4" />
                 Funcionários
               </Link>
             )}
@@ -87,6 +91,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                   getActiveClass(location.pathname, "/vehicles")
                 )}
               >
+                <Truck className="mr-2 h-4 w-4" />
                 Veículos
               </Link>
             )}
@@ -98,7 +103,20 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                   getActiveClass(location.pathname, "/maintenance")
                 )}
               >
+                <Tool className="mr-2 h-4 w-4" />
                 Manutenções
+              </Link>
+            )}
+            {(user?.role === 'admin' || hasPermission('settings')) && (
+              <Link
+                to="/settings"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/settings")
+                )}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Configurações
               </Link>
             )}
             {user?.role === 'admin' && (
@@ -109,18 +127,8 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                   getActiveClass(location.pathname, "/activity-logs")
                 )}
               >
+                <FileText className="mr-2 h-4 w-4" />
                 Logs de Atividades
-              </Link>
-            )}
-            {hasPermission('settings') && (
-              <Link
-                to="/settings"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/settings")
-                )}
-              >
-                Configurações do Sistema
               </Link>
             )}
           </div>
