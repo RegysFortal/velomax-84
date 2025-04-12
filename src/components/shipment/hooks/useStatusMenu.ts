@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { useDeliveries } from "@/contexts/DeliveriesContext";
@@ -65,16 +64,9 @@ export function useStatusMenu({ shipmentId, status, onStatusChange }: StatusMenu
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Convert to string for comparison to fix TypeScript errors
-        const currentStatus = status as string;
-        const updatedStatus = newStatus as string;
-        const shipmentStatus = updatedShipment.status as string;
-        
-        // Use string comparison to check for retention status
-        const isRetained = 
-          currentStatus === "retained" || 
-          updatedStatus === "retained" || 
-          shipmentStatus === "retained";
+        // Directly check if the new status is 'retained'
+        const isRetained = newStatus === "retained" || 
+                           updatedShipment.status === "retained";
         
         if (isRetained) {
           await updateFiscalAction(shipmentId, null);
