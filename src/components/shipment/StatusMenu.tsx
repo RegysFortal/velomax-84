@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -59,7 +60,7 @@ export function StatusMenu({
         
         if (updatedShipment) {
           await updateShipment(shipmentId, { 
-            isRetained: newStatus === "retained"
+            isRetained: newStatus === "retained" as ShipmentStatus
           });
           
           toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
