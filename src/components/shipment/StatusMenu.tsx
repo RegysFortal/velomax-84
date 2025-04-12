@@ -76,7 +76,7 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Safely handle retention status by checking exact string values
+        // Safely handle retention status by using string literals for exact comparison
         const isRetained = status === "retained" || newStatus === "retained";
         
         if (isRetained) {
