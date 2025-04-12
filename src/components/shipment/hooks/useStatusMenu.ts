@@ -1,11 +1,10 @@
 
 import { useState } from 'react';
-import { useShipments } from "@/contexts/shipments";
-import { useDeliveries } from "@/contexts/DeliveriesContext";
 import { ShipmentStatus } from "@/types/shipment";
-import { DeliveryType, CargoType } from "@/types/delivery";
-import { generateMinuteNumber } from "@/utils/deliveryUtils";
-import { toast } from "sonner";
+import { useStatusLabel } from './useStatusLabel';
+import { useStatusChange } from './useStatusChange';
+import { useDeliveryConfirm } from './useDeliveryConfirm';
+import { useRetentionConfirm } from './useRetentionConfirm';
 
 interface StatusMenuHookProps {
   shipmentId: string;
@@ -13,16 +12,20 @@ interface StatusMenuHookProps {
   onStatusChange?: () => void;
 }
 
+/**
+ * Main hook that combines all status-related functionality
+ */
 export function useStatusMenu({ shipmentId, status, onStatusChange }: StatusMenuHookProps) {
-  const { updateStatus, updateShipment, updateFiscalAction, getShipmentById } = useShipments();
-  const { addDelivery } = useDeliveries();
-  
+  // State for dialogs and forms
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
+  
+  // Delivery form state
   const [receiverName, setReceiverName] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   
+  // Retention form state
   const [retentionReason, setRetentionReason] = useState("");
   const [retentionAmount, setRetentionAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
@@ -30,165 +33,72 @@ export function useStatusMenu({ shipmentId, status, onStatusChange }: StatusMenu
   const [actionNumber, setActionNumber] = useState("");
   const [fiscalNotes, setFiscalNotes] = useState("");
 
-  const getStatusLabel = (statusValue: ShipmentStatus): string => {
-    switch (statusValue) {
-      case "in_transit": return "Em Trânsito";
-      case "retained": return "Retida";
-      case "delivered": return "Retirada";
-      case "delivered_final": return "Entregue";
-      default: return statusValue;
-    }
+  // Reset form functions
+  const resetDeliveryForm = () => {
+    setShowDeliveryDialog(false);
+    setReceiverName("");
+    setDeliveryDate("");
+    setDeliveryTime("");
   };
 
-  const handleStatusChange = async (newStatus: ShipmentStatus) => {
-    if (newStatus === status) return;
-    
-    try {
-      console.log(`Attempting to change status to: ${newStatus}`);
-      
-      if (newStatus === "delivered_final") {
-        setShowDeliveryDialog(true);
-        return;
-      } else if (newStatus === "retained") {
-        setShowRetentionSheet(true);
-        return;
-      }
-      
-      // For other statuses (in_transit and delivered), update directly
-      const updatedShipment = await updateStatus(shipmentId, newStatus);
-      
-      if (updatedShipment) {
-        await updateShipment(shipmentId, { 
-          status: newStatus,
-          isRetained: newStatus === "retained"
-        });
-        
-        toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
-        
-        // Compare status values as strings to avoid type comparison issues
-        const statusWasRetained = String(status) === "retained";
-        const statusIsNowRetained = String(newStatus) === "retained";
-        const updatedShipmentIsRetained = String(updatedShipment.status) === "retained";
-        
-        // Determine if this status change involves retention
-        const isRetained = statusWasRetained || statusIsNowRetained || updatedShipmentIsRetained;
-        
-        if (isRetained) {
-          await updateFiscalAction(shipmentId, null);
-        }
-        
-        if (onStatusChange) onStatusChange();
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Erro ao alterar status");
-    }
+  const resetRetentionForm = () => {
+    setShowRetentionSheet(false);
+    setRetentionReason("");
+    setRetentionAmount("");
+    setPaymentDate("");
+    setReleaseDate("");
+    setActionNumber("");
+    setFiscalNotes("");
   };
 
-  const handleDeliveryConfirm = async () => {
-    try {
-      // Get the shipment details to create the delivery
-      const shipment = getShipmentById(shipmentId);
-      if (!shipment) {
-        toast.error("Embarque não encontrado");
-        return;
-      }
-
-      // Update the shipment status
-      await updateShipment(shipmentId, {
-        status: "delivered_final",
-        receiverName,
-        deliveryDate,
-        deliveryTime,
-        isRetained: false
-      });
-      
-      // Create a delivery from this shipment
-      const newDelivery = {
-        minuteNumber: generateMinuteNumber([]), // Generate a new minute number
-        clientId: shipment.companyId, // Use the company ID as client ID
-        deliveryDate,
-        deliveryTime,
-        receiver: receiverName,
-        weight: shipment.weight,
-        packages: shipment.packages,
-        deliveryType: "standard" as DeliveryType, // Explicitly cast to DeliveryType
-        cargoType: "standard" as CargoType, // Explicitly cast to CargoType
-        cargoValue: 0, // Default cargo value
-        totalFreight: 0, // Default freight
-        notes: `Gerado automaticamente do embarque ${shipment.trackingNumber}`
-      };
-
-      // Add the delivery
-      await addDelivery(newDelivery);
-      
-      toast.success("Embarque finalizado e entrega registrada com sucesso");
-      
-      setShowDeliveryDialog(false);
-      setReceiverName("");
-      setDeliveryDate("");
-      setDeliveryTime("");
-      
-      if (onStatusChange) onStatusChange();
-    } catch (error) {
-      console.error("Error finalizing shipment:", error);
-      toast.error("Erro ao finalizar embarque");
-    }
-  };
-
-  const handleRetentionConfirm = async () => {
-    try {
-      console.log("Setting status to retained and updating fiscal action");
-      
-      // First update the status
-      await updateStatus(shipmentId, "retained");
-      
-      // Then update the shipment details and mark as retained
-      await updateShipment(shipmentId, { 
-        status: "retained",
-        isRetained: true 
-      });
-      
-      // Then create/update the fiscal action
-      const retentionAmountValue = parseFloat(retentionAmount || "0");
-      
-      await updateFiscalAction(shipmentId, {
-        actionNumber: actionNumber.trim() || undefined,
-        reason: retentionReason.trim(),
-        amountToPay: retentionAmountValue,
-        paymentDate: paymentDate || undefined,
-        releaseDate: releaseDate || undefined,
-        notes: fiscalNotes.trim() || undefined,
-      });
-      
-      toast.success("Status alterado para Retida e informações de retenção atualizadas");
-      
-      setShowRetentionSheet(false);
-      setRetentionReason("");
-      setRetentionAmount("");
-      setPaymentDate("");
-      setReleaseDate("");
-      setActionNumber("");
-      setFiscalNotes("");
-      
-      if (onStatusChange) onStatusChange();
-    } catch (error) {
-      console.error("Error setting retention status:", error);
-      toast.error("Erro ao definir status de retenção");
-    }
-  };
+  // Import functionality from separate hooks
+  const { getStatusLabel } = useStatusLabel();
+  
+  const { handleStatusChange } = useStatusChange({ 
+    shipmentId, 
+    status, 
+    onStatusChange,
+    setShowDeliveryDialog,
+    setShowRetentionSheet
+  });
+  
+  const { handleDeliveryConfirm } = useDeliveryConfirm({
+    shipmentId,
+    receiverName,
+    deliveryDate,
+    deliveryTime,
+    onStatusChange,
+    resetForm: resetDeliveryForm
+  });
+  
+  const { handleRetentionConfirm } = useRetentionConfirm({
+    shipmentId,
+    retentionReason,
+    retentionAmount,
+    paymentDate,
+    releaseDate,
+    actionNumber,
+    fiscalNotes,
+    onStatusChange,
+    resetForm: resetRetentionForm
+  });
 
   return {
+    // Dialog state
     showDeliveryDialog,
     setShowDeliveryDialog,
     showRetentionSheet,
     setShowRetentionSheet,
+    
+    // Delivery form state
     receiverName,
     setReceiverName,
     deliveryDate,
     setDeliveryDate,
     deliveryTime,
     setDeliveryTime,
+    
+    // Retention form state
     retentionReason,
     setRetentionReason,
     retentionAmount,
@@ -201,6 +111,8 @@ export function useStatusMenu({ shipmentId, status, onStatusChange }: StatusMenu
     setActionNumber,
     fiscalNotes,
     setFiscalNotes,
+    
+    // Action handlers
     handleStatusChange,
     handleDeliveryConfirm,
     handleRetentionConfirm,
