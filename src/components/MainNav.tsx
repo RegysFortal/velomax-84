@@ -4,7 +4,6 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
@@ -35,7 +34,7 @@ const NavigationMenuDemo = () => {
         </NavigationMenuItem>
         
         <NavigationMenuItem className={isMobile ? "w-full" : ""}>
-          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Fechamento</NavigationMenuTrigger>
+          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Financeiro</NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className={`grid gap-3 p-4 ${isMobile ? "w-full" : "w-[240px]"}`}>
               <ListItem href="/financial" title="Fechamento">
@@ -43,6 +42,9 @@ const NavigationMenuDemo = () => {
               </ListItem>
               <ListItem href="/reports" title="Relatórios">
                 Relatórios financeiros
+              </ListItem>
+              <ListItem href="/budgets" title="Orçamentos">
+                Gerenciar orçamentos
               </ListItem>
               <ListItem href="/price-tables" title="Tabela de Preços">
                 Gerenciar tabelas de preços
