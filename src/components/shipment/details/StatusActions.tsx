@@ -20,6 +20,13 @@ interface DeliveryDetailsType {
   receiverName: string;
   deliveryDate: string;
   deliveryTime: string;
+  // Add the retention properties to the interface
+  retentionReason?: string;
+  retentionAmount?: string;
+  paymentDate?: string;
+  releaseDate?: string;
+  actionNumber?: string;
+  fiscalNotes?: string;
 }
 
 export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
@@ -87,9 +94,10 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
 
     // Submit retention details and status change
     onStatusChange("retained", {
-      receiverName: "",  // Using the same interface but not all fields are needed
+      receiverName: "",  // These fields are required by the interface
       deliveryDate: "",
       deliveryTime: "",
+      // Now add the retention-specific fields
       retentionReason,
       retentionAmount,
       paymentDate,
