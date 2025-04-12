@@ -76,10 +76,10 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Use a boolean expression to safely check if either status is 'retained'
+        // Use a type-safe method to check if either status is 'retained'
         const isRetained = 
-          (status as string) === 'retained' || 
-          (newStatus as string) === 'retained';
+          status === "retained" || 
+          newStatus === "retained";
         
         if (isRetained) {
           await updateFiscalAction(shipmentId, null);
