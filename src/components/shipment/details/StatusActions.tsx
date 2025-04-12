@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
-import { format } from "date-fns";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { RetentionFormSection } from "../RetentionFormSection";
 
 interface StatusActionsProps {
   status: ShipmentStatus;
@@ -23,13 +24,24 @@ interface DeliveryDetailsType {
 
 export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
+  const [showRetentionSheet, setShowRetentionSheet] = useState(false);
   const [receiverName, setReceiverName] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
+  
+  // Retention form state
+  const [retentionReason, setRetentionReason] = useState("");
+  const [retentionAmount, setRetentionAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState("");
+  const [releaseDate, setReleaseDate] = useState("");
+  const [actionNumber, setActionNumber] = useState("");
+  const [fiscalNotes, setFiscalNotes] = useState("");
 
   const handleStatusChangeClick = (newStatus: ShipmentStatus) => {
     if (newStatus === "delivered_final") {
       setShowDeliveryDialog(true);
+    } else if (newStatus === "retained") {
+      setShowRetentionSheet(true);
     } else {
       onStatusChange(newStatus);
     }
@@ -64,6 +76,36 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
     setReceiverName("");
     setDeliveryDate("");
     setDeliveryTime("");
+  };
+  
+  const handleRetentionConfirm = () => {
+    // Validate inputs
+    if (!retentionReason.trim()) {
+      alert("Por favor, informe o motivo da retenção");
+      return;
+    }
+
+    // Submit retention details and status change
+    onStatusChange("retained", {
+      receiverName: "",  // Using the same interface but not all fields are needed
+      deliveryDate: "",
+      deliveryTime: "",
+      retentionReason,
+      retentionAmount,
+      paymentDate,
+      releaseDate,
+      actionNumber,
+      fiscalNotes
+    });
+
+    // Close sheet and reset form
+    setShowRetentionSheet(false);
+    setRetentionReason("");
+    setRetentionAmount("");
+    setPaymentDate("");
+    setReleaseDate("");
+    setActionNumber("");
+    setFiscalNotes("");
   };
 
   return (
@@ -156,6 +198,39 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Retention details sheet */}
+      <Sheet open={showRetentionSheet} onOpenChange={setShowRetentionSheet}>
+        <SheetContent className="w-full md:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Informações de Retenção</SheetTitle>
+          </SheetHeader>
+          <div className="py-6">
+            <RetentionFormSection
+              actionNumber={actionNumber}
+              setActionNumber={setActionNumber}
+              retentionReason={retentionReason}
+              setRetentionReason={setRetentionReason}
+              retentionAmount={retentionAmount}
+              setRetentionAmount={setRetentionAmount}
+              paymentDate={paymentDate}
+              setPaymentDate={setPaymentDate}
+              releaseDate={releaseDate}
+              setReleaseDate={setReleaseDate}
+              fiscalNotes={fiscalNotes}
+              setFiscalNotes={setFiscalNotes}
+            />
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setShowRetentionSheet(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleRetentionConfirm}>
+                Confirmar
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

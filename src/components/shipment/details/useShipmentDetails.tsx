@@ -148,17 +148,17 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     }
   };
   
-  const handleStatusChange = async (newStatus: ShipmentStatus, deliveryDetails?: any) => {
+  const handleStatusChange = async (newStatus: ShipmentStatus, details?: any) => {
     try {
       let updateData: Partial<Shipment> = { status: newStatus };
       
       // If delivered_final and we have delivery details, add them
-      if (newStatus === "delivered_final" && deliveryDetails) {
+      if (newStatus === "delivered_final" && details) {
         updateData = {
           ...updateData,
-          receiverName: deliveryDetails.receiverName,
-          deliveryDate: deliveryDetails.deliveryDate,
-          deliveryTime: deliveryDetails.deliveryTime
+          receiverName: details.receiverName,
+          deliveryDate: details.deliveryDate,
+          deliveryTime: details.deliveryTime
         };
         
         // Create a new delivery entry when status is changed to delivered_final
@@ -169,9 +169,9 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           await addDelivery({
             minuteNumber,
             clientId: shipment.companyId,
-            deliveryDate: deliveryDetails.deliveryDate,
-            deliveryTime: deliveryDetails.deliveryTime,
-            receiver: deliveryDetails.receiverName,
+            deliveryDate: details.deliveryDate,
+            deliveryTime: details.deliveryTime,
+            receiver: details.receiverName,
             weight: shipment.weight,
             packages: shipment.packages,
             deliveryType: 'standard', // Default delivery type
@@ -185,6 +185,39 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           console.error("Error creating delivery from shipment:", error);
           toast.error("Embarque finalizado, mas houve um erro ao criar a entrega");
         }
+      }
+      
+      // If changing to "retained" and we have retention details
+      if (newStatus === "retained" && details && details.retentionReason) {
+        updateData.isRetained = true;
+        
+        // First update the shipment status
+        await updateShipment(shipment.id, updateData);
+        
+        // Then create/update the fiscal action
+        const retentionAmountValue = parseFloat(details.retentionAmount || "0");
+        
+        await updateFiscalAction(shipment.id, {
+          actionNumber: details.actionNumber?.trim() || undefined,
+          reason: details.retentionReason.trim(),
+          amountToPay: retentionAmountValue,
+          paymentDate: details.paymentDate || undefined,
+          releaseDate: details.releaseDate || undefined,
+          notes: details.fiscalNotes?.trim() || undefined,
+        });
+        
+        toast.success("Status alterado para Retida e informações de retenção atualizadas");
+        
+        // Update the local state
+        setStatus("retained");
+        setRetentionReason(details.retentionReason);
+        setRetentionAmount(details.retentionAmount);
+        setPaymentDate(details.paymentDate);
+        setReleaseDate(details.releaseDate);
+        setActionNumber(details.actionNumber);
+        setFiscalNotes(details.fiscalNotes);
+        
+        return;
       }
       
       // If changing to "retained", set isRetained to true
@@ -207,10 +240,10 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       
       // Update local state
       setStatus(newStatus);
-      if (deliveryDetails) {
-        setReceiverName(deliveryDetails.receiverName);
-        setDeliveryDate(deliveryDetails.deliveryDate);
-        setDeliveryTime(deliveryDetails.deliveryTime);
+      if (details && newStatus === "delivered_final") {
+        setReceiverName(details.receiverName);
+        setDeliveryDate(details.deliveryDate);
+        setDeliveryTime(details.deliveryTime);
       }
     } catch (error) {
       toast.error("Erro ao alterar status");

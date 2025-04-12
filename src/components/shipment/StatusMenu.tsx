@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useState } from "react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { RetentionFormSection } from "./RetentionFormSection";
 
 interface StatusMenuProps {
   shipmentId: string;
@@ -32,17 +34,28 @@ export function StatusMenu({
   className,
   onStatusChange
 }: StatusMenuProps) {
-  const { updateStatus, updateShipment } = useShipments();
+  const { updateStatus, updateShipment, updateFiscalAction } = useShipments();
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
+  const [showRetentionSheet, setShowRetentionSheet] = useState(false);
   const [receiverName, setReceiverName] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
+  
+  // Retention form state
+  const [retentionReason, setRetentionReason] = useState("");
+  const [retentionAmount, setRetentionAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState("");
+  const [releaseDate, setReleaseDate] = useState("");
+  const [actionNumber, setActionNumber] = useState("");
+  const [fiscalNotes, setFiscalNotes] = useState("");
 
   const handleStatusChange = async (newStatus: ShipmentStatus) => {
     if (newStatus === status) return;
     
     if (newStatus === "delivered_final") {
       setShowDeliveryDialog(true);
+    } else if (newStatus === "retained") {
+      setShowRetentionSheet(true);
     } else {
       try {
         // First update the status
@@ -106,6 +119,51 @@ export function StatusMenu({
     } catch (error) {
       console.error("Error finalizing shipment:", error);
       toast.error("Erro ao finalizar embarque");
+    }
+  };
+
+  const handleRetentionConfirm = async () => {
+    // Validate inputs
+    if (!retentionReason.trim()) {
+      toast.error("Por favor, informe o motivo da retenção");
+      return;
+    }
+
+    try {
+      // First update the status and set isRetained flag
+      const updatedShipment = await updateStatus(shipmentId, "retained");
+      
+      if (updatedShipment) {
+        await updateShipment(shipmentId, { isRetained: true });
+        
+        // Then update the fiscal action details
+        const retentionAmountValue = parseFloat(retentionAmount || "0");
+        
+        await updateFiscalAction(shipmentId, {
+          actionNumber: actionNumber.trim() || undefined,
+          reason: retentionReason.trim(),
+          amountToPay: retentionAmountValue,
+          paymentDate: paymentDate || undefined,
+          releaseDate: releaseDate || undefined,
+          notes: fiscalNotes.trim() || undefined,
+        });
+        
+        toast.success("Status alterado para Retida e informações de retenção atualizadas");
+        
+        // Close sheet and reset form
+        setShowRetentionSheet(false);
+        setRetentionReason("");
+        setRetentionAmount("");
+        setPaymentDate("");
+        setReleaseDate("");
+        setActionNumber("");
+        setFiscalNotes("");
+        
+        if (onStatusChange) onStatusChange();
+      }
+    } catch (error) {
+      console.error("Error setting retention status:", error);
+      toast.error("Erro ao definir status de retenção");
     }
   };
 
@@ -195,6 +253,39 @@ export function StatusMenu({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Retention details sheet */}
+      <Sheet open={showRetentionSheet} onOpenChange={setShowRetentionSheet}>
+        <SheetContent className="w-full md:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Informações de Retenção</SheetTitle>
+          </SheetHeader>
+          <div className="py-6">
+            <RetentionFormSection
+              actionNumber={actionNumber}
+              setActionNumber={setActionNumber}
+              retentionReason={retentionReason}
+              setRetentionReason={setRetentionReason}
+              retentionAmount={retentionAmount}
+              setRetentionAmount={setRetentionAmount}
+              paymentDate={paymentDate}
+              setPaymentDate={setPaymentDate}
+              releaseDate={releaseDate}
+              setReleaseDate={setReleaseDate}
+              fiscalNotes={fiscalNotes}
+              setFiscalNotes={setFiscalNotes}
+            />
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setShowRetentionSheet(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleRetentionConfirm}>
+                Confirmar
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
