@@ -76,9 +76,10 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Convert status values to string for safe comparison
-        const fromRetained = status === "retained";
-        const toRetained = newStatus === "retained";
+        // Safely handle retention status
+        const possibleRetainedStatuses: ShipmentStatus[] = ["retained"];
+        const fromRetained = possibleRetainedStatuses.includes(status);
+        const toRetained = possibleRetainedStatuses.includes(newStatus);
         const isRetained = fromRetained || toRetained;
         
         if (isRetained) {
