@@ -21,10 +21,10 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
     isDialogOpen,
     setIsDialogOpen,
     editingDocument,
-    name,
-    setName,
     minuteNumber,
     setMinuteNumber,
+    invoiceNumbers,
+    setInvoiceNumbers,
     weight,
     setWeight,
     packages,
@@ -69,10 +69,10 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
         <DialogContent>
           <DocumentForm
             editingDocument={!!editingDocument}
-            name={name}
-            setName={setName}
             minuteNumber={minuteNumber}
             setMinuteNumber={setMinuteNumber}
+            invoiceNumbers={invoiceNumbers}
+            setInvoiceNumbers={setInvoiceNumbers}
             packages={packages}
             setPackages={setPackages}
             weight={weight}

@@ -26,6 +26,7 @@ export interface Document {
   url?: string;
   notes?: string;
   minuteNumber?: string;
+  invoiceNumbers?: string[]; // Add array of invoice numbers
   weight?: number;
   packages?: number;
   isDelivered?: boolean;

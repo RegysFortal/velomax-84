@@ -14,16 +14,16 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   
   // Form state
-  const [name, setName] = useState("");
   const [minuteNumber, setMinuteNumber] = useState("");
+  const [invoiceNumbers, setInvoiceNumbers] = useState<string[]>([]);
   const [weight, setWeight] = useState("");
   const [packages, setPackages] = useState("");
   const [notes, setNotes] = useState("");
   const [isDelivered, setIsDelivered] = useState(false);
   
   const resetForm = () => {
-    setName("");
     setMinuteNumber("");
+    setInvoiceNumbers([]);
     setWeight("");
     setPackages("");
     setNotes("");
@@ -34,8 +34,8 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
   const handleOpenDialog = (document?: Document) => {
     resetForm();
     if (document) {
-      setName(document.name);
       setMinuteNumber(document.minuteNumber || "");
+      setInvoiceNumbers(document.invoiceNumbers || []);
       setWeight(document.weight?.toString() || "");
       setPackages(document.packages?.toString() || "");
       setNotes(document.notes || "");
@@ -49,19 +49,18 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
     e.preventDefault();
     
     try {
-      if (!name.trim()) {
-        toast.error("Nome do documento é obrigatório");
-        return;
-      }
-      
       // Convert weight and packages to numbers
       const weightValue = weight ? parseFloat(weight) : undefined;
       const packagesValue = packages ? parseInt(packages) : undefined;
       
+      // Generate a document name from the waybill number or first invoice number
+      const documentName = minuteNumber || (invoiceNumbers.length > 0 ? `Nota ${invoiceNumbers[0]}` : "Documento");
+      
       if (editingDocument) {
         const updatedDoc = {
-          name,
+          name: documentName,
           minuteNumber: minuteNumber || undefined,
+          invoiceNumbers: invoiceNumbers.length > 0 ? invoiceNumbers : undefined,
           weight: weightValue,
           packages: packagesValue,
           notes: notes || undefined,
@@ -71,8 +70,9 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
         toast.success("Documento atualizado com sucesso");
       } else {
         const newDoc = {
-          name,
+          name: documentName,
           minuteNumber: minuteNumber || undefined,
+          invoiceNumbers: invoiceNumbers.length > 0 ? invoiceNumbers : undefined,
           weight: weightValue,
           packages: packagesValue,
           notes: notes || undefined,
@@ -104,10 +104,10 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
     isDialogOpen,
     setIsDialogOpen,
     editingDocument,
-    name,
-    setName,
     minuteNumber,
     setMinuteNumber,
+    invoiceNumbers,
+    setInvoiceNumbers,
     weight,
     setWeight,
     packages,
