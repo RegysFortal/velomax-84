@@ -59,8 +59,9 @@ export function ContractorForm({ contractor, onContractorTypeChange, onComplete 
   });
   
   useEffect(() => {
-    if (form.watch('contractorType')) {
-      onContractorTypeChange(form.watch('contractorType') as 'driver' | 'helper');
+    const contractorType = form.watch('contractorType');
+    if (contractorType) {
+      onContractorTypeChange(contractorType as 'driver' | 'helper');
     }
   }, [form.watch('contractorType'), onContractorTypeChange]);
 
@@ -74,7 +75,7 @@ export function ContractorForm({ contractor, onContractorTypeChange, onComplete 
         birthDate: data.birthDate,
         address: data.address,
         role: data.contractorType as 'driver' | 'helper',
-        type: 'contractor' as const,
+        type: 'contractor' as 'contractor',
         email: '', // Required by User type
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -82,9 +83,9 @@ export function ContractorForm({ contractor, onContractorTypeChange, onComplete 
       };
 
       if (contractor?.id) {
-        await updateEmployee(formattedData);
+        await updateEmployee(formattedData as User);
       } else {
-        await addEmployee(formattedData);
+        await addEmployee(formattedData as User);
       }
       
       onComplete(formattedData);

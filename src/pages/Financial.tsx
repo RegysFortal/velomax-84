@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ const FinancialPage = () => {
     <AppLayout>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Fechamento</h1>
           <p className="text-muted-foreground">
             Gerenciamento dos relatórios financeiros de clientes.
           </p>
