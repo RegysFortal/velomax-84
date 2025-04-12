@@ -72,7 +72,7 @@ export function StatusMenu({
     handleStatusChange,
     handleDeliveryConfirm,
     handleRetentionConfirm,
-    resetAllDialogs
+    getStatusLabel
   } = useStatusMenu({ shipmentId, status, onStatusChange });
 
   // Handler for document selection confirmation
