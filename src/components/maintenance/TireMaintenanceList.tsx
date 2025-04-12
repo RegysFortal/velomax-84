@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useLogbook } from '@/contexts/LogbookContext';
 import { format } from 'date-fns';
@@ -27,6 +28,7 @@ import {
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { TireMaintenanceForm } from './TireMaintenanceForm';
 import { toast } from "sonner";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function TireMaintenanceList() {
   const { vehicles, tireMaintenanceRecords, deleteTireMaintenance } = useLogbook();
@@ -194,14 +196,16 @@ export function TireMaintenanceList() {
               {editingMaintenance ? 'Editar Registro de Manutenção' : 'Novo Registro de Manutenção'}
             </DialogTitle>
           </DialogHeader>
-          <TireMaintenanceForm
-            maintenance={editingMaintenance}
-            onSubmit={(data) => {
-              console.log('Form submitted:', data);
-              handleDialogClose();
-            }}
-            onCancel={handleDialogClose}
-          />
+          <ScrollArea className="max-h-[65vh]">
+            <TireMaintenanceForm
+              maintenance={editingMaintenance}
+              onSubmit={(data) => {
+                console.log('Form submitted:', data);
+                handleDialogClose();
+              }}
+              onCancel={handleDialogClose}
+            />
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </Card>

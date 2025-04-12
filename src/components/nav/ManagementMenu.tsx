@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Settings, Users, Database } from "lucide-react";
+import { Settings, Users, Database, Wrench } from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
