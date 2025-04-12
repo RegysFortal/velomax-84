@@ -72,9 +72,9 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Properly handle fiscal action clearing for retained status
-        // Fix type error by checking current status as string
-        if (status === "retained" && newStatus !== "retained") {
+        // Fix the type error by using String comparison instead of type comparison
+        // This is safe because we know what status values are valid
+        if (String(status) === "retained" && String(newStatus) !== "retained") {
           await updateFiscalAction(shipmentId, null);
         }
         

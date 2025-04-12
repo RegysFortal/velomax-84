@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { format, subDays, isWithinInterval } from 'date-fns';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -31,32 +31,42 @@ const Dashboard = () => {
     setRefreshTrigger(prev => prev + 1);
   }, [shipments]);
 
-  const filteredDeliveries = deliveries.filter(delivery => {
-    const deliveryDate = new Date(delivery.deliveryDate);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
-    
-    return deliveryDate >= start && deliveryDate <= end;
-  });
+  // Filter deliveries by date range - extracted as a memoized function
+  const getFilteredDeliveries = useCallback(() => {
+    return deliveries.filter(delivery => {
+      const deliveryDate = new Date(delivery.deliveryDate);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      
+      return deliveryDate >= start && deliveryDate <= end;
+    });
+  }, [deliveries, startDate, endDate]);
 
-  const filteredShipments = shipments.filter(shipment => {
-    if (!shipment.createdAt) return false;
-    
-    const shipmentDate = new Date(shipment.createdAt);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
-    
-    return shipmentDate >= start && shipmentDate <= end;
-  });
+  // Filter shipments by date range - extracted as a memoized function
+  const getFilteredShipments = useCallback(() => {
+    return shipments.filter(shipment => {
+      if (!shipment.createdAt) return false;
+      
+      const shipmentDate = new Date(shipment.createdAt);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      
+      return shipmentDate >= start && shipmentDate <= end;
+    });
+  }, [shipments, startDate, endDate]);
+
+  // Get filtered data
+  const filteredDeliveries = getFilteredDeliveries();
+  const filteredShipments = getFilteredShipments();
 
   // Calculate metrics
   const totalDeliveries = filteredDeliveries.length;
   const totalWeight = filteredDeliveries.reduce((sum, d) => sum + d.weight, 0);
   
   const totalShipments = filteredShipments.length;
-  const retainedShipments = filteredShipments.filter(s => s.isRetained).length;
+  const retainedShipments = filteredShipments.filter(s => s.status === 'retained').length;
   const deliveredShipments = filteredShipments.filter(s => s.status === 'delivered').length;
   const finalDeliveredShipments = filteredShipments.filter(s => s.status === 'delivered_final').length;
   const inTransitShipments = filteredShipments.filter(s => s.status === 'in_transit').length;
@@ -139,9 +149,10 @@ const Dashboard = () => {
         </div>
         
         <MetricCards 
+          key={`metrics-${refreshTrigger}`}
           totalDeliveries={totalDeliveries}
           totalShipments={totalShipments}
-          deliveredShipments={deliveredShipments}
+          deliveredShipments={deliveredShipments + finalDeliveredShipments}
           retainedShipments={retainedShipments}
         />
         
@@ -150,6 +161,7 @@ const Dashboard = () => {
           
           <div className="col-span-12 lg:col-span-6">
             <ChartSection 
+              key={`charts-${refreshTrigger}`}
               deliveriesChartData={deliveriesChartData}
               shipmentStatusData={shipmentStatusData}
             />

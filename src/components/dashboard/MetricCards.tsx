@@ -1,6 +1,7 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Package, Truck, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface MetricCardsProps {
   totalDeliveries: number;
@@ -15,9 +16,17 @@ export const MetricCards = ({
   deliveredShipments, 
   retainedShipments 
 }: MetricCardsProps) => {
+  // Add this to ensure animations when values change
+  const [isVisible, setIsVisible] = useState(false);
+  
+  useEffect(() => {
+    setIsVisible(true);
+    return () => setIsVisible(false);
+  }, [totalDeliveries, totalShipments, deliveredShipments, retainedShipments]);
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
+      <Card className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
             Total de Entregas
@@ -31,7 +40,7 @@ export const MetricCards = ({
           </p>
         </CardContent>
       </Card>
-      <Card>
+      <Card className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
             Total de Embarques
@@ -45,7 +54,7 @@ export const MetricCards = ({
           </p>
         </CardContent>
       </Card>
-      <Card>
+      <Card className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
             Cargas Entregues
@@ -59,7 +68,7 @@ export const MetricCards = ({
           </p>
         </CardContent>
       </Card>
-      <Card>
+      <Card className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
             Cargas Retidas
