@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -41,7 +40,6 @@ export function StatusMenu({
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   
-  // Retention form state
   const [retentionReason, setRetentionReason] = useState("");
   const [retentionAmount, setRetentionAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
@@ -58,16 +56,12 @@ export function StatusMenu({
       setShowRetentionSheet(true);
     } else {
       try {
-        // First update the status
         const updatedShipment = await updateStatus(shipmentId, newStatus);
         
         if (updatedShipment) {
-          // Then update the isRetained flag based on status
-          // Fix the type comparison error - use explicit string comparison instead of using === operator
           if (newStatus === "retained") {
             await updateShipment(shipmentId, { isRetained: true });
           } else if (status === "retained") {
-            // If we're changing from retained to something else, set isRetained to false
             await updateShipment(shipmentId, { isRetained: false });
           }
           
@@ -82,7 +76,6 @@ export function StatusMenu({
   };
 
   const handleDeliveryConfirm = async () => {
-    // Validate inputs
     if (!receiverName.trim()) {
       toast.error("Por favor, informe o nome do recebedor");
       return;
@@ -99,7 +92,6 @@ export function StatusMenu({
     }
 
     try {
-      // Update status and delivery details
       await updateShipment(shipmentId, {
         status: "delivered_final",
         receiverName,
@@ -110,7 +102,6 @@ export function StatusMenu({
       
       toast.success("Embarque finalizado com sucesso");
       
-      // Close dialog and reset form
       setShowDeliveryDialog(false);
       setReceiverName("");
       setDeliveryDate("");
@@ -124,20 +115,17 @@ export function StatusMenu({
   };
 
   const handleRetentionConfirm = async () => {
-    // Validate inputs
     if (!retentionReason.trim()) {
       toast.error("Por favor, informe o motivo da retenção");
       return;
     }
 
     try {
-      // First update the status and set isRetained flag
       const updatedShipment = await updateStatus(shipmentId, "retained");
       
       if (updatedShipment) {
         await updateShipment(shipmentId, { isRetained: true });
         
-        // Then update the fiscal action details
         const retentionAmountValue = parseFloat(retentionAmount || "0");
         
         await updateFiscalAction(shipmentId, {
@@ -151,7 +139,6 @@ export function StatusMenu({
         
         toast.success("Status alterado para Retida e informações de retenção atualizadas");
         
-        // Close sheet and reset form
         setShowRetentionSheet(false);
         setRetentionReason("");
         setRetentionAmount("");
@@ -210,7 +197,6 @@ export function StatusMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Delivery details dialog */}
       <Dialog open={showDeliveryDialog} onOpenChange={setShowDeliveryDialog}>
         <DialogContent>
           <DialogHeader>
@@ -255,7 +241,6 @@ export function StatusMenu({
         </DialogContent>
       </Dialog>
 
-      {/* Retention details sheet */}
       <Sheet open={showRetentionSheet} onOpenChange={setShowRetentionSheet}>
         <SheetContent className="w-full md:max-w-md overflow-y-auto">
           <SheetHeader>
