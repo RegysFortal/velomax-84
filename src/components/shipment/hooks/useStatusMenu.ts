@@ -26,6 +26,7 @@ export function useStatusMenu({ shipmentId, status, onStatusChange }: StatusMenu
     shipmentId, 
     status, 
     onStatusChange,
+    setShowDocumentSelection: dialogState.setShowDocumentSelection,
     setShowDeliveryDialog: dialogState.setShowDeliveryDialog,
     setShowRetentionSheet: dialogState.setShowRetentionSheet
   });
@@ -35,6 +36,7 @@ export function useStatusMenu({ shipmentId, status, onStatusChange }: StatusMenu
     receiverName: dialogState.receiverName,
     deliveryDate: dialogState.deliveryDate,
     deliveryTime: dialogState.deliveryTime,
+    selectedDocumentIds: dialogState.selectedDocumentIds,
     onStatusChange,
     resetForm: dialogState.resetDeliveryForm
   });

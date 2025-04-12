@@ -6,19 +6,29 @@ import { Separator } from "@/components/ui/separator";
 import { StatusActionButtons } from "./StatusActionButtons";
 import { DeliveryDialog } from "../dialogs/DeliveryDialog";
 import { RetentionSheet } from "../dialogs/RetentionSheet";
+import { DocumentSelectionDialog } from "../dialogs/DocumentSelectionDialog";
 import { useStatusAction, DeliveryDetailsType } from "../hooks/useStatusAction";
+import { useShipments } from "@/contexts/shipments";
 
 interface StatusActionsProps {
   status: ShipmentStatus;
+  shipmentId: string;
   onStatusChange: (status: ShipmentStatus, deliveryDetails?: DeliveryDetailsType) => void;
 }
 
-export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
+export function StatusActions({ status, shipmentId, onStatusChange }: StatusActionsProps) {
+  const { getShipmentById } = useShipments();
+  const shipment = getShipmentById(shipmentId);
+  
   const {
+    showDocumentSelection,
+    setShowDocumentSelection,
     showDeliveryDialog,
     setShowDeliveryDialog,
     showRetentionSheet,
     setShowRetentionSheet,
+    selectedDocumentIds,
+    setSelectedDocumentIds,
     receiverName,
     setReceiverName,
     deliveryDate,
@@ -40,7 +50,20 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
     handleStatusChangeClick,
     handleDeliveryConfirm,
     handleRetentionConfirm
-  } = useStatusAction({ status, onStatusChange });
+  } = useStatusAction({ status, shipmentId, onStatusChange });
+
+  // Handler for document selection confirmation
+  const handleDocumentSelectionContinue = (documentIds: string[]) => {
+    setSelectedDocumentIds(documentIds);
+    setShowDocumentSelection(false);
+    setShowDeliveryDialog(true);
+  };
+  
+  // Handler for cancellation of document selection
+  const handleDocumentSelectionCancel = () => {
+    setSelectedDocumentIds([]);
+    setShowDocumentSelection(false);
+  };
 
   return (
     <div className="md:col-span-2">
@@ -54,6 +77,16 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
         status={status} 
         onStatusChangeClick={handleStatusChangeClick} 
       />
+      
+      {shipment && (
+        <DocumentSelectionDialog
+          open={showDocumentSelection}
+          onOpenChange={setShowDocumentSelection}
+          documents={shipment.documents || []}
+          onContinue={handleDocumentSelectionContinue}
+          onCancel={handleDocumentSelectionCancel}
+        />
+      )}
 
       <DeliveryDialog
         open={showDeliveryDialog}

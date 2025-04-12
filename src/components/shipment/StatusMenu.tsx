@@ -12,6 +12,8 @@ import {
 import { DeliveryDialog } from "./dialogs/DeliveryDialog";
 import { RetentionSheet } from "./dialogs/RetentionSheet";
 import { StatusMenuItems } from "./StatusMenuItems";
+import { DocumentSelectionDialog } from "./dialogs/DocumentSelectionDialog";
+import { useShipments } from "@/contexts/shipments";
 
 interface StatusMenuProps {
   shipmentId: string;
@@ -28,12 +30,21 @@ export function StatusMenu({
   className,
   onStatusChange
 }: StatusMenuProps) {
+  const { getShipmentById } = useShipments();
+  const shipment = getShipmentById(shipmentId);
+  
   const {
     // Dialog state
+    showDocumentSelection,
+    setShowDocumentSelection,
     showDeliveryDialog,
     setShowDeliveryDialog,
     showRetentionSheet,
     setShowRetentionSheet,
+    
+    // Document selection state
+    selectedDocumentIds,
+    setSelectedDocumentIds,
     
     // Delivery form state
     receiverName,
@@ -60,8 +71,22 @@ export function StatusMenu({
     // Action handlers
     handleStatusChange,
     handleDeliveryConfirm,
-    handleRetentionConfirm
+    handleRetentionConfirm,
+    resetAllDialogs
   } = useStatusMenu({ shipmentId, status, onStatusChange });
+
+  // Handler for document selection confirmation
+  const handleDocumentSelectionContinue = (documentIds: string[]) => {
+    setSelectedDocumentIds(documentIds);
+    setShowDocumentSelection(false);
+    setShowDeliveryDialog(true);
+  };
+  
+  // Handler for cancellation of document selection
+  const handleDocumentSelectionCancel = () => {
+    setSelectedDocumentIds([]);
+    setShowDocumentSelection(false);
+  };
 
   return (
     <>
@@ -78,6 +103,16 @@ export function StatusMenu({
           />
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {shipment && (
+        <DocumentSelectionDialog
+          open={showDocumentSelection}
+          onOpenChange={setShowDocumentSelection}
+          documents={shipment.documents || []}
+          onContinue={handleDocumentSelectionContinue}
+          onCancel={handleDocumentSelectionCancel}
+        />
+      )}
 
       <DeliveryDialog
         open={showDeliveryDialog}

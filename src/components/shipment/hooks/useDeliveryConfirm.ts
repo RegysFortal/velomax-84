@@ -2,12 +2,14 @@
 import { useShipments } from "@/contexts/shipments";
 import { useDeliveries } from "@/contexts/DeliveriesContext";
 import { toast } from "sonner";
+import { Document } from "@/types/shipment";
 
 interface DeliveryConfirmProps {
   shipmentId: string;
   receiverName: string;
   deliveryDate: string;
   deliveryTime: string;
+  selectedDocumentIds: string[];
   onStatusChange?: () => void;
   resetForm: () => void;
 }
@@ -20,10 +22,11 @@ export function useDeliveryConfirm({
   receiverName,
   deliveryDate,
   deliveryTime,
+  selectedDocumentIds,
   onStatusChange,
   resetForm
 }: DeliveryConfirmProps) {
-  const { updateShipment, getShipmentById } = useShipments();
+  const { updateShipment, getShipmentById, updateDocument } = useShipments();
   const { addDelivery } = useDeliveries();
   
   /**
@@ -44,26 +47,40 @@ export function useDeliveryConfirm({
         return;
       }
       
-      // Update shipment status to delivered_final
-      await updateShipment(shipmentId, {
-        status: "delivered_final",
-        deliveryDate,
-        deliveryTime,
-        receiverName,
-        isRetained: false
-      });
-      
-      // Create deliveries from documents
+      // Check if we need to update documents
       if (shipment.documents && shipment.documents.length > 0) {
-        console.log(`Creating ${shipment.documents.length} deliveries from documents`);
+        const selectedDocuments: Document[] = [];
+        const updatedDocuments = [...shipment.documents];
         
-        for (const document of shipment.documents) {
+        // If no specific documents were selected (empty array), process all undelivered documents
+        const docsToProcess = selectedDocumentIds.length > 0 
+          ? selectedDocumentIds 
+          : shipment.documents.filter(doc => !doc.isDelivered).map(doc => doc.id);
+        
+        // Mark the selected documents as delivered and collect them
+        for (let i = 0; i < updatedDocuments.length; i++) {
+          if (docsToProcess.includes(updatedDocuments[i].id)) {
+            updatedDocuments[i] = {
+              ...updatedDocuments[i],
+              isDelivered: true
+            };
+            selectedDocuments.push(updatedDocuments[i]);
+            
+            // Update document in the database
+            await updateDocument(shipmentId, updatedDocuments[i]);
+          }
+        }
+        
+        // Create deliveries from selected documents
+        console.log(`Creating ${selectedDocuments.length} deliveries from selected documents`);
+        
+        for (const document of selectedDocuments) {
           // Generate unique minute number for each document
           const minuteNumber = document.minuteNumber || 
                               `${shipment.trackingNumber}-${document.id.substring(0, 4)}`;
           
           try {
-            await addDelivery({
+            const deliveryData = {
               minuteNumber,
               clientId: shipment.companyId,
               deliveryDate,
@@ -75,10 +92,16 @@ export function useDeliveryConfirm({
               deliveryType: 'standard',
               cargoType: 'standard',
               totalFreight: 0,
-              notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`,
-              invoiceNumbers: document.invoiceNumbers
-            });
+              notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`
+            };
             
+            // Add invoice numbers to notes if they exist
+            if (document.invoiceNumbers && document.invoiceNumbers.length > 0) {
+              const invoiceList = document.invoiceNumbers.join(', ');
+              deliveryData.notes = `${deliveryData.notes}\nNotas Fiscais: ${invoiceList}`;
+            }
+            
+            await addDelivery(deliveryData);
             console.log(`Created delivery for document: ${document.name}`);
           } catch (error) {
             console.error(`Error creating delivery for document ${document.name}:`, error);
@@ -86,9 +109,33 @@ export function useDeliveryConfirm({
           }
         }
         
-        toast.success(`${shipment.documents.length} entregas criadas com sucesso`);
+        toast.success(`${selectedDocuments.length} entregas criadas com sucesso`);
+        
+        // Check if all documents are now delivered
+        const allDocumentsDelivered = updatedDocuments.every(doc => doc.isDelivered);
+        
+        // Update shipment status based on document delivery status
+        const newStatus = allDocumentsDelivered ? "delivered_final" : "in_transit";
+        
+        await updateShipment(shipmentId, {
+          status: newStatus,
+          documents: updatedDocuments,
+          // Only set these fields if all documents are delivered
+          ...(allDocumentsDelivered && {
+            deliveryDate,
+            deliveryTime,
+            receiverName,
+          }),
+          isRetained: false
+        });
+        
+        if (allDocumentsDelivered) {
+          toast.success("Todos os documentos foram entregues. Status do embarque atualizado para Entregue.");
+        } else {
+          toast.success("Documentos selecionados marcados como entregues. Embarque permanece em trânsito.");
+        }
       } else {
-        // If no documents, create a single delivery for the shipment
+        // If no documents, create a single delivery for the shipment and mark as delivered
         const minuteNumber = `${shipment.trackingNumber}-${new Date().getTime().toString().slice(-4)}`;
         
         await addDelivery({
@@ -104,13 +151,22 @@ export function useDeliveryConfirm({
           totalFreight: 0,
           notes: `Entrega do embarque ${shipment.trackingNumber}`
         });
+        
+        // Update shipment status to delivered_final
+        await updateShipment(shipmentId, {
+          status: "delivered_final",
+          deliveryDate,
+          deliveryTime,
+          receiverName,
+          isRetained: false
+        });
+        
+        toast.success("Embarque marcado como entregue e entrega criada com sucesso");
       }
       
       resetForm();
       
       if (onStatusChange) onStatusChange();
-      
-      toast.success("Status alterado para Entregue e entregas criadas");
     } catch (error) {
       console.error("Error confirming delivery:", error);
       toast.error("Erro ao confirmar entrega");

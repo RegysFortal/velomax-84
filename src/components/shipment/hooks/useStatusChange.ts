@@ -8,6 +8,7 @@ interface StatusChangeProps {
   shipmentId: string;
   status: ShipmentStatus;
   onStatusChange?: () => void;
+  setShowDocumentSelection: (show: boolean) => void;
   setShowDeliveryDialog: (show: boolean) => void;
   setShowRetentionSheet: (show: boolean) => void;
 }
@@ -19,10 +20,11 @@ export function useStatusChange({
   shipmentId, 
   status, 
   onStatusChange,
+  setShowDocumentSelection,
   setShowDeliveryDialog,
   setShowRetentionSheet
 }: StatusChangeProps) {
-  const { updateStatus, updateShipment, updateFiscalAction } = useShipments();
+  const { updateStatus, updateShipment, updateFiscalAction, getShipmentById } = useShipments();
 
   /**
    * Handles changing the shipment status
@@ -33,7 +35,26 @@ export function useStatusChange({
     try {
       console.log(`Attempting to change status to: ${newStatus}`);
       
+      // Get current shipment to check document state
+      const shipment = getShipmentById(shipmentId);
+      if (!shipment) {
+        throw new Error("Shipment not found");
+      }
+      
       if (newStatus === "delivered_final") {
+        // Check if the shipment has any documents
+        if (shipment.documents && shipment.documents.length > 0) {
+          // Check if there are any undelivered documents
+          const undeliveredDocs = shipment.documents.filter(doc => !doc.isDelivered);
+          
+          if (undeliveredDocs.length > 0) {
+            // If there are undelivered documents, show document selection first
+            setShowDocumentSelection(true);
+            return;
+          }
+        }
+        
+        // If no documents or all already delivered, proceed directly to delivery dialog
         setShowDeliveryDialog(true);
         return;
       } else if (newStatus === "retained") {
@@ -51,16 +72,9 @@ export function useStatusChange({
         });
         
         // Handle retention status
-        const currentStatusIsRetained = status === "retained";
-        const newStatusIsRetained = newStatus === "retained";
-        const updatedShipmentStatusIsRetained = updatedShipment && updatedShipment.status === "retained";
-        
-        if (currentStatusIsRetained || newStatusIsRetained || updatedShipmentStatusIsRetained) {
-          // If we're changing to or from "retained" status, handle fiscal action
-          if (currentStatusIsRetained && newStatus !== "retained") {
-            // If we're changing from "retained" to something else, clear fiscal action
-            await updateFiscalAction(shipmentId, null);
-          }
+        if (status === "retained" && newStatus !== "retained") {
+          // If we're changing from "retained" to something else, clear fiscal action
+          await updateFiscalAction(shipmentId, null);
         }
         
         // Get status label from the useStatusLabel hook

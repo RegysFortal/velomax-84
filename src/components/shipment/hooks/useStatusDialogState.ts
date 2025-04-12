@@ -6,8 +6,12 @@ import { useState } from 'react';
  */
 export function useStatusDialogState() {
   // Dialog visibility state
+  const [showDocumentSelection, setShowDocumentSelection] = useState(false);
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
+  
+  // Selected documents for delivery
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
   
   // Form state for delivery dialog
   const [receiverName, setReceiverName] = useState('');
@@ -30,6 +34,7 @@ export function useStatusDialogState() {
     setDeliveryDate('');
     setDeliveryTime('');
     setShowDeliveryDialog(false);
+    setSelectedDocumentIds([]);
   };
   
   /**
@@ -45,11 +50,24 @@ export function useStatusDialogState() {
     setShowRetentionSheet(false);
   };
   
+  /**
+   * Resets all dialog states
+   */
+  const resetAllDialogs = () => {
+    resetDeliveryForm();
+    resetRetentionForm();
+    setShowDocumentSelection(false);
+  };
+  
   return {
+    showDocumentSelection,
+    setShowDocumentSelection,
     showDeliveryDialog,
     setShowDeliveryDialog,
     showRetentionSheet, 
     setShowRetentionSheet,
+    selectedDocumentIds,
+    setSelectedDocumentIds,
     receiverName,
     setReceiverName,
     deliveryDate,
@@ -69,6 +87,7 @@ export function useStatusDialogState() {
     fiscalNotes,
     setFiscalNotes,
     resetDeliveryForm,
-    resetRetentionForm
+    resetRetentionForm,
+    resetAllDialogs
   };
 }

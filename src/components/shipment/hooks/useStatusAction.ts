@@ -2,9 +2,12 @@
 import { useState } from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
+import { useShipments } from "@/contexts/shipments";
+import { useDeliveries } from "@/contexts/DeliveriesContext";
 
 interface StatusActionHookProps {
   status: ShipmentStatus;
+  shipmentId: string;
   onStatusChange: (status: ShipmentStatus, deliveryDetails?: DeliveryDetailsType) => void;
 }
 
@@ -12,6 +15,7 @@ export interface DeliveryDetailsType {
   receiverName: string;
   deliveryDate: string;
   deliveryTime: string;
+  selectedDocumentIds?: string[];
   retentionReason?: string;
   retentionAmount?: string;
   paymentDate?: string;
@@ -20,9 +24,14 @@ export interface DeliveryDetailsType {
   fiscalNotes?: string;
 }
 
-export function useStatusAction({ status, onStatusChange }: StatusActionHookProps) {
+export function useStatusAction({ status, shipmentId, onStatusChange }: StatusActionHookProps) {
+  const { getShipmentById } = useShipments();
+  const { addDelivery } = useDeliveries();
+  
+  const [showDocumentSelection, setShowDocumentSelection] = useState(false);
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
   const [receiverName, setReceiverName] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
@@ -38,11 +47,26 @@ export function useStatusAction({ status, onStatusChange }: StatusActionHookProp
     console.log(`Status button clicked for: ${newStatus}`);
     
     if (newStatus === "delivered_final") {
+      // Check if the shipment has any documents
+      const shipment = getShipmentById(shipmentId);
+      
+      if (shipment && shipment.documents && shipment.documents.length > 0) {
+        // Check if there are any undelivered documents
+        const undeliveredDocs = shipment.documents.filter(doc => !doc.isDelivered);
+        
+        if (undeliveredDocs.length > 0) {
+          // If there are undelivered documents, show document selection first
+          setShowDocumentSelection(true);
+          return;
+        }
+      }
+      
+      // If no documents or all already delivered, proceed directly to delivery dialog
       setShowDeliveryDialog(true);
     } else if (newStatus === "retained") {
       setShowRetentionSheet(true);
     } else {
-      // For in_transit, delivered, and partial_delivery statuses, update directly
+      // For in_transit and delivered statuses, update directly
       onStatusChange(newStatus);
     }
   };
@@ -66,19 +90,22 @@ export function useStatusAction({ status, onStatusChange }: StatusActionHookProp
     console.log("Submitting delivery details:", {
       receiverName,
       deliveryDate,
-      deliveryTime
+      deliveryTime,
+      selectedDocumentIds
     });
 
     onStatusChange("delivered_final", {
       receiverName,
       deliveryDate,
-      deliveryTime
+      deliveryTime,
+      selectedDocumentIds
     });
 
     setShowDeliveryDialog(false);
     setReceiverName("");
     setDeliveryDate("");
     setDeliveryTime("");
+    setSelectedDocumentIds([]);
   };
   
   const handleRetentionConfirm = () => {
@@ -117,10 +144,16 @@ export function useStatusAction({ status, onStatusChange }: StatusActionHookProp
 
   return {
     // Dialog state
+    showDocumentSelection,
+    setShowDocumentSelection,
     showDeliveryDialog,
     setShowDeliveryDialog,
     showRetentionSheet,
     setShowRetentionSheet,
+    
+    // Document selection state
+    selectedDocumentIds,
+    setSelectedDocumentIds,
     
     // Delivery form state
     receiverName,
