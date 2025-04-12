@@ -79,9 +79,16 @@ export const useShipmentDocuments = (
     }
   };
   
-  const updateDocument = async (shipmentId: string, documentId: string, documentData: Partial<Document>) => {
+  const updateDocument = async (shipmentId: string, documentId: string, updatedDocuments: Document[]) => {
     try {
       const now = new Date().toISOString();
+      
+      // Find the document to update
+      const documentToUpdate = updatedDocuments.find(d => d.id === documentId);
+      
+      if (!documentToUpdate) {
+        throw new Error("Document not found in the updated documents array");
+      }
       
       // Prepare data for Supabase update
       const supabaseDocument: any = {
@@ -89,15 +96,15 @@ export const useShipmentDocuments = (
       };
       
       // Map fields from our model to Supabase column names
-      if (documentData.name !== undefined) supabaseDocument.name = documentData.name;
-      if (documentData.type !== undefined) supabaseDocument.type = documentData.type;
-      if (documentData.url !== undefined) supabaseDocument.url = documentData.url;
-      if (documentData.notes !== undefined) supabaseDocument.notes = documentData.notes;
-      if (documentData.minuteNumber !== undefined) supabaseDocument.minute_number = documentData.minuteNumber;
-      if (documentData.invoiceNumbers !== undefined) supabaseDocument.invoice_numbers = documentData.invoiceNumbers;
-      if (documentData.weight !== undefined) supabaseDocument.weight = documentData.weight;
-      if (documentData.packages !== undefined) supabaseDocument.packages = documentData.packages;
-      if (documentData.isDelivered !== undefined) supabaseDocument.is_delivered = documentData.isDelivered;
+      if (documentToUpdate.name !== undefined) supabaseDocument.name = documentToUpdate.name;
+      if (documentToUpdate.type !== undefined) supabaseDocument.type = documentToUpdate.type;
+      if (documentToUpdate.url !== undefined) supabaseDocument.url = documentToUpdate.url;
+      if (documentToUpdate.notes !== undefined) supabaseDocument.notes = documentToUpdate.notes;
+      if (documentToUpdate.minuteNumber !== undefined) supabaseDocument.minute_number = documentToUpdate.minuteNumber;
+      if (documentToUpdate.invoiceNumbers !== undefined) supabaseDocument.invoice_numbers = documentToUpdate.invoiceNumbers;
+      if (documentToUpdate.weight !== undefined) supabaseDocument.weight = documentToUpdate.weight;
+      if (documentToUpdate.packages !== undefined) supabaseDocument.packages = documentToUpdate.packages;
+      if (documentToUpdate.isDelivered !== undefined) supabaseDocument.is_delivered = documentToUpdate.isDelivered;
       
       // Update document in Supabase
       const { error } = await supabase
@@ -109,16 +116,9 @@ export const useShipmentDocuments = (
         throw error;
       }
       
-      // Update the document in state
-      const updatedShipments = shipments.map(s => {
+      // Update the shipments state with the updated documents
+      const updatedShipmentsList = shipments.map(s => {
         if (s.id === shipmentId) {
-          const updatedDocuments = s.documents.map(d => {
-            if (d.id === documentId) {
-              return { ...d, ...documentData, updatedAt: now };
-            }
-            return d;
-          });
-          
           return { 
             ...s, 
             documents: updatedDocuments,
@@ -128,17 +128,10 @@ export const useShipmentDocuments = (
         return s;
       });
       
-      setShipments(updatedShipments);
+      setShipments(updatedShipmentsList);
       
       // Return the updated document
-      const shipment = updatedShipments.find(s => s.id === shipmentId);
-      const updatedDocument = shipment?.documents.find(d => d.id === documentId);
-      
-      if (!updatedDocument) {
-        throw new Error("Document not found");
-      }
-      
-      return updatedDocument;
+      return documentToUpdate;
     } catch (error) {
       console.error("Error updating document:", error);
       toast.error("Erro ao atualizar documento");

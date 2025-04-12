@@ -184,7 +184,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
               selectedDocuments.push(updatedDocuments[i]);
               
               // Update document in the database - pass all three required arguments
-              await updateDocument(shipment.id, updatedDocuments[i], updatedDocuments);
+              await updateDocument(shipment.id, updatedDocuments[i].id, updatedDocuments);
             }
           }
           
@@ -286,7 +286,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           
           // Update documents in the database
           for (const doc of updatedDocuments) {
-            await updateDocument(shipment.id, doc, updatedDocuments);
+            await updateDocument(shipment.id, doc.id, updatedDocuments);
           }
           
           updateData.documents = updatedDocuments;
