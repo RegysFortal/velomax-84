@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Shipment, ShipmentStatus, Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
@@ -196,8 +197,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
                 // Use document weight and packages if available, otherwise use shipment values
                 weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
                 packages: document.packages !== undefined ? document.packages : shipment.packages,
-                deliveryType: 'standard',
-                cargoType: 'standard',
+                deliveryType: 'standard' as const,
+                cargoType: 'standard' as const,
                 totalFreight: 0,
                 notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`
               };
@@ -276,8 +277,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
                 // Use document weight and packages if available, otherwise use shipment values
                 weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
                 packages: document.packages !== undefined ? document.packages : shipment.packages,
-                deliveryType: 'standard',
-                cargoType: 'standard',
+                deliveryType: 'standard' as const,
+                cargoType: 'standard' as const,
                 totalFreight: 0,
                 notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`
               };
@@ -319,8 +320,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
               receiver: details.receiverName,
               weight: shipment.weight,
               packages: shipment.packages,
-              deliveryType: 'standard',
-              cargoType: 'standard',
+              deliveryType: 'standard' as const,
+              cargoType: 'standard' as const,
               totalFreight: 0,
               notes: `Entrega gerada do embarque ${shipment.trackingNumber}`
             };
@@ -367,6 +368,11 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       
       // For other statuses, simply update the shipment
       await updateShipment(shipment.id, updateData);
+      
+      // Trigger an event to refresh the deliveries list
+      setTimeout(() => {
+        window.dispatchEvent(new Event('deliveries-updated'));
+      }, 1000);
       
       if (newStatus === "delivered_final") {
         toast.success("Status alterado para Entregue e entregas criadas");

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -36,6 +37,20 @@ const Deliveries = () => {
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  
+  // Listen for deliveries-updated event
+  useEffect(() => {
+    const handleDeliveriesUpdated = () => {
+      console.log("Deliveries updated event received, refreshing data");
+      handleRefreshDeliveries();
+    };
+    
+    window.addEventListener('deliveries-updated', handleDeliveriesUpdated);
+    
+    return () => {
+      window.removeEventListener('deliveries-updated', handleDeliveriesUpdated);
+    };
+  }, []);
   
   useEffect(() => {
     console.log('Clientes disponíveis:', clients.length);

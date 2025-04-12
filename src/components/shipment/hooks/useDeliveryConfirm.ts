@@ -26,7 +26,7 @@ export function useDeliveryConfirm({
   onStatusChange,
   resetForm
 }: DeliveryConfirmProps) {
-  const { updateShipment, getShipmentById, updateDocument } = useShipments();
+  const { updateShipment, getShipmentById, updateDocument, updateStatus } = useShipments();
   const { addDelivery } = useDeliveries();
   
   /**
@@ -56,6 +56,8 @@ export function useDeliveryConfirm({
         const docsToProcess = selectedDocumentIds.length > 0 
           ? selectedDocumentIds 
           : shipment.documents.filter(doc => !doc.isDelivered).map(doc => doc.id);
+        
+        console.log(`Processing ${docsToProcess.length} documents for delivery`);
         
         // Mark the selected documents as delivered and collect them
         for (let i = 0; i < updatedDocuments.length; i++) {
@@ -89,8 +91,8 @@ export function useDeliveryConfirm({
               // Use document weight and packages if available, otherwise use shipment values
               weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
               packages: document.packages !== undefined ? document.packages : shipment.packages,
-              deliveryType: 'standard',
-              cargoType: 'standard',
+              deliveryType: 'standard' as const,
+              cargoType: 'standard' as const,
               totalFreight: 0,
               notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`
             };
@@ -146,13 +148,15 @@ export function useDeliveryConfirm({
           receiver: receiverName,
           weight: shipment.weight,
           packages: shipment.packages,
-          deliveryType: 'standard',
-          cargoType: 'standard',
+          deliveryType: 'standard' as const,
+          cargoType: 'standard' as const,
           totalFreight: 0,
           notes: `Entrega do embarque ${shipment.trackingNumber}`
         });
         
-        // Update shipment status to delivered_final
+        // Update shipment status to delivered_final and status in the database
+        await updateStatus(shipmentId, "delivered_final");
+        
         await updateShipment(shipmentId, {
           status: "delivered_final",
           deliveryDate,
@@ -167,6 +171,12 @@ export function useDeliveryConfirm({
       resetForm();
       
       if (onStatusChange) onStatusChange();
+      
+      // Refresh the page to show the new delivery
+      setTimeout(() => {
+        window.dispatchEvent(new Event('deliveries-updated'));
+      }, 1000);
+      
     } catch (error) {
       console.error("Error confirming delivery:", error);
       toast.error("Erro ao confirmar entrega");
