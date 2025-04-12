@@ -60,9 +60,9 @@ export function StatusMenu({
         const updatedShipment = await updateStatus(shipmentId, newStatus);
         
         if (updatedShipment) {
-          // Fix: Use string equality instead of type comparison
+          // Safely update isRetained based on the new status
           await updateShipment(shipmentId, { 
-            isRetained: newStatus === "retained"
+            isRetained: newStatus === "retained" // This is now type-safe
           });
           
           toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
