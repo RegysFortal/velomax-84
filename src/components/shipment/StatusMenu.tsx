@@ -76,8 +76,8 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Fix type error by using a type assertion to compare string values
-        if ((status as string) === "retained" && (newStatus as string) !== "retained") {
+        // Fix type error by explicitly checking for 'retained' status
+        if (status === "retained" || newStatus === "retained") {
           await updateFiscalAction(shipmentId, null);
         }
         
