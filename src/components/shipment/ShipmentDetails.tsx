@@ -13,7 +13,6 @@ import { Shipment } from "@/types/shipment";
 import { useClients } from "@/contexts";
 import { DocumentsList } from "./DocumentsList";
 import DetailsTab from "./details/DetailsTab";
-import { useShipmentDetails } from "./details/useShipmentDetails";
 import { toast } from "sonner";
 
 interface ShipmentDetailsProps {
@@ -26,7 +25,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   const { clients } = useClients();
   const { getShipmentById } = useShipments();
   const [currentShipment, setCurrentShipment] = useState<Shipment>(shipment);
-  const formState = useShipmentDetails(currentShipment, onClose);
   
   // Update the shipment whenever the dialog is opened or the ID changes
   useEffect(() => {

@@ -61,14 +61,21 @@ export function ShipmentFormSection({
   shipmentId,
   disabled
 }: ShipmentFormSectionProps) {
+  // Handler to update client name when client ID changes
+  const handleClientChange = (id: string) => {
+    setCompanyId(id);
+    // Find client and set name
+    const selectedClient = clients.find(client => client.id === id);
+    if (selectedClient) {
+      setCompanyName(selectedClient.tradingName || selectedClient.name);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <ClientSelection 
         companyId={companyId}
-        setCompanyId={setCompanyId}
-        setCompanyName={setCompanyName}
-        clients={clients}
-        disabled={disabled}
+        onCompanyChange={handleClientChange}
       />
       
       <TransportSection 

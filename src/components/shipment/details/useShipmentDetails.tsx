@@ -228,10 +228,17 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
             updateData.deliveryTime = details.deliveryTime;
             updateData.receiverName = details.receiverName;
             
+            // First update the status in the database
+            await updateStatus(shipment.id, "delivered_final");
+            
             toast.success(`${selectedDocuments.length} entregas criadas com sucesso. Todos os documentos entregues.`);
           } else {
             // If not all documents are delivered, keep the shipment in transit
             updateData.status = "in_transit";
+            
+            // First update the status in the database
+            await updateStatus(shipment.id, "in_transit");
+            
             toast.success(`${selectedDocuments.length} entregas criadas com sucesso. Embarque ainda tem documentos em trânsito.`);
           }
         }
@@ -243,6 +250,9 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           deliveryDate: details.deliveryDate,
           deliveryTime: details.deliveryTime
         };
+        
+        // First update the status in the database
+        await updateStatus(shipment.id, "delivered_final");
         
         // Create deliveries from all documents or a single shipment delivery
         if (shipment.documents && shipment.documents.length > 0) {
@@ -367,10 +377,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         return;
       }
       
-      // For other statuses, update in the database first
-      await updateStatus(shipment.id, newStatus);
-      
-      // Then update the shipment
+      // Update the shipment with our prepared data
       await updateShipment(shipment.id, updateData);
       
       // Trigger an event to refresh the deliveries list
