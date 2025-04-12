@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
@@ -177,7 +176,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           
           // Create a new delivery from this shipment with improved error handling
           const newDelivery = await addDelivery({
-            id: uuidv4(), // Generate a UUID for the new delivery
             minuteNumber,
             clientId: shipment.companyId,
             deliveryDate: details.deliveryDate,
@@ -188,9 +186,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
             deliveryType: 'standard', // Default delivery type
             cargoType: 'standard', // Default cargo type
             totalFreight: 0, // This might need calculation based on your business logic
-            notes: `Entrega gerada automaticamente do embarque ${shipment.trackingNumber}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            notes: `Entrega gerada automaticamente do embarque ${shipment.trackingNumber}`
           });
           
           console.log("Delivery created successfully:", newDelivery);

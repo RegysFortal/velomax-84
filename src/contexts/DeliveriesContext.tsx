@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Delivery, DeliveryType, CargoType, City } from '@/types';
 import { toast } from 'sonner';
@@ -91,14 +90,11 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
     loadDeliveries();
   }, [user]);
 
-  // Improved addDelivery function to properly sync with Supabase
   const addDelivery = async (deliveryData: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>): Promise<Delivery> => {
     try {
       console.log("Adding delivery with data:", deliveryData);
       
-      // Prepare data for Supabase insert
       const supabaseDelivery = {
-        id: deliveryData.id || uuidv4(),
         minute_number: deliveryData.minuteNumber,
         client_id: deliveryData.clientId,
         delivery_date: deliveryData.deliveryDate,
@@ -113,13 +109,11 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
         occurrence: deliveryData.occurrence,
         cargo_value: deliveryData.cargoValue,
         city_id: deliveryData.cityId,
-        // Add user_id to ensure it passes RLS policies
         user_id: user?.id
       };
       
       console.log("Supabase delivery data:", supabaseDelivery);
       
-      // Insert into Supabase
       const { data: newDelivery, error } = await supabase
         .from('deliveries')
         .insert(supabaseDelivery)
@@ -133,7 +127,6 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
       
       console.log("Supabase response:", newDelivery);
       
-      // Map from Supabase format to our app format
       const mappedDelivery: Delivery = {
         id: newDelivery.id,
         minuteNumber: newDelivery.minute_number,
@@ -154,7 +147,6 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
         updatedAt: newDelivery.updated_at
       };
       
-      // Also update local state
       setDeliveries(prev => [mappedDelivery, ...prev]);
       
       toast.success('Entrega adicionada com sucesso');
@@ -233,7 +225,6 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
     return deliveries.find(delivery => delivery.id === id);
   };
   
-  // Add the missing functions that were referenced in hooks
   const calculateFreight = (
     clientId: string,
     weight: number,
