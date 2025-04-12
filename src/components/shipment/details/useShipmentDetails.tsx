@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Shipment, ShipmentStatus, Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
@@ -143,6 +144,16 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     } catch (error) {
       toast.error("Erro ao remover embarque");
       console.error(error);
+    }
+  };
+  
+  const getStatusLabel = (status: ShipmentStatus): string => {
+    switch (status) {
+      case "in_transit": return "Em Trânsito";
+      case "retained": return "Retida";
+      case "delivered": return "Retirada";
+      case "delivered_final": return "Entregue";
+      default: return status;
     }
   };
   
@@ -409,16 +420,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     }
   };
   
-  const getStatusLabel = (statusValue: ShipmentStatus): string => {
-    switch (statusValue) {
-      case "in_transit": return "Em Trânsito";
-      case "retained": return "Retida";
-      case "delivered": return "Retirada";
-      case "delivered_final": return "Entregue";
-      default: return statusValue;
-    }
-  };
-  
   return {
     isEditing,
     setIsEditing,
@@ -468,6 +469,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     handleCancelEdit,
     handleSave,
     handleDelete,
-    handleStatusChange
+    handleStatusChange,
+    getStatusLabel
   };
 }
