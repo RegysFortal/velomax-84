@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
@@ -149,7 +150,13 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   
   const handleStatusChange = async (newStatus: ShipmentStatus, details?: any) => {
     try {
-      let updateData: Partial<Shipment> = { status: newStatus };
+      console.log(`Changing status to: ${newStatus}`, details);
+      
+      // Prepare shipment update data
+      let updateData: Partial<Shipment> = { 
+        status: newStatus,
+        isRetained: newStatus === "retained"
+      };
       
       // If delivered_final and we have delivery details, add them
       if (newStatus === "delivered_final" && details) {
@@ -199,8 +206,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       
       // If changing to "retained" and we have retention details
       if (newStatus === "retained" && details && details.retentionReason) {
-        updateData.isRetained = true;
-        
         // First update the shipment status
         await updateShipment(shipment.id, updateData);
         
@@ -230,13 +235,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         return;
       }
       
-      // If changing to "retained", set isRetained to true
-      if (newStatus === "retained") {
-        updateData.isRetained = true;
-      } else {
-        updateData.isRetained = false;
-      }
-      
+      // For other statuses, simply update the shipment
       await updateShipment(shipment.id, updateData);
       
       if (newStatus !== "delivered_final") {

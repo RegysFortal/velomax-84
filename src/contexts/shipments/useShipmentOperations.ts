@@ -111,6 +111,8 @@ export const useShipmentOperations = (
   
   const updateShipment = async (id: string, shipmentData: Partial<Shipment>) => {
     try {
+      console.log("Updating shipment:", id, shipmentData);
+      
       // Prepare data for Supabase update
       const supabaseShipment: any = {
         updated_at: new Date().toISOString()
@@ -134,6 +136,8 @@ export const useShipmentOperations = (
       if (shipmentData.receiverName !== undefined) supabaseShipment.receiver_name = shipmentData.receiverName;
       if (shipmentData.receiverId !== undefined) supabaseShipment.receiver_id = shipmentData.receiverId;
       
+      console.log("Supabase shipment update data:", supabaseShipment);
+      
       // Update shipment in Supabase
       const { error } = await supabase
         .from('shipments')
@@ -141,6 +145,7 @@ export const useShipmentOperations = (
         .eq('id', id);
         
       if (error) {
+        console.error("Supabase update error:", error);
         throw error;
       }
       
@@ -195,6 +200,8 @@ export const useShipmentOperations = (
   
   const updateStatus = async (shipmentId: string, status: ShipmentStatus): Promise<Shipment | undefined> => {
     try {
+      console.log(`Updating shipment status to ${status} for ID: ${shipmentId}`);
+      
       // Update in Supabase
       const { error } = await supabase
         .from('shipments')
@@ -206,6 +213,7 @@ export const useShipmentOperations = (
         .eq('id', shipmentId);
         
       if (error) {
+        console.error("Supabase status update error:", error);
         throw error;
       }
       

@@ -50,26 +50,38 @@ export function StatusMenu({
   const handleStatusChange = async (newStatus: ShipmentStatus) => {
     if (newStatus === status) return;
     
-    if (newStatus === "delivered_final") {
-      setShowDeliveryDialog(true);
-    } else if (newStatus === "retained") {
-      setShowRetentionSheet(true);
-    } else {
-      try {
-        const updatedShipment = await updateStatus(shipmentId, newStatus);
-        
-        if (updatedShipment) {
-          await updateShipment(shipmentId, { 
-            isRetained: newStatus === "retained" as ShipmentStatus
-          });
-          
-          toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
-          if (onStatusChange) onStatusChange();
-        }
-      } catch (error) {
-        console.error("Error updating status:", error);
-        toast.error("Erro ao alterar status");
+    try {
+      console.log(`Attempting to change status to: ${newStatus}`);
+      
+      if (newStatus === "delivered_final") {
+        setShowDeliveryDialog(true);
+        return;
+      } else if (newStatus === "retained") {
+        setShowRetentionSheet(true);
+        return;
       }
+      
+      // For other statuses (in_transit and delivered), update directly
+      const updatedShipment = await updateStatus(shipmentId, newStatus);
+      
+      if (updatedShipment) {
+        await updateShipment(shipmentId, { 
+          status: newStatus,
+          isRetained: newStatus === "retained"
+        });
+        
+        toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
+        
+        // If status is no longer "retained", clear fiscal action
+        if (status === "retained" && newStatus !== "retained") {
+          await updateFiscalAction(shipmentId, null);
+        }
+        
+        if (onStatusChange) onStatusChange();
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Erro ao alterar status");
     }
   };
 
@@ -119,34 +131,40 @@ export function StatusMenu({
     }
 
     try {
-      const updatedShipment = await updateStatus(shipmentId, "retained");
+      console.log("Setting status to retained and updating fiscal action");
       
-      if (updatedShipment) {
-        await updateShipment(shipmentId, { isRetained: true });
-        
-        const retentionAmountValue = parseFloat(retentionAmount || "0");
-        
-        await updateFiscalAction(shipmentId, {
-          actionNumber: actionNumber.trim() || undefined,
-          reason: retentionReason.trim(),
-          amountToPay: retentionAmountValue,
-          paymentDate: paymentDate || undefined,
-          releaseDate: releaseDate || undefined,
-          notes: fiscalNotes.trim() || undefined,
-        });
-        
-        toast.success("Status alterado para Retida e informações de retenção atualizadas");
-        
-        setShowRetentionSheet(false);
-        setRetentionReason("");
-        setRetentionAmount("");
-        setPaymentDate("");
-        setReleaseDate("");
-        setActionNumber("");
-        setFiscalNotes("");
-        
-        if (onStatusChange) onStatusChange();
-      }
+      // First update the status
+      await updateStatus(shipmentId, "retained");
+      
+      // Then update the shipment details and mark as retained
+      await updateShipment(shipmentId, { 
+        status: "retained",
+        isRetained: true 
+      });
+      
+      // Then create/update the fiscal action
+      const retentionAmountValue = parseFloat(retentionAmount || "0");
+      
+      await updateFiscalAction(shipmentId, {
+        actionNumber: actionNumber.trim() || undefined,
+        reason: retentionReason.trim(),
+        amountToPay: retentionAmountValue,
+        paymentDate: paymentDate || undefined,
+        releaseDate: releaseDate || undefined,
+        notes: fiscalNotes.trim() || undefined,
+      });
+      
+      toast.success("Status alterado para Retida e informações de retenção atualizadas");
+      
+      setShowRetentionSheet(false);
+      setRetentionReason("");
+      setRetentionAmount("");
+      setPaymentDate("");
+      setReleaseDate("");
+      setActionNumber("");
+      setFiscalNotes("");
+      
+      if (onStatusChange) onStatusChange();
     } catch (error) {
       console.error("Error setting retention status:", error);
       toast.error("Erro ao definir status de retenção");

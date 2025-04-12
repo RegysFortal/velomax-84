@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "../StatusBadge";
@@ -43,11 +44,14 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
   const [fiscalNotes, setFiscalNotes] = useState("");
 
   const handleStatusChangeClick = (newStatus: ShipmentStatus) => {
+    console.log(`Status button clicked for: ${newStatus}`);
+    
     if (newStatus === "delivered_final") {
       setShowDeliveryDialog(true);
     } else if (newStatus === "retained") {
       setShowRetentionSheet(true);
     } else {
+      // For in_transit and delivered statuses, update directly
       onStatusChange(newStatus);
     }
   };
@@ -91,6 +95,13 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
       toast.error("Por favor, informe o motivo da retenção");
       return;
     }
+
+    console.log("Submitting retention details:", {
+      retentionReason,
+      retentionAmount,
+      paymentDate,
+      releaseDate
+    });
 
     onStatusChange("retained", {
       receiverName: "",
