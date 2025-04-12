@@ -46,4 +46,5 @@ export interface Delivery {
   pickupName?: string;
   pickupDate?: string;
   pickupTime?: string;
+  invoiceNumbers?: string[]; // Add this property to support invoice numbers in delivery objects
 }
