@@ -1,10 +1,10 @@
 
-import { useState } from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { useStatusLabel } from './useStatusLabel';
 import { useStatusChange } from './useStatusChange';
 import { useDeliveryConfirm } from './useDeliveryConfirm';
 import { useRetentionConfirm } from './useRetentionConfirm';
+import { useStatusDialogState } from './useStatusDialogState';
 
 interface StatusMenuHookProps {
   shipmentId: string;
@@ -16,101 +16,44 @@ interface StatusMenuHookProps {
  * Main hook that combines all status-related functionality
  */
 export function useStatusMenu({ shipmentId, status, onStatusChange }: StatusMenuHookProps) {
-  // State for dialogs and forms
-  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
-  const [showRetentionSheet, setShowRetentionSheet] = useState(false);
+  // Import dialog and form state from separate hook
+  const dialogState = useStatusDialogState();
   
-  // Delivery form state
-  const [receiverName, setReceiverName] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState("");
-  const [deliveryTime, setDeliveryTime] = useState("");
-  
-  // Retention form state
-  const [retentionReason, setRetentionReason] = useState("");
-  const [retentionAmount, setRetentionAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
-  const [releaseDate, setReleaseDate] = useState("");
-  const [actionNumber, setActionNumber] = useState("");
-  const [fiscalNotes, setFiscalNotes] = useState("");
-
-  // Reset form functions
-  const resetDeliveryForm = () => {
-    setShowDeliveryDialog(false);
-    setReceiverName("");
-    setDeliveryDate("");
-    setDeliveryTime("");
-  };
-
-  const resetRetentionForm = () => {
-    setShowRetentionSheet(false);
-    setRetentionReason("");
-    setRetentionAmount("");
-    setPaymentDate("");
-    setReleaseDate("");
-    setActionNumber("");
-    setFiscalNotes("");
-  };
-
-  // Import functionality from separate hooks
+  // Import functionality from other hooks
   const { getStatusLabel } = useStatusLabel();
   
   const { handleStatusChange } = useStatusChange({ 
     shipmentId, 
     status, 
     onStatusChange,
-    setShowDeliveryDialog,
-    setShowRetentionSheet
+    setShowDeliveryDialog: dialogState.setShowDeliveryDialog,
+    setShowRetentionSheet: dialogState.setShowRetentionSheet
   });
   
   const { handleDeliveryConfirm } = useDeliveryConfirm({
     shipmentId,
-    receiverName,
-    deliveryDate,
-    deliveryTime,
+    receiverName: dialogState.receiverName,
+    deliveryDate: dialogState.deliveryDate,
+    deliveryTime: dialogState.deliveryTime,
     onStatusChange,
-    resetForm: resetDeliveryForm
+    resetForm: dialogState.resetDeliveryForm
   });
   
   const { handleRetentionConfirm } = useRetentionConfirm({
     shipmentId,
-    retentionReason,
-    retentionAmount,
-    paymentDate,
-    releaseDate,
-    actionNumber,
-    fiscalNotes,
+    retentionReason: dialogState.retentionReason,
+    retentionAmount: dialogState.retentionAmount,
+    paymentDate: dialogState.paymentDate,
+    releaseDate: dialogState.releaseDate,
+    actionNumber: dialogState.actionNumber,
+    fiscalNotes: dialogState.fiscalNotes,
     onStatusChange,
-    resetForm: resetRetentionForm
+    resetForm: dialogState.resetRetentionForm
   });
 
   return {
-    // Dialog state
-    showDeliveryDialog,
-    setShowDeliveryDialog,
-    showRetentionSheet,
-    setShowRetentionSheet,
-    
-    // Delivery form state
-    receiverName,
-    setReceiverName,
-    deliveryDate,
-    setDeliveryDate,
-    deliveryTime,
-    setDeliveryTime,
-    
-    // Retention form state
-    retentionReason,
-    setRetentionReason,
-    retentionAmount,
-    setRetentionAmount,
-    paymentDate,
-    setPaymentDate,
-    releaseDate,
-    setReleaseDate,
-    actionNumber,
-    setActionNumber,
-    fiscalNotes,
-    setFiscalNotes,
+    // Re-export all dialog state
+    ...dialogState,
     
     // Action handlers
     handleStatusChange,

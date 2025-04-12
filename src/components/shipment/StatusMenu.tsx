@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DeliveryDialog } from "./dialogs/DeliveryDialog";
 import { RetentionSheet } from "./dialogs/RetentionSheet";
+import { StatusMenuItems } from "./StatusMenuItems";
 
 interface StatusMenuProps {
   shipmentId: string;
@@ -28,16 +29,21 @@ export function StatusMenu({
   onStatusChange
 }: StatusMenuProps) {
   const {
+    // Dialog state
     showDeliveryDialog,
     setShowDeliveryDialog,
     showRetentionSheet,
     setShowRetentionSheet,
+    
+    // Delivery form state
     receiverName,
     setReceiverName,
     deliveryDate,
     setDeliveryDate,
     deliveryTime,
     setDeliveryTime,
+    
+    // Retention form state
     retentionReason,
     setRetentionReason,
     retentionAmount,
@@ -50,10 +56,11 @@ export function StatusMenu({
     setActionNumber,
     fiscalNotes,
     setFiscalNotes,
+    
+    // Action handlers
     handleStatusChange,
     handleDeliveryConfirm,
-    handleRetentionConfirm,
-    getStatusLabel
+    handleRetentionConfirm
   } = useStatusMenu({ shipmentId, status, onStatusChange });
 
   return (
@@ -65,31 +72,10 @@ export function StatusMenu({
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          {status !== "in_transit" && (
-            <DropdownMenuItem onClick={() => handleStatusChange("in_transit")}>
-              Marcar como Em Trânsito
-            </DropdownMenuItem>
-          )}
-          {status !== "retained" && (
-            <DropdownMenuItem onClick={() => handleStatusChange("retained")}>
-              Marcar como Retida
-            </DropdownMenuItem>
-          )}
-          {status !== "delivered" && (
-            <DropdownMenuItem onClick={() => handleStatusChange("delivered")}>
-              Marcar como Retirada
-            </DropdownMenuItem>
-          )}
-          {status !== "partial_delivery" && (
-            <DropdownMenuItem onClick={() => handleStatusChange("partial_delivery")}>
-              Marcar como Entrega Parcial
-            </DropdownMenuItem>
-          )}
-          {status !== "delivered_final" && (
-            <DropdownMenuItem onClick={() => handleStatusChange("delivered_final")}>
-              Marcar como Entregue
-            </DropdownMenuItem>
-          )}
+          <StatusMenuItems 
+            currentStatus={status} 
+            onStatusChange={handleStatusChange} 
+          />
         </DropdownMenuContent>
       </DropdownMenu>
 

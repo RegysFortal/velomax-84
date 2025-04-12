@@ -171,7 +171,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
               observations={observations}
               setObservations={setObservations}
               status={status}
-              setStatus={setStatus}
+              setStatus={(newStatus) => setStatus(newStatus)}
               actionNumber={actionNumber}
               setActionNumber={setActionNumber}
               retentionReason={retentionReason}
