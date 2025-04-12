@@ -4,7 +4,6 @@ import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
 import { useDeliveries } from "@/contexts/DeliveriesContext";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 
 export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const { updateShipment, deleteShipment, updateStatus, updateFiscalAction } = useShipments();
@@ -167,40 +166,73 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           deliveryTime: details.deliveryTime
         };
         
-        // Create a new delivery entry when status is changed to delivered_final
-        try {
-          const minuteNumber = `${shipment.trackingNumber}-${new Date().getTime().toString().slice(-4)}`;
+        // Create deliveries from documents when status is changed to delivered_final
+        if (shipment.documents && shipment.documents.length > 0) {
+          console.log(`Creating ${shipment.documents.length} deliveries from documents`);
           
-          console.log("Creating delivery from shipment with data:", {
-            minuteNumber,
-            clientId: shipment.companyId,
-            deliveryDate: details.deliveryDate,
-            deliveryTime: details.deliveryTime,
-            receiver: details.receiverName,
-            weight: shipment.weight,
-            packages: shipment.packages
-          });
+          for (const document of shipment.documents) {
+            try {
+              // Generate unique minute number for each document
+              const minuteNumber = document.minuteNumber || 
+                               `${shipment.trackingNumber}-${document.id.substring(0, 4)}`;
+              
+              await addDelivery({
+                minuteNumber,
+                clientId: shipment.companyId,
+                deliveryDate: details.deliveryDate,
+                deliveryTime: details.deliveryTime,
+                receiver: details.receiverName,
+                // Use document weight and packages if available, otherwise use shipment values
+                weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
+                packages: document.packages !== undefined ? document.packages : shipment.packages,
+                deliveryType: 'standard',
+                cargoType: 'standard',
+                totalFreight: 0,
+                notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`,
+                invoiceNumbers: document.invoiceNumbers
+              });
+              
+              console.log(`Created delivery for document: ${document.name}`);
+            } catch (error) {
+              console.error(`Error creating delivery for document ${document.name}:`, error);
+            }
+          }
           
-          // Create a new delivery from this shipment with improved error handling
-          const newDelivery = await addDelivery({
-            minuteNumber,
-            clientId: shipment.companyId,
-            deliveryDate: details.deliveryDate,
-            deliveryTime: details.deliveryTime,
-            receiver: details.receiverName,
-            weight: shipment.weight,
-            packages: shipment.packages,
-            deliveryType: 'standard', // Default delivery type
-            cargoType: 'standard', // Default cargo type
-            totalFreight: 0, // This might need calculation based on your business logic
-            notes: `Entrega gerada automaticamente do embarque ${shipment.trackingNumber}`
-          });
-          
-          console.log("Delivery created successfully:", newDelivery);
-          toast.success("Embarque finalizado e entrega criada com sucesso");
-        } catch (error) {
-          console.error("Error creating delivery from shipment:", error);
-          toast.error("Embarque finalizado, mas houve um erro ao criar a entrega");
+          toast.success(`${shipment.documents.length} entregas criadas com sucesso`);
+        } else {
+          // If no documents, create a single delivery from this shipment
+          try {
+            const minuteNumber = `${shipment.trackingNumber}-${new Date().getTime().toString().slice(-4)}`;
+            
+            console.log("Creating single delivery from shipment with data:", {
+              minuteNumber,
+              clientId: shipment.companyId,
+              deliveryDate: details.deliveryDate,
+              deliveryTime: details.deliveryTime,
+              receiver: details.receiverName,
+              weight: shipment.weight,
+              packages: shipment.packages
+            });
+            
+            await addDelivery({
+              minuteNumber,
+              clientId: shipment.companyId,
+              deliveryDate: details.deliveryDate,
+              deliveryTime: details.deliveryTime,
+              receiver: details.receiverName,
+              weight: shipment.weight,
+              packages: shipment.packages,
+              deliveryType: 'standard',
+              cargoType: 'standard',
+              totalFreight: 0,
+              notes: `Entrega gerada do embarque ${shipment.trackingNumber}`
+            });
+            
+            console.log("Delivery created successfully");
+          } catch (error) {
+            console.error("Error creating delivery from shipment:", error);
+            toast.error("Embarque finalizado, mas houve um erro ao criar a entrega");
+          }
         }
       }
       
@@ -238,8 +270,10 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       // For other statuses, simply update the shipment
       await updateShipment(shipment.id, updateData);
       
-      if (newStatus !== "delivered_final") {
-        toast.success(`Status alterado para ${newStatus}`);
+      if (newStatus === "delivered_final") {
+        toast.success("Status alterado para Entregue e entregas criadas");
+      } else {
+        toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
       }
       
       // If status is no longer "retained", clear fiscal action
@@ -257,6 +291,16 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     } catch (error) {
       toast.error("Erro ao alterar status");
       console.error(error);
+    }
+  };
+  
+  const getStatusLabel = (statusValue: ShipmentStatus): string => {
+    switch (statusValue) {
+      case "in_transit": return "Em Trânsito";
+      case "retained": return "Retida";
+      case "delivered": return "Retirada";
+      case "delivered_final": return "Entregue";
+      default: return statusValue;
     }
   };
   

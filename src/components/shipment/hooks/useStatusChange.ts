@@ -51,13 +51,14 @@ export function useStatusChange({
         });
         
         // Handle retention status
-        if (status === "retained" || newStatus === "retained" || 
-            (updatedShipment && updatedShipment.status === "retained")) {
-          // A shipment is considered retained if it previously was retained or is now being set to retained
-          const isRetained = status === "retained" || newStatus === "retained" || 
-                             (updatedShipment && updatedShipment.status === "retained");
-          
-          if (isRetained) {
+        const currentStatusIsRetained = status === "retained";
+        const newStatusIsRetained = newStatus === "retained";
+        const updatedShipmentStatusIsRetained = updatedShipment && updatedShipment.status === "retained";
+        
+        if (currentStatusIsRetained || newStatusIsRetained || updatedShipmentStatusIsRetained) {
+          // If we're changing to or from "retained" status, handle fiscal action
+          if (currentStatusIsRetained && newStatus !== "retained") {
+            // If we're changing from "retained" to something else, clear fiscal action
             await updateFiscalAction(shipmentId, null);
           }
         }

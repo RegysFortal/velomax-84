@@ -18,7 +18,7 @@ export const useAddDelivery = (
   const { clients } = useClients();
   const { user } = useAuth();
 
-  return useCallback(async (delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => {
+  return useCallback(async (delivery: DeliveryCreateInput) => {
     try {
       const timestamp = new Date().toISOString();
       
@@ -29,7 +29,7 @@ export const useAddDelivery = (
       }
       
       // Prepare data for Supabase insert using the correct field names for Supabase schema
-      const supabaseDelivery = {
+      const supabaseDelivery: any = {
         minute_number: minuteNumber,
         client_id: delivery.clientId,
         delivery_date: delivery.deliveryDate,
@@ -46,6 +46,13 @@ export const useAddDelivery = (
         city_id: delivery.cityId || null,
         user_id: user?.id,
       };
+      
+      // Handle invoice numbers
+      if (delivery.invoiceNumbers && delivery.invoiceNumbers.length > 0) {
+        // Add invoice numbers to notes field
+        const invoiceList = delivery.invoiceNumbers.join(', ');
+        supabaseDelivery.notes = `${supabaseDelivery.notes} Notas Fiscais: ${invoiceList}`.trim();
+      }
       
       console.log("Enviando para Supabase:", supabaseDelivery);
       

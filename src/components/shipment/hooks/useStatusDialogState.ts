@@ -2,60 +2,60 @@
 import { useState } from 'react';
 
 /**
- * Hook that manages the state for delivery and retention dialogs
+ * Hook that manages the state of status-related dialogs and forms
  */
 export function useStatusDialogState() {
-  // Dialog state
+  // Dialog visibility state
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
   
-  // Delivery form state
-  const [receiverName, setReceiverName] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState("");
-  const [deliveryTime, setDeliveryTime] = useState("");
+  // Form state for delivery dialog
+  const [receiverName, setReceiverName] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [deliveryTime, setDeliveryTime] = useState('');
   
-  // Retention form state
-  const [retentionReason, setRetentionReason] = useState("");
-  const [retentionAmount, setRetentionAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
-  const [releaseDate, setReleaseDate] = useState("");
-  const [actionNumber, setActionNumber] = useState("");
-  const [fiscalNotes, setFiscalNotes] = useState("");
-
-  // Reset form functions
+  // Form state for retention sheet
+  const [retentionReason, setRetentionReason] = useState('');
+  const [retentionAmount, setRetentionAmount] = useState('');
+  const [paymentDate, setPaymentDate] = useState('');
+  const [releaseDate, setReleaseDate] = useState('');
+  const [actionNumber, setActionNumber] = useState('');
+  const [fiscalNotes, setFiscalNotes] = useState('');
+  
+  /**
+   * Resets the delivery form state
+   */
   const resetDeliveryForm = () => {
+    setReceiverName('');
+    setDeliveryDate('');
+    setDeliveryTime('');
     setShowDeliveryDialog(false);
-    setReceiverName("");
-    setDeliveryDate("");
-    setDeliveryTime("");
   };
-
+  
+  /**
+   * Resets the retention form state
+   */
   const resetRetentionForm = () => {
+    setRetentionReason('');
+    setRetentionAmount('');
+    setPaymentDate('');
+    setReleaseDate('');
+    setActionNumber('');
+    setFiscalNotes('');
     setShowRetentionSheet(false);
-    setRetentionReason("");
-    setRetentionAmount("");
-    setPaymentDate("");
-    setReleaseDate("");
-    setActionNumber("");
-    setFiscalNotes("");
   };
-
+  
   return {
-    // Dialog state
     showDeliveryDialog,
     setShowDeliveryDialog,
-    showRetentionSheet,
+    showRetentionSheet, 
     setShowRetentionSheet,
-    
-    // Delivery form state
     receiverName,
     setReceiverName,
     deliveryDate,
     setDeliveryDate,
     deliveryTime,
     setDeliveryTime,
-    
-    // Retention form state
     retentionReason,
     setRetentionReason,
     retentionAmount,
@@ -68,8 +68,6 @@ export function useStatusDialogState() {
     setActionNumber,
     fiscalNotes,
     setFiscalNotes,
-    
-    // Reset functions
     resetDeliveryForm,
     resetRetentionForm
   };

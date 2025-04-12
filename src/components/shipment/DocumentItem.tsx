@@ -1,97 +1,90 @@
 
 import React from 'react';
 import { Document } from "@/types/shipment";
-import { 
-  Card, 
-  CardContent,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, FileText, Package, CheckCircle2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface DocumentItemProps {
   document: Document;
   onEdit: (document: Document) => void;
-  onDelete: (documentId: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export function DocumentItem({ document, onEdit, onDelete }: DocumentItemProps) {
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              {document.minuteNumber && (
-                <div>
-                  <span className="text-sm font-medium">Minuta:</span>{" "}
-                  <span className="text-sm">{document.minuteNumber}</span>
-                </div>
-              )}
+    <Card className="p-4">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center">
+            <FileText className="h-4 w-4 mr-2 text-blue-500" />
+            <h4 className="font-medium">{document.name}</h4>
+            {document.isDelivered ? (
+              <Badge className="ml-2 bg-green-500">Entregue</Badge>
+            ) : (
+              <Badge className="ml-2 bg-yellow-500">Pendente</Badge>
+            )}
+          </div>
+          
+          {document.minuteNumber && (
+            <div className="text-sm text-muted-foreground mt-1">
+              Minuta: {document.minuteNumber}
             </div>
-            
+          )}
+          
+          <div className="mt-2 space-y-1">
             {document.invoiceNumbers && document.invoiceNumbers.length > 0 && (
-              <div className="space-y-1">
-                <span className="text-sm font-medium">Notas Fiscais:</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {document.invoiceNumbers.map((invoiceNumber, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {invoiceNumber}
-                    </Badge>
-                  ))}
-                </div>
+              <div className="text-sm">
+                <span className="font-medium">Notas Fiscais:</span>{' '}
+                {document.invoiceNumbers.join(', ')}
               </div>
             )}
             
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              {document.packages && (
-                <div>
-                  <span className="font-medium">Volumes:</span> {document.packages}
+            <div className="flex items-center space-x-4 text-sm">
+              {document.packages !== undefined && (
+                <div className="flex items-center">
+                  <Package className="h-3 w-3 mr-1" />
+                  {document.packages} volumes
                 </div>
               )}
               
-              {document.weight && (
+              {document.weight !== undefined && (
                 <div>
-                  <span className="font-medium">Peso:</span> {document.weight} kg
+                  {document.weight} kg
                 </div>
               )}
             </div>
             
             {document.notes && (
-              <div className="text-sm mt-2">
-                <span className="font-medium">Observações:</span> {document.notes}
+              <div className="text-sm text-muted-foreground">
+                {document.notes}
               </div>
             )}
-            
-            {document.isDelivered && (
-              <Badge variant="default" className="mt-2">Entregue</Badge>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(document)}
-              className="h-8 w-8 p-0"
-            >
-              <Edit className="h-4 w-4" />
-              <span className="sr-only">Editar</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(document.id)}
-              className="h-8 w-8 p-0"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Excluir</span>
-            </Button>
           </div>
         </div>
-      </CardContent>
+        
+        <div className="flex space-x-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit(document)}
+            title="Editar documento"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(document.id)}
+            title="Remover documento"
+            className="text-destructive hover:text-destructive/90"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }
-
