@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -76,10 +75,8 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Using a type-safe approach with explicit string comparison
-        const statusIsRetained = status as string === "retained";
-        const newStatusIsRetained = newStatus as string === "retained";
-        const isRetained = statusIsRetained || newStatusIsRetained;
+        // Safe type handling for status comparison
+        const isRetained = status === "retained" || newStatus === "retained";
         
         if (isRetained) {
           await updateFiscalAction(shipmentId, null);
