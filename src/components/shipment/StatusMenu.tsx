@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -71,8 +72,8 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Check if the current status is "retained" and clear fiscal action if moving to another status
-        if (status === "retained") {
+        // Properly handle fiscal action clearing for retained status
+        if (status === "retained" && newStatus !== "retained") {
           await updateFiscalAction(shipmentId, null);
         }
         
