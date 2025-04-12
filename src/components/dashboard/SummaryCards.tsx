@@ -10,6 +10,7 @@ interface SummaryCardsProps {
   inTransitShipments: number;
   retainedShipments: number;
   deliveredShipments: number;
+  finalDeliveredShipments: number; // Added for the fourth status
   totalWeight: number;
   totalDeliveries: number;
   startDate: string;
@@ -20,6 +21,7 @@ export const SummaryCards = ({
   inTransitShipments,
   retainedShipments,
   deliveredShipments,
+  finalDeliveredShipments, // Added for the fourth status
   totalWeight,
   totalDeliveries,
   startDate,
@@ -55,9 +57,16 @@ export const SummaryCards = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <StatusBadge status="delivered" />
-                <span className="ml-2">Retiradas/Entregues</span>
+                <span className="ml-2">Retiradas</span>
               </div>
               <span className="font-medium">{deliveredShipments}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <StatusBadge status="delivered_final" />
+                <span className="ml-2">Entregues</span>
+              </div>
+              <span className="font-medium">{finalDeliveredShipments}</span>
             </div>
           </div>
           <Button 

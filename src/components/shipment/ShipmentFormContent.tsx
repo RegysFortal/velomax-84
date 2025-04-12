@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -35,6 +34,12 @@ interface ShipmentFormContentProps {
   setRetentionAmount: (amount: string) => void;
   paymentDate: string;
   setPaymentDate: (date: string) => void;
+  actionNumber?: string;
+  setActionNumber?: (action: string) => void;
+  releaseDate?: string;
+  setReleaseDate?: (date: string) => void;
+  fiscalNotes?: string;
+  setFiscalNotes?: (notes: string) => void;
   clients: Client[];
   onSubmit: (e: React.FormEvent) => void;
   onCancel: (e?: React.MouseEvent) => void;
@@ -68,6 +73,12 @@ export function ShipmentFormContent({
   setRetentionAmount,
   paymentDate,
   setPaymentDate,
+  actionNumber = "",
+  setActionNumber = () => {},
+  releaseDate = "",
+  setReleaseDate = () => {},
+  fiscalNotes = "",
+  setFiscalNotes = () => {},
   clients,
   onSubmit,
   onCancel
@@ -102,12 +113,18 @@ export function ShipmentFormContent({
       
       {status === "retained" && (
         <RetentionFormSection 
+          actionNumber={actionNumber}
+          setActionNumber={setActionNumber}
           retentionReason={retentionReason}
           setRetentionReason={setRetentionReason}
           retentionAmount={retentionAmount}
           setRetentionAmount={setRetentionAmount}
           paymentDate={paymentDate}
           setPaymentDate={setPaymentDate}
+          releaseDate={releaseDate}
+          setReleaseDate={setReleaseDate}
+          fiscalNotes={fiscalNotes}
+          setFiscalNotes={setFiscalNotes}
         />
       )}
       

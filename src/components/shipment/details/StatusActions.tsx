@@ -1,16 +1,71 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "../StatusBadge";
 import { ShipmentStatus } from "@/types/shipment";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
 
 interface StatusActionsProps {
   status: ShipmentStatus;
-  onStatusChange: (status: ShipmentStatus) => void;
+  onStatusChange: (status: ShipmentStatus, deliveryDetails?: DeliveryDetailsType) => void;
+}
+
+interface DeliveryDetailsType {
+  receiverName: string;
+  deliveryDate: string;
+  deliveryTime: string;
 }
 
 export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
+  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
+  const [receiverName, setReceiverName] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("");
+
+  const handleStatusChangeClick = (newStatus: ShipmentStatus) => {
+    if (newStatus === "delivered_final") {
+      setShowDeliveryDialog(true);
+    } else {
+      onStatusChange(newStatus);
+    }
+  };
+
+  const handleDeliveryConfirm = () => {
+    // Validate inputs
+    if (!receiverName.trim()) {
+      alert("Por favor, informe o nome do recebedor");
+      return;
+    }
+
+    if (!deliveryDate) {
+      alert("Por favor, selecione a data de entrega");
+      return;
+    }
+
+    if (!deliveryTime.trim()) {
+      alert("Por favor, informe o horário da entrega");
+      return;
+    }
+
+    // Submit delivery details and status change
+    onStatusChange("delivered_final", {
+      receiverName,
+      deliveryDate,
+      deliveryTime
+    });
+
+    // Close dialog and reset form
+    setShowDeliveryDialog(false);
+    setReceiverName("");
+    setDeliveryDate("");
+    setDeliveryTime("");
+  };
+
   return (
     <div className="md:col-span-2">
       <Separator />
@@ -23,7 +78,7 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => onStatusChange("in_transit")}
+            onClick={() => handleStatusChangeClick("in_transit")}
           >
             Marcar como Em Trânsito
           </Button>
@@ -32,7 +87,7 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => onStatusChange("retained")}
+            onClick={() => handleStatusChangeClick("retained")}
           >
             Marcar como Retido
           </Button>
@@ -41,7 +96,7 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => onStatusChange("delivered")}
+            onClick={() => handleStatusChangeClick("delivered")}
           >
             Marcar como Retirado
           </Button>
@@ -50,12 +105,57 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => onStatusChange("delivered_final")}
+            onClick={() => handleStatusChangeClick("delivered_final")}
           >
             Marcar como Entregue
           </Button>
         )}
       </div>
+
+      {/* Delivery details dialog */}
+      <Dialog open={showDeliveryDialog} onOpenChange={setShowDeliveryDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Detalhes da Entrega</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="receiverName">Nome do Recebedor</Label>
+              <Input 
+                id="receiverName" 
+                value={receiverName} 
+                onChange={(e) => setReceiverName(e.target.value)} 
+                placeholder="Nome completo"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="deliveryDate">Data da Entrega</Label>
+              <DatePicker
+                date={deliveryDate ? new Date(deliveryDate) : undefined}
+                onSelect={(date) => setDeliveryDate(date ? date.toISOString().split('T')[0] : '')}
+                placeholder="Selecione a data"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="deliveryTime">Horário da Entrega</Label>
+              <Input 
+                id="deliveryTime" 
+                type="time"
+                value={deliveryTime} 
+                onChange={(e) => setDeliveryTime(e.target.value)} 
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeliveryDialog(false)}>Cancelar</Button>
+            <Button onClick={handleDeliveryConfirm}>Confirmar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

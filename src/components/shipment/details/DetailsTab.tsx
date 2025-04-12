@@ -44,6 +44,12 @@ export function DetailsTab({ shipment, formState, clients }: DetailsTabProps) {
     setRetentionAmount,
     paymentDate,
     setPaymentDate,
+    releaseDate,
+    setReleaseDate,
+    actionNumber,
+    setActionNumber,
+    fiscalNotes,
+    setFiscalNotes,
     handleEditClick,
     handleCancelEdit,
     handleSave,
@@ -90,14 +96,20 @@ export function DetailsTab({ shipment, formState, clients }: DetailsTabProps) {
             shipmentId={shipment.id}
           />
           
-          {shipment.status === "retained" && isEditing && (
+          {status === "retained" && isEditing && (
             <RetentionFormSection 
+              actionNumber={actionNumber}
+              setActionNumber={setActionNumber}
               retentionReason={retentionReason}
               setRetentionReason={setRetentionReason}
               retentionAmount={retentionAmount}
               setRetentionAmount={setRetentionAmount}
               paymentDate={paymentDate}
               setPaymentDate={setPaymentDate}
+              releaseDate={releaseDate}
+              setReleaseDate={setReleaseDate}
+              fiscalNotes={fiscalNotes}
+              setFiscalNotes={setFiscalNotes}
             />
           )}
           

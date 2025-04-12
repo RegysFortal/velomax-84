@@ -5,7 +5,7 @@ import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
 
 export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
-  const { updateShipment, deleteShipment, updateStatus } = useShipments();
+  const { updateShipment, deleteShipment, updateStatus, updateFiscalAction } = useShipments();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   
@@ -23,11 +23,15 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const [observations, setObservations] = useState(shipment.observations || "");
   const [deliveryDate, setDeliveryDate] = useState(shipment.deliveryDate || "");
   const [deliveryTime, setDeliveryTime] = useState(shipment.deliveryTime || "");
+  const [receiverName, setReceiverName] = useState(shipment.receiverName || "");
   
   // Retention-specific fields
   const [retentionReason, setRetentionReason] = useState(shipment.fiscalAction?.reason || "");
   const [retentionAmount, setRetentionAmount] = useState(shipment.fiscalAction?.amountToPay.toString() || "");
   const [paymentDate, setPaymentDate] = useState(shipment.fiscalAction?.paymentDate || "");
+  const [releaseDate, setReleaseDate] = useState(shipment.fiscalAction?.releaseDate || "");
+  const [actionNumber, setActionNumber] = useState(shipment.fiscalAction?.actionNumber || "");
+  const [fiscalNotes, setFiscalNotes] = useState(shipment.fiscalAction?.notes || "");
   
   const handleEditClick = () => {
     setIsEditing(true);
@@ -50,9 +54,13 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     setObservations(shipment.observations || "");
     setDeliveryDate(shipment.deliveryDate || "");
     setDeliveryTime(shipment.deliveryTime || "");
+    setReceiverName(shipment.receiverName || "");
     setRetentionReason(shipment.fiscalAction?.reason || "");
     setRetentionAmount(shipment.fiscalAction?.amountToPay.toString() || "");
     setPaymentDate(shipment.fiscalAction?.paymentDate || "");
+    setReleaseDate(shipment.fiscalAction?.releaseDate || "");
+    setActionNumber(shipment.fiscalAction?.actionNumber || "");
+    setFiscalNotes(shipment.fiscalAction?.notes || "");
   };
   
   const handleSave = async () => {
@@ -93,9 +101,30 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         isRetained: status === "retained",
         deliveryDate: deliveryDate || undefined,
         deliveryTime: deliveryTime || undefined,
+        receiverName: receiverName || undefined,
       };
       
       await updateShipment(shipment.id, updatedShipment);
+
+      // Update fiscal action if status is retained
+      if (status === "retained") {
+        const retentionAmountValue = parseFloat(retentionAmount || "0");
+        
+        if (isNaN(retentionAmountValue)) {
+          toast.error("Valor da retenção deve ser numérico");
+          return;
+        }
+        
+        await updateFiscalAction(shipment.id, {
+          actionNumber: actionNumber.trim() || undefined,
+          reason: retentionReason.trim(),
+          amountToPay: retentionAmountValue,
+          paymentDate: paymentDate || undefined,
+          releaseDate: releaseDate || undefined,
+          notes: fiscalNotes.trim() || undefined,
+        });
+      }
+      
       toast.success("Embarque atualizado com sucesso");
       setIsEditing(false);
     } catch (error) {
@@ -116,10 +145,42 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     }
   };
   
-  const handleStatusChange = async (newStatus: ShipmentStatus) => {
+  const handleStatusChange = async (newStatus: ShipmentStatus, deliveryDetails?: any) => {
     try {
-      await updateStatus(shipment.id, newStatus);
+      let updateData: Partial<Shipment> = { status: newStatus };
+      
+      // If delivered_final and we have delivery details, add them
+      if (newStatus === "delivered_final" && deliveryDetails) {
+        updateData = {
+          ...updateData,
+          receiverName: deliveryDetails.receiverName,
+          deliveryDate: deliveryDetails.deliveryDate,
+          deliveryTime: deliveryDetails.deliveryTime
+        };
+      }
+      
+      // If changing to "retained", set isRetained to true
+      if (newStatus === "retained") {
+        updateData.isRetained = true;
+      } else {
+        updateData.isRetained = false;
+      }
+      
+      await updateShipment(shipment.id, updateData);
       toast.success(`Status alterado para ${newStatus}`);
+      
+      // If status is no longer "retained", clear fiscal action
+      if (shipment.status === "retained" && newStatus !== "retained") {
+        await updateFiscalAction(shipment.id, null);
+      }
+      
+      // Update local state
+      setStatus(newStatus);
+      if (deliveryDetails) {
+        setReceiverName(deliveryDetails.receiverName);
+        setDeliveryDate(deliveryDetails.deliveryDate);
+        setDeliveryTime(deliveryDetails.deliveryTime);
+      }
     } catch (error) {
       toast.error("Erro ao alterar status");
       console.error(error);
@@ -157,12 +218,20 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     setDeliveryDate,
     deliveryTime,
     setDeliveryTime,
+    receiverName,
+    setReceiverName,
     retentionReason,
     setRetentionReason,
     retentionAmount,
     setRetentionAmount,
     paymentDate,
     setPaymentDate,
+    releaseDate,
+    setReleaseDate,
+    actionNumber,
+    setActionNumber,
+    fiscalNotes,
+    setFiscalNotes,
     handleEditClick,
     handleCancelEdit,
     handleSave,

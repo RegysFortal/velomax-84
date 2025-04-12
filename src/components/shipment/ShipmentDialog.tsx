@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -38,9 +37,12 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const [deliveryTime, setDeliveryTime] = useState("");
   
   // Retention-specific fields
+  const [actionNumber, setActionNumber] = useState("");
   const [retentionReason, setRetentionReason] = useState("");
   const [retentionAmount, setRetentionAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
+  const [releaseDate, setReleaseDate] = useState("");
+  const [fiscalNotes, setFiscalNotes] = useState("");
   
   // Check for duplicate tracking number
   const checkDuplicateTrackingNumber = (trackingNum: string) => {
@@ -64,9 +66,12 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       setObservations("");
       setDeliveryDate("");
       setDeliveryTime("");
+      setActionNumber("");
       setRetentionReason("");
       setRetentionAmount("");
       setPaymentDate("");
+      setReleaseDate("");
+      setFiscalNotes("");
       
       console.log("ShipmentDialog - Reset form");
     }
@@ -80,6 +85,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     handleConfirmDuplicate
   } = useShipmentFormSubmit({
     companyId,
+    companyName,
     carrierName,
     trackingNumber,
     packages,
@@ -89,9 +95,14 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     arrivalDate,
     observations,
     status,
+    // Retention fields
+    actionNumber,
     retentionReason,
     retentionAmount,
     paymentDate,
+    releaseDate,
+    fiscalNotes,
+    // Other
     clients,
     addShipment,
     checkDuplicateTrackingNumber,
@@ -161,12 +172,18 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
               setObservations={setObservations}
               status={status}
               setStatus={setStatus}
+              actionNumber={actionNumber}
+              setActionNumber={setActionNumber}
               retentionReason={retentionReason}
               setRetentionReason={setRetentionReason}
               retentionAmount={retentionAmount}
               setRetentionAmount={setRetentionAmount}
               paymentDate={paymentDate}
               setPaymentDate={setPaymentDate}
+              releaseDate={releaseDate}
+              setReleaseDate={setReleaseDate}
+              fiscalNotes={fiscalNotes}
+              setFiscalNotes={setFiscalNotes}
               clients={clients}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
