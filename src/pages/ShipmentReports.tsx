@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
@@ -51,7 +50,6 @@ export default function ShipmentReports() {
   const [filterMode, setFilterMode] = useState<'air' | 'road' | 'all'>('all');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
-  // Adicionando estado para controlar a visualização dos detalhes do embarque
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
@@ -81,6 +79,7 @@ export default function ShipmentReports() {
     in_transit: filteredShipments.filter(s => s.status === 'in_transit').length,
     retained: filteredShipments.filter(s => s.status === 'retained').length,
     delivered: filteredShipments.filter(s => s.status === 'delivered').length,
+    partial_delivery: filteredShipments.filter(s => s.status === 'partial_delivery').length,
     delivered_final: filteredShipments.filter(s => s.status === 'delivered_final').length,
   };
   
@@ -88,6 +87,7 @@ export default function ShipmentReports() {
     { name: 'Em Trânsito', value: statusCounts.in_transit },
     { name: 'Retida', value: statusCounts.retained },
     { name: 'Retirada', value: statusCounts.delivered },
+    { name: 'Entrega Parcial', value: statusCounts.partial_delivery },
     { name: 'Entregue', value: statusCounts.delivered_final },
   ];
   
@@ -97,13 +97,11 @@ export default function ShipmentReports() {
     setRefreshTrigger(prev => prev + 1);
   };
   
-  // Função para abrir os detalhes do embarque
   const handleOpenDetails = (shipment: Shipment) => {
     setSelectedShipment(shipment);
     setIsDetailsOpen(true);
   };
   
-  // Função para fechar os detalhes do embarque
   const handleCloseDetails = () => {
     setIsDetailsOpen(false);
     setSelectedShipment(null);
@@ -127,6 +125,7 @@ export default function ShipmentReports() {
         'in_transit': 'Em Trânsito',
         'retained': 'Retida',
         'delivered': 'Retirada',
+        'partial_delivery': 'Entrega Parcial',
         'delivered_final': 'Entregue'
       };
       doc.text(`Status: ${statusLabels[filterStatus]}`, 14, 35);
@@ -258,6 +257,7 @@ export default function ShipmentReports() {
     'in_transit': 'Em Trânsito',
     'retained': 'Retida',
     'delivered': 'Retirada',
+    'partial_delivery': 'Entrega Parcial',
     'delivered_final': 'Entregue'
   };
 
@@ -398,6 +398,7 @@ export default function ShipmentReports() {
                         <SelectItem value="in_transit">Em Trânsito</SelectItem>
                         <SelectItem value="retained">Retida</SelectItem>
                         <SelectItem value="delivered">Retirada</SelectItem>
+                        <SelectItem value="partial_delivery">Entrega Parcial</SelectItem>
                         <SelectItem value="delivered_final">Entregue</SelectItem>
                       </SelectContent>
                     </Select>
@@ -518,7 +519,6 @@ export default function ShipmentReports() {
         </Card>
       </div>
       
-      {/* Componente para mostrar os detalhes do embarque */}
       {selectedShipment && (
         <ShipmentDetails 
           shipment={selectedShipment} 
