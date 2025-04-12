@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RetentionFormSection } from "../RetentionFormSection";
 import { toast } from "sonner";
+import { useShipments } from "@/contexts/shipments";
 
 interface StatusActionsProps {
   status: ShipmentStatus;
@@ -30,6 +31,7 @@ interface DeliveryDetailsType {
 }
 
 export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
+  const { shipments } = useShipments();
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
   const [receiverName, setReceiverName] = useState("");

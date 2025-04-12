@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { format, subDays, isWithinInterval } from 'date-fns';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -24,6 +24,12 @@ const Dashboard = () => {
   const [endDate, setEndDate] = useState<string>(
     format(new Date(), 'yyyy-MM-dd')
   );
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Force a refresh when shipments change
+  useEffect(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, [shipments]);
 
   const filteredDeliveries = deliveries.filter(delivery => {
     const deliveryDate = new Date(delivery.deliveryDate);
@@ -140,7 +146,7 @@ const Dashboard = () => {
         />
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <EventsCalendar />
+          <EventsCalendar key={`events-${refreshTrigger}`} />
           
           <div className="col-span-12 lg:col-span-6">
             <ChartSection 
@@ -151,6 +157,7 @@ const Dashboard = () => {
         </div>
         
         <SummaryCards 
+          key={`summary-${refreshTrigger}`}
           inTransitShipments={inTransitShipments}
           retainedShipments={retainedShipments}
           deliveredShipments={deliveredShipments}
