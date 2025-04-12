@@ -69,16 +69,31 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
       
       if (editingDocument) {
         // Update existing document
-        await updateDocument(shipmentId, editingDocument.id, {
-          name: editingDocument.name,
-          type: editingDocument.type,
+        const updatedDocument = {
+          ...editingDocument,
           minuteNumber: minuteNumber.trim() || undefined,
           invoiceNumbers: invoiceNumbers.length > 0 ? invoiceNumbers : undefined,
           packages: packageCount,
           weight: weightValue,
           notes: notes.trim() || undefined,
           isDelivered
-        });
+        };
+        
+        // Get the current shipment's documents
+        const { shipments } = useShipments();
+        const shipment = shipments.find(s => s.id === shipmentId);
+        
+        if (!shipment) {
+          toast.error("Embarque não encontrado");
+          return;
+        }
+        
+        // Update the document in the array
+        const updatedDocuments = shipment.documents.map(doc => 
+          doc.id === editingDocument.id ? updatedDocument : doc
+        );
+        
+        await updateDocument(shipmentId, editingDocument.id, updatedDocuments);
         
         toast.success("Documento atualizado com sucesso");
       } else {
