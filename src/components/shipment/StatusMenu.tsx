@@ -71,12 +71,9 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Check if the current status is retained (explicitly typed to avoid comparison errors)
+        // Check if the current status is "retained" and clear fiscal action if moving to another status
         if (status === "retained") {
-          // If we're changing from retained to any other status
-          if (newStatus === "in_transit" || newStatus === "delivered" || newStatus === "delivered_final") {
-            await updateFiscalAction(shipmentId, null);
-          }
+          await updateFiscalAction(shipmentId, null);
         }
         
         if (onStatusChange) onStatusChange();
