@@ -95,6 +95,11 @@ export default function Shipments() {
     }
   };
 
+  // Nova função para lidar com o clique na linha da tabela
+  const handleRowClick = (shipment: Shipment) => {
+    setSelectedShipment(shipment);
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col space-y-6 h-full">
@@ -156,45 +161,28 @@ export default function Shipments() {
                       <TableRow 
                         key={shipment.id} 
                         className={cn(
-                          "hover:bg-muted",
+                          "hover:bg-muted cursor-pointer",
                           shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
                           isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100"
                         )}
+                        onClick={() => handleRowClick(shipment)}
                       >
-                        <TableCell 
-                          className="cursor-pointer"
-                          onClick={() => setSelectedShipment(shipment)}
-                        >
+                        <TableCell>
                           {shipment.companyName}
                         </TableCell>
-                        <TableCell 
-                          className="cursor-pointer"
-                          onClick={() => setSelectedShipment(shipment)}
-                        >
+                        <TableCell>
                           {shipment.trackingNumber}
                         </TableCell>
-                        <TableCell 
-                          className="cursor-pointer"
-                          onClick={() => setSelectedShipment(shipment)}
-                        >
+                        <TableCell>
                           {shipment.carrierName}
                         </TableCell>
-                        <TableCell 
-                          className="cursor-pointer"
-                          onClick={() => setSelectedShipment(shipment)}
-                        >
+                        <TableCell>
                           {shipment.packages}
                         </TableCell>
-                        <TableCell 
-                          className="cursor-pointer"
-                          onClick={() => setSelectedShipment(shipment)}
-                        >
+                        <TableCell>
                           {shipment.weight} kg
                         </TableCell>
-                        <TableCell 
-                          className="cursor-pointer"
-                          onClick={() => setSelectedShipment(shipment)}
-                        >
+                        <TableCell>
                           {shipment.arrivalDate ? (
                             <div className="flex items-center gap-1">
                               {format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })}
