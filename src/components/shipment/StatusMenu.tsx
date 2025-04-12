@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -15,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
-import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RetentionFormSection } from "./RetentionFormSection";
 
@@ -60,7 +58,6 @@ export function StatusMenu({
         const updatedShipment = await updateStatus(shipmentId, newStatus);
         
         if (updatedShipment) {
-          // Update isRetained based on the new status, checking all possible retained states
           await updateShipment(shipmentId, { 
             isRetained: newStatus === "retained"
           });
