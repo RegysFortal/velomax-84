@@ -76,11 +76,11 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Fix the type errors by using a type-safe comparison approach
-        const currentStatusIsRetained = status === "retained" as ShipmentStatus;
-        const newStatusIsRetained = newStatus === "retained" as ShipmentStatus;
+        // Use type guard to safely check retained status
+        const shouldUpdateFiscalAction = 
+          status === "retained" || newStatus === "retained";
         
-        if (currentStatusIsRetained || newStatusIsRetained) {
+        if (shouldUpdateFiscalAction) {
           await updateFiscalAction(shipmentId, null);
         }
         
