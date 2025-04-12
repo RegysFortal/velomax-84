@@ -30,21 +30,21 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
       <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
         <Calculator className="mr-2 h-4 w-4" />
-        Financeiro
+        Fechamento
       </NavigationMenuTrigger>
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
             {hasPermission('dashboard') && (
               <Link
-                to="/dashboard"
+                to="/financial-dashboard"
                 className={cn(
                   "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/dashboard")
+                  getActiveClass(location.pathname, "/financial-dashboard")
                 )}
               >
                 <BarChart2 className="mr-2 h-4 w-4" />
-                Dashboard
+                Dashboard Financeiro
               </Link>
             )}
             {hasPermission('financial') && (

@@ -18,6 +18,7 @@ import SettingsPage from './pages/Settings';
 import NotFoundPage from './pages/NotFound';
 import ActivityLogsPage from './pages/ActivityLogs';
 import FinancialPage from './pages/Financial';
+import FinancialDashboard from './pages/FinancialDashboard';
 import ReportsPage from './pages/Reports';
 import ShipmentReportsPage from './pages/ShipmentReports';
 import PriceTablesPage from './pages/PriceTables';
@@ -68,6 +69,7 @@ function App() {
                             <Route path="/settings" element={<SettingsPage />} />
                             <Route path="/activity-logs" element={<ActivityLogsPage />} />
                             <Route path="/financial" element={<FinancialPage />} />
+                            <Route path="/financial-dashboard" element={<FinancialDashboard />} />
                             <Route path="/reports" element={<ReportsPage />} />
                             <Route path="/shipment-reports" element={<ShipmentReportsPage />} />
                             <Route path="/price-tables" element={<PriceTablesPage />} />
