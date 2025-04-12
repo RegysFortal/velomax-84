@@ -15,6 +15,7 @@ export interface SubmissionData {
 
 interface UseShipmentFormSubmitProps {
   companyId: string;
+  companyName: string; // Added this property
   carrierName: string;
   trackingNumber: string;
   packages: string;
@@ -27,6 +28,9 @@ interface UseShipmentFormSubmitProps {
   retentionReason: string;
   retentionAmount: string;
   paymentDate: string;
+  releaseDate?: string; // Added as optional
+  fiscalNotes?: string; // Added as optional
+  actionNumber?: string; // Added as optional
   clients: any[];
   addShipment: (shipment: any) => Promise<any>;
   checkDuplicateTrackingNumber: (trackingNum: string) => boolean;
@@ -35,6 +39,7 @@ interface UseShipmentFormSubmitProps {
 
 export function useShipmentFormSubmit({
   companyId,
+  companyName,
   carrierName,
   trackingNumber,
   packages,
@@ -47,6 +52,9 @@ export function useShipmentFormSubmit({
   retentionReason,
   retentionAmount,
   paymentDate,
+  releaseDate,
+  actionNumber,
+  fiscalNotes,
   clients,
   addShipment,
   checkDuplicateTrackingNumber,

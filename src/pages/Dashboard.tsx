@@ -51,7 +51,8 @@ const Dashboard = () => {
   
   const totalShipments = filteredShipments.length;
   const retainedShipments = filteredShipments.filter(s => s.isRetained).length;
-  const deliveredShipments = filteredShipments.filter(s => s.status === 'delivered' || s.status === 'delivered_final').length;
+  const deliveredShipments = filteredShipments.filter(s => s.status === 'delivered').length;
+  const finalDeliveredShipments = filteredShipments.filter(s => s.status === 'delivered_final').length;
   const inTransitShipments = filteredShipments.filter(s => s.status === 'in_transit').length;
 
   // Prepare chart data
@@ -153,6 +154,7 @@ const Dashboard = () => {
           inTransitShipments={inTransitShipments}
           retainedShipments={retainedShipments}
           deliveredShipments={deliveredShipments}
+          finalDeliveredShipments={finalDeliveredShipments}
           totalWeight={totalWeight}
           totalDeliveries={totalDeliveries}
           startDate={startDate}
