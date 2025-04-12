@@ -77,7 +77,7 @@ export function useStatusChange({
         await updateFiscalAction(shipmentId, null);
       }
       
-      // Get status label from the useStatusLabel hook
+      // Get status label
       const getStatusLabel = (status: ShipmentStatus): string => {
         switch (status) {
           case "in_transit": return "Em Trânsito";
