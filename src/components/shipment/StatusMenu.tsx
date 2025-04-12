@@ -19,6 +19,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { RetentionFormSection } from "./RetentionFormSection";
 import { useDeliveries } from "@/contexts/DeliveriesContext";
 import { generateMinuteNumber } from "@/utils/deliveryUtils";
+import { DeliveryType, CargoType } from "@/types/delivery";
 
 interface StatusMenuProps {
   shipmentId: string;
@@ -75,8 +76,8 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Fix the type error by using string comparison instead of direct type comparison
-        if (status === "retained" && newStatus !== "retained") {
+        // Fix type error by using a type assertion to compare string values
+        if ((status as string) === "retained" && (newStatus as string) !== "retained") {
           await updateFiscalAction(shipmentId, null);
         }
         
@@ -130,8 +131,8 @@ export function StatusMenu({
         receiver: receiverName,
         weight: shipment.weight,
         packages: shipment.packages,
-        deliveryType: "standard", // Default delivery type
-        cargoType: "standard", // Default cargo type
+        deliveryType: "standard" as DeliveryType, // Fix type error by casting to DeliveryType
+        cargoType: "standard" as CargoType, // Fix type error by casting to CargoType
         cargoValue: 0, // Default cargo value
         totalFreight: 0, // Default freight
         notes: `Gerado automaticamente do embarque ${shipment.trackingNumber}`
