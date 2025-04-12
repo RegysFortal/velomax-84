@@ -51,11 +51,15 @@ export function useStatusChange({
         });
         
         // Convert all status values to strings for safe comparison
-        const statusWasRetained = String(status) === "retained";
-        const statusIsNowRetained = String(newStatus) === "retained";
-        const updatedShipmentIsRetained = String(updatedShipment.status) === "retained";
+        const statusString = String(status);
+        const newStatusString = String(newStatus);
+        const updatedShipmentStatusString = String(updatedShipment.status);
         
         // Determine if this status change involves retention
+        const statusWasRetained = statusString === "retained";
+        const statusIsNowRetained = newStatusString === "retained";
+        const updatedShipmentIsRetained = updatedShipmentStatusString === "retained";
+        
         const isRetained = statusWasRetained || statusIsNowRetained || updatedShipmentIsRetained;
         
         if (isRetained) {
