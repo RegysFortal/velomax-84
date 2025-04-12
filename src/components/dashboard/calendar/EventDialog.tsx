@@ -78,6 +78,24 @@ export function EventDialog({
             />
           </div>
           <div className="grid gap-2">
+            <Label htmlFor="event-time">Horário (opcional)</Label>
+            <Input 
+              id="event-time" 
+              value={newEvent.time || ''} 
+              onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+              placeholder="Ex: 14:30" 
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="event-location">Local (opcional)</Label>
+            <Input 
+              id="event-location" 
+              value={newEvent.location || ''} 
+              onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+              placeholder="Local do evento" 
+            />
+          </div>
+          <div className="grid gap-2">
             <Label htmlFor="event-recurrence">Repetição</Label>
             <RadioGroup 
               value={newEvent.recurrence || 'none'} 

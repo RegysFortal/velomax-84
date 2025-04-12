@@ -30,4 +30,6 @@ export interface CalendarEvent {
   description?: string;
   recurrence?: RecurrenceType;
   recurrenceEndDate?: Date;
+  time?: string;
+  location?: string;
 }
