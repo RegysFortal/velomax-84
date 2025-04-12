@@ -72,8 +72,11 @@ export function useStatusChange({
       });
       
       // Handle retention status - we need to check the previous status value
-      // Use explicit type check with strict equality to avoid TypeScript narrowing issues
-      if (status === "retained" && newStatus !== "retained") {
+      // Convert to string comparison to address TypeScript narrowing issues
+      const currentStatusStr = status as string;
+      const newStatusStr = newStatus as string;
+      
+      if (currentStatusStr === "retained" && newStatusStr !== "retained") {
         // If we're changing from "retained" to something else, clear fiscal action
         await updateFiscalAction(shipmentId, null);
       }
