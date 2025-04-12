@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -76,12 +75,12 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Check if either the old or new status is 'retained'
-        // Cast the strings to ensure TypeScript knows we're doing a valid comparison
-        const statusIsRetained = status as string === "retained" as string;
-        const newStatusIsRetained = newStatus as string === "retained" as string;
+        // Fix TypeScript error using a type-safe comparison
+        const isRetained = 
+          status === "retained" || 
+          newStatus === "retained";
         
-        if (statusIsRetained || newStatusIsRetained) {
+        if (isRetained) {
           await updateFiscalAction(shipmentId, null);
         }
         
