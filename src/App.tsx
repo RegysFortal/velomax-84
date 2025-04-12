@@ -23,6 +23,7 @@ import ShipmentReportsPage from './pages/ShipmentReports';
 import PriceTablesPage from './pages/PriceTables';
 import CitiesPage from './pages/Cities';
 import BudgetsPage from './pages/Budgets';
+import ContractorsPage from './pages/Contractors';
 import { 
   BudgetProvider, 
   ClientsProvider,
@@ -61,6 +62,7 @@ function App() {
                             <Route path="/deliveries" element={<DeliveriesProvider><DeliveriesPage /></DeliveriesProvider>} />
                             <Route path="/shipments" element={<ShipmentsPage />} />
                             <Route path="/employees" element={<EmployeesPage />} />
+                            <Route path="/contractors" element={<ContractorsPage />} />
                             <Route path="/maintenance" element={<MaintenancePage />} />
                             <Route path="/logbook" element={<LogbookPage />} />
                             <Route path="/settings" element={<SettingsPage />} />

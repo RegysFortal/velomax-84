@@ -53,19 +53,19 @@ export const useUserManagement = (currentUser: User | null) => {
       
       if (userData.permissions) {
         userData.permissions = {
-          deliveries: userData.permissions.deliveries ?? users[userIndex].permissions.deliveries,
-          shipments: userData.permissions.shipments ?? users[userIndex].permissions.shipments,
-          clients: userData.permissions.clients ?? users[userIndex].permissions.clients,
-          cities: userData.permissions.cities ?? users[userIndex].permissions.cities,
-          reports: userData.permissions.reports ?? users[userIndex].permissions.reports,
-          financial: userData.permissions.financial ?? users[userIndex].permissions.financial,
-          priceTables: userData.permissions.priceTables ?? users[userIndex].permissions.priceTables,
-          dashboard: userData.permissions.dashboard ?? users[userIndex].permissions.dashboard,
-          logbook: userData.permissions.logbook ?? users[userIndex].permissions.logbook,
-          employees: userData.permissions.employees ?? users[userIndex].permissions.employees,
-          vehicles: userData.permissions.vehicles ?? users[userIndex].permissions.vehicles,
-          maintenance: userData.permissions.maintenance ?? users[userIndex].permissions.maintenance,
-          settings: userData.permissions.settings ?? users[userIndex].permissions.settings,
+          deliveries: userData.permissions.deliveries ?? users[userIndex].permissions?.deliveries ?? false,
+          shipments: userData.permissions.shipments ?? users[userIndex].permissions?.shipments ?? false,
+          clients: userData.permissions.clients ?? users[userIndex].permissions?.clients ?? false,
+          cities: userData.permissions.cities ?? users[userIndex].permissions?.cities ?? false,
+          reports: userData.permissions.reports ?? users[userIndex].permissions?.reports ?? false,
+          financial: userData.permissions.financial ?? users[userIndex].permissions?.financial ?? false,
+          priceTables: userData.permissions.priceTables ?? users[userIndex].permissions?.priceTables ?? false,
+          dashboard: userData.permissions.dashboard ?? users[userIndex].permissions?.dashboard ?? false,
+          logbook: userData.permissions.logbook ?? users[userIndex].permissions?.logbook ?? false,
+          employees: userData.permissions.employees ?? users[userIndex].permissions?.employees ?? false,
+          vehicles: userData.permissions.vehicles ?? users[userIndex].permissions?.vehicles ?? false,
+          maintenance: userData.permissions.maintenance ?? users[userIndex].permissions?.maintenance ?? false,
+          settings: userData.permissions.settings ?? users[userIndex].permissions?.settings ?? false,
         };
       }
       
@@ -86,7 +86,7 @@ export const useUserManagement = (currentUser: User | null) => {
           'update',
           'user',
           userId,
-          updatedUser.name,
+          updatedUser.name || '',
           'Perfil de usuário atualizado'
         );
       }
@@ -107,7 +107,7 @@ export const useUserManagement = (currentUser: User | null) => {
       }
       
       // Check if this is one of our specific users that should be a 'user' role
-      let role = userData.role;
+      let role = userData.role || 'user';
       if (
         userData.name === "Wanessa" || 
         userData.name === "Liangela" || 
@@ -117,7 +117,8 @@ export const useUserManagement = (currentUser: User | null) => {
       }
       
       // Make sure the role is valid for User type
-      if (role === 'driver' || role === 'helper') {
+      if ((role === 'driver' || role === 'helper') && !userData.type) {
+        // If it's a driver or helper without a type, default to user role for system users
         role = 'user';
       }
       
@@ -141,7 +142,7 @@ export const useUserManagement = (currentUser: User | null) => {
           'create',
           'user',
           newUser.id,
-          newUser.name,
+          newUser.name || '',
           'Novo usuário criado'
         );
       }
@@ -173,7 +174,7 @@ export const useUserManagement = (currentUser: User | null) => {
         'delete',
         'user',
         userId,
-        userToDelete.name,
+        userToDelete.name || '',
         'Usuário excluído'
       );
     }
@@ -203,7 +204,7 @@ export const useUserManagement = (currentUser: User | null) => {
         'update',
         'user',
         userId,
-        updatedUser.name,
+        updatedUser.name || '',
         'Senha redefinida'
       );
     }
