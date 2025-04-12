@@ -76,10 +76,12 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Fix TypeScript error by using a proper type check
+        // Use a type-safe approach to check status values
+        const currentStatusString = status as string;
+        const newStatusString = newStatus as string;
         const shouldUpdateFiscalAction = 
-          (status as string) === "retained" || 
-          (newStatus as string) === "retained";
+          currentStatusString === "retained" || 
+          newStatusString === "retained";
         
         if (shouldUpdateFiscalAction) {
           await updateFiscalAction(shipmentId, null);
@@ -326,3 +328,4 @@ export function StatusMenu({
     </>
   );
 }
+
