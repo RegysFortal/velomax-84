@@ -38,6 +38,8 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
     handleDelete
   } = useDocumentOperations({ shipmentId });
 
+  console.log('DocumentsList - Documents recebidos:', documents);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -48,13 +50,13 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
         </Button>
       </div>
       
-      {documents.length === 0 ? (
+      {documents && documents.length === 0 ? (
         <div className="text-center p-4 text-muted-foreground border border-dashed rounded-md">
           Nenhum documento encontrado
         </div>
       ) : (
         <div className="space-y-2">
-          {documents.map((doc) => (
+          {documents && documents.map((doc) => (
             <DocumentItem 
               key={doc.id}
               document={doc}

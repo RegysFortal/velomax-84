@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { Document } from "@/types/shipment";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ interface UseDocumentOperationsProps {
 }
 
 export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps) {
-  const { addDocument, updateDocument, deleteDocument } = useShipments();
+  const { addDocument, updateDocument, deleteDocument, getShipmentById } = useShipments();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   
@@ -20,6 +20,13 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
   const [packages, setPackages] = useState("");
   const [notes, setNotes] = useState("");
   const [isDelivered, setIsDelivered] = useState(false);
+  
+  useEffect(() => {
+    // Depuração: verificar se o shipment existe e tem documentos
+    const shipment = getShipmentById(shipmentId);
+    console.log('useDocumentOperations - Shipment carregado:', shipment);
+    console.log('useDocumentOperations - Documentos do shipment:', shipment?.documents);
+  }, [shipmentId, getShipmentById]);
   
   const resetForm = () => {
     setMinuteNumber("");
@@ -67,6 +74,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
           isDelivered
         };
         await updateDocument(shipmentId, editingDocument.id, updatedDoc);
+        console.log('Documento atualizado:', updatedDoc);
         toast.success("Documento atualizado com sucesso");
       } else {
         const newDoc = {
@@ -80,6 +88,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
           type: "invoice" as const // Cast to literal type
         };
         await addDocument(shipmentId, newDoc);
+        console.log('Novo documento adicionado:', newDoc);
         toast.success("Documento adicionado com sucesso");
       }
       setIsDialogOpen(false);
@@ -93,6 +102,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
   const handleDelete = async (documentId: string) => {
     try {
       await deleteDocument(shipmentId, documentId);
+      console.log('Documento removido:', documentId);
       toast.success("Documento removido com sucesso");
     } catch (error) {
       console.error("Error deleting document:", error);
