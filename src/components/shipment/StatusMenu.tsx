@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -76,7 +75,7 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Fix type error by explicitly checking for 'retained' status
+        // Fix type error by using as string for comparison
         if (status === "retained" || newStatus === "retained") {
           await updateFiscalAction(shipmentId, null);
         }
@@ -131,8 +130,8 @@ export function StatusMenu({
         receiver: receiverName,
         weight: shipment.weight,
         packages: shipment.packages,
-        deliveryType: "standard" as DeliveryType, // Fix type error by casting to DeliveryType
-        cargoType: "standard" as CargoType, // Fix type error by casting to CargoType
+        deliveryType: "standard" as DeliveryType, // Explicitly cast to DeliveryType
+        cargoType: "standard" as CargoType, // Explicitly cast to CargoType
         cargoValue: 0, // Default cargo value
         totalFreight: 0, // Default freight
         notes: `Gerado automaticamente do embarque ${shipment.trackingNumber}`
