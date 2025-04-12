@@ -64,7 +64,7 @@ export function DocumentItem({ document, onEdit, onDelete }: DocumentItemProps) 
             )}
             
             {document.isDelivered && (
-              <Badge className="mt-2" variant="success">Entregue</Badge>
+              <Badge variant="default" className="mt-2">Entregue</Badge>
             )}
           </div>
           
@@ -94,3 +94,4 @@ export function DocumentItem({ document, onEdit, onDelete }: DocumentItemProps) 
     </Card>
   );
 }
+
