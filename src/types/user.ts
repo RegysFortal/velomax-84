@@ -3,7 +3,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
-  role?: 'user' | 'admin' | 'manager';
+  role?: 'user' | 'admin' | 'manager' | 'driver' | 'helper';
   createdAt: string;
   updatedAt: string;
   // Additional properties
@@ -15,6 +15,7 @@ export interface User {
   // Employee specific fields
   rg?: string;
   cpf?: string;
+  document?: string; // For contractors
   birthDate?: string;
   driverLicense?: string;
   driverLicenseExpiry?: string;
@@ -26,6 +27,23 @@ export interface User {
   state?: string;
   zipCode?: string;
   employeeSince?: string;
+  // Type field to differentiate contractors
+  type?: 'employee' | 'contractor';
+  // Contractor vehicle info
+  vehicle?: {
+    plate?: string;
+    model?: string;
+    year?: string;
+    color?: string;
+    capacity?: string;
+  };
+  // Contractor license info
+  license?: {
+    licenseNumber?: string;
+    licenseCategory?: string;
+    expirationDate?: string;
+    issueDate?: string;
+  };
   // Permissions object
   permissions?: {
     deliveries: boolean;

@@ -20,6 +20,7 @@ type SupabaseEmployee = {
   // Additional fields that were added to the database
   rg: string | null;
   cpf: string | null;
+  document: string | null;
   birth_date: string | null;
   driver_license: string | null;
   driver_license_expiry: string | null;
@@ -30,6 +31,10 @@ type SupabaseEmployee = {
   city: string | null;
   state: string | null;
   zip_code: string | null;
+  type: string | null;
+  role: string | null;
+  vehicle: any | null;
+  license: any | null;
 };
 
 export const useEmployeesData = () => {
@@ -58,7 +63,7 @@ export const useEmployeesData = () => {
         position: employee.position,
         email: employee.email || '',
         phone: employee.phone || '',
-        role: 'user',
+        role: employee.role as User['role'] || 'user',
         createdAt: employee.created_at,
         updatedAt: employee.updated_at,
         // Additional employee fields - only add if they exist in the database
@@ -68,6 +73,7 @@ export const useEmployeesData = () => {
         // Map additional employee fields from the database if they exist
         ...(employee.rg && { rg: employee.rg }),
         ...(employee.cpf && { cpf: employee.cpf }),
+        ...(employee.document && { document: employee.document }),
         ...(employee.birth_date && { birthDate: employee.birth_date }),
         ...(employee.driver_license && { driverLicense: employee.driver_license }),
         ...(employee.driver_license_expiry && { driverLicenseExpiry: employee.driver_license_expiry }),
@@ -77,7 +83,10 @@ export const useEmployeesData = () => {
         ...(employee.address && { address: employee.address }),
         ...(employee.city && { city: employee.city }),
         ...(employee.state && { state: employee.state }),
-        ...(employee.zip_code && { zipCode: employee.zip_code })
+        ...(employee.zip_code && { zipCode: employee.zip_code }),
+        ...(employee.type && { type: employee.type }),
+        ...(employee.vehicle && { vehicle: employee.vehicle }),
+        ...(employee.license && { license: employee.license }),
       }));
       
       setEmployees(formattedEmployees);
@@ -112,9 +121,9 @@ export const useEmployeesData = () => {
     try {
       // Transform employee data to match Supabase structure
       const supabaseEmployee = {
-        id: employee.id,
+        id: employee.id || undefined,
         name: employee.name,
-        position: employee.position,
+        position: employee.position || '',
         email: employee.email,
         phone: employee.phone,
         is_active: true,
@@ -123,6 +132,7 @@ export const useEmployeesData = () => {
         // Additional employee fields for the database
         rg: employee.rg,
         cpf: employee.cpf,
+        document: employee.document,
         birth_date: employee.birthDate,
         driver_license: employee.driverLicense,
         driver_license_expiry: employee.driverLicenseExpiry,
@@ -133,6 +143,10 @@ export const useEmployeesData = () => {
         city: employee.city,
         state: employee.state,
         zip_code: employee.zipCode,
+        type: employee.type,
+        role: employee.role,
+        vehicle: employee.vehicle,
+        license: employee.license,
         // Get the current user's id
         user_id: (await supabase.auth.getUser()).data.user?.id
       };
@@ -165,7 +179,7 @@ export const useEmployeesData = () => {
       // Transform employee data to match Supabase structure
       const supabaseEmployee = {
         name: employee.name,
-        position: employee.position,
+        position: employee.position || '',
         email: employee.email,
         phone: employee.phone,
         department_id: employee.department,
@@ -173,6 +187,7 @@ export const useEmployeesData = () => {
         // Additional employee fields for the database
         rg: employee.rg,
         cpf: employee.cpf,
+        document: employee.document,
         birth_date: employee.birthDate,
         driver_license: employee.driverLicense,
         driver_license_expiry: employee.driverLicenseExpiry,
@@ -183,6 +198,10 @@ export const useEmployeesData = () => {
         city: employee.city,
         state: employee.state,
         zip_code: employee.zipCode,
+        type: employee.type,
+        role: employee.role,
+        vehicle: employee.vehicle,
+        license: employee.license,
         updated_at: new Date().toISOString()
       };
       

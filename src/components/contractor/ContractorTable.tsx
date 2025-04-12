@@ -14,9 +14,10 @@ import { ContractorDialog } from './ContractorDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useEmployeesData } from '@/hooks/useEmployeesData';
+import { User } from '@/types';
 
 export function ContractorTable() {
-  const [editContractor, setEditContractor] = useState<any>(null);
+  const [editContractor, setEditContractor] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const { employees, deleteEmployee } = useEmployeesData();
@@ -24,7 +25,7 @@ export function ContractorTable() {
   // Filter only the contractors
   const contractors = employees.filter(employee => employee.type === 'contractor');
 
-  const handleEdit = (contractor: any) => {
+  const handleEdit = (contractor: User) => {
     setEditContractor(contractor);
     setIsEditDialogOpen(true);
   };
@@ -39,12 +40,12 @@ export function ContractorTable() {
     }
   };
 
-  const formatPhone = (phone: string) => {
+  const formatPhone = (phone: string | undefined) => {
     if (!phone) return '-';
     return phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   };
 
-  const formatDocument = (doc: string) => {
+  const formatDocument = (doc: string | undefined) => {
     if (!doc) return '-';
     return doc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };

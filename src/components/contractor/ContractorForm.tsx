@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEmployeesData } from '@/hooks/useEmployeesData';
+import { User } from '@/types';
 
 const formSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
@@ -36,7 +36,7 @@ const formSchema = z.object({
 });
 
 interface ContractorFormProps {
-  contractor?: any;
+  contractor?: User;
   onContractorTypeChange: (type: 'driver' | 'helper') => void;
   onComplete: (data: any) => void;
 }
@@ -53,14 +53,15 @@ export function ContractorForm({ contractor, onContractorTypeChange, onComplete 
       phone: contractor?.phone || '',
       birthDate: contractor?.birthDate ? new Date(contractor.birthDate).toISOString().split('T')[0] : '',
       address: contractor?.address || '',
-      contractorType: (contractor?.role === 'driver' ? 'driver' : 'helper') || 'helper',
+      contractorType: contractor?.role === 'driver' ? 'driver' : 'helper',
     },
   });
   
   useEffect(() => {
-    const contractorType = form.watch('contractorType');
-    onContractorTypeChange(contractorType as 'driver' | 'helper');
-  }, [form.watch('contractorType')]);
+    if (form.watch('contractorType')) {
+      onContractorTypeChange(form.watch('contractorType') as 'driver' | 'helper');
+    }
+  }, [form.watch('contractorType'), onContractorTypeChange]);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
@@ -71,12 +72,16 @@ export function ContractorForm({ contractor, onContractorTypeChange, onComplete 
         phone: data.phone,
         birthDate: data.birthDate,
         address: data.address,
-        role: data.contractorType,
+        role: data.contractorType as 'driver' | 'helper',
         type: 'contractor',
+        email: '', // Required by User type
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        id: contractor?.id || '',
       };
 
       if (contractor?.id) {
-        await updateEmployee(contractor.id, formattedData);
+        await updateEmployee(formattedData);
       } else {
         await addEmployee(formattedData);
       }
