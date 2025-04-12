@@ -50,19 +50,16 @@ export function useStatusChange({
           isRetained: newStatus === "retained"
         });
         
-        // Handle retention status using explicit string comparisons for TypeScript
-        const statusWasRetained = status === "retained";
-        const statusIsNowRetained = newStatus === "retained";
-        
-        // Check if the updated shipment has the "retained" status
-        const updatedShipmentHasRetainedStatus = updatedShipment.status === "retained";
-        
-        // A shipment is considered retained if it previously was retained,
-        // is now being set to retained, or the updated shipment has the retained status
-        const isRetained = statusWasRetained || statusIsNowRetained || updatedShipmentHasRetainedStatus;
-        
-        if (isRetained) {
-          await updateFiscalAction(shipmentId, null);
+        // Handle retention status
+        if (status === "retained" || newStatus === "retained" || 
+            (updatedShipment && updatedShipment.status === "retained")) {
+          // A shipment is considered retained if it previously was retained or is now being set to retained
+          const isRetained = status === "retained" || newStatus === "retained" || 
+                             (updatedShipment && updatedShipment.status === "retained");
+          
+          if (isRetained) {
+            await updateFiscalAction(shipmentId, null);
+          }
         }
         
         // Get status label from the useStatusLabel hook

@@ -10,7 +10,7 @@ interface SummaryCardsProps {
   inTransitShipments: number;
   retainedShipments: number;
   deliveredShipments: number;
-  finalDeliveredShipments: number; // Added for the fourth status
+  finalDeliveredShipments: number; // For the "delivered_final" status
   totalWeight: number;
   totalDeliveries: number;
   startDate: string;
@@ -21,7 +21,7 @@ export const SummaryCards = ({
   inTransitShipments,
   retainedShipments,
   deliveredShipments,
-  finalDeliveredShipments, // Added for the fourth status
+  finalDeliveredShipments,
   totalWeight,
   totalDeliveries,
   startDate,
