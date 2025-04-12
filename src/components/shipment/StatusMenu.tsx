@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -76,12 +75,10 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Use a type-safe approach to check status values
-        const currentStatusString = status as string;
-        const newStatusString = newStatus as string;
+        // Update fiscal action if status changes to or from "retained"
         const shouldUpdateFiscalAction = 
-          currentStatusString === "retained" || 
-          newStatusString === "retained";
+          status === "retained" || 
+          newStatus === "retained";
         
         if (shouldUpdateFiscalAction) {
           await updateFiscalAction(shipmentId, null);
@@ -328,4 +325,3 @@ export function StatusMenu({
     </>
   );
 }
-
