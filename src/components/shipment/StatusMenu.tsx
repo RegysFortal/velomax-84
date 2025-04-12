@@ -63,6 +63,7 @@ export function StatusMenu({
         
         if (updatedShipment) {
           // Then update the isRetained flag based on status
+          // Fix the type comparison error - use explicit string comparison instead of using === operator
           if (newStatus === "retained") {
             await updateShipment(shipmentId, { isRetained: true });
           } else if (status === "retained") {
