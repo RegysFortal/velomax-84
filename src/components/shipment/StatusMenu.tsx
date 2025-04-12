@@ -72,9 +72,11 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Fix TypeScript error by ensuring we check status correctly
-        if (status === "retained" && newStatus !== "retained") {
-          await updateFiscalAction(shipmentId, null);
+        // Check if current status is retained and new status is something else
+        if (status === "retained") {
+          if (newStatus !== "retained") {
+            await updateFiscalAction(shipmentId, null);
+          }
         }
         
         if (onStatusChange) onStatusChange();
