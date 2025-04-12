@@ -76,11 +76,8 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Safely handle retention status
-        const possibleRetainedStatuses: ShipmentStatus[] = ["retained"];
-        const fromRetained = possibleRetainedStatuses.includes(status);
-        const toRetained = possibleRetainedStatuses.includes(newStatus);
-        const isRetained = fromRetained || toRetained;
+        // Safely handle retention status using explicit string comparison
+        const isRetained = status === "retained" || newStatus === "retained";
         
         if (isRetained) {
           await updateFiscalAction(shipmentId, null);
