@@ -60,6 +60,7 @@ export function StatusMenu({
         const updatedShipment = await updateStatus(shipmentId, newStatus);
         
         if (updatedShipment) {
+          // Fix: Use string equality instead of type comparison
           await updateShipment(shipmentId, { 
             isRetained: newStatus === "retained"
           });
