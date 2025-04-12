@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -59,6 +60,7 @@ export function StatusMenu({
         const updatedShipment = await updateStatus(shipmentId, newStatus);
         
         if (updatedShipment) {
+          // Fix the type comparison by using string literals
           if (newStatus === "retained") {
             await updateShipment(shipmentId, { isRetained: true });
           } else if (status === "retained") {
