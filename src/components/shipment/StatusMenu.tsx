@@ -76,9 +76,12 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Use an explicit check to handle fiscal action update
+        // Convert to string for comparison to fix TypeScript error
+        const currentStatusStr = status as string;
+        const newStatusStr = newStatus as string;
+        
         const shouldUpdateFiscalAction = 
-          status === "retained" || newStatus === "retained";
+          currentStatusStr === "retained" || newStatusStr === "retained";
         
         if (shouldUpdateFiscalAction) {
           await updateFiscalAction(shipmentId, null);
