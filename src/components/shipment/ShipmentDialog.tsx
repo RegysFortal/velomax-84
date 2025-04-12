@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -11,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShipmentFormContent } from "./ShipmentFormContent";
 import { DuplicateTrackingAlert } from "./DuplicateTrackingAlert";
 import { useShipmentFormSubmit } from "./hooks/useShipmentFormSubmit";
+import { ShipmentStatus } from "@/types/shipment";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -31,7 +33,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const [weight, setWeight] = useState("");
   const [arrivalFlight, setArrivalFlight] = useState("");
   const [arrivalDate, setArrivalDate] = useState("");
-  const [status, setStatus] = useState<"in_transit" | "retained" | "delivered" | "delivered_final">("in_transit");
+  const [status, setStatus] = useState<ShipmentStatus>("in_transit");
   const [observations, setObservations] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
@@ -171,7 +173,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
               observations={observations}
               setObservations={setObservations}
               status={status}
-              setStatus={(newStatus) => setStatus(newStatus)}
+              setStatus={setStatus}
               actionNumber={actionNumber}
               setActionNumber={setActionNumber}
               retentionReason={retentionReason}

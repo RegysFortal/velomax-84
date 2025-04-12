@@ -41,7 +41,7 @@ export function useStatusChange({
         return;
       }
       
-      // For other statuses (in_transit, delivered, and partial_delivery), update directly
+      // For other statuses (in_transit and delivered), update directly
       const updatedShipment = await updateStatus(shipmentId, newStatus);
       
       if (updatedShipment) {
@@ -71,7 +71,6 @@ export function useStatusChange({
             case "in_transit": return "Em Trânsito";
             case "retained": return "Retida";
             case "delivered": return "Retirada";
-            case "partial_delivery": return "Entrega Parcial";
             case "delivered_final": return "Entregue";
             default: return status;
           }

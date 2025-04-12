@@ -26,11 +26,6 @@ export function StatusMenuItems({ currentStatus, onStatusChange }: StatusMenuIte
           Marcar como Retirada
         </DropdownMenuItem>
       )}
-      {currentStatus !== "partial_delivery" && (
-        <DropdownMenuItem onClick={() => onStatusChange("partial_delivery")}>
-          Marcar como Entrega Parcial
-        </DropdownMenuItem>
-      )}
       {currentStatus !== "delivered_final" && (
         <DropdownMenuItem onClick={() => onStatusChange("delivered_final")}>
           Marcar como Entregue

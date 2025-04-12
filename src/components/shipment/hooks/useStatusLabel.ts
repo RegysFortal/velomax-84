@@ -13,7 +13,6 @@ export function useStatusLabel() {
       case "in_transit": return "Em Trânsito";
       case "retained": return "Retida";
       case "delivered": return "Retirada";
-      case "partial_delivery": return "Entrega Parcial";
       case "delivered_final": return "Entregue";
       default: return statusValue;
     }
