@@ -60,11 +60,11 @@ export function StatusMenu({
         const updatedShipment = await updateStatus(shipmentId, newStatus);
         
         if (updatedShipment) {
-          // Fix the type comparison by using string literals
-          if (newStatus === "retained") {
-            await updateShipment(shipmentId, { isRetained: true });
-          } else if (status === "retained") {
-            await updateShipment(shipmentId, { isRetained: false });
+          // Modify the condition to use explicit ShipmentStatus comparison
+          if (["retained", "in_transit", "delivered"].includes(status)) {
+            await updateShipment(shipmentId, { 
+              isRetained: newStatus === "retained" 
+            });
           }
           
           toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
