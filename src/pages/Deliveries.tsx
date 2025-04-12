@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Delivery } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
@@ -11,6 +12,13 @@ import { DeliveryFormDialog } from '@/components/delivery/DeliveryFormDialog';
 import { DeliverySearch } from '@/components/delivery/DeliverySearch';
 import { DeliveryTable } from '@/components/delivery/DeliveryTable';
 import { DeliveryDetails } from '@/components/delivery/DeliveryDetails';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { format, isWithinInterval, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { X } from 'lucide-react';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
@@ -21,6 +29,11 @@ const Deliveries = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
+  
+  // Filtering state
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
   
   useEffect(() => {
     console.log('Clientes disponíveis:', clients.length);
@@ -47,10 +60,29 @@ const Deliveries = () => {
   };
 
   const filteredDeliveries = deliveries.filter(delivery => {
+    // Filter out deliveries in closed reports
     if (isDeliveryInClosedReport(delivery)) {
       return false;
     }
     
+    // Filter by client
+    if (selectedClientId && delivery.clientId !== selectedClientId) {
+      return false;
+    }
+    
+    // Filter by date range
+    if (startDate && endDate) {
+      const deliveryDate = parseISO(delivery.deliveryDate);
+      const filterStartDate = new Date(startDate);
+      const filterEndDate = new Date(endDate);
+      filterEndDate.setHours(23, 59, 59, 999);
+      
+      if (!isWithinInterval(deliveryDate, { start: filterStartDate, end: filterEndDate })) {
+        return false;
+      }
+    }
+    
+    // Apply text search
     const client = clients.find(c => c.id === delivery.clientId);
     const searchFields = [
       delivery.minuteNumber,
@@ -106,6 +138,17 @@ const Deliveries = () => {
     setSelectedDelivery(null);
   };
 
+  const clearFilters = () => {
+    setSelectedClientId('');
+    setStartDate(null);
+    setEndDate(null);
+  };
+
+  const clientOptions = clients.map(client => ({
+    label: client.tradingName || client.name,
+    value: client.id
+  }));
+
   return (
     <AppLayout>
       <div className="container mx-auto py-6">
@@ -119,6 +162,53 @@ const Deliveries = () => {
             onComplete={handleDialogComplete}
           />
         </div>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Filtros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="client-filter">Cliente</Label>
+                <SearchableSelect
+                  id="client-filter"
+                  value={selectedClientId}
+                  options={clientOptions}
+                  placeholder="Selecione um cliente"
+                  onChange={(value) => setSelectedClientId(value as string)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="start-date">Data Inicial</Label>
+                <DatePicker
+                  date={startDate ? new Date(startDate) : undefined}
+                  onSelect={(date) => setStartDate(date ? format(date, 'yyyy-MM-dd') : null)}
+                  locale={ptBR}
+                  placeholder="Selecione a data inicial"
+                />
+              </div>
+              <div>
+                <Label htmlFor="end-date">Data Final</Label>
+                <DatePicker
+                  date={endDate ? new Date(endDate) : undefined}
+                  onSelect={(date) => setEndDate(date ? format(date, 'yyyy-MM-dd') : null)}
+                  locale={ptBR}
+                  placeholder="Selecione a data final"
+                />
+              </div>
+            </div>
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-muted-foreground">
+                {filteredDeliveries.length} entregas encontradas
+              </div>
+              <Button variant="outline" onClick={clearFilters} size="sm">
+                <X className="h-4 w-4 mr-2" />
+                Limpar Filtros
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

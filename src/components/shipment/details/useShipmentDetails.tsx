@@ -2,10 +2,13 @@
 import { useState } from 'react';
 import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
+import { useDeliveries } from "@/contexts/DeliveriesContext";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const { updateShipment, deleteShipment, updateStatus, updateFiscalAction } = useShipments();
+  const { addDelivery } = useDeliveries();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   
@@ -157,6 +160,31 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           deliveryDate: deliveryDetails.deliveryDate,
           deliveryTime: deliveryDetails.deliveryTime
         };
+        
+        // Create a new delivery entry when status is changed to delivered_final
+        try {
+          const minuteNumber = `${shipment.trackingNumber}-${new Date().getTime().toString().slice(-4)}`;
+          
+          // Create a new delivery from this shipment
+          await addDelivery({
+            minuteNumber,
+            clientId: shipment.companyId,
+            deliveryDate: deliveryDetails.deliveryDate,
+            deliveryTime: deliveryDetails.deliveryTime,
+            receiver: deliveryDetails.receiverName,
+            weight: shipment.weight,
+            packages: shipment.packages,
+            deliveryType: 'standard', // Default delivery type
+            cargoType: 'standard', // Default cargo type
+            totalFreight: 0, // This might need calculation based on your business logic
+            notes: `Entrega gerada automaticamente do embarque ${shipment.trackingNumber}`
+          });
+          
+          toast.success("Embarque finalizado e entrega criada com sucesso");
+        } catch (error) {
+          console.error("Error creating delivery from shipment:", error);
+          toast.error("Embarque finalizado, mas houve um erro ao criar a entrega");
+        }
       }
       
       // If changing to "retained", set isRetained to true
@@ -167,7 +195,10 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       }
       
       await updateShipment(shipment.id, updateData);
-      toast.success(`Status alterado para ${newStatus}`);
+      
+      if (newStatus !== "delivered_final") {
+        toast.success(`Status alterado para ${newStatus}`);
+      }
       
       // If status is no longer "retained", clear fiscal action
       if (shipment.status === "retained" && newStatus !== "retained") {
