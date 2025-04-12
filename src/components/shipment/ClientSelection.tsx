@@ -23,7 +23,6 @@ export function ClientSelection({ companyId, onCompanyChange }: ClientSelectionP
       options={clientOptions}
       value={companyId}
       onValueChange={onCompanyChange}
-      loading={loading}
     />
   );
 }

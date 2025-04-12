@@ -72,9 +72,11 @@ export function useStatusChange({
         });
         
         // Handle retention status
-        if (status === "retained" && newStatus !== "retained") {
+        if (status === "retained") {
           // If we're changing from "retained" to something else, clear fiscal action
-          await updateFiscalAction(shipmentId, null);
+          if (newStatus !== "retained") {
+            await updateFiscalAction(shipmentId, null);
+          }
         }
         
         // Get status label from the useStatusLabel hook
