@@ -12,7 +12,7 @@ import { useShipments } from "@/contexts/shipments";
 import { Shipment } from "@/types/shipment";
 import { useClients } from "@/contexts";
 import { DocumentsList } from "./DocumentsList";
-import { DetailsTab } from "./details/DetailsTab";
+import DetailsTab from "./details/DetailsTab";
 import { useShipmentDetails } from "./details/useShipmentDetails";
 import { toast } from "sonner";
 
@@ -73,8 +73,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
           <TabsContent value="details">
             <DetailsTab 
               shipment={currentShipment} 
-              formState={formState} 
-              clients={clients} 
+              onClose={onClose} 
             />
           </TabsContent>
           

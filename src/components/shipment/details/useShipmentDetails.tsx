@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Shipment, ShipmentStatus, Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
@@ -338,6 +337,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       // If changing to "retained" and we have retention details
       if (newStatus === "retained" && details && details.retentionReason) {
         // First update the shipment status
+        await updateStatus(shipment.id, newStatus);
+        
         await updateShipment(shipment.id, updateData);
         
         // Then create/update the fiscal action
@@ -366,7 +367,10 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         return;
       }
       
-      // For other statuses, simply update the shipment
+      // For other statuses, update in the database first
+      await updateStatus(shipment.id, newStatus);
+      
+      // Then update the shipment
       await updateShipment(shipment.id, updateData);
       
       // Trigger an event to refresh the deliveries list

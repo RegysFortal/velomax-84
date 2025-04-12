@@ -119,6 +119,10 @@ export function useDeliveryConfirm({
         // Update shipment status based on document delivery status
         const newStatus = allDocumentsDelivered ? "delivered_final" : "in_transit";
         
+        // First update the status in the database
+        await updateStatus(shipmentId, newStatus);
+        
+        // Then update the shipment
         await updateShipment(shipmentId, {
           status: newStatus,
           documents: updatedDocuments,

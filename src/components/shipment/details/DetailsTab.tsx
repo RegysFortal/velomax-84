@@ -32,6 +32,7 @@ interface DetailsTabProps {
   onClose: () => void;
 }
 
+// Export the component as default, not named export
 export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
   const { getStatusLabel } = useStatusLabel();
   const {
@@ -114,8 +115,8 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
                 <div>
                   <Label>Cliente</Label>
                   <ClientSelection
-                    clientId={companyId}
-                    onClientChange={setCompanyId}
+                    companyId={companyId}
+                    onCompanyChange={setCompanyId}
                   />
                 </div>
               ) : (
