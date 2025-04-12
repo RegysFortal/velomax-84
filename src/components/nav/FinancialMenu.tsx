@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -30,7 +29,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
       <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
         <Calculator className="mr-2 h-4 w-4" />
-        Financeiro
+        Fechamento
       </NavigationMenuTrigger>
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
@@ -43,7 +42,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                   getActiveClass(location.pathname, "/financial")
                 )}
               >
-                Financeiro
+                Fechamento
               </Link>
             )}
             {hasPermission('reports') && (

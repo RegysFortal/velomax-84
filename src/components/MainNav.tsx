@@ -1,4 +1,3 @@
-
 import React from "react"
 import { cn } from "@/lib/utils"
 import {
@@ -36,11 +35,11 @@ const NavigationMenuDemo = () => {
         </NavigationMenuItem>
         
         <NavigationMenuItem className={isMobile ? "w-full" : ""}>
-          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Financeiro</NavigationMenuTrigger>
+          <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>Fechamento</NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className={`grid gap-3 p-4 ${isMobile ? "w-full" : "w-[240px]"}`}>
-              <ListItem href="/financial" title="Financeiro">
-                Gerenciamento financeiro
+              <ListItem href="/financial" title="Fechamento">
+                Gerenciamento de fechamento financeiro
               </ListItem>
               <ListItem href="/reports" title="Relatórios">
                 Relatórios financeiros
