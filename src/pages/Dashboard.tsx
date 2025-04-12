@@ -14,9 +14,9 @@ import {
 } from '@/components/dashboard';
 
 const Dashboard = () => {
-  const { deliveries } = useDeliveries();
+  const { deliveries, loading: deliveriesLoading } = useDeliveries();
   const { clients } = useClients();
-  const { shipments } = useShipments();
+  const { shipments, loading: shipmentsLoading } = useShipments();
   const [dateFilter, setDateFilter] = useState<'day' | 'month' | 'year' | 'custom'>('month');
   const [startDate, setStartDate] = useState<string>(
     format(subDays(new Date(), 30), 'yyyy-MM-dd')
@@ -26,10 +26,10 @@ const Dashboard = () => {
   );
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Force a refresh when shipments change
+  // Force a refresh when data changes
   useEffect(() => {
     setRefreshTrigger(prev => prev + 1);
-  }, [shipments]);
+  }, [shipments, deliveries]);
 
   // Filter deliveries by date range - extracted as a memoized function
   const getFilteredDeliveries = useCallback(() => {

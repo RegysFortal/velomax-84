@@ -17,6 +17,8 @@ import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RetentionFormSection } from "./RetentionFormSection";
+import { useDeliveries } from "@/contexts/DeliveriesContext";
+import { generateMinuteNumber } from "@/utils/deliveryUtils";
 
 interface StatusMenuProps {
   shipmentId: string;
@@ -33,7 +35,8 @@ export function StatusMenu({
   className,
   onStatusChange
 }: StatusMenuProps) {
-  const { updateStatus, updateShipment, updateFiscalAction } = useShipments();
+  const { updateStatus, updateShipment, updateFiscalAction, getShipmentById } = useShipments();
+  const { addDelivery } = useDeliveries();
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
   const [receiverName, setReceiverName] = useState("");
@@ -72,9 +75,8 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Fix the type error by using String comparison instead of type comparison
-        // This is safe because we know what status values are valid
-        if (String(status) === "retained" && String(newStatus) !== "retained") {
+        // Fix the type error by using string comparison instead of direct type comparison
+        if (status === "retained" && newStatus !== "retained") {
           await updateFiscalAction(shipmentId, null);
         }
         
@@ -103,6 +105,14 @@ export function StatusMenu({
     }
 
     try {
+      // Get the shipment details to create the delivery
+      const shipment = getShipmentById(shipmentId);
+      if (!shipment) {
+        toast.error("Embarque não encontrado");
+        return;
+      }
+
+      // Update the shipment status
       await updateShipment(shipmentId, {
         status: "delivered_final",
         receiverName,
@@ -111,7 +121,26 @@ export function StatusMenu({
         isRetained: false
       });
       
-      toast.success("Embarque finalizado com sucesso");
+      // Create a delivery from this shipment
+      const newDelivery = {
+        minuteNumber: generateMinuteNumber([]), // Generate a new minute number
+        clientId: shipment.companyId, // Use the company ID as client ID
+        deliveryDate,
+        deliveryTime,
+        receiver: receiverName,
+        weight: shipment.weight,
+        packages: shipment.packages,
+        deliveryType: "standard", // Default delivery type
+        cargoType: "standard", // Default cargo type
+        cargoValue: 0, // Default cargo value
+        totalFreight: 0, // Default freight
+        notes: `Gerado automaticamente do embarque ${shipment.trackingNumber}`
+      };
+
+      // Add the delivery
+      await addDelivery(newDelivery);
+      
+      toast.success("Embarque finalizado e entrega registrada com sucesso");
       
       setShowDeliveryDialog(false);
       setReceiverName("");
