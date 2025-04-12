@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -60,12 +59,9 @@ export function StatusMenu({
         const updatedShipment = await updateStatus(shipmentId, newStatus);
         
         if (updatedShipment) {
-          // Modify the condition to use explicit ShipmentStatus comparison
-          if (["retained", "in_transit", "delivered"].includes(status)) {
-            await updateShipment(shipmentId, { 
-              isRetained: newStatus === "retained" 
-            });
-          }
+          await updateShipment(shipmentId, { 
+            isRetained: newStatus === "retained" 
+          });
           
           toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
           if (onStatusChange) onStatusChange();
