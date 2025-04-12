@@ -63,35 +63,34 @@ export function useStatusChange({
       }
       
       // For other statuses (in_transit and delivered), update directly
-      const updatedShipment = await updateStatus(shipmentId, newStatus);
+      // First update the status in the database
+      await updateStatus(shipmentId, newStatus);
       
-      if (updatedShipment) {
-        await updateShipment(shipmentId, { 
-          status: newStatus,
-          isRetained: newStatus === "retained"
-        });
-        
-        // Handle retention status
-        if (status === "retained" && newStatus !== "retained") {
-          // If we're changing from "retained" to something else, clear fiscal action
-          await updateFiscalAction(shipmentId, null);
-        }
-        
-        // Get status label from the useStatusLabel hook
-        const getStatusLabel = (status: ShipmentStatus): string => {
-          switch (status) {
-            case "in_transit": return "Em Trânsito";
-            case "retained": return "Retida";
-            case "delivered": return "Retirada";
-            case "delivered_final": return "Entregue";
-            default: return status;
-          }
-        };
-        
-        toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
-        
-        if (onStatusChange) onStatusChange();
+      const updatedShipment = await updateShipment(shipmentId, { 
+        status: newStatus,
+        isRetained: newStatus === "retained"
+      });
+      
+      // Handle retention status
+      if (status === "retained" && newStatus !== "retained") {
+        // If we're changing from "retained" to something else, clear fiscal action
+        await updateFiscalAction(shipmentId, null);
       }
+      
+      // Get status label from the useStatusLabel hook
+      const getStatusLabel = (status: ShipmentStatus): string => {
+        switch (status) {
+          case "in_transit": return "Em Trânsito";
+          case "retained": return "Retida";
+          case "delivered": return "Retirada";
+          case "delivered_final": return "Entregue";
+          default: return status;
+        }
+      };
+      
+      toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
+      
+      if (onStatusChange) onStatusChange();
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Erro ao alterar status");

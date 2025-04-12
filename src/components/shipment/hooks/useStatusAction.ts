@@ -102,6 +102,10 @@ export function useStatusAction({ status, shipmentId, onStatusChange }: StatusAc
     });
 
     setShowDeliveryDialog(false);
+    resetDeliveryForm();
+  };
+  
+  const resetDeliveryForm = () => {
     setReceiverName("");
     setDeliveryDate("");
     setDeliveryTime("");
@@ -134,6 +138,10 @@ export function useStatusAction({ status, shipmentId, onStatusChange }: StatusAc
     });
 
     setShowRetentionSheet(false);
+    resetRetentionForm();
+  };
+  
+  const resetRetentionForm = () => {
     setRetentionReason("");
     setRetentionAmount("");
     setPaymentDate("");
@@ -180,6 +188,8 @@ export function useStatusAction({ status, shipmentId, onStatusChange }: StatusAc
     // Action handlers
     handleStatusChangeClick,
     handleDeliveryConfirm,
-    handleRetentionConfirm
+    handleRetentionConfirm,
+    resetDeliveryForm,
+    resetRetentionForm
   };
 }
