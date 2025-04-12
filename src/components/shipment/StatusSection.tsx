@@ -14,7 +14,7 @@ interface StatusSectionProps {
   status: ShipmentStatus;
   setStatus: (status: ShipmentStatus) => void;
   shipmentId: string;
-  disabled?: boolean; // Added the disabled prop
+  disabled?: boolean;
 }
 
 export function StatusSection({
@@ -42,6 +42,7 @@ export function StatusSection({
           <SelectItem value="in_transit">Em Trânsito</SelectItem>
           <SelectItem value="retained">Retido</SelectItem>
           <SelectItem value="delivered">Retirado</SelectItem>
+          <SelectItem value="partial_delivery">Entrega Parcial</SelectItem>
           <SelectItem value="delivered_final">Entregue</SelectItem>
         </SelectContent>
       </Select>

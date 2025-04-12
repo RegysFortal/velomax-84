@@ -41,7 +41,7 @@ export function useStatusChange({
         return;
       }
       
-      // For other statuses (in_transit and delivered), update directly
+      // For other statuses (in_transit, delivered, and partial_delivery), update directly
       const updatedShipment = await updateStatus(shipmentId, newStatus);
       
       if (updatedShipment) {
@@ -50,7 +50,7 @@ export function useStatusChange({
           isRetained: newStatus === "retained"
         });
         
-        // Handle retention status using explicit equality checks against string literals
+        // Handle retention status using explicit string comparisons
         const statusWasRetained = status === "retained";
         const statusIsNowRetained = newStatus === "retained";
         const updatedShipmentHasRetainedStatus = updatedShipment.status === "retained";
@@ -67,6 +67,7 @@ export function useStatusChange({
             case "in_transit": return "Em Trânsito";
             case "retained": return "Retida";
             case "delivered": return "Retirada";
+            case "partial_delivery": return "Entrega Parcial";
             case "delivered_final": return "Entregue";
             default: return status;
           }

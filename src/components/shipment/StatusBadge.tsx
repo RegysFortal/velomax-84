@@ -5,7 +5,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   Truck,
-  Box, // Import Box icon
+  Box,
+  PackageOpen // Import PackageOpen icon for partial delivery
 } from "lucide-react";
 
 interface StatusBadgeProps {
@@ -31,9 +32,14 @@ export function StatusBadge({
       className: "bg-red-100 text-red-800 border-red-200",
     },
     delivered: {
-      icon: Box, // Change icon to Box
+      icon: Box,
       label: "Retirada",
-      className: "bg-yellow-100 text-yellow-800 border-yellow-200", // Change color to yellow
+      className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    },
+    partial_delivery: {
+      icon: PackageOpen,
+      label: "Entrega Parcial",
+      className: "bg-orange-100 text-orange-800 border-orange-200",
     },
     delivered_final: {
       icon: CheckCircle2,
@@ -59,4 +65,3 @@ export function StatusBadge({
     </span>
   );
 }
-

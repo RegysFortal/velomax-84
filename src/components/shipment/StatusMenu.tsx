@@ -80,6 +80,11 @@ export function StatusMenu({
               Marcar como Retirada
             </DropdownMenuItem>
           )}
+          {status !== "partial_delivery" && (
+            <DropdownMenuItem onClick={() => handleStatusChange("partial_delivery")}>
+              Marcar como Entrega Parcial
+            </DropdownMenuItem>
+          )}
           {status !== "delivered_final" && (
             <DropdownMenuItem onClick={() => handleStatusChange("delivered_final")}>
               Marcar como Entregue

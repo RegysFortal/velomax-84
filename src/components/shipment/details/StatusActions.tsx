@@ -53,7 +53,7 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
     } else if (newStatus === "retained") {
       setShowRetentionSheet(true);
     } else {
-      // For in_transit and delivered statuses, update directly
+      // For in_transit, delivered, and partial_delivery statuses, update directly
       onStatusChange(newStatus);
     }
   };
@@ -159,6 +159,15 @@ export function StatusActions({ status, onStatusChange }: StatusActionsProps) {
             onClick={() => handleStatusChangeClick("delivered")}
           >
             Marcar como Retirado
+          </Button>
+        )}
+        {status !== "partial_delivery" && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleStatusChangeClick("partial_delivery")}
+          >
+            Marcar como Entrega Parcial
           </Button>
         )}
         {status !== "delivered_final" && (
