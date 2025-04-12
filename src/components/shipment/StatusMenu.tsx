@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -76,13 +75,11 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Fix the TypeScript error by using explicit type checking with string literals
-        const shouldUpdateFiscalAction = (
-          status === "retained" || 
-          newStatus === "retained"
-        );
+        // Fix the TypeScript error by using type assertion with an explicit string comparison
+        const isStatusRetained = status === "retained" as ShipmentStatus;
+        const isNewStatusRetained = newStatus === "retained" as ShipmentStatus;
         
-        if (shouldUpdateFiscalAction) {
+        if (isStatusRetained || isNewStatusRetained) {
           await updateFiscalAction(shipmentId, null);
         }
         
