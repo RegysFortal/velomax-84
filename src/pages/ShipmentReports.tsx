@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
@@ -25,19 +26,21 @@ import {
   Truck, 
   AlertTriangle, 
   CheckCircle2, 
-  Calendar 
+  Calendar,
+  Eye 
 } from 'lucide-react';
 import { StatusBadge } from '@/components/shipment/StatusBadge';
 import { StatusMenu } from '@/components/shipment/StatusMenu';
 import { format, startOfDay, endOfDay, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ShipmentStatus } from '@/types/shipment';
+import { Shipment, ShipmentStatus } from '@/types/shipment';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
 
 export default function ShipmentReports() {
   const { shipments, loading } = useShipments();
@@ -47,6 +50,10 @@ export default function ShipmentReports() {
   const [filterCarrier, setFilterCarrier] = useState('all');
   const [filterMode, setFilterMode] = useState<'air' | 'road' | 'all'>('all');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // Adicionando estado para controlar a visualização dos detalhes do embarque
+  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
   const filteredShipments = shipments.filter(shipment => {
     const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
@@ -88,6 +95,18 @@ export default function ShipmentReports() {
   
   const handleStatusChange = () => {
     setRefreshTrigger(prev => prev + 1);
+  };
+  
+  // Função para abrir os detalhes do embarque
+  const handleOpenDetails = (shipment: Shipment) => {
+    setSelectedShipment(shipment);
+    setIsDetailsOpen(true);
+  };
+  
+  // Função para fechar os detalhes do embarque
+  const handleCloseDetails = () => {
+    setIsDetailsOpen(false);
+    setSelectedShipment(null);
   };
 
   const generatePDF = () => {
@@ -442,12 +461,13 @@ export default function ShipmentReports() {
                 <TableHead>Peso (kg)</TableHead>
                 <TableHead>Chegada</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-4">
+                  <TableCell colSpan={9} className="text-center py-4">
                     <div className="flex justify-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                     </div>
@@ -455,7 +475,7 @@ export default function ShipmentReports() {
                 </TableRow>
               ) : filteredShipments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-6">
+                  <TableCell colSpan={9} className="text-center py-6">
                     Nenhum embarque encontrado
                   </TableCell>
                 </TableRow>
@@ -480,6 +500,16 @@ export default function ShipmentReports() {
                         onStatusChange={handleStatusChange}
                       />
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenDetails(shipment)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">Ver Detalhes</span>
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -487,6 +517,15 @@ export default function ShipmentReports() {
           </Table>
         </Card>
       </div>
+      
+      {/* Componente para mostrar os detalhes do embarque */}
+      {selectedShipment && (
+        <ShipmentDetails 
+          shipment={selectedShipment} 
+          open={isDetailsOpen} 
+          onClose={handleCloseDetails}
+        />
+      )}
     </AppLayout>
   );
 }

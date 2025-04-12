@@ -16,7 +16,7 @@ interface DocumentsListProps {
   documents: Document[];
 }
 
-export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
+export function DocumentsList({ shipmentId, documents = [] }: DocumentsListProps) {
   const {
     isDialogOpen,
     setIsDialogOpen,
@@ -40,6 +40,9 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
 
   console.log('DocumentsList - Documents recebidos:', documents);
 
+  // Garantir que documents seja sempre um array, mesmo se for undefined
+  const safeDocuments = Array.isArray(documents) ? documents : [];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -50,17 +53,17 @@ export function DocumentsList({ shipmentId, documents }: DocumentsListProps) {
         </Button>
       </div>
       
-      {documents && documents.length === 0 ? (
+      {safeDocuments.length === 0 ? (
         <div className="text-center p-4 text-muted-foreground border border-dashed rounded-md">
           Nenhum documento encontrado
         </div>
       ) : (
         <div className="space-y-2">
-          {documents && documents.map((doc) => (
+          {safeDocuments.map((doc) => (
             <DocumentItem 
               key={doc.id}
               document={doc}
-              onEdit={handleOpenDialog}
+              onEdit={() => handleOpenDialog(doc)}
               onDelete={handleDelete}
             />
           ))}

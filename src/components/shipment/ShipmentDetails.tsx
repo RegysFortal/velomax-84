@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import { useClients } from "@/contexts";
 import { DocumentsList } from "./DocumentsList";
 import { DetailsTab } from "./details/DetailsTab";
 import { useShipmentDetails } from "./details/useShipmentDetails";
+import { toast } from "sonner";
 
 interface ShipmentDetailsProps {
   shipment: Shipment;
@@ -24,16 +25,33 @@ interface ShipmentDetailsProps {
 export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProps) {
   const { clients } = useClients();
   const { getShipmentById } = useShipments();
-  const formState = useShipmentDetails(shipment, onClose);
+  const [currentShipment, setCurrentShipment] = useState<Shipment>(shipment);
+  const formState = useShipmentDetails(currentShipment, onClose);
   
-  // Buscar o shipment atualizado sempre que o dialog for aberto
-  const currentShipment = getShipmentById(shipment.id) || shipment;
+  // Atualizar o shipment sempre que o diálogo for aberto ou o ID mudar
+  useEffect(() => {
+    if (open && shipment?.id) {
+      const updatedShipment = getShipmentById(shipment.id);
+      if (updatedShipment) {
+        setCurrentShipment(updatedShipment);
+      } else {
+        toast.error("Não foi possível carregar os detalhes do embarque");
+        onClose();
+      }
+    }
+  }, [open, shipment?.id, getShipmentById, onClose]);
   
   // Log para depuração
   useEffect(() => {
-    console.log('ShipmentDetails - ID do embarque:', shipment.id);
-    console.log('ShipmentDetails - Documentos:', currentShipment.documents);
-  }, [shipment.id, currentShipment.documents]);
+    if (open) {
+      console.log('ShipmentDetails - ID do embarque:', shipment?.id);
+      console.log('ShipmentDetails - Documentos:', currentShipment?.documents);
+    }
+  }, [open, shipment?.id, currentShipment?.documents]);
+  
+  if (!currentShipment) {
+    return null;
+  }
   
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -60,7 +78,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
           </TabsContent>
           
           <TabsContent value="documents" className="space-y-4">
-            <DocumentsList shipmentId={currentShipment.id} documents={currentShipment.documents} />
+            <DocumentsList shipmentId={currentShipment.id} documents={currentShipment.documents || []} />
           </TabsContent>
           
           {/* <TabsContent value="history">
