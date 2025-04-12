@@ -31,7 +31,7 @@ interface ShipmentsContextType {
   updateFiscalActionDetails: ReturnType<typeof useFiscalActions>["updateFiscalActionDetails"];
   
   // Status operations
-  updateStatus: (shipmentId: string, status: ShipmentStatus) => Promise<void>;
+  updateStatus: (shipmentId: string, status: ShipmentStatus) => Promise<Shipment | undefined>;
   
   // Filtering operations
   getShipmentsByStatus: ReturnType<typeof useShipmentFilters>["getShipmentsByStatus"];

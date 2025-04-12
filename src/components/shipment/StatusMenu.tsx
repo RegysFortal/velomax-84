@@ -46,18 +46,20 @@ export function StatusMenu({
     } else {
       try {
         // First update the status
-        await updateStatus(shipmentId, newStatus);
+        const updatedShipment = await updateStatus(shipmentId, newStatus);
         
-        // Then update the isRetained flag based on status
-        if (newStatus === "retained") {
-          await updateShipment(shipmentId, { isRetained: true });
-        } else if (status === "retained") {
-          // If we're changing from retained to something else, set isRetained to false
-          await updateShipment(shipmentId, { isRetained: false });
+        if (updatedShipment) {
+          // Then update the isRetained flag based on status
+          if (newStatus === "retained") {
+            await updateShipment(shipmentId, { isRetained: true });
+          } else if (status === "retained") {
+            // If we're changing from retained to something else, set isRetained to false
+            await updateShipment(shipmentId, { isRetained: false });
+          }
+          
+          toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
+          if (onStatusChange) onStatusChange();
         }
-        
-        toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
-        if (onStatusChange) onStatusChange();
       } catch (error) {
         console.error("Error updating status:", error);
         toast.error("Erro ao alterar status");

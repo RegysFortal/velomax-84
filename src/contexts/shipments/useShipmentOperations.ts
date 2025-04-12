@@ -61,7 +61,7 @@ export const useShipmentOperations = (
     return shipments.find(s => s.id === id);
   };
   
-  const updateStatus = async (shipmentId: string, status: ShipmentStatus) => {
+  const updateStatus = async (shipmentId: string, status: ShipmentStatus): Promise<Shipment | undefined> => {
     const now = new Date().toISOString();
     const updatedShipments = shipments.map(s => {
       if (s.id === shipmentId) {
