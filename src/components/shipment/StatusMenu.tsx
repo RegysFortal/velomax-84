@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { StatusBadge } from "./StatusBadge";
@@ -75,7 +76,7 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Safely handle retention status using string equality checking
+        // Safely handle retention status by checking exact string values
         const isRetained = status === "retained" || newStatus === "retained";
         
         if (isRetained) {
