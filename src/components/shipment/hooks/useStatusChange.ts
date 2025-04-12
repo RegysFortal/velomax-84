@@ -30,7 +30,11 @@ export function useStatusChange({
    * Handles changing the shipment status
    */
   const handleStatusChange = async (newStatus: ShipmentStatus) => {
-    if (newStatus === status) return;
+    // Convert both status values to strings for safe comparison
+    const currentStatusStr = status as string;
+    const newStatusStr = newStatus as string;
+    
+    if (newStatusStr === currentStatusStr) return;
     
     try {
       console.log(`Attempting to change status to: ${newStatus}`);
@@ -41,7 +45,7 @@ export function useStatusChange({
         throw new Error("Shipment not found");
       }
       
-      if (newStatus === "delivered_final") {
+      if (newStatusStr === "delivered_final") {
         // Check if the shipment has any documents
         if (shipment.documents && shipment.documents.length > 0) {
           // Check if there are any undelivered documents
@@ -57,7 +61,7 @@ export function useStatusChange({
         // If no documents or all already delivered, proceed directly to delivery dialog
         setShowDeliveryDialog(true);
         return;
-      } else if (newStatus === "retained") {
+      } else if (newStatusStr === "retained") {
         setShowRetentionSheet(true);
         return;
       }
@@ -68,14 +72,11 @@ export function useStatusChange({
       
       const updatedShipment = await updateShipment(shipmentId, { 
         status: newStatus,
-        isRetained: newStatus === "retained"
+        isRetained: newStatusStr === "retained"
       });
       
       // Handle retention status - we need to check the previous status value
-      // To avoid TypeScript narrowing issues, we'll use a type assertion
-      const statusToCheck = status as ShipmentStatus;
-      
-      if (statusToCheck === "retained" && newStatus !== "retained") {
+      if (currentStatusStr === "retained" && newStatusStr !== "retained") {
         // If we're changing from "retained" to something else, clear fiscal action
         await updateFiscalAction(shipmentId, null);
       }
