@@ -12,11 +12,14 @@ export const useShipmentDocuments = (
     try {
       const now = new Date().toISOString();
       
+      // Ensure document.type is a valid value
+      const documentType = document.type as "cte" | "invoice" | "delivery_location" | "other";
+      
       // Prepare data for Supabase insert
       const supabaseDocument = {
         shipment_id: shipmentId,
         name: document.name,
-        type: document.type,
+        type: documentType,
         url: document.url,
         notes: document.notes,
         minute_number: document.minuteNumber,
@@ -43,7 +46,7 @@ export const useShipmentDocuments = (
       const newDocument: Document = {
         id: newDoc.id,
         name: newDoc.name,
-        type: newDoc.type,
+        type: newDoc.type as "cte" | "invoice" | "delivery_location" | "other",
         url: newDoc.url,
         notes: newDoc.notes,
         minuteNumber: newDoc.minute_number,

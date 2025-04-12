@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Shipment, ShipmentStatus } from "@/types/shipment";
+import { Shipment, ShipmentStatus, TransportMode } from "@/types/shipment";
 import { ShipmentCreateData } from "./types";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
@@ -11,11 +11,15 @@ export const useShipmentOperations = (
 ) => {
   const addShipment = async (shipmentData: ShipmentCreateData) => {
     try {
+      // Ensure transport_mode and status are valid enum values
+      const transportMode = shipmentData.transportMode as TransportMode;
+      const status = shipmentData.status as ShipmentStatus;
+      
       // Prepare data for Supabase insert
       const supabaseShipment = {
         company_id: shipmentData.companyId,
         company_name: shipmentData.companyName,
-        transport_mode: shipmentData.transportMode,
+        transport_mode: transportMode,
         carrier_name: shipmentData.carrierName,
         tracking_number: shipmentData.trackingNumber,
         packages: shipmentData.packages,
@@ -23,7 +27,7 @@ export const useShipmentOperations = (
         arrival_flight: shipmentData.arrivalFlight,
         arrival_date: shipmentData.arrivalDate,
         observations: shipmentData.observations,
-        status: shipmentData.status,
+        status: status,
         is_retained: shipmentData.status === 'retained'
       };
       
@@ -79,7 +83,7 @@ export const useShipmentOperations = (
         id: newShipment.id,
         companyId: newShipment.company_id,
         companyName: newShipment.company_name,
-        transportMode: newShipment.transport_mode,
+        transportMode: newShipment.transport_mode as TransportMode,
         carrierName: newShipment.carrier_name,
         trackingNumber: newShipment.tracking_number,
         packages: newShipment.packages,
@@ -87,7 +91,7 @@ export const useShipmentOperations = (
         arrivalFlight: newShipment.arrival_flight,
         arrivalDate: newShipment.arrival_date,
         observations: newShipment.observations,
-        status: newShipment.status,
+        status: newShipment.status as ShipmentStatus,
         isRetained: newShipment.is_retained,
         documents: [],
         fiscalAction,

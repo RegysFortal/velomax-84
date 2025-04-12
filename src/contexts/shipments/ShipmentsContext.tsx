@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Shipment, ShipmentStatus } from "@/types/shipment";
+import { Shipment, ShipmentStatus, TransportMode } from "@/types/shipment";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -14,26 +13,21 @@ interface ShipmentsContextType {
   shipments: Shipment[];
   loading: boolean;
   
-  // Shipment CRUD operations
   addShipment: (shipment: ShipmentCreateData) => Promise<Shipment>;
   updateShipment: (id: string, shipment: Partial<Shipment>) => Promise<Shipment>;
   deleteShipment: (id: string) => Promise<void>;
   getShipmentById: (id: string) => Shipment | undefined;
   
-  // Document operations
   addDocument: ReturnType<typeof useShipmentDocuments>["addDocument"];
   updateDocument: ReturnType<typeof useShipmentDocuments>["updateDocument"];
   deleteDocument: ReturnType<typeof useShipmentDocuments>["deleteDocument"];
   
-  // Fiscal action operations
   updateFiscalAction: ReturnType<typeof useFiscalActions>["updateFiscalAction"];
   clearFiscalAction: ReturnType<typeof useFiscalActions>["clearFiscalAction"];
   updateFiscalActionDetails: ReturnType<typeof useFiscalActions>["updateFiscalActionDetails"];
   
-  // Status operations
   updateStatus: (shipmentId: string, status: ShipmentStatus) => Promise<Shipment | undefined>;
   
-  // Filtering operations
   getShipmentsByStatus: ReturnType<typeof useShipmentFilters>["getShipmentsByStatus"];
   getShipmentsByCarrier: ReturnType<typeof useShipmentFilters>["getShipmentsByCarrier"];
   getShipmentsByDateRange: ReturnType<typeof useShipmentFilters>["getShipmentsByDateRange"];
@@ -53,7 +47,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   
-  // Custom hooks for different operations
   const { 
     addShipment, 
     updateShipment, 
@@ -83,14 +76,12 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     updateFiscalActionDetails
   } = useFiscalActions(shipments, setShipments);
   
-  // Load shipments data from Supabase
   useEffect(() => {
     const loadShipmentsData = async () => {
       try {
         if (user) {
           setLoading(true);
           
-          // Fetch shipments from Supabase
           const { data: shipmentsData, error: shipmentsError } = await supabase
             .from('shipments')
             .select('*')
@@ -100,9 +91,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
             throw shipmentsError;
           }
           
-          // For each shipment, fetch its documents and fiscal action
           const shipmentsWithDetails = await Promise.all(shipmentsData.map(async (shipment) => {
-            // Fetch documents for this shipment
             const { data: documentsData, error: documentsError } = await supabase
               .from('shipment_documents')
               .select('*')
@@ -116,7 +105,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
               };
             }
             
-            // Fetch fiscal action for this shipment if it's retained
             let fiscalAction = undefined;
             if (shipment.is_retained) {
               const { data: fiscalData, error: fiscalError } = await supabase
@@ -153,7 +141,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
         console.error("Error loading shipments data:", error);
         toast.error("Não foi possível carregar os dados de embarques.");
         
-        // As a fallback, try to load from localStorage
         const storedShipments = localStorage.getItem("velomax_shipments");
         if (storedShipments) {
           setShipments(JSON.parse(storedShipments));
@@ -166,13 +153,12 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     loadShipmentsData();
   }, [user]);
   
-  // Helper functions to map database columns to our types
   function mapShipmentFromSupabase(data: any): Shipment {
     return {
       id: data.id,
       companyId: data.company_id,
       companyName: data.company_name,
-      transportMode: data.transport_mode,
+      transportMode: data.transport_mode as TransportMode,
       carrierName: data.carrier_name,
       trackingNumber: data.tracking_number,
       packages: data.packages,
@@ -180,7 +166,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
       arrivalFlight: data.arrival_flight,
       arrivalDate: data.arrival_date,
       observations: data.observations,
-      status: data.status,
+      status: data.status as ShipmentStatus,
       isRetained: data.is_retained,
       deliveryDate: data.delivery_date,
       deliveryTime: data.delivery_time,
@@ -188,7 +174,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
       receiverId: data.receiver_id,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      documents: [] // Will be populated after
+      documents: []
     };
   }
   
@@ -196,7 +182,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     return {
       id: data.id,
       name: data.name,
-      type: data.type,
+      type: data.type as "cte" | "invoice" | "delivery_location" | "other",
       url: data.url,
       notes: data.notes,
       minuteNumber: data.minute_number,
