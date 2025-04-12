@@ -3,9 +3,7 @@ import { useState } from 'react';
 import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { 
-  Plus, 
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -20,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { ShipmentDialog } from '@/components/shipment/ShipmentDialog';
 import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
 import { Shipment } from '@/types/shipment';
-import { StatusBadge } from '@/components/shipment/StatusBadge';
+import { StatusMenu } from '@/components/shipment/StatusMenu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
 
@@ -29,6 +27,7 @@ export default function Shipments() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Filter shipments - only exclude shipments with status 'delivered_final'
   const filteredShipments = shipments.filter(shipment => {
@@ -78,12 +77,21 @@ export default function Shipments() {
     // Don't reset the selectedShipment right after an update
     // This prevents the dialog from closing unexpectedly
     setSelectedShipment(null);
+    // Trigger a refresh when details are closed
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleStatusChange = () => {
+    // Trigger a refresh when status changes
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleCreateDialogClose = (open: boolean) => {
     // Only close if explicitly set to false
     if (!open) {
       setIsCreateDialogOpen(false);
+      // Trigger a refresh when dialog closes
+      setRefreshTrigger(prev => prev + 1);
     }
   };
 
@@ -148,18 +156,45 @@ export default function Shipments() {
                       <TableRow 
                         key={shipment.id} 
                         className={cn(
-                          "cursor-pointer hover:bg-muted",
+                          "hover:bg-muted",
                           shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
                           isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100"
                         )}
-                        onClick={() => setSelectedShipment(shipment)}
                       >
-                        <TableCell>{shipment.companyName}</TableCell>
-                        <TableCell>{shipment.trackingNumber}</TableCell>
-                        <TableCell>{shipment.carrierName}</TableCell>
-                        <TableCell>{shipment.packages}</TableCell>
-                        <TableCell>{shipment.weight} kg</TableCell>
-                        <TableCell>
+                        <TableCell 
+                          className="cursor-pointer"
+                          onClick={() => setSelectedShipment(shipment)}
+                        >
+                          {shipment.companyName}
+                        </TableCell>
+                        <TableCell 
+                          className="cursor-pointer"
+                          onClick={() => setSelectedShipment(shipment)}
+                        >
+                          {shipment.trackingNumber}
+                        </TableCell>
+                        <TableCell 
+                          className="cursor-pointer"
+                          onClick={() => setSelectedShipment(shipment)}
+                        >
+                          {shipment.carrierName}
+                        </TableCell>
+                        <TableCell 
+                          className="cursor-pointer"
+                          onClick={() => setSelectedShipment(shipment)}
+                        >
+                          {shipment.packages}
+                        </TableCell>
+                        <TableCell 
+                          className="cursor-pointer"
+                          onClick={() => setSelectedShipment(shipment)}
+                        >
+                          {shipment.weight} kg
+                        </TableCell>
+                        <TableCell 
+                          className="cursor-pointer"
+                          onClick={() => setSelectedShipment(shipment)}
+                        >
                           {shipment.arrivalDate ? (
                             <div className="flex items-center gap-1">
                               {format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })}
@@ -170,10 +205,12 @@ export default function Shipments() {
                             </div>
                           ) : 'Não definida'}
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <StatusBadge status={shipment.status} />
-                          </div>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <StatusMenu 
+                            shipmentId={shipment.id} 
+                            status={shipment.status} 
+                            onStatusChange={handleStatusChange}
+                          />
                         </TableCell>
                       </TableRow>
                     );

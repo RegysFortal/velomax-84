@@ -49,6 +49,11 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
     e.preventDefault();
     
     try {
+      if (!name.trim()) {
+        toast.error("Nome do documento é obrigatório");
+        return;
+      }
+      
       // Convert weight and packages to numbers
       const weightValue = weight ? parseFloat(weight) : undefined;
       const packagesValue = packages ? parseInt(packages) : undefined;
@@ -80,8 +85,8 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {
+      console.error("Error saving document:", error);
       toast.error("Erro ao salvar documento");
-      console.error(error);
     }
   };
   
@@ -90,8 +95,8 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
       await deleteDocument(shipmentId, documentId);
       toast.success("Documento removido com sucesso");
     } catch (error) {
+      console.error("Error deleting document:", error);
       toast.error("Erro ao remover documento");
-      console.error(error);
     }
   };
 

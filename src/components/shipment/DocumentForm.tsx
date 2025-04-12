@@ -2,12 +2,10 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { DialogFooter, DialogTitle, DialogHeader } from "@/components/ui/dialog";
 
 interface DocumentFormProps {
   editingDocument: boolean;
@@ -45,66 +43,62 @@ export function DocumentForm({
   onCancel
 }: DocumentFormProps) {
   return (
-    <>
+    <form onSubmit={onSubmit} className="space-y-4">
       <DialogHeader>
-        <DialogTitle>
-          {editingDocument ? "Editar Documento" : "Adicionar Documento"}
-        </DialogTitle>
+        <DialogTitle>{editingDocument ? 'Editar Documento' : 'Adicionar Documento'}</DialogTitle>
       </DialogHeader>
       
-      <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium">Nome do Documento</label>
-            <Input 
+            <Label htmlFor="name">Nome do Documento*</Label>
+            <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Nota Fiscal 12345"
+              placeholder="Nome do documento"
               required
             />
           </div>
           
           <div className="space-y-2">
-            <label htmlFor="minuteNumber" className="text-sm font-medium">Número da Minuta</label>
-            <Input 
+            <Label htmlFor="minuteNumber">Número da Minuta</Label>
+            <Input
               id="minuteNumber"
               value={minuteNumber}
               onChange={(e) => setMinuteNumber(e.target.value)}
-              placeholder="Ex: MIN12345"
+              placeholder="Número da minuta"
             />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="packages" className="text-sm font-medium">Volumes</label>
-              <Input 
+              <Label htmlFor="packages">Volumes</Label>
+              <Input
                 id="packages"
                 type="number"
                 value={packages}
                 onChange={(e) => setPackages(e.target.value)}
-                placeholder="0"
-                min="0"
+                placeholder="Quantidade de volumes"
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="weight" className="text-sm font-medium">Peso (kg)</label>
-              <Input 
+              <Label htmlFor="weight">Peso (kg)</Label>
+              <Input
                 id="weight"
                 type="number"
                 step="0.01"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                placeholder="0.00"
-                min="0"
+                placeholder="Peso em kg"
               />
             </div>
           </div>
           
           <div className="space-y-2">
-            <label htmlFor="notes" className="text-sm font-medium">Observações</label>
-            <Textarea 
+            <Label htmlFor="notes">Observações</Label>
+            <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -114,28 +108,24 @@ export function DocumentForm({
           </div>
           
           <div className="flex items-center space-x-2">
-            <input 
-              type="checkbox" 
-              id="isDelivered" 
+            <Switch
+              id="isDelivered"
               checked={isDelivered}
-              onChange={(e) => setIsDelivered(e.target.checked)}
-              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+              onCheckedChange={setIsDelivered}
             />
-            <label htmlFor="isDelivered" className="text-sm font-medium">
-              Marcar como entregue
-            </label>
+            <Label htmlFor="isDelivered">Documento entregue</Label>
           </div>
         </div>
-        
-        <DialogFooter>
-          <Button variant="outline" type="button" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit">
-            {editingDocument ? "Atualizar" : "Adicionar"}
-          </Button>
-        </DialogFooter>
-      </form>
-    </>
+      </div>
+      
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit">
+          {editingDocument ? 'Atualizar' : 'Adicionar'}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }
