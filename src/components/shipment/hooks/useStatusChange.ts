@@ -50,17 +50,11 @@ export function useStatusChange({
           isRetained: newStatus === "retained"
         });
         
-        // Convert all status values to strings for safe comparison
-        const statusString = String(status);
-        const newStatusString = String(newStatus);
-        const updatedShipmentStatusString = String(updatedShipment.status);
-        
-        // Determine if this status change involves retention
-        const statusWasRetained = statusString === "retained";
-        const statusIsNowRetained = newStatusString === "retained";
-        const updatedShipmentIsRetained = updatedShipmentStatusString === "retained";
-        
-        const isRetained = statusWasRetained || statusIsNowRetained || updatedShipmentIsRetained;
+        // Determine retention status more explicitly
+        const isRetained = 
+          status === "retained" || 
+          newStatus === "retained" || 
+          updatedShipment.status === "retained";
         
         if (isRetained) {
           await updateFiscalAction(shipmentId, null);
