@@ -19,6 +19,7 @@ import { SearchableSelect } from '@/components/ui/searchable-select';
 import { format, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { X } from 'lucide-react';
+import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 
 const Deliveries = () => {
   const { deliveries, deleteDelivery } = useDeliveries();
@@ -144,11 +145,6 @@ const Deliveries = () => {
     setEndDate(null);
   };
 
-  const clientOptions = clients.map(client => ({
-    label: client.tradingName || client.name,
-    value: client.id
-  }));
-
   return (
     <AppLayout>
       <div className="container mx-auto py-6">
@@ -171,12 +167,11 @@ const Deliveries = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="client-filter">Cliente</Label>
-                <SearchableSelect
-                  id="client-filter"
+                <ClientSearchSelect
                   value={selectedClientId}
-                  options={clientOptions}
+                  onValueChange={setSelectedClientId}
                   placeholder="Selecione um cliente"
-                  onChange={(value) => setSelectedClientId(value as string)}
+                  clients={clients}
                 />
               </div>
               <div>
@@ -184,7 +179,6 @@ const Deliveries = () => {
                 <DatePicker
                   date={startDate ? new Date(startDate) : undefined}
                   onSelect={(date) => setStartDate(date ? format(date, 'yyyy-MM-dd') : null)}
-                  locale={ptBR}
                   placeholder="Selecione a data inicial"
                 />
               </div>
@@ -193,7 +187,6 @@ const Deliveries = () => {
                 <DatePicker
                   date={endDate ? new Date(endDate) : undefined}
                   onSelect={(date) => setEndDate(date ? format(date, 'yyyy-MM-dd') : null)}
-                  locale={ptBR}
                   placeholder="Selecione a data final"
                 />
               </div>
