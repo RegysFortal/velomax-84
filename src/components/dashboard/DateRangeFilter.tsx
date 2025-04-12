@@ -5,26 +5,40 @@ import { DatePickerField } from '@/components/employee/forms/DatePickerField';
 
 interface DateRangeFilterProps {
   startDate: string;
-  setStartDate: (date: string) => void;
   endDate: string;
-  setEndDate: (date: string) => void;
+  onDateRangeChange?: (start: string, end: string) => void;
+  setStartDate?: (date: string) => void;
+  setEndDate?: (date: string) => void;
 }
 
 export function DateRangeFilter({ 
   startDate, 
-  setStartDate, 
   endDate, 
+  onDateRangeChange,
+  setStartDate,
   setEndDate 
 }: DateRangeFilterProps) {
   const handleStartDateChange = (date: Date | undefined) => {
     if (date) {
-      setStartDate(date.toISOString().split('T')[0]);
+      const formattedDate = date.toISOString().split('T')[0];
+      if (setStartDate) {
+        setStartDate(formattedDate);
+      }
+      if (onDateRangeChange) {
+        onDateRangeChange(formattedDate, endDate);
+      }
     }
   };
 
   const handleEndDateChange = (date: Date | undefined) => {
     if (date) {
-      setEndDate(date.toISOString().split('T')[0]);
+      const formattedDate = date.toISOString().split('T')[0];
+      if (setEndDate) {
+        setEndDate(formattedDate);
+      }
+      if (onDateRangeChange) {
+        onDateRangeChange(startDate, formattedDate);
+      }
     }
   };
 

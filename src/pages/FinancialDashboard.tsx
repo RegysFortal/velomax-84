@@ -30,7 +30,16 @@ const FinancialDashboard = () => {
     latePaymentRate: 0,
     topReports: [],
     topClients: [],
-    clientDistribution: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+    clientDistribution: { 
+      labels: [], 
+      datasets: [{ 
+        label: 'Faturamento por Cliente',
+        data: [], 
+        backgroundColor: [],
+        borderColor: [],
+        borderWidth: 1
+      }] 
+    },
     monthlyComparison: { labels: [], datasets: [] },
     growthTimeline: { labels: [], datasets: [] }
   });
