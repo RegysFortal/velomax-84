@@ -28,11 +28,12 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   const [currentShipment, setCurrentShipment] = useState<Shipment>(shipment);
   const formState = useShipmentDetails(currentShipment, onClose);
   
-  // Atualizar o shipment sempre que o diálogo for aberto ou o ID mudar
+  // Update the shipment whenever the dialog is opened or the ID changes
   useEffect(() => {
     if (open && shipment?.id) {
       const updatedShipment = getShipmentById(shipment.id);
       if (updatedShipment) {
+        console.log('ShipmentDetails - Loaded updated shipment data:', updatedShipment);
         setCurrentShipment(updatedShipment);
       } else {
         toast.error("Não foi possível carregar os detalhes do embarque");
@@ -41,11 +42,11 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
     }
   }, [open, shipment?.id, getShipmentById, onClose]);
   
-  // Log para depuração
+  // Log for debugging
   useEffect(() => {
     if (open) {
-      console.log('ShipmentDetails - ID do embarque:', shipment?.id);
-      console.log('ShipmentDetails - Documentos:', currentShipment?.documents);
+      console.log('ShipmentDetails - Shipment ID:', shipment?.id);
+      console.log('ShipmentDetails - Documents:', currentShipment?.documents);
     }
   }, [open, shipment?.id, currentShipment?.documents]);
   
@@ -78,7 +79,10 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
           </TabsContent>
           
           <TabsContent value="documents" className="space-y-4">
-            <DocumentsList shipmentId={currentShipment.id} documents={currentShipment.documents || []} />
+            <DocumentsList 
+              shipmentId={currentShipment.id} 
+              documents={currentShipment.documents || []} 
+            />
           </TabsContent>
           
           {/* <TabsContent value="history">

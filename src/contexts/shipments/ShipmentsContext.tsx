@@ -83,35 +83,131 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     updateFiscalActionDetails
   } = useFiscalActions(shipments, setShipments);
   
+  // Load shipments data from Supabase
   useEffect(() => {
-    const loadData = async () => {
+    const loadShipmentsData = async () => {
       try {
         if (user) {
           setLoading(true);
           
-          // For now, shipments are stored in localStorage until we create shipments tables
-          const storedShipments = localStorage.getItem("velomax_shipments");
+          // Fetch shipments from Supabase
+          const { data: shipmentsData, error: shipmentsError } = await supabase
+            .from('shipments')
+            .select('*')
+            .order('created_at', { ascending: false });
           
-          if (storedShipments) {
-            setShipments(JSON.parse(storedShipments));
+          if (shipmentsError) {
+            throw shipmentsError;
           }
+          
+          // For each shipment, fetch its documents and fiscal action
+          const shipmentsWithDetails = await Promise.all(shipmentsData.map(async (shipment) => {
+            // Fetch documents for this shipment
+            const { data: documentsData, error: documentsError } = await supabase
+              .from('shipment_documents')
+              .select('*')
+              .eq('shipment_id', shipment.id);
+            
+            if (documentsError) {
+              console.error('Error fetching documents:', documentsError);
+              return {
+                ...mapShipmentFromSupabase(shipment),
+                documents: []
+              };
+            }
+            
+            // Fetch fiscal action for this shipment if it's retained
+            let fiscalAction = undefined;
+            if (shipment.is_retained) {
+              const { data: fiscalData, error: fiscalError } = await supabase
+                .from('fiscal_actions')
+                .select('*')
+                .eq('shipment_id', shipment.id)
+                .single();
+              
+              if (!fiscalError && fiscalData) {
+                fiscalAction = {
+                  id: fiscalData.id,
+                  actionNumber: fiscalData.action_number,
+                  reason: fiscalData.reason,
+                  amountToPay: fiscalData.amount_to_pay,
+                  paymentDate: fiscalData.payment_date,
+                  releaseDate: fiscalData.release_date,
+                  notes: fiscalData.notes,
+                  createdAt: fiscalData.created_at,
+                  updatedAt: fiscalData.updated_at
+                };
+              }
+            }
+            
+            return {
+              ...mapShipmentFromSupabase(shipment),
+              documents: documentsData.map(mapDocumentFromSupabase),
+              fiscalAction
+            };
+          }));
+          
+          setShipments(shipmentsWithDetails);
         }
       } catch (error) {
         console.error("Error loading shipments data:", error);
         toast.error("Não foi possível carregar os dados de embarques.");
+        
+        // As a fallback, try to load from localStorage
+        const storedShipments = localStorage.getItem("velomax_shipments");
+        if (storedShipments) {
+          setShipments(JSON.parse(storedShipments));
+        }
       } finally {
         setLoading(false);
       }
     };
     
-    loadData();
+    loadShipmentsData();
   }, [user]);
   
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem("velomax_shipments", JSON.stringify(shipments));
-    }
-  }, [shipments, loading]);
+  // Helper functions to map database columns to our types
+  function mapShipmentFromSupabase(data: any): Shipment {
+    return {
+      id: data.id,
+      companyId: data.company_id,
+      companyName: data.company_name,
+      transportMode: data.transport_mode,
+      carrierName: data.carrier_name,
+      trackingNumber: data.tracking_number,
+      packages: data.packages,
+      weight: data.weight,
+      arrivalFlight: data.arrival_flight,
+      arrivalDate: data.arrival_date,
+      observations: data.observations,
+      status: data.status,
+      isRetained: data.is_retained,
+      deliveryDate: data.delivery_date,
+      deliveryTime: data.delivery_time,
+      receiverName: data.receiver_name,
+      receiverId: data.receiver_id,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      documents: [] // Will be populated after
+    };
+  }
+  
+  function mapDocumentFromSupabase(data: any) {
+    return {
+      id: data.id,
+      name: data.name,
+      type: data.type,
+      url: data.url,
+      notes: data.notes,
+      minuteNumber: data.minute_number,
+      invoiceNumbers: data.invoice_numbers || [],
+      weight: data.weight,
+      packages: data.packages,
+      isDelivered: data.is_delivered,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+  }
   
   const contextValue: ShipmentsContextType = {
     shipments,

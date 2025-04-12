@@ -382,6 +382,56 @@ export type Database = {
           },
         ]
       }
+      fiscal_actions: {
+        Row: {
+          action_number: string | null
+          amount_to_pay: number
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string | null
+          reason: string
+          release_date: string | null
+          shipment_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          action_number?: string | null
+          amount_to_pay: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          reason: string
+          release_date?: string | null
+          shipment_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_number?: string | null
+          amount_to_pay?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          reason?: string
+          release_date?: string | null
+          shipment_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_actions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fuel_records: {
         Row: {
           created_at: string | null
@@ -623,6 +673,142 @@ export type Database = {
           waiting_hour?: Json
         }
         Relationships: []
+      }
+      shipment_documents: {
+        Row: {
+          created_at: string
+          id: string
+          invoice_numbers: string[] | null
+          is_delivered: boolean | null
+          minute_number: string | null
+          name: string
+          notes: string | null
+          packages: number | null
+          shipment_id: string
+          type: string
+          updated_at: string
+          url: string | null
+          user_id: string | null
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invoice_numbers?: string[] | null
+          is_delivered?: boolean | null
+          minute_number?: string | null
+          name: string
+          notes?: string | null
+          packages?: number | null
+          shipment_id: string
+          type: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string | null
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invoice_numbers?: string[] | null
+          is_delivered?: boolean | null
+          minute_number?: string | null
+          name?: string
+          notes?: string | null
+          packages?: number | null
+          shipment_id?: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_documents_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipments: {
+        Row: {
+          arrival_date: string | null
+          arrival_flight: string | null
+          carrier_name: string
+          company_id: string
+          company_name: string
+          created_at: string
+          delivery_date: string | null
+          delivery_time: string | null
+          id: string
+          is_retained: boolean
+          observations: string | null
+          packages: number
+          receiver_id: string | null
+          receiver_name: string | null
+          status: string
+          tracking_number: string
+          transport_mode: string
+          updated_at: string
+          user_id: string | null
+          weight: number
+        }
+        Insert: {
+          arrival_date?: string | null
+          arrival_flight?: string | null
+          carrier_name: string
+          company_id: string
+          company_name: string
+          created_at?: string
+          delivery_date?: string | null
+          delivery_time?: string | null
+          id?: string
+          is_retained?: boolean
+          observations?: string | null
+          packages: number
+          receiver_id?: string | null
+          receiver_name?: string | null
+          status: string
+          tracking_number: string
+          transport_mode: string
+          updated_at?: string
+          user_id?: string | null
+          weight: number
+        }
+        Update: {
+          arrival_date?: string | null
+          arrival_flight?: string | null
+          carrier_name?: string
+          company_id?: string
+          company_name?: string
+          created_at?: string
+          delivery_date?: string | null
+          delivery_time?: string | null
+          id?: string
+          is_retained?: boolean
+          observations?: string | null
+          packages?: number
+          receiver_id?: string | null
+          receiver_name?: string | null
+          status?: string
+          tracking_number?: string
+          transport_mode?: string
+          updated_at?: string
+          user_id?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tire_maintenance_records: {
         Row: {

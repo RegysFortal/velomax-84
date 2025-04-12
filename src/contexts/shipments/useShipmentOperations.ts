@@ -1,60 +1,188 @@
 
 import { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { ShipmentCreateData } from "./types";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from "sonner";
 
 export const useShipmentOperations = (
   shipments: Shipment[],
   setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>
 ) => {
   const addShipment = async (shipmentData: ShipmentCreateData) => {
-    const now = new Date().toISOString();
-    
-    let fiscalAction = undefined;
-    
-    if (shipmentData.fiscalActionData) {
-      fiscalAction = {
-        ...shipmentData.fiscalActionData,
-        id: uuidv4(),
-        createdAt: now,
-        updatedAt: now
+    try {
+      // Prepare data for Supabase insert
+      const supabaseShipment = {
+        company_id: shipmentData.companyId,
+        company_name: shipmentData.companyName,
+        transport_mode: shipmentData.transportMode,
+        carrier_name: shipmentData.carrierName,
+        tracking_number: shipmentData.trackingNumber,
+        packages: shipmentData.packages,
+        weight: shipmentData.weight,
+        arrival_flight: shipmentData.arrivalFlight,
+        arrival_date: shipmentData.arrivalDate,
+        observations: shipmentData.observations,
+        status: shipmentData.status,
+        is_retained: shipmentData.status === 'retained'
       };
+      
+      // Insert shipment into Supabase
+      const { data: newShipment, error } = await supabase
+        .from('shipments')
+        .insert(supabaseShipment)
+        .select()
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      // If the shipment is retained, create a fiscal action record
+      let fiscalAction = undefined;
+      if (shipmentData.status === 'retained' && shipmentData.fiscalActionData) {
+        const fiscalActionData = {
+          shipment_id: newShipment.id,
+          action_number: shipmentData.fiscalActionData.actionNumber,
+          reason: shipmentData.fiscalActionData.reason,
+          amount_to_pay: shipmentData.fiscalActionData.amountToPay,
+          payment_date: shipmentData.fiscalActionData.paymentDate,
+          release_date: shipmentData.fiscalActionData.releaseDate,
+          notes: shipmentData.fiscalActionData.notes
+        };
+        
+        const { data: newFiscalAction, error: fiscalError } = await supabase
+          .from('fiscal_actions')
+          .insert(fiscalActionData)
+          .select()
+          .single();
+          
+        if (fiscalError) {
+          console.error("Error creating fiscal action:", fiscalError);
+        } else {
+          fiscalAction = {
+            id: newFiscalAction.id,
+            actionNumber: newFiscalAction.action_number,
+            reason: newFiscalAction.reason,
+            amountToPay: newFiscalAction.amount_to_pay,
+            paymentDate: newFiscalAction.payment_date,
+            releaseDate: newFiscalAction.release_date,
+            notes: newFiscalAction.notes,
+            createdAt: newFiscalAction.created_at,
+            updatedAt: newFiscalAction.updated_at
+          };
+        }
+      }
+      
+      // Map the Supabase data to our Shipment type
+      const newShipmentMapped: Shipment = {
+        id: newShipment.id,
+        companyId: newShipment.company_id,
+        companyName: newShipment.company_name,
+        transportMode: newShipment.transport_mode,
+        carrierName: newShipment.carrier_name,
+        trackingNumber: newShipment.tracking_number,
+        packages: newShipment.packages,
+        weight: newShipment.weight,
+        arrivalFlight: newShipment.arrival_flight,
+        arrivalDate: newShipment.arrival_date,
+        observations: newShipment.observations,
+        status: newShipment.status,
+        isRetained: newShipment.is_retained,
+        documents: [],
+        fiscalAction,
+        createdAt: newShipment.created_at,
+        updatedAt: newShipment.updated_at
+      };
+      
+      // Update state
+      setShipments(prev => [newShipmentMapped, ...prev]);
+      return newShipmentMapped;
+    } catch (error) {
+      console.error("Error adding shipment:", error);
+      toast.error("Erro ao criar embarque");
+      throw error;
     }
-    
-    const newShipment: Shipment = {
-      ...(shipmentData as Omit<Shipment, 'id' | 'createdAt' | 'updatedAt' | 'documents' | 'fiscalAction'>),
-      id: uuidv4(),
-      documents: [],
-      fiscalAction,
-      createdAt: now,
-      updatedAt: now,
-    };
-    
-    setShipments(prev => [...prev, newShipment]);
-    return newShipment;
   };
   
   const updateShipment = async (id: string, shipmentData: Partial<Shipment>) => {
-    const updatedShipments = shipments.map(s => {
-      if (s.id === id) {
-        return { ...s, ...shipmentData, updatedAt: new Date().toISOString() };
+    try {
+      // Prepare data for Supabase update
+      const supabaseShipment: any = {
+        updated_at: new Date().toISOString()
+      };
+      
+      // Map fields from our model to Supabase column names
+      if (shipmentData.companyId !== undefined) supabaseShipment.company_id = shipmentData.companyId;
+      if (shipmentData.companyName !== undefined) supabaseShipment.company_name = shipmentData.companyName;
+      if (shipmentData.transportMode !== undefined) supabaseShipment.transport_mode = shipmentData.transportMode;
+      if (shipmentData.carrierName !== undefined) supabaseShipment.carrier_name = shipmentData.carrierName;
+      if (shipmentData.trackingNumber !== undefined) supabaseShipment.tracking_number = shipmentData.trackingNumber;
+      if (shipmentData.packages !== undefined) supabaseShipment.packages = shipmentData.packages;
+      if (shipmentData.weight !== undefined) supabaseShipment.weight = shipmentData.weight;
+      if (shipmentData.arrivalFlight !== undefined) supabaseShipment.arrival_flight = shipmentData.arrivalFlight;
+      if (shipmentData.arrivalDate !== undefined) supabaseShipment.arrival_date = shipmentData.arrivalDate;
+      if (shipmentData.observations !== undefined) supabaseShipment.observations = shipmentData.observations;
+      if (shipmentData.status !== undefined) supabaseShipment.status = shipmentData.status;
+      if (shipmentData.isRetained !== undefined) supabaseShipment.is_retained = shipmentData.isRetained;
+      if (shipmentData.deliveryDate !== undefined) supabaseShipment.delivery_date = shipmentData.deliveryDate;
+      if (shipmentData.deliveryTime !== undefined) supabaseShipment.delivery_time = shipmentData.deliveryTime;
+      if (shipmentData.receiverName !== undefined) supabaseShipment.receiver_name = shipmentData.receiverName;
+      if (shipmentData.receiverId !== undefined) supabaseShipment.receiver_id = shipmentData.receiverId;
+      
+      // Update shipment in Supabase
+      const { error } = await supabase
+        .from('shipments')
+        .update(supabaseShipment)
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
       }
-      return s;
-    });
-    
-    setShipments(updatedShipments);
-    const updatedShipment = updatedShipments.find(s => s.id === id);
-    
-    if (!updatedShipment) {
-      throw new Error("Shipment not found");
+      
+      // Update the shipment in state
+      const updatedShipments = shipments.map(s => {
+        if (s.id === id) {
+          return { ...s, ...shipmentData, updatedAt: supabaseShipment.updated_at };
+        }
+        return s;
+      });
+      
+      setShipments(updatedShipments);
+      
+      // Return the updated shipment
+      const updatedShipment = updatedShipments.find(s => s.id === id);
+      if (!updatedShipment) {
+        throw new Error("Shipment not found");
+      }
+      
+      return updatedShipment;
+    } catch (error) {
+      console.error("Error updating shipment:", error);
+      toast.error("Erro ao atualizar embarque");
+      throw error;
     }
-    
-    return updatedShipment;
   };
   
   const deleteShipment = async (id: string) => {
-    setShipments(prev => prev.filter(s => s.id !== id));
+    try {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('shipments')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update state
+      setShipments(prev => prev.filter(s => s.id !== id));
+    } catch (error) {
+      console.error("Error deleting shipment:", error);
+      toast.error("Erro ao excluir embarque");
+      throw error;
+    }
   };
   
   const getShipmentById = (id: string) => {
@@ -62,20 +190,41 @@ export const useShipmentOperations = (
   };
   
   const updateStatus = async (shipmentId: string, status: ShipmentStatus): Promise<Shipment | undefined> => {
-    const now = new Date().toISOString();
-    const updatedShipments = shipments.map(s => {
-      if (s.id === shipmentId) {
-        return { 
-          ...s, 
+    try {
+      // Update in Supabase
+      const { error } = await supabase
+        .from('shipments')
+        .update({ 
           status,
-          updatedAt: now
-        };
+          is_retained: status === 'retained',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', shipmentId);
+        
+      if (error) {
+        throw error;
       }
-      return s;
-    });
-    
-    setShipments(updatedShipments);
-    return updatedShipments.find(s => s.id === shipmentId);
+      
+      // Update state
+      const updatedShipments = shipments.map(s => {
+        if (s.id === shipmentId) {
+          return { 
+            ...s, 
+            status,
+            isRetained: status === 'retained',
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return s;
+      });
+      
+      setShipments(updatedShipments);
+      return updatedShipments.find(s => s.id === shipmentId);
+    } catch (error) {
+      console.error("Error updating shipment status:", error);
+      toast.error("Erro ao atualizar status do embarque");
+      throw error;
+    }
   };
   
   return {

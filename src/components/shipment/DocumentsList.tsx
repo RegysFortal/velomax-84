@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Document } from "@/types/shipment";
 import { PlusCircle } from "lucide-react";
@@ -38,9 +38,12 @@ export function DocumentsList({ shipmentId, documents = [] }: DocumentsListProps
     handleDelete
   } = useDocumentOperations({ shipmentId });
 
-  console.log('DocumentsList - Documents recebidos:', documents);
+  // Log documents for debugging
+  useEffect(() => {
+    console.log('DocumentsList - Documents received:', documents);
+  }, [documents]);
 
-  // Garantir que documents seja sempre um array, mesmo se for undefined
+  // Ensure that documents is always an array, even if it's undefined
   const safeDocuments = Array.isArray(documents) ? documents : [];
 
   return (
