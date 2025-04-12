@@ -45,12 +45,14 @@ export function StatusMenu({
       setShowDeliveryDialog(true);
     } else {
       try {
+        // First update the status
         await updateStatus(shipmentId, newStatus);
         
-        // If changing to "retained", update isRetained to true
+        // Then update the isRetained flag based on status
         if (newStatus === "retained") {
           await updateShipment(shipmentId, { isRetained: true });
-        } else {
+        } else if (status === "retained") {
+          // If we're changing from retained to something else, set isRetained to false
           await updateShipment(shipmentId, { isRetained: false });
         }
         

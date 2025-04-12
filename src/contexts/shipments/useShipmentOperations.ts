@@ -68,7 +68,6 @@ export const useShipmentOperations = (
         return { 
           ...s, 
           status,
-          isRetained: status === "retained" ? s.isRetained : false,
           updatedAt: now
         };
       }
@@ -76,6 +75,7 @@ export const useShipmentOperations = (
     });
     
     setShipments(updatedShipments);
+    return updatedShipments.find(s => s.id === shipmentId);
   };
   
   return {

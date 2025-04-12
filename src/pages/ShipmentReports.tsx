@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
@@ -29,6 +28,7 @@ import {
   Calendar 
 } from 'lucide-react';
 import { StatusBadge } from '@/components/shipment/StatusBadge';
+import { StatusMenu } from '@/components/shipment/StatusMenu';
 import { format, startOfDay, endOfDay, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ShipmentStatus } from '@/types/shipment';
@@ -44,8 +44,9 @@ export default function ShipmentReports() {
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [filterStatus, setFilterStatus] = useState<ShipmentStatus | 'all'>('all');
-  const [filterCarrier, setFilterCarrier] = useState('all'); // Changed from "" to "all"
+  const [filterCarrier, setFilterCarrier] = useState('all');
   const [filterMode, setFilterMode] = useState<'air' | 'road' | 'all'>('all');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   const filteredShipments = shipments.filter(shipment => {
     const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
@@ -85,6 +86,10 @@ export default function ShipmentReports() {
   
   const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName)));
   
+  const handleStatusChange = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   const generatePDF = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -405,7 +410,7 @@ export default function ShipmentReports() {
                       <SelectValue placeholder="Selecione a transportadora" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem> {/* Changed from "" to "all" */}
+                      <SelectItem value="all">Todas</SelectItem>
                       {uniqueCarriers.map((carrier) => (
                         <SelectItem 
                           key={carrier as React.Key} 
@@ -469,7 +474,11 @@ export default function ShipmentReports() {
                         : 'Não definida'}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={shipment.status} />
+                      <StatusMenu 
+                        shipmentId={shipment.id} 
+                        status={shipment.status} 
+                        onStatusChange={handleStatusChange}
+                      />
                     </TableCell>
                   </TableRow>
                 ))
