@@ -8,9 +8,20 @@ import { BudgetBackupTools } from '@/components/budget/BudgetBackupTools';
 import { SystemBackup } from '@/components/settings/SystemBackup';
 import { UserManagement } from '@/components/settings/UserManagement';
 import { CompanySettings } from '@/components/settings/CompanySettings';
+import { ClientsManagement } from '@/components/settings/ClientsManagement';
+import { toast } from 'sonner';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('system');
+
+  const handleTabChange = (value: string) => {
+    try {
+      setActiveTab(value);
+    } catch (error) {
+      console.error("Error changing tab:", error);
+      toast.error("Ocorreu um erro ao mudar de aba. Por favor, tente novamente.");
+    }
+  };
 
   return (
     <AppLayout>
@@ -22,10 +33,11 @@ const SettingsPage = () => {
           </p>
         </div>
 
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="system">Sistema</TabsTrigger>
             <TabsTrigger value="company">Empresa</TabsTrigger>
+            <TabsTrigger value="clients">Clientes</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="backup">Backup</TabsTrigger>
             <TabsTrigger value="notifications">Notificações</TabsTrigger>
@@ -37,6 +49,10 @@ const SettingsPage = () => {
           
           <TabsContent value="company" className="space-y-6">
             <CompanySettings />
+          </TabsContent>
+          
+          <TabsContent value="clients" className="space-y-6">
+            <ClientsManagement />
           </TabsContent>
           
           <TabsContent value="users" className="space-y-6">

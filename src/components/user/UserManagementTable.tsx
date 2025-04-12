@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { UserPlus, Edit, Trash2 } from 'lucide-react';
 import { UserDialog } from './UserDialog';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 export function UserManagementTable() {
   const { users, currentUser, deleteUser } = useAuth();
@@ -36,10 +36,8 @@ export function UserManagementTable() {
 
   const handleDeleteUser = async (user: User) => {
     if (!currentUser || currentUser.id === user.id) {
-      toast({
-        title: "Operação não permitida",
+      toast.error("Operação não permitida", {
         description: "Você não pode excluir seu próprio usuário.",
-        variant: "destructive",
       });
       return;
     }
@@ -47,16 +45,13 @@ export function UserManagementTable() {
     if (confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`)) {
       try {
         deleteUser(user.id);
-        toast({
-          title: "Usuário excluído",
+        toast.success("Usuário excluído", {
           description: `O usuário ${user.name} foi excluído com sucesso.`,
         });
       } catch (error) {
         console.error('Error deleting user:', error);
-        toast({
-          title: "Erro ao excluir usuário",
+        toast.error("Erro ao excluir usuário", {
           description: "Não foi possível excluir o usuário. Tente novamente.",
-          variant: "destructive",
         });
       }
     }

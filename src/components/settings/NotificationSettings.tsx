@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Mail, Bell, MessageSquare, AlertTriangle, TruckIcon } from 'lucide-react';
 
 interface NotificationSetting {
@@ -64,8 +64,7 @@ export function NotificationSettings() {
     // Here you would save the settings to the database
     localStorage.setItem('notification_settings', JSON.stringify(settings));
     
-    toast({
-      title: "Configurações salvas",
+    toast.success("Configurações salvas", {
       description: "Suas preferências de notificação foram atualizadas.",
     });
   };
