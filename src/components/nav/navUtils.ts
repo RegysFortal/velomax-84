@@ -42,19 +42,26 @@ export const hasFinancialAccess = (
   hasPermission: (permission: string) => boolean
 ): boolean => {
   return checkPermissionAccess(user, hasPermission, 'financial') || 
+         checkPermissionAccess(user, hasPermission, 'dashboard') ||
          checkPermissionAccess(user, hasPermission, 'reports') || 
-         checkPermissionAccess(user, hasPermission, 'priceTables');
+         checkPermissionAccess(user, hasPermission, 'priceTables') ||
+         checkPermissionAccess(user, hasPermission, 'cities');
 };
 
 export const hasManagementAccess = (
   user: User | null, 
   hasPermission: (permission: string) => boolean
 ): boolean => {
-  return checkPermissionAccess(user, hasPermission, 'dashboard') || 
-         checkPermissionAccess(user, hasPermission, 'logbook') || 
-         checkPermissionAccess(user, hasPermission, 'clients') || 
+  return checkPermissionAccess(user, hasPermission, 'clients') || 
          checkPermissionAccess(user, hasPermission, 'employees') || 
-         checkPermissionAccess(user, hasPermission, 'vehicles') || 
-         checkPermissionAccess(user, hasPermission, 'maintenance') || 
          checkPermissionAccess(user, hasPermission, 'settings');
+};
+
+export const hasFleetAccess = (
+  user: User | null, 
+  hasPermission: (permission: string) => boolean
+): boolean => {
+  return checkPermissionAccess(user, hasPermission, 'logbook') || 
+         checkPermissionAccess(user, hasPermission, 'vehicles') || 
+         checkPermissionAccess(user, hasPermission, 'maintenance');
 };

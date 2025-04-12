@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/auth/AuthContext"
 import { OperationalMenu } from "./nav/OperationalMenu"
 import { FinancialMenu } from "./nav/FinancialMenu"
 import { ManagementMenu } from "./nav/ManagementMenu"
+import { FleetMenu } from "./nav/FleetMenu"
 
 const NavigationMenuDemo = () => {
   const { isMobile } = useIsMobile();
@@ -25,6 +26,7 @@ const NavigationMenuDemo = () => {
       <NavigationMenuList className={isMobile ? "flex-col items-start" : ""}>
         <OperationalMenu user={user} hasPermission={hasPermission} />
         <FinancialMenu user={user} hasPermission={hasPermission} />
+        <FleetMenu user={user} hasPermission={hasPermission} />
         <ManagementMenu user={user} hasPermission={hasPermission} />
       </NavigationMenuList>
     </NavigationMenu>

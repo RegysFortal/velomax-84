@@ -1,88 +1,97 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { Edit, Trash, Repeat } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { CalendarEvent } from '@/hooks/useCalendarEvents';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { CalendarEvent, EVENT_TYPES, RECURRENCE_TYPES } from '@/hooks/useCalendarEvents';
+import { Button } from '@/components/ui/button';
+import { Pencil, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+const eventTypeColors = {
+  birthday: "bg-pink-500 hover:bg-pink-600",
+  delivery: "bg-blue-500 hover:bg-blue-600",
+  holiday: "bg-green-500 hover:bg-green-600",
+  meeting: "bg-purple-500 hover:bg-purple-600",
+  reminder: "bg-orange-500 hover:bg-orange-600",
+  other: "bg-gray-500 hover:bg-gray-600",
+};
+
+const getEventTypeLabel = (type: string) => {
+  switch (type) {
+    case 'birthday': return 'Aniversário';
+    case 'delivery': return 'Entrega';
+    case 'holiday': return 'Feriado';
+    case 'meeting': return 'Reunião';
+    case 'reminder': return 'Lembrete';
+    case 'other': return 'Outro';
+    default: return type;
+  }
+};
 
 interface EventItemProps {
   event: CalendarEvent;
-  onEdit: (event: CalendarEvent) => void;
-  onDelete: (id: string) => Promise<void>;
+  onEdit: () => void;
+  onDelete: () => void;
+  compact?: boolean;
 }
 
-export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
-  const handleDelete = async () => {
-    try {
-      await onDelete(event.id);
-    } catch (error) {
-      console.error('Error deleting event:', error);
-    }
-  };
-
-  return (
-    <div className="p-3 border rounded-md">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <h4 className="font-medium">{event.title}</h4>
-          {event.recurrence && event.recurrence !== 'none' && (
-            <Repeat size={14} className="text-muted-foreground" />
-          )}
+export function EventItem({ event, onEdit, onDelete, compact = false }: EventItemProps) {
+  const eventColor = (eventTypeColors as any)[event.type] || eventTypeColors.other;
+  const typeLabel = getEventTypeLabel(event.type);
+  
+  if (compact) {
+    return (
+      <div className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+        <div className="flex flex-1 items-center space-x-2">
+          <div className={`w-2 h-2 rounded-full ${eventColor.split(' ')[0]}`} />
+          <span className="text-xs font-medium truncate">{event.title}</span>
         </div>
-        <Badge 
-          className={`${EVENT_TYPES[event.type].color} text-white`}
-        >
-          {EVENT_TYPES[event.type].label}
-        </Badge>
+        <div className="flex items-center space-x-1">
+          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onEdit}>
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onDelete}>
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
       </div>
-      {event.description && (
-        <p className="text-sm text-muted-foreground mb-2">{event.description}</p>
-      )}
-      {event.recurrence && event.recurrence !== 'none' && (
-        <p className="text-xs text-muted-foreground mb-2">
-          Repete: {RECURRENCE_TYPES[event.recurrence].label}
-          {event.recurrenceEndDate && (
-            <> até {format(event.recurrenceEndDate, 'dd/MM/yyyy')}</>
-          )}
-        </p>
-      )}
-      <div className="flex justify-end gap-2 mt-1">
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="h-8 px-2" 
-          onClick={() => onEdit(event)}
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button 
-              size="sm" 
-              variant="destructive" 
-              className="h-8 px-2"
-            >
-              <Trash className="h-4 w-4" />
+    );
+  }
+  
+  return (
+    <Card>
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <Badge className={eventColor}>{typeLabel}</Badge>
+              {event.recurrence !== 'none' && (
+                <Badge variant="outline">Recorrente</Badge>
+              )}
+            </div>
+            <h4 className="font-semibold">{event.title}</h4>
+            <div className="flex flex-col text-xs text-muted-foreground">
+              <span>
+                {format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR })}
+                {event.time && ` às ${event.time}`}
+              </span>
+              {event.location && <span>Local: {event.location}</span>}
+            </div>
+            {event.description && (
+              <p className="text-sm mt-1">{event.description}</p>
+            )}
+          </div>
+          <div className="flex space-x-1">
+            <Button size="icon" variant="ghost" onClick={onEdit}>
+              <Pencil className="h-4 w-4" />
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Evento</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
-                Excluir
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </div>
+            <Button size="icon" variant="ghost" onClick={onDelete}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

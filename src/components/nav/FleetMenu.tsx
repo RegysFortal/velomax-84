@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Truck, ClipboardList } from "lucide-react";
+import { BookOpen, Car, Wrench } from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
@@ -10,77 +10,71 @@ import {
   NavigationMenuContent
 } from "@/components/ui/navigation-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getActiveClass, hasOperationalAccess } from "./navUtils";
+import { getActiveClass } from "./navUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-interface OperationalMenuProps {
+interface FleetMenuProps {
   user: User | null;
   hasPermission: (permission: string) => boolean;
 }
 
-export const OperationalMenu: React.FC<OperationalMenuProps> = ({ user, hasPermission }) => {
+export const FleetMenu: React.FC<FleetMenuProps> = ({ user, hasPermission }) => {
   const location = useLocation();
   const { isMobile } = useIsMobile();
   
-  if (!hasOperationalAccess(user, hasPermission)) {
-    return null;
-  }
+  if (!user) return null;
+  
+  // Check if user has access to any of the fleet-related options
+  const hasAccess = user.role === 'admin' || 
+    hasPermission('logbook') || 
+    hasPermission('vehicles') || 
+    hasPermission('maintenance');
+    
+  if (!hasAccess) return null;
 
   return (
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
       <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
-        <Truck className="mr-2 h-4 w-4" />
-        Operacional
+        <Car className="mr-2 h-4 w-4" />
+        Frota
       </NavigationMenuTrigger>
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
-            {hasPermission('deliveries') && (
+            {hasPermission('logbook') && (
               <Link
-                to="/deliveries"
+                to="/logbook"
                 className={cn(
                   "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/deliveries")
+                  getActiveClass(location.pathname, "/logbook")
                 )}
               >
-                <Truck className="mr-2 h-4 w-4" />
-                Entregas
+                <BookOpen className="mr-2 h-4 w-4" />
+                Diário de Bordo
               </Link>
             )}
-            {hasPermission('shipments') && (
+            {hasPermission('vehicles') && (
               <Link
-                to="/shipments"
+                to="/vehicles"
                 className={cn(
                   "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/shipments")
+                  getActiveClass(location.pathname, "/vehicles")
                 )}
               >
-                <Truck className="mr-2 h-4 w-4" />
-                Embarques
+                <Car className="mr-2 h-4 w-4" />
+                Veículos
               </Link>
             )}
-            {hasPermission('reports') && (
+            {hasPermission('maintenance') && (
               <Link
-                to="/shipment-reports"
+                to="/maintenance"
                 className={cn(
                   "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/shipment-reports")
+                  getActiveClass(location.pathname, "/maintenance")
                 )}
               >
-                <ClipboardList className="mr-2 h-4 w-4" />
-                Relatório de Embarques
-              </Link>
-            )}
-            {hasPermission('financial') && (
-              <Link
-                to="/budgets"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/budgets")
-                )}
-              >
-                <ClipboardList className="mr-2 h-4 w-4" />
-                Orçamentos
+                <Wrench className="mr-2 h-4 w-4" />
+                Manutenções
               </Link>
             )}
           </div>

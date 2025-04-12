@@ -1,7 +1,8 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Settings, BarChart2, BookOpen, Users, Truck, Wrench, FileText } from "lucide-react";
+import { Settings, Users, Database } from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
@@ -29,35 +30,11 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
       <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
         <Settings className="mr-2 h-4 w-4" />
-        Gerência
+        Sistema
       </NavigationMenuTrigger>
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
-            {hasPermission('dashboard') && (
-              <Link
-                to="/dashboard"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/dashboard")
-                )}
-              >
-                <BarChart2 className="mr-2 h-4 w-4" />
-                Dashboard
-              </Link>
-            )}
-            {hasPermission('logbook') && (
-              <Link
-                to="/logbook"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/logbook")
-                )}
-              >
-                <BookOpen className="mr-2 h-4 w-4" />
-                Diário de Bordo
-              </Link>
-            )}
             {hasPermission('clients') && (
               <Link
                 to="/clients"
@@ -82,28 +59,28 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                 Funcionários
               </Link>
             )}
-            {hasPermission('vehicles') && (
+            {hasPermission('employees') && (
               <Link
-                to="/vehicles"
+                to="/contractors"
                 className={cn(
                   "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/vehicles")
+                  getActiveClass(location.pathname, "/contractors")
                 )}
               >
-                <Truck className="mr-2 h-4 w-4" />
-                Veículos
+                <Users className="mr-2 h-4 w-4" />
+                Terceiros
               </Link>
             )}
-            {hasPermission('maintenance') && (
+            {user?.role === 'admin' && (
               <Link
-                to="/maintenance"
+                to="/activity-logs"
                 className={cn(
                   "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/maintenance")
+                  getActiveClass(location.pathname, "/activity-logs")
                 )}
               >
-                <Wrench className="mr-2 h-4 w-4" />
-                Manutenções
+                <Database className="mr-2 h-4 w-4" />
+                Logs de Atividades
               </Link>
             )}
             {(user?.role === 'admin' || hasPermission('settings')) && (
@@ -115,19 +92,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({ user, hasPermiss
                 )}
               >
                 <Settings className="mr-2 h-4 w-4" />
-                Configurações
-              </Link>
-            )}
-            {user?.role === 'admin' && (
-              <Link
-                to="/activity-logs"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/activity-logs")
-                )}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                Logs de Atividades
+                Configurações do Sistema
               </Link>
             )}
           </div>

@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Calculator } from "lucide-react";
+import { Calculator, BarChart2, FileText, Table, MapPin } from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
@@ -35,6 +35,18 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
+            {hasPermission('dashboard') && (
+              <Link
+                to="/dashboard"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/dashboard")
+                )}
+              >
+                <BarChart2 className="mr-2 h-4 w-4" />
+                Dashboard
+              </Link>
+            )}
             {hasPermission('financial') && (
               <Link
                 to="/financial"
@@ -43,6 +55,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                   getActiveClass(location.pathname, "/financial")
                 )}
               >
+                <Calculator className="mr-2 h-4 w-4" />
                 Fechamento
               </Link>
             )}
@@ -54,18 +67,8 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                   getActiveClass(location.pathname, "/reports")
                 )}
               >
-                Relatórios
-              </Link>
-            )}
-            {hasPermission('financial') && (
-              <Link
-                to="/budgets"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/budgets")
-                )}
-              >
-                Orçamentos
+                <FileText className="mr-2 h-4 w-4" />
+                Relatórios a fechar
               </Link>
             )}
             {hasPermission('priceTables') && (
@@ -76,6 +79,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                   getActiveClass(location.pathname, "/price-tables")
                 )}
               >
+                <Table className="mr-2 h-4 w-4" />
                 Tabela de Preços
               </Link>
             )}
@@ -87,6 +91,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                   getActiveClass(location.pathname, "/cities")
                 )}
               >
+                <MapPin className="mr-2 h-4 w-4" />
                 Cidades
               </Link>
             )}
