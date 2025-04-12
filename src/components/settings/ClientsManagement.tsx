@@ -3,9 +3,26 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useClients } from '@/contexts/clients';
 import { ClientTable } from '@/components/client/ClientTable';
+import { toast } from 'sonner';
+import { Client } from '@/types';
 
 export function ClientsManagement() {
-  const { clients, isLoading } = useClients();
+  const { clients, loading, deleteClient, updateClient } = useClients();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleEditClient = (client: Client) => {
+    // In the settings context, we'll just show a toast since we don't have the edit dialog here
+    toast.info("Edição de cliente", {
+      description: `Para editar ${client.name}, acesse a página de Clientes.`
+    });
+  };
+
+  const handleDeleteClient = (id: string) => {
+    if (confirm('Tem certeza que deseja excluir este cliente?')) {
+      deleteClient(id);
+      toast.success("Cliente excluído com sucesso");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -17,12 +34,18 @@ export function ClientsManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {loading ? (
             <div className="flex justify-center items-center h-40">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <ClientTable clients={clients} />
+            <ClientTable 
+              clients={clients}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onEditClient={handleEditClient}
+              onDeleteClient={handleDeleteClient}
+            />
           )}
         </CardContent>
       </Card>
