@@ -76,9 +76,9 @@ export function StatusMenu({
         
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
         
-        // Use string conversion to avoid type comparison errors
+        // Explicitly check for retained status using type assertion
         const fromRetained = String(status) === "retained";
-        const toRetained = String(newStatus) === "retained";
+        const toRetained = newStatus === "retained";
         const isRetained = fromRetained || toRetained;
         
         if (isRetained) {
