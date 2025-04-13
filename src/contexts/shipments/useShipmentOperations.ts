@@ -175,15 +175,42 @@ export const useShipmentOperations = (
   
   const deleteShipment = async (id: string) => {
     try {
-      // Delete from Supabase
+      console.log("Starting delete process for shipment:", id);
+      
+      // First, delete related documents
+      const { error: documentsError } = await supabase
+        .from('shipment_documents')
+        .delete()
+        .eq('shipment_id', id);
+        
+      if (documentsError) {
+        console.error("Error deleting related documents:", documentsError);
+        throw documentsError;
+      }
+      
+      // Delete related fiscal actions if any
+      const { error: fiscalError } = await supabase
+        .from('fiscal_actions')
+        .delete()
+        .eq('shipment_id', id);
+        
+      if (fiscalError) {
+        console.error("Error deleting related fiscal actions:", fiscalError);
+        throw fiscalError;
+      }
+      
+      // Delete the shipment
       const { error } = await supabase
         .from('shipments')
         .delete()
         .eq('id', id);
         
       if (error) {
+        console.error("Error deleting shipment from database:", error);
         throw error;
       }
+      
+      console.log("Successfully deleted shipment from database:", id);
       
       // Update state
       setShipments(prev => prev.filter(s => s.id !== id));

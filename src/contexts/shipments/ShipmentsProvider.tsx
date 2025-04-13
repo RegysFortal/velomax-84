@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useState, useEffect } from "react";
 import { Shipment, ShipmentStatus, TransportMode } from "@/types/shipment";
 import { toast } from "sonner";
@@ -48,11 +47,14 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     updateFiscalActionDetails
   } = useFiscalActions(shipments, setShipments);
   
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
   useEffect(() => {
     const loadShipmentsData = async () => {
       try {
         if (user) {
           setLoading(true);
+          console.log("Loading shipments data from database...");
           
           const { data: shipmentsData, error: shipmentsError } = await supabase
             .from('shipments')
@@ -62,6 +64,8 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
           if (shipmentsError) {
             throw shipmentsError;
           }
+          
+          console.log(`Retrieved ${shipmentsData.length} shipments from database`);
           
           const shipmentsWithDetails = await Promise.all(shipmentsData.map(async (shipment) => {
             const { data: documentsData, error: documentsError } = await supabase
@@ -107,6 +111,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
             };
           }));
           
+          console.log("Finished processing shipments data");
           setShipments(shipmentsWithDetails);
         }
       } catch (error) {
@@ -115,7 +120,13 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
         
         const storedShipments = localStorage.getItem("velomax_shipments");
         if (storedShipments) {
-          setShipments(JSON.parse(storedShipments));
+          try {
+            const parsed = JSON.parse(storedShipments);
+            setShipments(parsed);
+          } catch (parseError) {
+            console.error("Error parsing stored shipments:", parseError);
+            setShipments([]);
+          }
         }
       } finally {
         setLoading(false);
@@ -123,7 +134,11 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     };
     
     loadShipmentsData();
-  }, [user]);
+  }, [user, refreshTrigger]);
+  
+  const refreshShipmentsData = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
   
   const contextValue = {
     shipments,
@@ -145,6 +160,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     getShipmentsByCompany,
     getRetainedShipments,
     getUndeliveredShipments,
+    refreshShipmentsData
   };
   
   return (
@@ -154,7 +170,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
   );
 }
 
-// Utility functions for mapping data from Supabase to our models
 function mapShipmentFromSupabase(data: any): Shipment {
   return {
     id: data.id,

@@ -38,6 +38,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   const { getShipmentById, deleteShipment } = useShipments();
   const [currentShipment, setCurrentShipment] = useState<Shipment>(shipment);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
   
   // Update the shipment whenever the dialog is opened or the ID changes
   useEffect(() => {
@@ -62,7 +63,11 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
   }, [open, shipment?.id, currentShipment?.documents]);
   
   const handleDelete = async () => {
+    if (deleteInProgress) return;
+    
     try {
+      setDeleteInProgress(true);
+      console.log('Deleting shipment with ID:', shipment.id);
       await deleteShipment(shipment.id);
       toast.success("Embarque excluído com sucesso");
       setDeleteDialogOpen(false);
@@ -70,6 +75,8 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
     } catch (error) {
       console.error("Error deleting shipment:", error);
       toast.error("Erro ao excluir embarque");
+    } finally {
+      setDeleteInProgress(false);
     }
   };
   
@@ -119,6 +126,7 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
                 type="button" 
                 variant="destructive" 
                 onClick={() => setDeleteDialogOpen(true)}
+                disabled={deleteInProgress}
               >
                 <Trash className="h-4 w-4 mr-2" />
                 Excluir Embarque
@@ -140,8 +148,13 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+            <AlertDialogCancel disabled={deleteInProgress}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              disabled={deleteInProgress}
+            >
+              {deleteInProgress ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

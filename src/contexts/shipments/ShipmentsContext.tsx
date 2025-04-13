@@ -28,6 +28,7 @@ interface ShipmentsContextType {
   getShipmentsByCompany: (companyId: string) => Shipment[];
   getRetainedShipments: () => Shipment[];
   getUndeliveredShipments: () => Shipment[];
+  refreshShipmentsData: () => void;
 }
 
 export const ShipmentsContext = createContext<ShipmentsContextType | undefined>(undefined);
