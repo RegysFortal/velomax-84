@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarEvents, EVENT_TYPES, CalendarEvent, EventType } from '@/hooks/useCalendarEvents';
 import { Plus, Edit, Trash } from 'lucide-react';
+import { EventsList } from './calendar/EventsList';
 
 interface EventsCalendarProps {
   deliveries: Delivery[];
@@ -37,14 +38,14 @@ export const EventsCalendar = ({
   const [eventDescription, setEventDescription] = useState('');
   
   const calendarData = useMemo(() => {
-    const eventsMap = new Map<string, { events: CalendarEvent[], deliveries: number }>();
+    const eventsMap = new Map<string, { events: CalendarEvent[], scheduledDelivery: boolean }>();
     
     events.forEach(event => {
       try {
         if (!event.date) return;
         
         const dateKey = format(event.date, 'yyyy-MM-dd');
-        const existing = eventsMap.get(dateKey) || { events: [], deliveries: 0 };
+        const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
         existing.events.push(event);
         eventsMap.set(dateKey, existing);
       } catch (error) {
@@ -60,8 +61,8 @@ export const EventsCalendar = ({
         if (!isValid(deliveryDate)) return;
         
         const dateKey = format(deliveryDate, 'yyyy-MM-dd');
-        const existing = eventsMap.get(dateKey) || { events: [], deliveries: 0 };
-        eventsMap.set(dateKey, { ...existing, deliveries: existing.deliveries + 1 });
+        const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
+        eventsMap.set(dateKey, { ...existing, scheduledDelivery: true });
       } catch (error) {
         console.error('Error processing delivery date:', error);
       }
@@ -72,16 +73,17 @@ export const EventsCalendar = ({
   
   const modifierDates = useMemo(() => {
     const modifiers = {
-      delivery: [] as Date[],
-      event: [] as Date[]
+      event: [] as Date[],
+      scheduledDelivery: [] as Date[]
     };
     
     Array.from(calendarData.entries()).forEach(([dateStr, data]) => {
       const date = parseISO(dateStr);
       if (data.events.length > 0) {
         modifiers.event.push(date);
-      } else if (data.deliveries > 0) {
-        modifiers.delivery.push(date);
+      }
+      if (data.scheduledDelivery) {
+        modifiers.scheduledDelivery.push(date);
       }
     });
     
@@ -190,8 +192,24 @@ export const EventsCalendar = ({
   };
   
   const modifierStyles = {
-    delivery: { backgroundColor: '#10b981', color: 'white', borderRadius: '100%' },
+    scheduledDelivery: { backgroundColor: '#10b981', color: 'white', borderRadius: '100%' },
     event: { backgroundColor: '#3b82f6', color: 'white', borderRadius: '100%' }
+  };
+  
+  // Preparar eventos para o componente EventsList
+  const eventsForSelectedDate = selectedDate 
+    ? events.filter(event => {
+        const eventDate = new Date(event.date);
+        return eventDate.toDateString() === selectedDate.toDateString();
+      })
+    : [];
+    
+  const handleEditEvent = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+    setEventTitle(event.title);
+    setEventType(event.type);
+    setEventDescription(event.description || '');
+    setShowEventDialog(true);
   };
   
   return (
@@ -208,30 +226,44 @@ export const EventsCalendar = ({
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center">
-            <Calendar
-              mode="single"
-              onSelect={handleSelect}
-              modifiers={modifierDates}
-              modifiersStyles={modifierStyles}
-              className="w-full rounded-md border p-2"
-              locale={ptBR}
-            />
-            <div className="mt-4 flex items-center justify-center gap-4 text-sm flex-wrap">
-              <div className="flex items-center">
-                <div className="mr-1 h-3 w-3 rounded-full bg-blue-500" />
-                <span>Eventos</span>
-              </div>
-              <div className="flex items-center">
-                <div className="mr-1 h-3 w-3 rounded-full bg-green-500" />
-                <span>Entregas</span>
-              </div>
-              {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                <div key={key} className="flex items-center">
-                  <div className={`mr-1 h-3 w-3 rounded-full ${value.color}`} />
-                  <span>{value.label}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <Calendar
+                mode="single"
+                onSelect={handleSelect}
+                modifiers={modifierDates}
+                modifiersStyles={modifierStyles}
+                className="w-full rounded-md border p-2"
+                locale={ptBR}
+              />
+              <div className="mt-4 flex items-center justify-center gap-4 text-sm flex-wrap">
+                <div className="flex items-center">
+                  <div className="mr-1 h-3 w-3 rounded-full bg-blue-500" />
+                  <span>Eventos</span>
                 </div>
-              ))}
+                <div className="flex items-center">
+                  <div className="mr-1 h-3 w-3 rounded-full bg-green-500" />
+                  <span>Entrega Agendada</span>
+                </div>
+                {Object.entries(EVENT_TYPES).map(([key, value]) => (
+                  <div key={key} className="flex items-center">
+                    <div className={`mr-1 h-3 w-3 rounded-full ${value.color}`} />
+                    <span>{value.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="border rounded-md p-4">
+              <EventsList
+                selectedDate={selectedDate}
+                eventsForSelectedDate={eventsForSelectedDate}
+                handleNewEvent={() => {
+                  setSelectedDate(new Date());
+                  setShowEventDialog(true);
+                }}
+                handleEditEvent={handleEditEvent}
+                handleDeleteEvent={deleteEvent}
+              />
             </div>
           </div>
         </CardContent>
