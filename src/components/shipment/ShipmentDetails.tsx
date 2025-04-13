@@ -68,14 +68,21 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
     try {
       setDeleteInProgress(true);
       console.log('Deleting shipment with ID:', shipment.id);
-      await deleteShipment(shipment.id);
       
-      // Refresh the data to make sure it's updated correctly
-      refreshShipmentsData();
+      // Perform the deletion
+      await deleteShipment(shipment.id);
       
       toast.success("Embarque excluído com sucesso");
       setDeleteDialogOpen(false);
+      
+      // Close the details dialog first to prevent UI glitches
       onClose();
+      
+      // Then refresh data after a small delay
+      setTimeout(() => {
+        refreshShipmentsData();
+      }, 100);
+      
     } catch (error) {
       console.error("Error deleting shipment:", error);
       toast.error("Erro ao excluir embarque");

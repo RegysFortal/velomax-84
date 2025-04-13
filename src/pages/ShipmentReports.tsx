@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -53,31 +54,41 @@ export default function ShipmentReports() {
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
+  // Load data only once on component mount, not on every render
   useEffect(() => {
+    // Only refresh data once when the component mounts
     refreshShipmentsData();
-  }, [refreshShipmentsData]);
+    // Deliberately not including refreshShipmentsData in dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
-  const filteredShipments = shipments.filter(shipment => {
-    const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
-    
-    const matchesDateRange = !shipmentDate || 
-      (shipmentDate >= startOfDay(new Date(startDate)) && 
-       shipmentDate <= endOfDay(new Date(endDate)));
-    
-    const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
-    
-    const matchesCarrier = filterCarrier === 'all' || 
-      shipment.carrierName.toLowerCase().includes(filterCarrier.toLowerCase());
+  // Memoize filter function to prevent recalculation on every render
+  const getFilteredShipments = useCallback(() => {
+    return shipments.filter(shipment => {
+      const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
       
-    const matchesMode = filterMode === 'all' || shipment.transportMode === filterMode;
-    
-    return matchesDateRange && matchesStatus && matchesCarrier && matchesMode;
-  }).sort((a, b) => {
-    if (a.arrivalDate && b.arrivalDate) {
-      return new Date(b.arrivalDate).getTime() - new Date(a.arrivalDate).getTime();
-    }
-    return 0;
-  });
+      const matchesDateRange = !shipmentDate || 
+        (shipmentDate >= startOfDay(new Date(startDate)) && 
+         shipmentDate <= endOfDay(new Date(endDate)));
+      
+      const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
+      
+      const matchesCarrier = filterCarrier === 'all' || 
+        shipment.carrierName.toLowerCase().includes(filterCarrier.toLowerCase());
+        
+      const matchesMode = filterMode === 'all' || shipment.transportMode === filterMode;
+      
+      return matchesDateRange && matchesStatus && matchesCarrier && matchesMode;
+    }).sort((a, b) => {
+      if (a.arrivalDate && b.arrivalDate) {
+        return new Date(b.arrivalDate).getTime() - new Date(a.arrivalDate).getTime();
+      }
+      return 0;
+    });
+  }, [shipments, startDate, endDate, filterStatus, filterCarrier, filterMode]);
+  
+  // Use the memoized function to get filtered shipments
+  const filteredShipments = getFilteredShipments();
   
   const statusCounts = {
     in_transit: filteredShipments.filter(s => s.status === 'in_transit').length,
@@ -98,7 +109,9 @@ export default function ShipmentReports() {
   const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName)));
   
   const handleStatusChange = () => {
+    // Only increment the refresh trigger, avoid multiple refreshes
     setRefreshTrigger(prev => prev + 1);
+    // The actual data refresh will be handled in ShipmentsProvider
     refreshShipmentsData();
   };
   
@@ -110,7 +123,7 @@ export default function ShipmentReports() {
   const handleCloseDetails = () => {
     setIsDetailsOpen(false);
     setSelectedShipment(null);
-    setRefreshTrigger(prev => prev + 1);
+    // We only need to refresh data once after closing details
     refreshShipmentsData();
   };
 

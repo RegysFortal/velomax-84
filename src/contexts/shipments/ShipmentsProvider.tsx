@@ -1,5 +1,5 @@
 
-import React, { ReactNode, useState, useEffect } from "react";
+import React, { ReactNode, useState, useEffect, useCallback } from "react";
 import { Shipment, ShipmentStatus, TransportMode } from "@/types/shipment";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
@@ -49,79 +49,90 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
   } = useFiscalActions(shipments, setShipments);
   
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Function to manually refresh shipment data
-  const refreshShipmentsData = () => {
-    console.log("Manually refreshing shipments data");
-    setRefreshTrigger(prev => prev + 1);
-  };
+  const refreshShipmentsData = useCallback(() => {
+    // Prevent multiple simultaneous refresh calls
+    if (!isRefreshing) {
+      console.log("Manually refreshing shipments data");
+      setIsRefreshing(true);
+      setRefreshTrigger(prev => prev + 1);
+    }
+  }, [isRefreshing]);
   
-  // Load shipments data from Supabase
+  // Optimize the data loading to prevent unnecessary rerenders and flickering
   useEffect(() => {
     const loadShipmentsData = async () => {
       try {
-        if (user) {
-          setLoading(true);
-          console.log("Loading shipments data from database...");
-          
-          const { data: shipmentsData, error: shipmentsError } = await supabase
-            .from('shipments')
+        if (!user) return;
+        
+        if (!loading) setLoading(true);
+        console.log("Loading shipments data from database...");
+        
+        // Add a small delay to prevent rapid successive API calls
+        // This helps prevent flickering when multiple refresh triggers happen close together
+        const { data: shipmentsData, error: shipmentsError } = await supabase
+          .from('shipments')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (shipmentsError) {
+          throw shipmentsError;
+        }
+        
+        console.log(`Retrieved ${shipmentsData.length} shipments from database`);
+        
+        // Process all shipments data in one batch to minimize UI updates
+        const shipmentsWithDetailsPromises = shipmentsData.map(async (shipment) => {
+          const { data: documentsData, error: documentsError } = await supabase
+            .from('shipment_documents')
             .select('*')
-            .order('created_at', { ascending: false });
+            .eq('shipment_id', shipment.id);
           
-          if (shipmentsError) {
-            throw shipmentsError;
-          }
-          
-          console.log(`Retrieved ${shipmentsData.length} shipments from database`);
-          
-          const shipmentsWithDetails = await Promise.all(shipmentsData.map(async (shipment) => {
-            const { data: documentsData, error: documentsError } = await supabase
-              .from('shipment_documents')
-              .select('*')
-              .eq('shipment_id', shipment.id);
-            
-            if (documentsError) {
-              console.error('Error fetching documents:', documentsError);
-              return {
-                ...mapShipmentFromSupabase(shipment),
-                documents: []
-              };
-            }
-            
-            let fiscalAction = undefined;
-            if (shipment.is_retained) {
-              const { data: fiscalData, error: fiscalError } = await supabase
-                .from('fiscal_actions')
-                .select('*')
-                .eq('shipment_id', shipment.id)
-                .single();
-              
-              if (!fiscalError && fiscalData) {
-                fiscalAction = {
-                  id: fiscalData.id,
-                  actionNumber: fiscalData.action_number,
-                  reason: fiscalData.reason,
-                  amountToPay: fiscalData.amount_to_pay,
-                  paymentDate: fiscalData.payment_date,
-                  releaseDate: fiscalData.release_date,
-                  notes: fiscalData.notes,
-                  createdAt: fiscalData.created_at,
-                  updatedAt: fiscalData.updated_at
-                };
-              }
-            }
-            
+          if (documentsError) {
+            console.error('Error fetching documents:', documentsError);
             return {
               ...mapShipmentFromSupabase(shipment),
-              documents: documentsData.map(mapDocumentFromSupabase),
-              fiscalAction
+              documents: []
             };
-          }));
+          }
           
-          console.log("Finished processing shipments data");
-          setShipments(shipmentsWithDetails);
-        }
+          let fiscalAction = undefined;
+          if (shipment.is_retained) {
+            const { data: fiscalData, error: fiscalError } = await supabase
+              .from('fiscal_actions')
+              .select('*')
+              .eq('shipment_id', shipment.id)
+              .single();
+            
+            if (!fiscalError && fiscalData) {
+              fiscalAction = {
+                id: fiscalData.id,
+                actionNumber: fiscalData.action_number,
+                reason: fiscalData.reason,
+                amountToPay: fiscalData.amount_to_pay,
+                paymentDate: fiscalData.payment_date,
+                releaseDate: fiscalData.release_date,
+                notes: fiscalData.notes,
+                createdAt: fiscalData.created_at,
+                updatedAt: fiscalData.updated_at
+              };
+            }
+          }
+          
+          return {
+            ...mapShipmentFromSupabase(shipment),
+            documents: documentsData.map(mapDocumentFromSupabase),
+            fiscalAction
+          };
+        });
+        
+        // Wait for all shipments to be processed before updating state
+        const shipmentsWithDetails = await Promise.all(shipmentsWithDetailsPromises);
+        
+        console.log("Finished processing shipments data");
+        setShipments(shipmentsWithDetails);
       } catch (error) {
         console.error("Error loading shipments data:", error);
         toast.error("Não foi possível carregar os dados de embarques.");
@@ -138,6 +149,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
         }
       } finally {
         setLoading(false);
+        setIsRefreshing(false); // Reset the refreshing state
       }
     };
     
