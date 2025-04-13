@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { useShipments } from "@/contexts/shipments";
 
@@ -29,24 +30,40 @@ export function useDeliveryConfirm({
     try {
       // Validate required fields
       if (!receiverName.trim()) {
-        toast.error("Nome do recebedor é obrigatório");
+        toast({
+          title: "Erro",
+          description: "Nome do recebedor é obrigatório",
+          variant: "destructive"
+        });
         return;
       }
       
       if (!deliveryDate.trim()) {
-        toast.error("Data de entrega é obrigatória");
+        toast({
+          title: "Erro",
+          description: "Data de entrega é obrigatória",
+          variant: "destructive"
+        });
         return;
       }
       
       if (!deliveryTime.trim()) {
-        toast.error("Hora de entrega é obrigatória");
+        toast({
+          title: "Erro",
+          description: "Hora de entrega é obrigatória",
+          variant: "destructive"
+        });
         return;
       }
       
       const shipment = getShipmentById(shipmentId);
       
       if (!shipment) {
-        toast.error("Embarque não encontrado");
+        toast({
+          title: "Erro",
+          description: "Embarque não encontrado",
+          variant: "destructive"
+        });
         return;
       }
       
@@ -60,7 +77,11 @@ export function useDeliveryConfirm({
         
         // Ensure we have at least one document selected
         if (selectedDocuments.length === 0) {
-          toast.error("Selecione pelo menos um documento para marcar como entregue");
+          toast({
+            title: "Erro",
+            description: "Selecione pelo menos um documento para marcar como entregue",
+            variant: "destructive"
+          });
           return;
         }
         
@@ -98,11 +119,20 @@ export function useDeliveryConfirm({
         });
         
         if (allDocumentsDelivered) {
-          toast.success("Todos os documentos foram entregues. Status do embarque atualizado para Entregue.");
+          toast({
+            title: "Sucesso",
+            description: "Todos os documentos foram entregues. Status do embarque atualizado para Entregue."
+          });
         } else if (selectedDocuments.length > 0) {
-          toast.success("Documentos selecionados marcados como entregues. Status atualizado para Entrega Parcial.");
+          toast({
+            title: "Sucesso",
+            description: "Documentos selecionados marcados como entregues. Status atualizado para Entrega Parcial."
+          });
         } else {
-          toast.success("Nenhum documento selecionado para entrega. Embarque permanece em trânsito.");
+          toast({
+            title: "Sucesso",
+            description: "Nenhum documento selecionado para entrega. Embarque permanece em trânsito."
+          });
         }
       } else {
         // If no documents, create a single delivery for the shipment and mark as delivered
@@ -116,7 +146,10 @@ export function useDeliveryConfirm({
           receiverId: undefined
         });
         
-        toast.success("Embarque marcado como entregue com sucesso!");
+        toast({
+          title: "Sucesso",
+          description: "Embarque marcado como entregue com sucesso!"
+        });
       }
       
       // Reset form state
@@ -128,7 +161,11 @@ export function useDeliveryConfirm({
       }
     } catch (error) {
       console.error("Error confirming delivery:", error);
-      toast.error("Erro ao confirmar entrega. Tente novamente.");
+      toast({
+        title: "Erro",
+        description: "Erro ao confirmar entrega. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
   

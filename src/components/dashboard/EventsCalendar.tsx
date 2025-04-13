@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
-import { Delivery } from '@/types';
+import { Delivery, Shipment } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { format, parseISO, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -18,10 +18,12 @@ import { Plus, Edit, Trash } from 'lucide-react';
 
 interface EventsCalendarProps {
   deliveries: Delivery[];
+  shipments?: Shipment[];
 }
 
 export const EventsCalendar = ({
-  deliveries
+  deliveries,
+  shipments = []
 }: EventsCalendarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();

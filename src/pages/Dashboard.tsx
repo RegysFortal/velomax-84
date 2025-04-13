@@ -126,7 +126,6 @@ const Dashboard = () => {
           
           <EventsCalendar 
             deliveries={filteredDeliveries}
-            shipments={filteredShipments}
           />
         </div>
       </div>
