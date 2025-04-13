@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useShipments } from '@/contexts/shipments';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -105,6 +105,7 @@ export default function ShipmentReports() {
   const handleCloseDetails = () => {
     setIsDetailsOpen(false);
     setSelectedShipment(null);
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const generatePDF = () => {
