@@ -37,7 +37,10 @@ export function useShipmentFiltering(
     arrivalDate.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
     
-    return arrivalDate < today && shipment.status !== 'delivered' && shipment.status !== 'delivered_final';
+    return arrivalDate < today && 
+           shipment.status !== 'delivered' && 
+           shipment.status !== 'delivered_final' &&
+           shipment.status !== 'partially_delivered';
   };
 
   return { filteredShipments, isShipmentOverdue };

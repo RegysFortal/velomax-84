@@ -38,15 +38,6 @@ export function StatusActionButtons({ status, onStatusChangeClick }: StatusActio
           Marcar como Retirado
         </Button>
       )}
-      {status !== "partially_delivered" && (
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => onStatusChangeClick("partially_delivered")}
-        >
-          Marcar como Entregue Parcial
-        </Button>
-      )}
       {status !== "delivered_final" && (
         <Button 
           variant="outline" 

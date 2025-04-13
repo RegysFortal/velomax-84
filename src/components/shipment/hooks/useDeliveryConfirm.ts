@@ -117,7 +117,10 @@ export function useDeliveryConfirm({
         const allDocumentsDelivered = updatedDocuments.every(doc => doc.isDelivered);
         
         // Update shipment status based on document delivery status
-        const newStatus = allDocumentsDelivered ? "delivered_final" : "in_transit";
+        // Mudança principal: Se alguns documentos foram entregues, mas não todos, marcar como entrega parcial
+        const newStatus = allDocumentsDelivered 
+          ? "delivered_final" 
+          : (selectedDocuments.length > 0 ? "partially_delivered" : "in_transit");
         
         // First update the status in the database
         await updateStatus(shipmentId, newStatus);
@@ -126,8 +129,8 @@ export function useDeliveryConfirm({
         await updateShipment(shipmentId, {
           status: newStatus,
           documents: updatedDocuments,
-          // Only set these fields if all documents are delivered
-          ...(allDocumentsDelivered && {
+          // Set delivery details for both final and partial deliveries
+          ...(selectedDocuments.length > 0 && {
             deliveryDate,
             deliveryTime,
             receiverName,
@@ -137,8 +140,10 @@ export function useDeliveryConfirm({
         
         if (allDocumentsDelivered) {
           toast.success("Todos os documentos foram entregues. Status do embarque atualizado para Entregue.");
+        } else if (selectedDocuments.length > 0) {
+          toast.success("Documentos selecionados marcados como entregues. Status atualizado para Entrega Parcial.");
         } else {
-          toast.success("Documentos selecionados marcados como entregues. Embarque permanece em trânsito.");
+          toast.success("Nenhum documento selecionado para entrega. Embarque permanece em trânsito.");
         }
       } else {
         // If no documents, create a single delivery for the shipment and mark as delivered
