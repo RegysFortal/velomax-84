@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -29,7 +28,6 @@ export const EventsCalendar = ({
   const { toast } = useToast();
   const { events, loading, addEvent, updateEvent, deleteEvent } = useCalendarEvents();
   
-  // State for event dialog
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | undefined>(undefined);
@@ -37,11 +35,9 @@ export const EventsCalendar = ({
   const [eventType, setEventType] = useState<EventType>('other');
   const [eventDescription, setEventDescription] = useState('');
   
-  // Prepare calendar data
   const calendarData = useMemo(() => {
     const eventsMap = new Map<string, { events: CalendarEvent[], deliveries: number }>();
     
-    // Add custom events
     events.forEach(event => {
       try {
         if (!event.date) return;
@@ -55,7 +51,6 @@ export const EventsCalendar = ({
       }
     });
     
-    // Count deliveries by date
     deliveries.forEach(delivery => {
       try {
         if (!delivery.deliveryDate) return;
@@ -74,15 +69,12 @@ export const EventsCalendar = ({
     return eventsMap;
   }, [deliveries, events]);
   
-  // Format the calendar modifier dates 
   const modifierDates = useMemo(() => {
-    // Create modifiers object for the Calendar component
     const modifiers = {
       delivery: [] as Date[],
       event: [] as Date[]
     };
     
-    // Populate modifiers with dates
     Array.from(calendarData.entries()).forEach(([dateStr, data]) => {
       const date = parseISO(dateStr);
       if (data.events.length > 0) {
@@ -95,17 +87,14 @@ export const EventsCalendar = ({
     return modifiers;
   }, [calendarData]);
   
-  // Handle date selection in calendar
   const handleSelect = (date: Date | undefined) => {
     if (!date) return;
     
     const dateStr = format(date, 'yyyy-MM-dd');
     const eventsForDate = calendarData.get(dateStr);
     
-    // Open dialog for creating new event
     setSelectedDate(date);
     
-    // If there's exactly one event for the date, open it for editing
     if (eventsForDate?.events.length === 1) {
       const event = eventsForDate.events[0];
       setSelectedEvent(event);
@@ -113,9 +102,7 @@ export const EventsCalendar = ({
       setEventType(event.type);
       setEventDescription(event.description || '');
       setShowEventDialog(true);
-    } 
-    // If there are no events or multiple events, open empty dialog
-    else {
+    } else {
       setSelectedEvent(undefined);
       setEventTitle('');
       setEventType('other');
@@ -124,7 +111,6 @@ export const EventsCalendar = ({
     }
   };
   
-  // Handle creating or updating an event
   const handleSaveEvent = () => {
     if (!selectedDate) return;
     
@@ -139,7 +125,6 @@ export const EventsCalendar = ({
       }
       
       if (selectedEvent) {
-        // Update existing event
         updateEvent({
           ...selectedEvent,
           title: eventTitle,
@@ -151,7 +136,6 @@ export const EventsCalendar = ({
           description: "O evento foi atualizado com sucesso."
         });
       } else {
-        // Create new event
         addEvent({
           date: selectedDate,
           title: eventTitle,
@@ -164,7 +148,6 @@ export const EventsCalendar = ({
         });
       }
       
-      // Close dialog and reset form
       setShowEventDialog(false);
       resetForm();
     } catch (error) {
@@ -177,7 +160,6 @@ export const EventsCalendar = ({
     }
   };
   
-  // Handle deleting an event
   const handleDeleteEvent = () => {
     if (!selectedEvent) return;
     
@@ -199,7 +181,6 @@ export const EventsCalendar = ({
     }
   };
   
-  // Reset form state
   const resetForm = () => {
     setSelectedEvent(undefined);
     setEventTitle('');
@@ -207,7 +188,6 @@ export const EventsCalendar = ({
     setEventDescription('');
   };
   
-  // Custom modifier styles
   const modifierStyles = {
     delivery: { backgroundColor: '#10b981', color: 'white', borderRadius: '100%' },
     event: { backgroundColor: '#3b82f6', color: 'white', borderRadius: '100%' }
@@ -256,7 +236,6 @@ export const EventsCalendar = ({
         </CardContent>
       </Card>
       
-      {/* Event Dialog */}
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
         <DialogContent>
           <DialogHeader>
