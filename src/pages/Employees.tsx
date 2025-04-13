@@ -96,7 +96,8 @@ export default function Employees() {
 
   const handleEditClick = (employee: User) => {
     console.log("Edit employee clicked:", employee);
-    setSelectedEmployee({...employee}); // Use a copy to avoid reference issues
+    // Create a deep copy to avoid reference issues
+    setSelectedEmployee(JSON.parse(JSON.stringify(employee)));
     setIsCreating(false);
     setIsDialogOpen(true);
   };

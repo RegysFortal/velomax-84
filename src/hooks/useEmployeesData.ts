@@ -221,7 +221,7 @@ export const useEmployeesData = () => {
         throw error;
       }
       
-      // Update local state
+      // Update local state with fresh data
       await fetchEmployees();
       
       return true;
