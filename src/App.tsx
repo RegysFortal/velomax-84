@@ -10,7 +10,7 @@ import { Toaster } from '@/components/ui/toaster';
 import ProfilePage from './pages/Profile';
 import VehiclesPage from './pages/Vehicles';
 import DeliveriesPage from './pages/Deliveries';
-import ShipmentsPage from './pages/Shipments';
+import ShipmentsPage from './pages/shipments'; // Updated import path
 import EmployeesPage from './pages/Employees';
 import MaintenancePage from './pages/Maintenance';
 import LogbookPage from './pages/Logbook';
