@@ -36,7 +36,7 @@ export function DeliveryDateTimeFields({
                   if (date) {
                     // Convert to ISO string format (YYYY-MM-DD)
                     const formattedDate = date.toISOString().split('T')[0];
-                    console.log("Selected date:", formattedDate);
+                    console.log(`DeliveryDateTimeFields - Setting ${dateName} to:`, formattedDate);
                     field.onChange(formattedDate);
                   } else {
                     field.onChange('');

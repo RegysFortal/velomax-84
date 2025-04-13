@@ -35,17 +35,21 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
   }, [date]);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
-    console.log('DatePicker - Date selected:', selectedDate);
     if (selectedDate) {
       setInputValue(format(selectedDate, "dd/MM/yyyy"));
-      console.log('Selected date:', format(selectedDate, 'yyyy-MM-dd'));
+      
+      // Ensure we're passing a valid date to the parent component
+      if (onSelect) {
+        console.log('DatePicker - Selecting date:', format(selectedDate, 'yyyy-MM-dd'));
+        onSelect(selectedDate);
+      }
     } else {
       setInputValue("");
+      if (onSelect) {
+        onSelect(undefined);
+      }
     }
     
-    if (onSelect) {
-      onSelect(selectedDate);
-    }
     setIsPopoverOpen(false);
   };
 

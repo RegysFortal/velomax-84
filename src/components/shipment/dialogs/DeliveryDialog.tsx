@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,17 @@ export function DeliveryDialog({
   setDeliveryTime,
   onConfirm
 }: DeliveryDialogProps) {
+  // Este efeito garante que o console.log apenas será executado quando as props mudam
+  useEffect(() => {
+    if (open) {
+      console.log('DeliveryDialog - Current values:', { 
+        receiverName, 
+        deliveryDate, 
+        deliveryTime 
+      });
+    }
+  }, [open, receiverName, deliveryDate, deliveryTime]);
+
   const handleConfirm = () => {
     if (!receiverName.trim()) {
       toast.error("Por favor, informe o nome do recebedor");
@@ -46,12 +57,29 @@ export function DeliveryDialog({
       return;
     }
 
+    console.log('DeliveryDialog - Confirming with values:', {
+      receiverName,
+      deliveryDate,
+      deliveryTime
+    });
+    
     onConfirm();
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      // Formatar a data para o formato ISO (YYYY-MM-DD)
+      const formattedDate = date.toISOString().split('T')[0];
+      console.log('DeliveryDialog - Date selected:', formattedDate);
+      setDeliveryDate(formattedDate);
+    } else {
+      setDeliveryDate('');
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="z-[1001]">
         <DialogHeader>
           <DialogTitle>Detalhes da Entrega</DialogTitle>
         </DialogHeader>
@@ -71,7 +99,7 @@ export function DeliveryDialog({
             <Label htmlFor="deliveryDate">Data da Entrega</Label>
             <DatePicker
               date={deliveryDate ? new Date(deliveryDate) : undefined}
-              onSelect={(date) => setDeliveryDate(date ? date.toISOString().split('T')[0] : '')}
+              onSelect={handleDateSelect}
               placeholder="Selecione a data"
             />
           </div>
