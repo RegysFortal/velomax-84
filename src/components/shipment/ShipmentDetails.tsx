@@ -14,6 +14,7 @@ import { useClients } from "@/contexts";
 import { DocumentsList } from "./DocumentsList";
 import DetailsTab from "./details/DetailsTab";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ShipmentDetailsProps {
   shipment: Shipment;
@@ -61,37 +62,39 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
           </DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="details" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="details">Detalhes</TabsTrigger>
-            <TabsTrigger value="documents">Documentos</TabsTrigger>
-            {/* <TabsTrigger value="history">Histórico</TabsTrigger> */}
-          </TabsList>
+        <ScrollArea className="h-[calc(95vh-150px)]">
+          <Tabs defaultValue="details" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="details">Detalhes</TabsTrigger>
+              <TabsTrigger value="documents">Documentos</TabsTrigger>
+              {/* <TabsTrigger value="history">Histórico</TabsTrigger> */}
+            </TabsList>
+            
+            <TabsContent value="details">
+              <DetailsTab 
+                shipment={currentShipment} 
+                onClose={onClose} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="documents" className="space-y-4">
+              <DocumentsList 
+                shipmentId={currentShipment.id} 
+                documents={currentShipment.documents || []} 
+              />
+            </TabsContent>
+            
+            {/* <TabsContent value="history">
+              <p>Em breve: Histórico de alterações do embarque.</p>
+            </TabsContent> */}
+          </Tabs>
           
-          <TabsContent value="details">
-            <DetailsTab 
-              shipment={currentShipment} 
-              onClose={onClose} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="documents" className="space-y-4">
-            <DocumentsList 
-              shipmentId={currentShipment.id} 
-              documents={currentShipment.documents || []} 
-            />
-          </TabsContent>
-          
-          {/* <TabsContent value="history">
-            <p>Em breve: Histórico de alterações do embarque.</p>
-          </TabsContent> */}
-        </Tabs>
-        
-        <div className="flex justify-end pt-6">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Fechar
-          </Button>
-        </div>
+          <div className="flex justify-end pt-6">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Fechar
+            </Button>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

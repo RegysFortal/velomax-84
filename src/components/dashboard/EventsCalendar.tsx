@@ -73,15 +73,11 @@ export const EventsCalendar = ({
   
   const modifierDates = useMemo(() => {
     const modifiers = {
-      event: [] as Date[],
       scheduledDelivery: [] as Date[]
     };
     
     Array.from(calendarData.entries()).forEach(([dateStr, data]) => {
       const date = parseISO(dateStr);
-      if (data.events.length > 0) {
-        modifiers.event.push(date);
-      }
       if (data.scheduledDelivery) {
         modifiers.scheduledDelivery.push(date);
       }
@@ -128,7 +124,6 @@ export const EventsCalendar = ({
       }
       
       if (selectedEvent) {
-        // Fix: Pass both the id and the updated event object
         updateEvent(selectedEvent.id, {
           title: eventTitle,
           type: eventType,
@@ -192,8 +187,7 @@ export const EventsCalendar = ({
   };
   
   const modifierStyles = {
-    scheduledDelivery: { backgroundColor: '#10b981', color: 'white', borderRadius: '100%' },
-    event: { backgroundColor: '#3b82f6', color: 'white', borderRadius: '100%' }
+    scheduledDelivery: { backgroundColor: '#10b981', color: 'white', borderRadius: '100%' }
   };
   
   // Preparar eventos para o componente EventsList
@@ -237,10 +231,6 @@ export const EventsCalendar = ({
                 locale={ptBR}
               />
               <div className="mt-4 flex items-center justify-center gap-4 text-sm flex-wrap">
-                <div className="flex items-center">
-                  <div className="mr-1 h-3 w-3 rounded-full bg-blue-500" />
-                  <span>Eventos</span>
-                </div>
                 <div className="flex items-center">
                   <div className="mr-1 h-3 w-3 rounded-full bg-green-500" />
                   <span>Entrega Agendada</span>
