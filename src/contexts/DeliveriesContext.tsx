@@ -7,6 +7,14 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { calculateFreight as utilsCalculateFreight, isDoorToDoorDelivery as checkIfDoorToDoor, checkMinuteNumberExists as checkMinuteExists } from '@/utils/deliveryUtils';
 import { PriceTable } from '@/types';
 import { usePriceTables } from '@/contexts';
+import { Shipment, Document } from '@/types/shipment';
+
+export interface DeliveryDetails {
+  receiverName: string;
+  deliveryDate: string;
+  deliveryTime: string;
+  selectedDocumentIds: string[];
+}
 
 interface DeliveriesContextType {
   deliveries: Delivery[];
@@ -26,6 +34,7 @@ interface DeliveriesContextType {
   ) => number;
   isDoorToDoorDelivery: (deliveryType: DeliveryType) => boolean;
   checkMinuteNumberExists: (minuteNumber: string, clientId: string) => boolean;
+  createDeliveriesFromShipment: (shipment: Shipment, deliveryDetails: DeliveryDetails) => Promise<void>;
 }
 
 const DeliveriesContext = createContext<DeliveriesContextType | undefined>(undefined);
@@ -258,6 +267,50 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
     return checkMinuteExists(deliveries, minuteNumber, clientId);
   };
   
+  const createDeliveriesFromShipment = async (shipment: Shipment, deliveryDetails: DeliveryDetails) => {
+    try {
+      const selectedDocuments = shipment.documents.filter(doc => 
+        deliveryDetails.selectedDocumentIds.includes(doc.id)
+      );
+      
+      if (selectedDocuments.length === 0) {
+        console.log("No documents selected for delivery creation");
+        return;
+      }
+      
+      console.log(`Creating ${selectedDocuments.length} deliveries from shipment ${shipment.id}`);
+      
+      const newDeliveries = await Promise.all(selectedDocuments.map(async (document) => {
+        const deliveryData: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
+          minuteNumber: document.minuteNumber || `DOC-${document.id.substring(0, 8)}`,
+          clientId: shipment.companyId,
+          deliveryDate: deliveryDetails.deliveryDate,
+          deliveryTime: deliveryDetails.deliveryTime,
+          receiver: deliveryDetails.receiverName,
+          weight: document.weight || shipment.weight / shipment.documents.length,
+          packages: document.packages || 1,
+          deliveryType: 'standard',
+          cargoType: 'standard',
+          totalFreight: 0,
+          notes: `Entrega criada a partir do embarque ${shipment.trackingNumber}`,
+          occurrence: '',
+        };
+        
+        return await addDelivery(deliveryData);
+      }));
+      
+      console.log(`Created ${newDeliveries.length} deliveries successfully`);
+      
+      const event = new CustomEvent('deliveries-updated');
+      window.dispatchEvent(event);
+      
+      toast.success(`${newDeliveries.length} entregas criadas com sucesso`);
+    } catch (error) {
+      console.error('Error creating deliveries from shipment:', error);
+      toast.error('Erro ao criar entregas a partir do embarque');
+    }
+  };
+  
   return (
     <DeliveriesContext.Provider value={{
       deliveries,
@@ -268,7 +321,8 @@ export function DeliveriesProvider({ children }: { children: ReactNode }) {
       getDeliveryById,
       calculateFreight,
       isDoorToDoorDelivery,
-      checkMinuteNumberExists
+      checkMinuteNumberExists,
+      createDeliveriesFromShipment
     }}>
       {children}
     </DeliveriesContext.Provider>

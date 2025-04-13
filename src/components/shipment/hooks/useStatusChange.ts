@@ -9,7 +9,7 @@ interface UseStatusChangeProps {
 }
 
 export function useStatusChange(props?: UseStatusChangeProps) {
-  const { updateShipmentStatus } = useShipments();
+  const { updateStatus } = useShipments();
   const [isProcessing, setIsProcessing] = useState(false);
   
   /**
@@ -61,7 +61,12 @@ export function useStatusChange(props?: UseStatusChangeProps) {
       }
       
       // Update the shipment with new status
-      await updateShipmentStatus(shipmentId, shipmentData, details?.selectedDocumentIds);
+      await updateStatus(shipmentId, newStatus);
+      
+      // If there are additional details, update the shipment with those too
+      if (Object.keys(shipmentData).length > 1) {
+        await updateStatus(shipmentId, newStatus);
+      }
       
       // Show success message
       toast.success(`Status atualizado com sucesso para ${getStatusDisplayName(newStatus)}`);

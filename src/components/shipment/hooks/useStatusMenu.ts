@@ -19,12 +19,16 @@ export function useStatusMenu({
   onStatusChange 
 }: UseStatusMenuProps) {
   const { getStatusLabel } = useStatusLabel();
-  const { updateShipmentStatus, getShipmentById } = useShipments();
+  const { updateStatus, getShipmentById } = useShipments();
   const { createDeliveriesFromShipment } = useDeliveries();
   const shipment = getShipmentById(shipmentId);
   
   // Use status change hook to get the correct handler
-  const { handleStatusUpdate } = useStatusChange();
+  const { handleStatusUpdate } = useStatusChange({
+    onStatusChange: status => {
+      if (onStatusChange) onStatusChange();
+    }
+  });
   
   // Dialog state
   const [showDocumentSelection, setShowDocumentSelection] = useState(false);

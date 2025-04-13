@@ -55,16 +55,25 @@ export const EventsCalendar = ({
     return events;
   }, [deliveries, shipments]);
   
-  // Format the calendar event dates for highlighting
-  const highlightedDates = useMemo(() => {
-    return Array.from(calendarData.entries()).map(([dateStr, counts]) => {
-      return {
-        date: parseISO(dateStr),
-        highlight: counts.deliveries > 0 ? 'delivery' : 'shipment',
-        deliveryCount: counts.deliveries,
-        shipmentCount: counts.shipments
-      };
+  // Format the calendar modifier dates 
+  const modifierDates = useMemo(() => {
+    // Create modifiers object for the Calendar component
+    const modifiers = {
+      delivery: [] as Date[],
+      shipment: [] as Date[]
+    };
+    
+    // Populate modifiers with dates
+    Array.from(calendarData.entries()).forEach(([dateStr, counts]) => {
+      const date = parseISO(dateStr);
+      if (counts.deliveries > 0) {
+        modifiers.delivery.push(date);
+      } else if (counts.shipments > 0) {
+        modifiers.shipment.push(date);
+      }
     });
+    
+    return modifiers;
   }, [calendarData]);
   
   // Handle date selection in calendar
@@ -83,6 +92,12 @@ export const EventsCalendar = ({
     }
   };
   
+  // Custom modifier styles
+  const modifierStyles = {
+    delivery: { backgroundColor: '#10b981', color: 'white', borderRadius: '100%' },
+    shipment: { backgroundColor: '#3b82f6', color: 'white', borderRadius: '100%' }
+  };
+  
   return (
     <Card className="col-span-2 lg:col-span-3">
       <CardHeader>
@@ -93,7 +108,8 @@ export const EventsCalendar = ({
           <Calendar
             mode="single"
             onSelect={handleSelect}
-            highlightedDates={highlightedDates}
+            modifiers={modifierDates}
+            modifiersStyles={modifierStyles}
             className="w-full rounded-md border p-2"
             locale={ptBR}
           />
