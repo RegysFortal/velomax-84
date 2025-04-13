@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
@@ -88,11 +89,12 @@ export function useStatusMenu({
       }
       
       // Process the delivery
+      // Ensure selectedDocumentIds is always provided as non-optional
       const deliveryDetails: DeliveryDetailsType = {
         receiverName,
         deliveryDate,
         deliveryTime,
-        selectedDocumentIds
+        selectedDocumentIds: selectedDocumentIds || [] // Provide empty array as fallback
       };
       
       // Update shipment status with delivery details

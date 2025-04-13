@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
@@ -7,7 +8,7 @@ export type DeliveryDetailsType = {
   receiverName: string;
   deliveryDate: string;
   deliveryTime: string;
-  selectedDocumentIds?: string[];
+  selectedDocumentIds: string[]; // Changed from optional to required
 };
 
 interface UseStatusActionProps {
