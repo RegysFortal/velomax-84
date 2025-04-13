@@ -174,7 +174,7 @@ export const EventsCalendar = ({
     } catch (error) {
       console.error('Error deleting event:', error);
       toast({
-        title: "Erro", 
+        title: "Erro",
         description: "Ocorreu um erro ao excluir o evento.",
         variant: "destructive"
       });
