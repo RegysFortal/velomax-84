@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useState, useEffect } from "react";
 import { Shipment, ShipmentStatus, TransportMode } from "@/types/shipment";
 import { toast } from "sonner";
@@ -49,6 +50,13 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
   
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
+  // Function to manually refresh shipment data
+  const refreshShipmentsData = () => {
+    console.log("Manually refreshing shipments data");
+    setRefreshTrigger(prev => prev + 1);
+  };
+  
+  // Load shipments data from Supabase
   useEffect(() => {
     const loadShipmentsData = async () => {
       try {
@@ -135,10 +143,6 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     
     loadShipmentsData();
   }, [user, refreshTrigger]);
-  
-  const refreshShipmentsData = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
   
   const contextValue = {
     shipments,

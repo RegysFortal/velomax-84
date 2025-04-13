@@ -42,7 +42,7 @@ import * as XLSX from 'xlsx';
 import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
 
 export default function ShipmentReports() {
-  const { shipments, loading } = useShipments();
+  const { shipments, loading, refreshShipmentsData } = useShipments();
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [filterStatus, setFilterStatus] = useState<ShipmentStatus | 'all'>('all');
@@ -52,6 +52,10 @@ export default function ShipmentReports() {
   
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  
+  useEffect(() => {
+    refreshShipmentsData();
+  }, [refreshShipmentsData]);
   
   const filteredShipments = shipments.filter(shipment => {
     const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
@@ -95,6 +99,7 @@ export default function ShipmentReports() {
   
   const handleStatusChange = () => {
     setRefreshTrigger(prev => prev + 1);
+    refreshShipmentsData();
   };
   
   const handleOpenDetails = (shipment: Shipment) => {
@@ -106,6 +111,7 @@ export default function ShipmentReports() {
     setIsDetailsOpen(false);
     setSelectedShipment(null);
     setRefreshTrigger(prev => prev + 1);
+    refreshShipmentsData();
   };
 
   const generatePDF = () => {

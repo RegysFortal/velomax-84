@@ -35,7 +35,7 @@ interface ShipmentDetailsProps {
 
 export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProps) {
   const { clients } = useClients();
-  const { getShipmentById, deleteShipment } = useShipments();
+  const { getShipmentById, deleteShipment, refreshShipmentsData } = useShipments();
   const [currentShipment, setCurrentShipment] = useState<Shipment>(shipment);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteInProgress, setDeleteInProgress] = useState(false);
@@ -69,6 +69,10 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
       setDeleteInProgress(true);
       console.log('Deleting shipment with ID:', shipment.id);
       await deleteShipment(shipment.id);
+      
+      // Refresh the data to make sure it's updated correctly
+      refreshShipmentsData();
+      
       toast.success("Embarque excluído com sucesso");
       setDeleteDialogOpen(false);
       onClose();
