@@ -115,30 +115,32 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
-        placeholder="DD/MM/YYYY"
+        placeholder="DD/MM/AAAA"
         className="flex-1"
       />
-      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant={"outline"}
-            className="px-2"
-            type="button"
-          >
-            <CalendarIcon className="h-4 w-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-background z-[1000]" align="end">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={handleDateSelect}
-            initialFocus
-            locale={ptBR}
-            className="pointer-events-auto z-[1000]"
-          />
-        </PopoverContent>
-      </Popover>
+      {!allowTyping && (
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className="px-2"
+              type="button"
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-background z-[1000]" align="end">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={handleDateSelect}
+              initialFocus
+              locale={ptBR}
+              className="pointer-events-auto z-[1000]"
+            />
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   )
 }

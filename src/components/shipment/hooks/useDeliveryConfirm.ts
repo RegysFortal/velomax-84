@@ -96,11 +96,15 @@ export function useDeliveryConfirm({
         // Check if all documents are delivered
         const allDocumentsDelivered = updatedDocuments.every(doc => doc.isDelivered);
         
+        // Check if some documents are delivered (but not all)
+        const someDocumentsDelivered = updatedDocuments.some(doc => doc.isDelivered) && !allDocumentsDelivered;
+        
         // Update shipment status based on document delivery status
-        // Mudança principal: Se alguns documentos foram entregues, mas não todos, marcar como entrega parcial
         const newStatus = allDocumentsDelivered 
           ? "delivered_final" 
-          : (selectedDocuments.length > 0 ? "partially_delivered" : "in_transit");
+          : (someDocumentsDelivered ? "partially_delivered" : "in_transit");
+        
+        console.log(`Updating status to ${newStatus}. All delivered: ${allDocumentsDelivered}, Some delivered: ${someDocumentsDelivered}`);
         
         // First update the status in the database
         await updateStatus(shipmentId, newStatus);
@@ -123,7 +127,7 @@ export function useDeliveryConfirm({
             title: "Sucesso",
             description: "Todos os documentos foram entregues. Status do embarque atualizado para Entregue."
           });
-        } else if (selectedDocuments.length > 0) {
+        } else if (someDocumentsDelivered) {
           toast({
             title: "Sucesso",
             description: "Documentos selecionados marcados como entregues. Status atualizado para Entrega Parcial."

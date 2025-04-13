@@ -25,18 +25,16 @@ export function useStatusTransition({
   
   // Handler for status change button click
   const handleStatusChange = (newStatus: ShipmentStatus) => {
-    // Convert both status and newStatus to strings before comparison to avoid TypeScript errors
-    const currentStatusStr = status as string;
-    const newStatusStr = newStatus as string;
-
+    console.log(`Status transition from ${status} to ${newStatus}`);
+    
     // If changing to delivered_final, show document selection
-    if (newStatusStr === "delivered_final") {
+    if (newStatus === "delivered_final") {
       setShowDocumentSelection(true);
       return;
     }
     
     // If changing to "retained", show the retention sheet
-    if (newStatusStr === "retained") {
+    if (newStatus === "retained") {
       setShowRetentionSheet(true);
       return;
     }

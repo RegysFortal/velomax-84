@@ -19,7 +19,7 @@ export function DatePickerField({
   value,
   onChange,
   placeholder = "Selecione uma data",
-  allowTyping = false
+  allowTyping = true
 }: DatePickerFieldProps) {
   // When value changes externally, ensure the component reflects it
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(value);
