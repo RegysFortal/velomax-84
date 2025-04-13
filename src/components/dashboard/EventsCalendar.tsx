@@ -126,8 +126,8 @@ export const EventsCalendar = ({
       }
       
       if (selectedEvent) {
-        updateEvent({
-          ...selectedEvent,
+        // Fix: Pass both the id and the updated event object
+        updateEvent(selectedEvent.id, {
           title: eventTitle,
           type: eventType,
           description: eventDescription
