@@ -1,7 +1,8 @@
 
 import React from 'react';
+import { DropdownMenuGroup, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { ShipmentStatus } from "@/types/shipment";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { CheckCircle2, AlertTriangle, Truck, RotateCcw, PackageX } from "lucide-react";
 
 interface StatusMenuItemsProps {
   currentStatus: ShipmentStatus;
@@ -10,27 +11,46 @@ interface StatusMenuItemsProps {
 
 export function StatusMenuItems({ currentStatus, onStatusChange }: StatusMenuItemsProps) {
   return (
-    <>
-      {currentStatus !== "in_transit" && (
+    <DropdownMenuGroup>
+      {/* Em Trânsito */}
+      {(currentStatus === "retained" || currentStatus === "partially_delivered") && (
         <DropdownMenuItem onClick={() => onStatusChange("in_transit")}>
-          Marcar como Em Trânsito
+          <Truck className="w-4 h-4 mr-2" />
+          <span>Em Trânsito</span>
         </DropdownMenuItem>
       )}
+      
+      {/* Retida */}
       {currentStatus !== "retained" && (
         <DropdownMenuItem onClick={() => onStatusChange("retained")}>
-          Marcar como Retida
+          <AlertTriangle className="w-4 h-4 mr-2" />
+          <span>Retida</span>
         </DropdownMenuItem>
       )}
-      {currentStatus !== "delivered" && (
+      
+      {/* Retirada (Documento não entregue ao destinatário) */}
+      {(currentStatus === "in_transit" || currentStatus === "retained" || currentStatus === "partially_delivered") && (
         <DropdownMenuItem onClick={() => onStatusChange("delivered")}>
-          Marcar como Retirada
+          <PackageX className="w-4 h-4 mr-2" />
+          <span>Retirada</span>
         </DropdownMenuItem>
       )}
-      {currentStatus !== "delivered_final" && (
+      
+      {/* Entregue (Documento entregue ao destinatário) */}
+      {(currentStatus === "in_transit" || currentStatus === "delivered" || currentStatus === "retained" || currentStatus === "partially_delivered") && (
         <DropdownMenuItem onClick={() => onStatusChange("delivered_final")}>
-          Marcar como Entregue
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          <span>Entregue</span>
         </DropdownMenuItem>
       )}
-    </>
+      
+      {/* Additional options for specific states */}
+      {currentStatus === "delivered_final" && (
+        <DropdownMenuItem onClick={() => onStatusChange("in_transit")}>
+          <RotateCcw className="w-4 h-4 mr-2" />
+          <span>Desfazer Entrega</span>
+        </DropdownMenuItem>
+      )}
+    </DropdownMenuGroup>
   );
 }
