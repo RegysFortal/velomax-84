@@ -121,6 +121,13 @@ export const useEmployeesData = () => {
     try {
       console.log("Adding employee to database:", employee);
       
+      // Get current authenticated user ID for RLS
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !authData.user) {
+        throw new Error('User not authenticated');
+      }
+      
       // Transform employee data to match Supabase structure
       const supabaseEmployee = {
         id: employee.id || undefined,
@@ -149,8 +156,8 @@ export const useEmployeesData = () => {
         role: employee.role,
         vehicle: employee.vehicle,
         license: employee.license,
-        // Get the current user's id
-        user_id: (await supabase.auth.getUser()).data.user?.id
+        // Set the current user's id for RLS
+        user_id: authData.user.id
       };
       
       const { data, error } = await supabase
@@ -180,6 +187,13 @@ export const useEmployeesData = () => {
     try {
       console.log("Updating employee in database:", employee);
       
+      // Get current authenticated user ID for RLS
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !authData.user) {
+        throw new Error('User not authenticated');
+      }
+      
       // Transform employee data to match Supabase structure
       const supabaseEmployee = {
         name: employee.name,
@@ -206,7 +220,8 @@ export const useEmployeesData = () => {
         role: employee.role,
         vehicle: employee.vehicle,
         license: employee.license,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        // We don't update user_id here to maintain ownership
       };
       
       console.log("Supabase employee data for update:", supabaseEmployee);
