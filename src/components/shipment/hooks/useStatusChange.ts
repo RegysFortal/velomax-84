@@ -1,111 +1,105 @@
 
 import { useState } from 'react';
-import { useShipments } from "@/contexts/shipments";
 import { ShipmentStatus } from "@/types/shipment";
+import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
 
-interface StatusChangeProps {
-  shipmentId: string;
-  status: ShipmentStatus;
-  onStatusChange?: () => void;
-  setShowDocumentSelection: (show: boolean) => void;
-  setShowDeliveryDialog: (show: boolean) => void;
-  setShowRetentionSheet: (show: boolean) => void;
+interface UseStatusChangeProps {
+  onStatusChange?: (status: ShipmentStatus) => void;
 }
 
-/**
- * Hook for handling status changes
- */
-export function useStatusChange({ 
-  shipmentId, 
-  status, 
-  onStatusChange,
-  setShowDocumentSelection,
-  setShowDeliveryDialog,
-  setShowRetentionSheet
-}: StatusChangeProps) {
-  const { updateStatus, updateShipment, updateFiscalAction, getShipmentById } = useShipments();
-
+export function useStatusChange(props?: UseStatusChangeProps) {
+  const { updateShipmentStatus } = useShipments();
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   /**
-   * Handles changing the shipment status
+   * Handles the status update for a shipment
    */
-  const handleStatusChange = async (newStatus: ShipmentStatus) => {
-    // Convert both status values to strings for safe comparison
-    const currentStatusStr = status as string;
-    const newStatusStr = newStatus as string;
-    
-    if (newStatusStr === currentStatusStr) return;
-    
+  const handleStatusUpdate = async (
+    shipmentId: string, 
+    newStatus: ShipmentStatus, 
+    details?: any
+  ) => {
     try {
-      console.log(`Attempting to change status to: ${newStatus}`);
+      setIsProcessing(true);
       
-      // Get current shipment to check document state
-      const shipment = getShipmentById(shipmentId);
-      if (!shipment) {
-        throw new Error("Shipment not found");
-      }
+      // Convert status strings for comparison to avoid TypeScript errors
+      const newStatusStr = newStatus as string;
       
-      if (newStatusStr === "delivered_final") {
-        // Check if the shipment has any documents
-        if (shipment.documents && shipment.documents.length > 0) {
-          // Check if there are any undelivered documents
-          const undeliveredDocs = shipment.documents.filter(doc => !doc.isDelivered);
-          
-          if (undeliveredDocs.length > 0) {
-            // If there are undelivered documents, show document selection first
-            setShowDocumentSelection(true);
-            return;
-          }
-        }
-        
-        // If no documents or all already delivered, proceed directly to delivery dialog
-        setShowDeliveryDialog(true);
-        return;
-      } else if (newStatusStr === "partially_delivered") {
-        // For partially_delivered, we'll also show the delivery dialog
-        // but we'll need to handle the partial delivery differently
-        setShowDeliveryDialog(true);
-        return;
-      } else if (newStatusStr === "retained") {
-        setShowRetentionSheet(true);
-        return;
-      }
-      
-      // For other statuses (in_transit and delivered), update directly
-      // First update the status in the database
-      await updateStatus(shipmentId, newStatus);
-      
-      const updatedShipment = await updateShipment(shipmentId, { 
+      // Prepare updated shipment data
+      let shipmentData: Record<string, any> = {
         status: newStatus,
-        isRetained: newStatusStr === "retained"
-      });
-      
-      // Handle retention status - we need to check the previous status value
-      if (currentStatusStr === "retained" && newStatusStr !== "retained") {
-        // If we're changing from "retained" to something else, clear fiscal action
-        await updateFiscalAction(shipmentId, null);
-      }
-      
-      // Get status label
-      const getStatusLabel = (status: ShipmentStatus): string => {
-        switch (status) {
-          case "in_transit": return "Em Trânsito";
-          case "retained": return "Retida";
-          case "delivered": return "Retirada";
-          case "partially_delivered": return "Entregue Parcial";
-          case "delivered_final": return "Entregue";
-          default: return status;
-        }
       };
       
-      toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
+      // If moving to delivered_final, add delivery details
+      if (newStatusStr === "delivered_final" && details) {
+        shipmentData = {
+          ...shipmentData,
+          receiverName: details.receiverName,
+          deliveryDate: details.deliveryDate,
+          deliveryTime: details.deliveryTime,
+        };
+      }
       
-      if (onStatusChange) onStatusChange();
+      // If moving to retained, update fiscal action data
+      if (newStatusStr === "retained") {
+        shipmentData.isRetained = true;
+        
+        // If retention details provided, add them
+        if (details) {
+          const fiscalAction = {
+            actionNumber: details.actionNumber || '',
+            reason: details.retentionReason,
+            amountToPay: parseFloat(details.retentionAmount) || 0,
+            paymentDate: details.paymentDate || null,
+            releaseDate: details.releaseDate || null,
+            notes: details.fiscalNotes || '',
+          };
+          
+          shipmentData.fiscalAction = fiscalAction;
+        }
+      }
+      
+      // Update the shipment with new status
+      await updateShipmentStatus(shipmentId, shipmentData, details?.selectedDocumentIds);
+      
+      // Show success message
+      toast.success(`Status atualizado com sucesso para ${getStatusDisplayName(newStatus)}`);
+      
+      // Call the onStatusChange callback if provided
+      if (props?.onStatusChange) {
+        props.onStatusChange(newStatus);
+      }
     } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Erro ao alterar status");
+      console.error('Error updating shipment status:', error);
+      toast.error('Erro ao atualizar status do embarque');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  /**
+   * Returns a display-friendly name for a shipment status
+   */
+  const getStatusDisplayName = (status: ShipmentStatus): string => {
+    switch (status) {
+      case 'in_transit':
+        return 'Em Trânsito';
+      case 'retained':
+        return 'Retida';
+      case 'delivered':
+        return 'Retirada';
+      case 'partially_delivered':
+        return 'Entregue Parcial';
+      case 'delivered_final':
+        return 'Entregue';
+      default:
+        return status;
     }
   };
 
-  return { handleStatusChange };
+  return {
+    handleStatusUpdate,
+    isProcessing
+  };
 }

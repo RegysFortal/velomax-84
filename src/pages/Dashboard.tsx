@@ -117,8 +117,8 @@ const Dashboard = () => {
         
         <div className="grid gap-6 md:grid-cols-2">
           <ChartSection 
-            deliveries={filteredDeliveries} 
-            shipments={filteredShipments} 
+            deliveries={filteredDeliveries}
+            shipments={filteredShipments}
             startDate={startDate}
             endDate={endDate}
             clients={clients}
