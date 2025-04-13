@@ -1,155 +1,136 @@
-
 import { useState } from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
-import { useShipments } from "@/contexts/shipments";
-import { useDeliveries } from "@/contexts/DeliveriesContext";
+import { useStatusLabel } from './useStatusLabel';
 
-interface StatusActionHookProps {
-  status: ShipmentStatus;
-  shipmentId: string;
-  onStatusChange: (status: ShipmentStatus, deliveryDetails?: DeliveryDetailsType) => void;
-}
-
-export interface DeliveryDetailsType {
+export type DeliveryDetailsType = {
   receiverName: string;
   deliveryDate: string;
   deliveryTime: string;
   selectedDocumentIds?: string[];
-  retentionReason?: string;
-  retentionAmount?: string;
-  paymentDate?: string;
-  releaseDate?: string;
-  actionNumber?: string;
-  fiscalNotes?: string;
+};
+
+interface UseStatusActionProps {
+  status: ShipmentStatus;
+  shipmentId: string;
+  onStatusChange: (status: ShipmentStatus, deliveryDetails?: any) => void;
 }
 
-export function useStatusAction({ status, shipmentId, onStatusChange }: StatusActionHookProps) {
-  const { getShipmentById } = useShipments();
-  const { addDelivery } = useDeliveries();
+export function useStatusAction({ status, shipmentId, onStatusChange }: UseStatusActionProps) {
+  const { getStatusLabel } = useStatusLabel();
   
+  // Dialog state
   const [showDocumentSelection, setShowDocumentSelection] = useState(false);
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
+  
+  // Document selection state
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
+  
+  // Delivery form state
   const [receiverName, setReceiverName] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   
+  // Retention form state
   const [retentionReason, setRetentionReason] = useState("");
   const [retentionAmount, setRetentionAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
   const [releaseDate, setReleaseDate] = useState("");
   const [actionNumber, setActionNumber] = useState("");
   const [fiscalNotes, setFiscalNotes] = useState("");
-
+  
+  // Handler for status change button click
   const handleStatusChangeClick = (newStatus: ShipmentStatus) => {
-    console.log(`Status button clicked for: ${newStatus}`);
-    
+    // If changing to delivered_final, show document selection
     if (newStatus === "delivered_final") {
-      // Check if the shipment has any documents
-      const shipment = getShipmentById(shipmentId);
-      
-      if (shipment && shipment.documents && shipment.documents.length > 0) {
-        // Check if there are any undelivered documents
-        const undeliveredDocs = shipment.documents.filter(doc => !doc.isDelivered);
-        
-        if (undeliveredDocs.length > 0) {
-          // If there are undelivered documents, show document selection first
-          setShowDocumentSelection(true);
-          return;
-        }
+      setShowDocumentSelection(true);
+      return;
+    }
+    
+    // If changing to "retained", show the retention sheet
+    if (newStatus === "retained") {
+      setShowRetentionSheet(true);
+      return;
+    }
+    
+    // Otherwise, update the status directly
+    onStatusChange(newStatus);
+  };
+  
+  // Handler for delivery confirmation
+  const handleDeliveryConfirm = () => {
+    try {
+      // Validate form
+      if (!receiverName.trim() || !deliveryDate || !deliveryTime) {
+        toast.error("Preencha todos os campos obrigatórios");
+        return;
       }
       
-      // If no documents or all already delivered, proceed directly to delivery dialog
-      setShowDeliveryDialog(true);
-    } else if (newStatus === "retained") {
-      setShowRetentionSheet(true);
-    } else {
-      // For in_transit and delivered statuses, update directly
-      onStatusChange(newStatus);
+      // Call onStatusChange with delivery details
+      onStatusChange("delivered_final", {
+        receiverName,
+        deliveryDate,
+        deliveryTime,
+        selectedDocumentIds
+      });
+      
+      // Close dialog
+      setShowDeliveryDialog(false);
+      
+      // Clear state
+      setSelectedDocumentIds([]);
+      setReceiverName("");
+      setDeliveryDate("");
+      setDeliveryTime("");
+    } catch (error) {
+      toast.error("Erro ao finalizar entrega");
+      console.error(error);
     }
-  };
-
-  const handleDeliveryConfirm = () => {
-    if (!receiverName.trim()) {
-      toast.error("Por favor, informe o nome do recebedor");
-      return;
-    }
-
-    if (!deliveryDate) {
-      toast.error("Por favor, selecione a data de entrega");
-      return;
-    }
-
-    if (!deliveryTime.trim()) {
-      toast.error("Por favor, informe o horário da entrega");
-      return;
-    }
-
-    console.log("Submitting delivery details:", {
-      receiverName,
-      deliveryDate,
-      deliveryTime,
-      selectedDocumentIds
-    });
-
-    onStatusChange("delivered_final", {
-      receiverName,
-      deliveryDate,
-      deliveryTime,
-      selectedDocumentIds
-    });
-
-    setShowDeliveryDialog(false);
-    resetDeliveryForm();
   };
   
-  const resetDeliveryForm = () => {
-    setReceiverName("");
-    setDeliveryDate("");
-    setDeliveryTime("");
-    setSelectedDocumentIds([]);
-  };
-  
+  // Handler for retention confirmation
   const handleRetentionConfirm = () => {
-    if (!retentionReason.trim()) {
-      toast.error("Por favor, informe o motivo da retenção");
-      return;
+    try {
+      // Validate form
+      if (!retentionReason.trim()) {
+        toast.error("Informe o motivo da retenção");
+        return;
+      }
+      
+      const amountValue = parseFloat(retentionAmount || "0");
+      
+      if (isNaN(amountValue) || amountValue < 0) {
+        toast.error("Valor da retenção deve ser um número válido");
+        return;
+      }
+      
+      // Call onStatusChange with retention details
+      onStatusChange("retained", {
+        actionNumber,
+        retentionReason,
+        retentionAmount,
+        paymentDate,
+        releaseDate,
+        fiscalNotes
+      });
+      
+      // Close dialog
+      setShowRetentionSheet(false);
+      
+      // Clear state
+      setRetentionReason("");
+      setRetentionAmount("");
+      setPaymentDate("");
+      setReleaseDate("");
+      setActionNumber("");
+      setFiscalNotes("");
+    } catch (error) {
+      toast.error("Erro ao reter embarque");
+      console.error(error);
     }
-
-    console.log("Submitting retention details:", {
-      retentionReason,
-      retentionAmount,
-      paymentDate,
-      releaseDate
-    });
-
-    onStatusChange("retained", {
-      receiverName: "",
-      deliveryDate: "",
-      deliveryTime: "",
-      retentionReason,
-      retentionAmount,
-      paymentDate,
-      releaseDate,
-      actionNumber,
-      fiscalNotes
-    });
-
-    setShowRetentionSheet(false);
-    resetRetentionForm();
   };
   
-  const resetRetentionForm = () => {
-    setRetentionReason("");
-    setRetentionAmount("");
-    setPaymentDate("");
-    setReleaseDate("");
-    setActionNumber("");
-    setFiscalNotes("");
-  };
-
   return {
     // Dialog state
     showDocumentSelection,
@@ -188,8 +169,6 @@ export function useStatusAction({ status, shipmentId, onStatusChange }: StatusAc
     // Action handlers
     handleStatusChangeClick,
     handleDeliveryConfirm,
-    handleRetentionConfirm,
-    resetDeliveryForm,
-    resetRetentionForm
+    handleRetentionConfirm
   };
 }
