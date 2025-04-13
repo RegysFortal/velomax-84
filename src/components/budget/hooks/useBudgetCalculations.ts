@@ -21,6 +21,7 @@ export function useBudgetCalculations() {
       return 0;
     }
     
+    console.log('Calculating budget with price table:', priceTable.name);
     const totalWeight = calculateTotalWeight(budget);
     
     // Validate additionalServices fields before passing to the function

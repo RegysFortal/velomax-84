@@ -11,6 +11,8 @@ import { BudgetEmptyState } from './BudgetEmptyState';
 import { BudgetTableRow } from './BudgetTableRow';
 import { BudgetTableHeader } from './BudgetTableHeader';
 import { useBudgetTableUtils } from './hooks/useBudgetTableUtils';
+import { Budget } from '@/types/budget';
+import { BudgetEditDialog } from './BudgetEditDialog';
 
 interface BudgetTableProps {
   searchTerm: string;
@@ -26,13 +28,14 @@ export function BudgetTable({
   const { budgets, deleteBudget } = useBudgets();
   const { clients } = useClients();
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>(null);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const { 
     getClientName, 
     formatCurrency,
     calculateTotalWeight,
     handlePrint,
-    handleEdit,
     filteredBudgets
   } = useBudgetTableUtils({
     budgets,
@@ -49,6 +52,12 @@ export function BudgetTable({
       direction = 'descending';
     }
     setSortConfig({ key, direction });
+  };
+
+  // Handle edit
+  const handleEdit = (budget: Budget) => {
+    setEditingBudget(budget);
+    setIsEditDialogOpen(true);
   };
 
   return (
@@ -89,6 +98,14 @@ export function BudgetTable({
           </div>
         )}
       </div>
+
+      {editingBudget && (
+        <BudgetEditDialog
+          budget={editingBudget}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+        />
+      )}
     </Card>
   );
 }
