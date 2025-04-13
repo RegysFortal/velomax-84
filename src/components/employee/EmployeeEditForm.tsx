@@ -26,6 +26,8 @@ export function EmployeeEditForm({
   onSave,
   isEmployeeForm = false
 }: EmployeeEditFormProps) {
+  console.log("EmployeeEditForm - Initial employee data:", employee);
+  
   const {
     name,
     setName,

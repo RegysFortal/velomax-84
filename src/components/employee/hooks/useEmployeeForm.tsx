@@ -28,6 +28,7 @@ export function useEmployeeForm(employee: User | null, isCreating: boolean, onCo
   // Load employee data if editing
   useEffect(() => {
     if (employee) {
+      console.log("Loading employee data for editing:", employee);
       setName(employee.name || '');
       setRg(employee.rg || '');
       setCpf(employee.cpf || '');
@@ -94,6 +95,7 @@ export function useEmployeeForm(employee: User | null, isCreating: boolean, onCo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting employee form data");
 
     // Form validation
     if (!name.trim()) {
@@ -104,6 +106,7 @@ export function useEmployeeForm(employee: User | null, isCreating: boolean, onCo
     try {
       const currentDate = new Date().toISOString();
       
+      // Ensure we have all the required fields for updating
       const userData: User = {
         id: employee?.id || uuidv4(),
         name,
@@ -122,15 +125,34 @@ export function useEmployeeForm(employee: User | null, isCreating: boolean, onCo
         zipCode,
         phone,
         employeeSince: employeeSince?.toISOString(),
-        role: 'user',
+        role: employee?.role || 'user',
         createdAt: employee?.createdAt || currentDate,
         updatedAt: currentDate,
-        email: employee?.email || '',
-        username: employee?.username || ''
+        email: employee?.email || ''
       };
+
+      // Make sure we preserve any existing fields from the employee object
+      // that might not be included in our form
+      if (employee) {
+        // Add type if it exists in original employee
+        if (employee.type) {
+          userData.type = employee.type;
+        }
+        
+        // Preserve any other fields we don't explicitly manage
+        if (employee.document) userData.document = employee.document;
+        if (employee.username) userData.username = employee.username;
+        if (employee.department) userData.department = employee.department;
+        if (employee.vehicle) userData.vehicle = employee.vehicle;
+        if (employee.license) userData.license = employee.license;
+        if (employee.permissions) userData.permissions = employee.permissions;
+      }
+
+      console.log("Prepared user data for save:", userData);
 
       if (onSave) {
         await onSave(userData, isCreating);
+        toast.success(isCreating ? "Colaborador adicionado com sucesso" : "Colaborador atualizado com sucesso");
       }
       
       onComplete();

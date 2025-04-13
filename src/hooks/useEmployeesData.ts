@@ -119,6 +119,8 @@ export const useEmployeesData = () => {
   // Add employee to Supabase
   const addEmployee = async (employee: User) => {
     try {
+      console.log("Adding employee to database:", employee);
+      
       // Transform employee data to match Supabase structure
       const supabaseEmployee = {
         id: employee.id || undefined,
@@ -176,6 +178,8 @@ export const useEmployeesData = () => {
   // Update employee in Supabase
   const updateEmployee = async (employee: User) => {
     try {
+      console.log("Updating employee in database:", employee);
+      
       // Transform employee data to match Supabase structure
       const supabaseEmployee = {
         name: employee.name,
@@ -204,6 +208,8 @@ export const useEmployeesData = () => {
         license: employee.license,
         updated_at: new Date().toISOString()
       };
+      
+      console.log("Supabase employee data for update:", supabaseEmployee);
       
       const { error } = await supabase
         .from('employees')

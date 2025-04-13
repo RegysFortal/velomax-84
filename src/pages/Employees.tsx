@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -94,7 +95,8 @@ export default function Employees() {
   });
 
   const handleEditClick = (employee: User) => {
-    setSelectedEmployee(employee);
+    console.log("Edit employee clicked:", employee);
+    setSelectedEmployee({...employee}); // Use a copy to avoid reference issues
     setIsCreating(false);
     setIsDialogOpen(true);
   };
@@ -112,6 +114,8 @@ export default function Employees() {
 
   const handleSaveEmployee = async (employee: User, isNew: boolean) => {
     try {
+      console.log("Saving employee:", employee, "isNew:", isNew);
+      
       if (isNew) {
         await addEmployee(employee);
         toast.success("Colaborador adicionado com sucesso");
@@ -232,7 +236,16 @@ export default function Employees() {
           </CardContent>
         </Card>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog 
+          open={isDialogOpen} 
+          onOpenChange={(open) => {
+            if (!open) {
+              handleCloseDialog();
+            } else {
+              setIsDialogOpen(open);
+            }
+          }}
+        >
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{isCreating ? 'Novo Colaborador' : 'Editar Colaborador'}</DialogTitle>
