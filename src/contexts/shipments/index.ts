@@ -1,5 +1,6 @@
 
 export * from './ShipmentsContext';
+export * from './ShipmentsProvider';
 export * from './types';
 export * from './useShipmentOperations';
 export * from './useShipmentFilters';
