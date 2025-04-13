@@ -68,15 +68,8 @@ export function useDeliveryConfirm({
       }
       
       if (shipment.documents && shipment.documents.length > 0) {
-        // If there are documents in the shipment, update their isDelivered status
-        
-        // Get the selected documents
-        const selectedDocuments = selectedDocumentIds.map(id => 
-          shipment.documents.find(doc => doc.id === id)
-        ).filter(Boolean);
-        
         // Ensure we have at least one document selected
-        if (selectedDocuments.length === 0) {
+        if (selectedDocumentIds.length === 0) {
           toast({
             title: "Erro",
             description: "Selecione pelo menos um documento para marcar como entregue",
@@ -85,7 +78,7 @@ export function useDeliveryConfirm({
           return;
         }
         
-        // Update each document's delivery status
+        // Update only the selected documents' delivery status
         const updatedDocuments = shipment.documents.map(doc => {
           if (selectedDocumentIds.includes(doc.id)) {
             return { ...doc, isDelivered: true };
@@ -105,6 +98,7 @@ export function useDeliveryConfirm({
           : (someDocumentsDelivered ? "partially_delivered" : "in_transit");
         
         console.log(`Updating status to ${newStatus}. All delivered: ${allDocumentsDelivered}, Some delivered: ${someDocumentsDelivered}`);
+        console.log(`Documents update: Total=${shipment.documents.length}, Selected=${selectedDocumentIds.length}, Delivered after update=${updatedDocuments.filter(d => d.isDelivered).length}`);
         
         // First update the status in the database
         await updateStatus(shipmentId, newStatus);
@@ -114,7 +108,7 @@ export function useDeliveryConfirm({
           status: newStatus,
           documents: updatedDocuments,
           // Set delivery details for both final and partial deliveries
-          ...(selectedDocuments.length > 0 && {
+          ...(selectedDocumentIds.length > 0 && {
             deliveryDate,
             deliveryTime,
             receiverName,

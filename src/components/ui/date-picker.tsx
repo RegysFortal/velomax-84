@@ -36,11 +36,11 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
-      // Ensure we're working with a clean date object (without time)
+      // Create date at noon to avoid timezone issues
       const year = selectedDate.getFullYear();
       const month = selectedDate.getMonth();
       const day = selectedDate.getDate();
-      const cleanDate = new Date(year, month, day);
+      const cleanDate = new Date(year, month, day, 12, 0, 0);
       
       setInputValue(format(cleanDate, "dd/MM/yyyy"));
       
@@ -74,7 +74,9 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
         month >= 1 && month <= 12 &&
         year >= 1900 && year <= 2100
       ) {
-        const newDate = new Date(year, month - 1, day);
+        // Important: Set hours to noon (12) to avoid timezone issues
+        const newDate = new Date(year, month - 1, day, 12, 0, 0);
+        
         // Check if it's a valid date (e.g., not Feb 31)
         if (newDate.getDate() === day) {
           handleDateSelect(newDate);
@@ -95,7 +97,8 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
         const [day, month, year] = dateParts.map(Number);
         
         if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-          const parsedDate = new Date(year, month - 1, day);
+          // Important: Set hours to noon (12) to avoid timezone issues
+          const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
           if (parsedDate.getDate() === day) {
             handleDateSelect(parsedDate);
             return;

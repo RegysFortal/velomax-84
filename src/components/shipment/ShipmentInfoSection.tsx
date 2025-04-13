@@ -43,7 +43,15 @@ export function ShipmentInfoSection({
         <label htmlFor="arrivalDate" className="text-sm font-medium">Data de Chegada</label>
         <DatePicker
           date={arrivalDate ? new Date(arrivalDate) : undefined}
-          onSelect={(date) => setArrivalDate(date ? date.toISOString().split('T')[0] : '')}
+          onSelect={(date) => {
+            if (date) {
+              // Use ISO string and split to avoid timezone issues
+              const formattedDate = date.toISOString().split('T')[0];
+              setArrivalDate(formattedDate);
+            } else {
+              setArrivalDate('');
+            }
+          }}
           placeholder="Selecione a data de chegada"
         />
       </div>
