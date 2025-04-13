@@ -4,6 +4,8 @@ import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { useClientPriceTable } from './useClientPriceTable';
 import { useBudgetCalculations } from '@/components/budget/hooks/useBudgetCalculations';
+import { usePriceTables } from '@/contexts';
+import { calculateBudgetValue } from '@/contexts/priceTables/priceTableUtils';
 
 interface UseBudgetCRUDProps {
   budgets: Budget[];
@@ -14,7 +16,8 @@ interface UseBudgetCRUDProps {
 export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUDProps) {
   const { toast } = useToast();
   const { getClientPriceTable } = useClientPriceTable();
-  const { calculateBudgetValue } = useBudgetCalculations();
+  const { calculateTotalWeight } = useBudgetCalculations();
+  const { priceTables } = usePriceTables();
 
   const addBudget = async (budgetData: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
@@ -24,13 +27,26 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
       // Get the client's price table
       const priceTable = getClientPriceTable(budgetData.clientId);
       
+      let totalValue = budgetData.totalValue;
+      
       // Calculate the total value based on the client's price table
-      const totalValue = calculateBudgetValue({
-        ...budgetData,
-        id: '',
-        createdAt: timestamp,
-        updatedAt: timestamp
-      }, priceTable);
+      if (priceTable) {
+        const totalWeight = calculateTotalWeight(budgetData as Budget);
+        
+        totalValue = calculateBudgetValue(
+          priceTable,
+          budgetData.deliveryType,
+          totalWeight,
+          budgetData.merchandiseValue,
+          budgetData.additionalServices,
+          budgetData.hasCollection,
+          budgetData.hasDelivery
+        );
+        
+        console.log("Calculated budget value using price table:", totalValue);
+      } else {
+        console.warn("No price table found for client, using provided total value");
+      }
       
       // Create new budget with calculated value
       const newBudget: Budget = {
@@ -38,10 +54,10 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         id: uuidv4(),
         createdAt: timestamp,
         updatedAt: timestamp,
-        totalValue: totalValue || budgetData.totalValue // Use calculated value or fallback to provided value
+        totalValue: totalValue
       };
       
-      console.log("Novo orçamento sendo adicionado:", newBudget);
+      console.log("New budget being added:", newBudget);
       
       setBudgets(prev => [...prev, newBudget]);
       toast({
@@ -49,10 +65,10 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         description: "O orçamento foi criado com sucesso.",
       });
     } catch (error) {
-      console.error("Erro ao adicionar orçamento:", error);
+      console.error("Error adding budget:", error);
       toast({
-        title: "Erro ao criar orçamento",
-        description: "Ocorreu um erro ao criar o orçamento. Tente novamente.",
+        title: "Error creating budget",
+        description: "An error occurred while creating the budget. Please try again.",
         variant: "destructive"
       });
       throw error;
@@ -68,7 +84,7 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
       // Get the current budget
       const currentBudget = budgets.find(budget => budget.id === id);
       if (!currentBudget) {
-        throw new Error("Orçamento não encontrado");
+        throw new Error("Budget not found");
       }
       
       // Check if we need to recalculate the total value
@@ -92,8 +108,21 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         const clientId = updatedBudget.clientId;
         const priceTable = getClientPriceTable(clientId);
         
-        updatedTotalValue = calculateBudgetValue(updatedBudget, priceTable);
-        console.log("Recalculando valor total do orçamento:", updatedTotalValue);
+        if (priceTable) {
+          const totalWeight = calculateTotalWeight(updatedBudget);
+          
+          updatedTotalValue = calculateBudgetValue(
+            priceTable,
+            updatedBudget.deliveryType,
+            totalWeight,
+            updatedBudget.merchandiseValue,
+            updatedBudget.additionalServices,
+            updatedBudget.hasCollection,
+            updatedBudget.hasDelivery
+          );
+          
+          console.log("Recalculating budget total value:", updatedTotalValue);
+        }
       }
       
       setBudgets(prev => prev.map(budget => 
@@ -112,7 +141,7 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         description: "O orçamento foi atualizado com sucesso.",
       });
     } catch (error) {
-      console.error("Erro ao atualizar orçamento:", error);
+      console.error("Error updating budget:", error);
       toast({
         title: "Erro ao atualizar orçamento",
         description: "Ocorreu um erro ao atualizar o orçamento. Tente novamente.",

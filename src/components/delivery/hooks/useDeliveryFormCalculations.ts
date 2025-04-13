@@ -7,6 +7,7 @@ import { DeliveryFormValues } from '../context/DeliveryFormContext';
 import { usePriceTables } from '@/contexts';
 import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
 import { calculateFreight as utilsCalculateFreight } from '@/utils/deliveryUtils';
+import { calculateBudgetValue } from '@/contexts/priceTables/priceTableUtils';
 
 export interface UseDeliveryFormCalculationsProps {
   form: UseFormReturn<DeliveryFormValues>;
@@ -56,15 +57,15 @@ export const useDeliveryFormCalculations = ({
         let calculatedFreight = 0;
         
         if (priceTable) {
-          // Use deliveryUtils direct calculation with the price table
-          calculatedFreight = utilsCalculateFreight(
+          // Using the updated budgetValue calculation, but adapting for delivery
+          calculatedFreight = calculateBudgetValue(
             priceTable,
-            weightValue,
             deliveryTypeValue,
-            cargoTypeValue,
+            weightValue,
             cargoValueValue,
-            undefined,
-            undefined // We'll handle city in the utilsCalculateFreight function
+            [], // No additional services for deliveries
+            true, // Assume both collection and delivery for deliveries
+            true
           );
           
           console.log("Calculated freight using price table:", calculatedFreight);
@@ -107,6 +108,13 @@ export const useDeliveryFormCalculations = ({
     }
   }, [form, contextCalculateFreight, setFreight, getClientPriceTable, delivery]);
   
+  // Basic fallback freight calculation
+  const calculateBasicFreight = (cargoType: CargoType, weight: number): number => {
+    const baseRate = cargoType === 'perishable' ? 25 : 15;
+    const multiplier = weight <= 5 ? 1 : weight <= 10 ? 1.5 : weight <= 20 ? 2 : 3;
+    return Math.max(baseRate * multiplier, 50); // Ensure minimum freight is 50
+  };
+  
   // Execute initial calculation when component mounts or when 
   // delivery/isEditMode changes
   useEffect(() => {
@@ -129,13 +137,6 @@ export const useDeliveryFormCalculations = ({
     
     return () => subscription.unsubscribe();
   }, [form, recalculateFreight]);
-  
-  // Basic fallback freight calculation
-  const calculateBasicFreight = (cargoType: CargoType, weight: number): number => {
-    const baseRate = cargoType === 'perishable' ? 25 : 15;
-    const multiplier = weight <= 5 ? 1 : weight <= 10 ? 1.5 : weight <= 20 ? 2 : 3;
-    return Math.max(baseRate * multiplier, 50); // Ensure minimum freight is 50
-  };
 
   return {
     calculateFreight: recalculateFreight
