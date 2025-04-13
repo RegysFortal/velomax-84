@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -175,7 +174,7 @@ export const EventsCalendar = ({
     } catch (error) {
       console.error('Error deleting event:', error);
       toast({
-        title: "Erro",
+        title: "Erro", 
         description: "Ocorreu um erro ao excluir o evento.",
         variant: "destructive"
       });
