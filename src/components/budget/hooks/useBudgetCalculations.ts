@@ -23,12 +23,19 @@ export function useBudgetCalculations() {
     
     const totalWeight = calculateTotalWeight(budget);
     
+    // Validate additionalServices fields before passing to the function
+    const validAdditionalServices = budget.additionalServices.map(service => ({
+      id: service.id,
+      description: service.description || '',  // Ensure description is never undefined
+      value: service.value || 0  // Ensure value is never undefined
+    }));
+    
     return calculatePriceTableBudgetValue(
       priceTable,
       budget.deliveryType,
       totalWeight,
       budget.merchandiseValue,
-      budget.additionalServices,
+      validAdditionalServices,
       budget.hasCollection,
       budget.hasDelivery
     );

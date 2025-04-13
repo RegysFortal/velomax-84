@@ -26,13 +26,20 @@ export const calculateInsurance = (
   return invoiceValue * rate;
 };
 
+// Update the interface for additional services to match what's being passed
+type AdditionalService = {
+  id?: string;
+  description: string;
+  value: number;
+};
+
 // Add utility function to calculate budget value
 export const calculateBudgetValue = (
   priceTable: PriceTable,
   deliveryType: string,
   totalWeight: number,
   merchandiseValue: number | null | undefined,
-  additionalServices: { description: string; value: number }[],
+  additionalServices: AdditionalService[],
   hasCollection: boolean,
   hasDelivery: boolean,
   cargoType: 'standard' | 'perishable' = 'standard'
@@ -129,7 +136,12 @@ export const calculateBudgetValue = (
   
   // Add additional services
   if (additionalServices && additionalServices.length > 0) {
-    const additionalServicesValue = additionalServices.reduce((sum, service) => sum + service.value, 0);
+    // Make sure we only use services with valid descriptions and values
+    const validServices = additionalServices.filter(
+      service => service.description && typeof service.value === 'number'
+    );
+    
+    const additionalServicesValue = validServices.reduce((sum, service) => sum + service.value, 0);
     console.log(`Additional services value: ${additionalServicesValue}`);
     totalValue += additionalServicesValue;
   }

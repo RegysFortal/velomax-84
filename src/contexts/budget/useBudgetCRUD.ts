@@ -33,12 +33,19 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
       if (priceTable) {
         const totalWeight = calculateTotalWeight(budgetData as Budget);
         
+        // Ensure additionalServices have valid description and value properties
+        const validAdditionalServices = budgetData.additionalServices.map(service => ({
+          id: service.id,
+          description: service.description || '',  // Ensure description is never undefined
+          value: service.value || 0  // Ensure value is never undefined
+        }));
+        
         totalValue = calculateBudgetValue(
           priceTable,
           budgetData.deliveryType,
           totalWeight,
           budgetData.merchandiseValue,
-          budgetData.additionalServices,
+          validAdditionalServices,
           budgetData.hasCollection,
           budgetData.hasDelivery
         );
@@ -111,12 +118,19 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
         if (priceTable) {
           const totalWeight = calculateTotalWeight(updatedBudget);
           
+          // Ensure additionalServices have valid description and value properties
+          const validAdditionalServices = updatedBudget.additionalServices.map(service => ({
+            id: service.id,
+            description: service.description || '',  // Ensure description is never undefined
+            value: service.value || 0  // Ensure value is never undefined
+          }));
+          
           updatedTotalValue = calculateBudgetValue(
             priceTable,
             updatedBudget.deliveryType,
             totalWeight,
             updatedBudget.merchandiseValue,
-            updatedBudget.additionalServices,
+            validAdditionalServices,
             updatedBudget.hasCollection,
             updatedBudget.hasDelivery
           );
