@@ -68,8 +68,12 @@ export function DeliveryDialog({
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      // Formatar a data para o formato ISO (YYYY-MM-DD)
-      const formattedDate = date.toISOString().split('T')[0];
+      // Formatamos a data para ISO (YYYY-MM-DD) garantindo que não tenha problemas com fuso horário
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      
       console.log('DeliveryDialog - Date selected:', formattedDate);
       setDeliveryDate(formattedDate);
     } else {

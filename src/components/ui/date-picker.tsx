@@ -36,12 +36,18 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
-      setInputValue(format(selectedDate, "dd/MM/yyyy"));
+      // Ensure we're working with a clean date object (without time)
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const day = selectedDate.getDate();
+      const cleanDate = new Date(year, month, day);
+      
+      setInputValue(format(cleanDate, "dd/MM/yyyy"));
       
       // Ensure we're passing a valid date to the parent component
       if (onSelect) {
-        console.log('DatePicker - Selecting date:', format(selectedDate, 'yyyy-MM-dd'));
-        onSelect(selectedDate);
+        console.log('DatePicker - Selecting date:', format(cleanDate, 'yyyy-MM-dd'));
+        onSelect(cleanDate);
       }
     } else {
       setInputValue("");
