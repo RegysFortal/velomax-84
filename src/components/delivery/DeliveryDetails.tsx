@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { ClientInfo } from './details/ClientInfo';
 import { PickupInfo } from './details/PickupInfo';
 import { DeliveryInfo } from './details/DeliveryInfo';
@@ -29,7 +30,7 @@ export function DeliveryDetails({ delivery, open, onClose, onEdit }: DeliveryDet
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[85vh]">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             <span>Detalhes da Entrega</span>
@@ -43,25 +44,27 @@ export function DeliveryDetails({ delivery, open, onClose, onEdit }: DeliveryDet
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <ClientInfo delivery={delivery} />
+        <ScrollArea className="h-[calc(85vh-130px)]">
+          <div className="space-y-6 py-4 px-1">
+            <ClientInfo delivery={delivery} />
 
-          <Separator />
+            <Separator />
 
-          <div className="grid grid-cols-2 gap-6">
-            <DeliveryInfo delivery={delivery} />
-            <PickupInfo delivery={delivery} />
+            <div className="grid grid-cols-2 gap-6">
+              <DeliveryInfo delivery={delivery} />
+              <PickupInfo delivery={delivery} />
+            </div>
+
+            <Separator />
+
+            <div>
+              <h3 className="text-lg font-medium mb-4">Detalhes da Carga</h3>
+              <CargoDetails delivery={delivery} />
+            </div>
+
+            <NotesAndOccurrence delivery={delivery} />
           </div>
-
-          <Separator />
-
-          <div>
-            <h3 className="text-lg font-medium mb-4">Detalhes da Carga</h3>
-            <CargoDetails delivery={delivery} />
-          </div>
-
-          <NotesAndOccurrence delivery={delivery} />
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
