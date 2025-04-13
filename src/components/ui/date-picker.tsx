@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
+import { parseDateString } from "@/utils/dateUtils"
 
 interface DatePickerProps {
   date?: Date
@@ -79,6 +80,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
         
         // Check if it's a valid date (e.g., not Feb 31)
         if (newDate.getDate() === day) {
+          console.log('DatePicker - Manual date input parsed:', format(newDate, 'yyyy-MM-dd'));
           handleDateSelect(newDate);
           return;
         }
@@ -87,27 +89,21 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
   };
 
   const handleInputBlur = () => {
-    // Reset the input to the current date format if typing produced an invalid date
-    if (date) {
-      setInputValue(format(date, "dd/MM/yyyy"));
-    } else if (inputValue && inputValue.length > 0) {
-      // Try to parse the input as a date
-      const dateParts = inputValue.split('/');
-      if (dateParts.length === 3) {
-        const [day, month, year] = dateParts.map(Number);
-        
-        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-          // Important: Set hours to noon (12) to avoid timezone issues
-          const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
-          if (parsedDate.getDate() === day) {
-            handleDateSelect(parsedDate);
-            return;
-          }
-        }
+    // Try to parse the input value as a date
+    if (inputValue && inputValue.length > 0) {
+      const parsedDate = parseDateString(inputValue);
+      
+      if (parsedDate) {
+        handleDateSelect(parsedDate);
+        return;
       }
       
-      // Clear invalid input
-      setInputValue("");
+      // If we couldn't parse the date, reset to the current date
+      if (date) {
+        setInputValue(format(date, "dd/MM/yyyy"));
+      } else {
+        setInputValue("");
+      }
     }
   };
 

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Shipment, ShipmentStatus, Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
@@ -151,6 +152,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       case "in_transit": return "Em Trânsito";
       case "retained": return "Retida";
       case "delivered": return "Retirada";
+      case "partially_delivered": return "Entregue Parcial";
       case "delivered_final": return "Entregue";
       default: return status;
     }
@@ -167,7 +169,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       };
       
       // Process selected documents if any
-      if (newStatus === "delivered_final" && details && details.selectedDocumentIds) {
+      if ((newStatus === "delivered_final" || newStatus === "partially_delivered") && 
+          details && details.selectedDocumentIds) {
         const selectedDocumentIds = details.selectedDocumentIds;
         
         if (shipment.documents && shipment.documents.length > 0) {
@@ -242,25 +245,30 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           
           // Check if all documents are now delivered
           const allDocumentsDelivered = updatedDocuments.every(doc => doc.isDelivered);
+          const someDocumentsDelivered = updatedDocuments.some(doc => doc.isDelivered);
           
-          // Only set the shipment as delivered_final if all documents are delivered
+          // Set the status based on delivery status of documents
           if (allDocumentsDelivered) {
             updateData.status = "delivered_final";
-            updateData.deliveryDate = details.deliveryDate;
-            updateData.deliveryTime = details.deliveryTime;
-            updateData.receiverName = details.receiverName;
-            
-            // First update the status in the database
-            await updateStatus(shipment.id, "delivered_final");
-            
-            toast.success(`${selectedDocuments.length} entregas criadas com sucesso. Todos os documentos entregues.`);
+          } else if (someDocumentsDelivered) {
+            updateData.status = "partially_delivered";
           } else {
-            // If not all documents are delivered, keep the shipment in transit
             updateData.status = "in_transit";
-            
-            // First update the status in the database
-            await updateStatus(shipment.id, "in_transit");
-            
+          }
+          
+          // Update delivery details
+          updateData.deliveryDate = details.deliveryDate;
+          updateData.deliveryTime = details.deliveryTime;
+          updateData.receiverName = details.receiverName;
+          
+          // First update the status in the database
+          await updateStatus(shipment.id, updateData.status);
+          
+          if (allDocumentsDelivered) {
+            toast.success(`${selectedDocuments.length} entregas criadas com sucesso. Todos os documentos entregues.`);
+          } else if (someDocumentsDelivered) {
+            toast.success(`${selectedDocuments.length} entregas criadas com sucesso. Embarque marcado como entrega parcial.`);
+          } else {
             toast.success(`${selectedDocuments.length} entregas criadas com sucesso. Embarque ainda tem documentos em trânsito.`);
           }
         }
@@ -409,6 +417,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       
       if (newStatus === "delivered_final") {
         toast.success("Status alterado para Entregue e entregas criadas");
+      } else if (newStatus === "partially_delivered") {
+        toast.success("Status alterado para Entrega Parcial");
       } else {
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
       }
@@ -420,7 +430,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       
       // Update local state
       setStatus(updateData.status || newStatus);
-      if (details && newStatus === "delivered_final") {
+      if (details && (newStatus === "delivered_final" || newStatus === "partially_delivered")) {
         setReceiverName(details.receiverName);
         setDeliveryDate(details.deliveryDate);
         setDeliveryTime(details.deliveryTime);

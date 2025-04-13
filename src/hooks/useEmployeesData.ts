@@ -130,7 +130,6 @@ export const useEmployeesData = () => {
       
       // Transform employee data to match Supabase structure
       const supabaseEmployee = {
-        id: employee.id || undefined,
         name: employee.name,
         position: employee.position || '',
         email: employee.email,
@@ -160,6 +159,8 @@ export const useEmployeesData = () => {
         user_id: authData.user.id
       };
       
+      console.log("Supabase employee data:", supabaseEmployee);
+      
       const { data, error } = await supabase
         .from('employees')
         .insert(supabaseEmployee)
@@ -170,6 +171,8 @@ export const useEmployeesData = () => {
         console.error('Error adding employee:', error);
         throw error;
       }
+      
+      console.log("Employee added successfully:", data);
       
       // Update local state
       await fetchEmployees();
@@ -186,6 +189,10 @@ export const useEmployeesData = () => {
   const updateEmployee = async (employee: User) => {
     try {
       console.log("Updating employee in database:", employee);
+      
+      if (!employee.id) {
+        throw new Error('Employee ID is required for update');
+      }
       
       // Get current authenticated user ID for RLS
       const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -235,6 +242,8 @@ export const useEmployeesData = () => {
         console.error('Error updating employee:', error);
         throw error;
       }
+      
+      console.log("Employee updated successfully");
       
       // Update local state with fresh data
       await fetchEmployees();

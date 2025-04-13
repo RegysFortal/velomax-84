@@ -1,3 +1,4 @@
+
 import { ShipmentStatus } from "@/types/shipment";
 import { useStatusChange } from './useStatusChange';
 
@@ -27,8 +28,8 @@ export function useStatusTransition({
   const handleStatusChange = (newStatus: ShipmentStatus) => {
     console.log(`Status transition from ${status} to ${newStatus}`);
     
-    // If changing to delivered_final, show document selection
-    if (newStatus === "delivered_final") {
+    // If changing to delivered_final or partially_delivered, show document selection
+    if (newStatus === "delivered_final" || newStatus === "partially_delivered") {
       setShowDocumentSelection(true);
       return;
     }

@@ -15,6 +15,9 @@ export const useShipmentDocuments = (
       // Ensure document.type is a valid value
       const documentType = document.type as "cte" | "invoice" | "delivery_location" | "other";
       
+      // Debug invoice numbers
+      console.log("Adding document with invoice numbers:", document.invoiceNumbers);
+      
       // Prepare data for Supabase insert
       const supabaseDocument = {
         shipment_id: shipmentId,
@@ -23,13 +26,16 @@ export const useShipmentDocuments = (
         url: document.url,
         notes: document.notes,
         minute_number: document.minuteNumber,
-        invoice_numbers: document.invoiceNumbers,
+        invoice_numbers: document.invoiceNumbers || [],
         weight: document.weight,
         packages: document.packages,
         is_delivered: document.isDelivered || false,
         created_at: now,
         updated_at: now
       };
+      
+      // Debug final object being sent to Supabase
+      console.log("Supabase document object:", supabaseDocument);
       
       // Insert document into Supabase
       const { data: newDoc, error } = await supabase
@@ -39,6 +45,7 @@ export const useShipmentDocuments = (
         .single();
         
       if (error) {
+        console.error("Error in addDocument:", error);
         throw error;
       }
       
@@ -57,6 +64,8 @@ export const useShipmentDocuments = (
         createdAt: newDoc.created_at,
         updatedAt: newDoc.updated_at
       };
+      
+      console.log("New document created:", newDocument);
       
       // Update state
       const updatedShipments = shipments.map(s => {

@@ -3,6 +3,7 @@ import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
+import { toISODateString } from "@/utils/dateUtils";
 
 interface ShipmentInfoSectionProps {
   transportMode: "air" | "road";
@@ -42,11 +43,12 @@ export function ShipmentInfoSection({
       <div>
         <label htmlFor="arrivalDate" className="text-sm font-medium">Data de Chegada</label>
         <DatePicker
-          date={arrivalDate ? new Date(arrivalDate) : undefined}
+          date={arrivalDate ? new Date(`${arrivalDate}T12:00:00`) : undefined}
           onSelect={(date) => {
             if (date) {
-              // Use ISO string and split to avoid timezone issues
-              const formattedDate = date.toISOString().split('T')[0];
+              // Using our helper function to avoid timezone issues
+              const formattedDate = toISODateString(date);
+              console.log("ShipmentInfoSection - Setting arrival date to:", formattedDate);
               setArrivalDate(formattedDate);
             } else {
               setArrivalDate('');

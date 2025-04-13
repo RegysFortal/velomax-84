@@ -1,56 +1,132 @@
 
 import React from 'react';
-import { DropdownMenuGroup, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Check, CircleDashed, AlertTriangle, Truck, PackageCheck } from "lucide-react";
 import { ShipmentStatus } from "@/types/shipment";
-import { CheckCircle2, AlertTriangle, Truck, RotateCcw, PackageX } from "lucide-react";
+import { useShipments } from "@/contexts/shipments";
 
 interface StatusMenuItemsProps {
-  currentStatus: ShipmentStatus;
-  onStatusChange: (status: ShipmentStatus) => void;
+  status: ShipmentStatus;
+  onStatusChangeClick: (status: ShipmentStatus) => void;
 }
 
-export function StatusMenuItems({ currentStatus, onStatusChange }: StatusMenuItemsProps) {
+export function StatusMenuItems({ status, onStatusChangeClick }: StatusMenuItemsProps) {
+  // Build the list of available status options based on current status
+  const getAvailableStatusOptions = () => {
+    switch (status) {
+      case "in_transit":
+        return [
+          { 
+            value: "delivered", 
+            label: "Retirada",
+            icon: <Truck className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "retained", 
+            label: "Retida",
+            icon: <AlertTriangle className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "delivered_final", 
+            label: "Entregue",
+            icon: <Check className="mr-2 h-4 w-4" />
+          }
+        ];
+        
+      case "retained":
+        return [
+          { 
+            value: "in_transit", 
+            label: "Em Trânsito",
+            icon: <CircleDashed className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "delivered", 
+            label: "Retirada",
+            icon: <Truck className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "delivered_final", 
+            label: "Entregue",
+            icon: <Check className="mr-2 h-4 w-4" />
+          }
+        ];
+        
+      case "delivered":
+        return [
+          { 
+            value: "in_transit", 
+            label: "Em Trânsito",
+            icon: <CircleDashed className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "retained", 
+            label: "Retida",
+            icon: <AlertTriangle className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "delivered_final", 
+            label: "Entregue",
+            icon: <Check className="mr-2 h-4 w-4" />
+          }
+        ];
+        
+      case "partially_delivered":
+        return [
+          { 
+            value: "in_transit", 
+            label: "Em Trânsito",
+            icon: <CircleDashed className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "retained", 
+            label: "Retida",
+            icon: <AlertTriangle className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "delivered_final", 
+            label: "Entregue",
+            icon: <Check className="mr-2 h-4 w-4" />
+          }
+        ];
+        
+      case "delivered_final":
+        return [
+          { 
+            value: "in_transit", 
+            label: "Em Trânsito",
+            icon: <CircleDashed className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "retained", 
+            label: "Retida",
+            icon: <AlertTriangle className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "delivered", 
+            label: "Retirada",
+            icon: <Truck className="mr-2 h-4 w-4" />
+          }
+        ];
+        
+      default:
+        return [];
+    }
+  };
+  
+  const statusOptions = getAvailableStatusOptions();
+  
   return (
-    <DropdownMenuGroup>
-      {/* Em Trânsito */}
-      {(currentStatus === "retained" || currentStatus === "partially_delivered") && (
-        <DropdownMenuItem onClick={() => onStatusChange("in_transit")}>
-          <Truck className="w-4 h-4 mr-2" />
-          <span>Em Trânsito</span>
-        </DropdownMenuItem>
-      )}
-      
-      {/* Retida */}
-      {currentStatus !== "retained" && (
-        <DropdownMenuItem onClick={() => onStatusChange("retained")}>
-          <AlertTriangle className="w-4 h-4 mr-2" />
-          <span>Retida</span>
-        </DropdownMenuItem>
-      )}
-      
-      {/* Retirada (Documento não entregue ao destinatário) */}
-      {(currentStatus === "in_transit" || currentStatus === "retained" || currentStatus === "partially_delivered") && (
-        <DropdownMenuItem onClick={() => onStatusChange("delivered")}>
-          <PackageX className="w-4 h-4 mr-2" />
-          <span>Retirada</span>
-        </DropdownMenuItem>
-      )}
-      
-      {/* Entregue (Documento entregue ao destinatário) */}
-      {(currentStatus === "in_transit" || currentStatus === "delivered" || currentStatus === "retained" || currentStatus === "partially_delivered") && (
-        <DropdownMenuItem onClick={() => onStatusChange("delivered_final")}>
-          <CheckCircle2 className="w-4 h-4 mr-2" />
-          <span>Entregue</span>
-        </DropdownMenuItem>
-      )}
-      
-      {/* Additional options for specific states */}
-      {currentStatus === "delivered_final" && (
-        <DropdownMenuItem onClick={() => onStatusChange("in_transit")}>
-          <RotateCcw className="w-4 h-4 mr-2" />
-          <span>Desfazer Entrega</span>
-        </DropdownMenuItem>
-      )}
-    </DropdownMenuGroup>
+    <>
+      {statusOptions.map((option) => (
+        <div
+          key={option.value}
+          className="flex items-center px-3 py-2 cursor-pointer hover:bg-accent"
+          onClick={() => onStatusChangeClick(option.value as ShipmentStatus)}
+        >
+          {option.icon}
+          <span>{option.label}</span>
+        </div>
+      ))}
+    </>
   );
 }

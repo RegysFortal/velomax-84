@@ -4,7 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Control } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
-import { formatToReadableDate } from '@/utils/dateUtils';
+import { toISODateString } from '@/utils/dateUtils';
 
 interface DeliveryDateTimeFieldsProps {
   control: Control<any>;
@@ -31,12 +31,11 @@ export function DeliveryDateTimeFields({
             <FormLabel>{dateLabel}</FormLabel>
             <FormControl>
               <DatePicker
-                date={field.value ? new Date(field.value) : undefined}
+                date={field.value ? new Date(`${field.value}T12:00:00`) : undefined}
                 onSelect={(date) => {
                   if (date) {
-                    // Important: Use toISOString and split to get just the date part
-                    // This avoids timezone issues when rendering the date
-                    const formattedDate = date.toISOString().split('T')[0];
+                    // Using our helper function to avoid timezone issues
+                    const formattedDate = toISODateString(date);
                     
                     console.log(`DeliveryDateTimeFields - Setting ${dateName} to:`, formattedDate);
                     field.onChange(formattedDate);
