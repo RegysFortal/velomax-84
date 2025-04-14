@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { Client } from "@/types";
@@ -32,7 +31,7 @@ interface ShipmentFormSectionProps {
   setStatus: (status: ShipmentStatus) => void;
   clients: Client[];
   shipmentId: string;
-  disabled?: boolean; // Added the disabled prop as optional
+  disabled?: boolean;
 }
 
 export function ShipmentFormSection({
@@ -63,11 +62,15 @@ export function ShipmentFormSection({
 }: ShipmentFormSectionProps) {
   // Handler to update client name when client ID changes
   const handleClientChange = (id: string) => {
-    setCompanyId(id);
-    // Find client and set name
-    const selectedClient = clients.find(client => client.id === id);
-    if (selectedClient) {
-      setCompanyName(selectedClient.tradingName || selectedClient.name);
+    try {
+      setCompanyId(id);
+      // Find client and set name
+      const selectedClient = clients.find(client => client.id === id);
+      if (selectedClient) {
+        setCompanyName(selectedClient.tradingName || selectedClient.name);
+      }
+    } catch (error) {
+      console.error("Error handling client change:", error);
     }
   };
 
@@ -76,6 +79,7 @@ export function ShipmentFormSection({
       <ClientSelection 
         companyId={companyId}
         onCompanyChange={handleClientChange}
+        disabled={disabled}
       />
       
       <TransportSection 

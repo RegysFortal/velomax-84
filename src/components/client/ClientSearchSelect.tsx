@@ -33,37 +33,32 @@ export function ClientSearchSelect({
   clients = []
 }: ClientSearchSelectProps) {
   const [clientOptions, setClientOptions] = useState<any[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
-  
-  // Debug logs
-  useEffect(() => {
-    console.log("ClientSearchSelect - Clients count:", clients.length);
-    console.log("ClientSearchSelect - Current value:", value);
-  }, [clients, value]);
   
   // Format client options
   useEffect(() => {
-    if (clients && clients.length > 0) {
-      // Format client options for the searchable select
-      const options = [
-        ...(includeAllOption ? [{ 
-          value: allOptionValue, 
-          label: allOptionLabel 
-        }] : []),
-        ...clients.map(client => ({
-          value: client.id,
-          label: client.tradingName || client.name,
-          description: client.tradingName ? client.name : ''
-        }))
-      ];
-      
-      console.log("ClientSearchSelect - Formatted options:", options.length);
-      if (options.length > 0) {
-        console.log("ClientSearchSelect - First option:", options[0]);
+    try {
+      if (clients && clients.length > 0) {
+        // Format client options for the searchable select
+        const options = [
+          ...(includeAllOption ? [{ 
+            value: allOptionValue, 
+            label: allOptionLabel 
+          }] : []),
+          ...clients.map(client => ({
+            value: client.id,
+            label: client.tradingName || client.name,
+            description: client.tradingName ? client.name : ''
+          }))
+        ];
+        
+        setClientOptions(options);
+      } else {
+        setClientOptions([]);
       }
-      setClientOptions(options);
-    } else {
-      console.log("ClientSearchSelect - No clients available");
+    } catch (error) {
+      console.error("Error formatting client options:", error);
       setClientOptions([]);
     }
   }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
@@ -78,8 +73,19 @@ export function ClientSearchSelect({
   };
   
   const handleValueChange = (newValue: string) => {
-    console.log("ClientSearchSelect - Value changed to:", newValue);
-    onValueChange(newValue);
+    if (isProcessing) return;
+    
+    try {
+      setIsProcessing(true);
+      onValueChange(newValue);
+    } catch (error) {
+      console.error("Error changing client value:", error);
+    } finally {
+      // Prevent rapid re-renders by adding a small delay
+      setTimeout(() => {
+        setIsProcessing(false);
+      }, 50);
+    }
   };
   
   return (
@@ -92,7 +98,7 @@ export function ClientSearchSelect({
       showCreateOption={showCreateOption}
       onCreateNew={handleCreateNewClient}
       createOptionLabel={createOptionLabel}
-      disabled={disabled}
+      disabled={disabled || isProcessing}
     />
   );
 }

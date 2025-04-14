@@ -21,7 +21,10 @@ export function ClientSelection({
   onCompanyChange,
   disabled = false
 }: ClientSelectionProps) {
-  const { clients } = useClients();
+  const { clients, loading } = useClients();
+  
+  // Prevent select from being interactive while clients are loading
+  const isDisabled = disabled || loading;
   
   return (
     <div className="space-y-2">
@@ -29,12 +32,17 @@ export function ClientSelection({
       <Select 
         value={companyId} 
         onValueChange={onCompanyChange}
-        disabled={disabled}
+        disabled={isDisabled}
       >
         <SelectTrigger id="client" className="w-full">
-          <SelectValue placeholder="Selecione o cliente" />
+          <SelectValue placeholder={loading ? "Carregando clientes..." : "Selecione o cliente"} />
         </SelectTrigger>
         <SelectContent>
+          {clients.length === 0 && (
+            <SelectItem value="no-clients" disabled>
+              Nenhum cliente encontrado
+            </SelectItem>
+          )}
           {clients.map((client) => (
             <SelectItem key={client.id} value={client.id}>
               {client.tradingName || client.name}

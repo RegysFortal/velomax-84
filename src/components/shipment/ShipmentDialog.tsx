@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -21,7 +20,7 @@ interface ShipmentDialogProps {
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const { addShipment, shipments } = useShipments();
-  const { clients } = useClients();
+  const { clients, loading: clientsLoading } = useClients();
   
   // Form state
   const [companyId, setCompanyId] = useState("");
