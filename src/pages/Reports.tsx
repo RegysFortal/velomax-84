@@ -20,17 +20,20 @@ import { ReportTable } from '@/components/report/ReportTable';
 import { ReportSummary } from '@/components/report/ReportSummary';
 import { FinancialReport } from '@/types';
 import { Delivery as TypedDelivery } from '@/types/delivery';
+import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Reports = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { financialReports, createReport } = useFinancial();
+  const { financialReports, createReport, loading: reportLoading } = useFinancial();
   const { deliveries } = useDeliveries();
-  const { clients } = useClients();
+  const { clients, loading: clientsLoading } = useClients();
   const [selectedClient, setSelectedClient] = useState('');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -40,35 +43,52 @@ const Reports = () => {
 
   const handleGenerateReport = async () => {
     if (!selectedClient || !startDate || !endDate) {
-      alert('Por favor, selecione um cliente e um período para gerar o relatório.');
+      toast({
+        title: "Campos incompletos",
+        description: 'Por favor, selecione um cliente e um período para gerar o relatório.',
+        variant: "destructive"
+      });
       return;
     }
-
-    // Filter deliveries for the selected client and date range
-    const filteredDeliveries = deliveries.filter(delivery => {
-      if (delivery.clientId !== selectedClient) return false;
-      const deliveryDate = new Date(delivery.deliveryDate);
-      return deliveryDate >= startDate && deliveryDate <= endDate;
-    });
-
-    // Calculate total freight
-    const totalFreight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.totalFreight, 0);
-
-    // Create the report with explicitly typed status
-    const newReport: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'> = {
-      clientId: selectedClient,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      totalDeliveries: filteredDeliveries.length,
-      totalFreight: totalFreight,
-      status: 'open', // Explicitly using the union type value
-    };
     
-    const createdReport = await createReport(newReport);
-    
-    if (createdReport) {
-      // Navigate to the new report
-      navigate(`/reports?reportId=${createdReport.id}`);
+    try {
+      setIsGenerating(true);
+
+      // Filter deliveries for the selected client and date range
+      const filteredDeliveries = deliveries.filter(delivery => {
+        if (delivery.clientId !== selectedClient) return false;
+        const deliveryDate = new Date(delivery.deliveryDate);
+        return deliveryDate >= startDate && deliveryDate <= endDate;
+      });
+
+      // Calculate total freight
+      const totalFreight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.totalFreight, 0);
+
+      // Create the report with explicitly typed status
+      const newReport: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'> = {
+        clientId: selectedClient,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        totalDeliveries: filteredDeliveries.length,
+        totalFreight: totalFreight,
+        status: 'open', // Explicitly using the union type value
+      };
+      
+      const createdReport = await createReport(newReport);
+      
+      if (createdReport) {
+        // Navigate to the new report
+        navigate(`/reports?reportId=${createdReport.id}`);
+      }
+    } catch (error) {
+      console.error("Error generating report:", error);
+      toast({
+        title: "Erro ao gerar relatório",
+        description: "Ocorreu um erro ao gerar o relatório. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
   
@@ -103,32 +123,42 @@ const Reports = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="client">Cliente</Label>
-                <Select onValueChange={setSelectedClient}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione um cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {clientsLoading ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <ClientSearchSelect
+                    value={selectedClient}
+                    onValueChange={setSelectedClient}
+                    placeholder="Selecione um cliente"
+                    disabled={isGenerating}
+                    clients={clients}
+                  />
+                )}
               </div>
               <div>
                 <Label>Período</Label>
                 <div className="flex gap-2">
-                  <DatePicker onSelect={setStartDate} />
-                  <DatePicker onSelect={setEndDate} />
+                  <DatePicker onSelect={setStartDate} disabled={isGenerating} />
+                  <DatePicker onSelect={setEndDate} disabled={isGenerating} />
                 </div>
               </div>
             </div>
-            <Button onClick={handleGenerateReport}>Gerar Relatório</Button>
+            <Button 
+              onClick={handleGenerateReport} 
+              disabled={isGenerating || reportLoading || !selectedClient || !startDate || !endDate}
+            >
+              {isGenerating ? "Gerando..." : "Gerar Relatório"}
+            </Button>
           </CardContent>
         </Card>
         
-        {currentReport && (
+        {reportLoading ? (
+          <Card>
+            <CardContent className="py-6">
+              <Skeleton className="h-40 w-full" />
+            </CardContent>
+          </Card>
+        ) : currentReport ? (
           <>
             <ReportSummary report={currentReport} />
             <Card>
@@ -140,6 +170,12 @@ const Reports = () => {
               </CardContent>
             </Card>
           </>
+        ) : reportId && (
+          <Card>
+            <CardContent className="py-6 text-center">
+              <p className="text-muted-foreground">Relatório não encontrado</p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </AppLayout>

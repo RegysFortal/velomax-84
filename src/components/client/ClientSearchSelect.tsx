@@ -77,14 +77,14 @@ export function ClientSearchSelect({
     
     try {
       setIsProcessing(true);
-      onValueChange(newValue);
-    } catch (error) {
-      console.error("Error changing client value:", error);
-    } finally {
-      // Prevent rapid re-renders by adding a small delay
+      // Add a small delay to prevent UI freezing when selecting a client
       setTimeout(() => {
+        onValueChange(newValue);
         setIsProcessing(false);
       }, 50);
+    } catch (error) {
+      console.error("Error changing client value:", error);
+      setIsProcessing(false);
     }
   };
   

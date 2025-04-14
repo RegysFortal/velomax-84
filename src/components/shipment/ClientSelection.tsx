@@ -1,7 +1,8 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ClientSearchSelect } from "@/components/client/ClientSearchSelect";
 import { useClients } from "@/contexts/clients";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ClientSelectionProps {
   companyId: string;
@@ -19,11 +20,20 @@ export function ClientSelection({
   // Prevent selection from being interactive while clients are loading
   const isDisabled = disabled || loading;
   
+  const handleCompanyChange = (newCompanyId: string) => {
+    console.log("ClientSelection - Company changed to:", newCompanyId);
+    onCompanyChange(newCompanyId);
+  };
+  
+  if (loading) {
+    return <Skeleton className="h-10 w-full" />;
+  }
+  
   return (
     <div className="space-y-2">
       <ClientSearchSelect
         value={companyId}
-        onValueChange={onCompanyChange}
+        onValueChange={handleCompanyChange}
         placeholder={loading ? "Carregando clientes..." : "Selecione o cliente"}
         disabled={isDisabled}
         clients={clients}

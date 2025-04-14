@@ -47,6 +47,11 @@ export function DocumentForm({
     console.log("DocumentForm - Current invoice numbers:", invoiceNumbers);
   }, [invoiceNumbers]);
 
+  const handleInvoiceNumbersChange = (newInvoiceNumbers: string[]) => {
+    console.log("Setting invoice numbers to:", newInvoiceNumbers);
+    setInvoiceNumbers(newInvoiceNumbers);
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">
@@ -66,8 +71,8 @@ export function DocumentForm({
       <div className="space-y-2">
         <Label>Números de Nota Fiscal</Label>
         <InvoiceNumberInput 
-          invoiceNumbers={invoiceNumbers}
-          setInvoiceNumbers={setInvoiceNumbers}
+          invoiceNumbers={invoiceNumbers || []}
+          setInvoiceNumbers={handleInvoiceNumbersChange}
         />
         <p className="text-sm text-muted-foreground">
           Pressione Enter para adicionar cada número de nota fiscal
