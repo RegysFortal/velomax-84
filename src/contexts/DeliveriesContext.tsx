@@ -1,330 +1,370 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Delivery, DeliveryType, CargoType, City } from '@/types';
-import { toast } from 'sonner';
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/auth/AuthContext';
-import { calculateFreight as utilsCalculateFreight, isDoorToDoorDelivery as checkIfDoorToDoor, checkMinuteNumberExists as checkMinuteExists } from '@/utils/deliveryUtils';
-import { PriceTable } from '@/types';
-import { usePriceTables } from '@/contexts';
-import { Shipment, Document } from '@/types/shipment';
+import { toast } from 'sonner';
 
-export interface DeliveryDetails {
-  receiverName: string;
+export interface Delivery {
+  id: string;
+  clientId: string;
+  clientName?: string;
+  cityId?: string;
+  cityName?: string;
+  minuteNumber: string;
+  packages: number;
+  weight: number;
+  cargoType: string;
+  cargoValue?: number;
+  deliveryType: string;
+  notes?: string;
+  occurrence?: string;
+  receiver: string;
   deliveryDate: string;
   deliveryTime: string;
-  selectedDocumentIds: string[];
+  totalFreight: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeliveryFormData {
+  minuteNumber: string;
+  clientId: string;
+  cityId?: string;
+  packages: number;
+  weight: number;
+  cargoType: string;
+  cargoValue?: number;
+  deliveryType: string;
+  notes?: string;
+  occurrence?: string;
+  receiver: string;
+  deliveryDate: string;
+  deliveryTime: string;
+  totalFreight: number;
 }
 
 interface DeliveriesContextType {
   deliveries: Delivery[];
   loading: boolean;
-  addDelivery: (delivery: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Delivery>;
-  updateDelivery: (id: string, delivery: Partial<Delivery>) => Promise<void>;
-  deleteDelivery: (id: string) => Promise<void>;
+  addDelivery: (delivery: DeliveryFormData) => Promise<Delivery | undefined>;
+  updateDelivery: (id: string, data: Partial<Delivery>) => Promise<Delivery | undefined>;
+  deleteDelivery: (id: string) => Promise<boolean>;
   getDeliveryById: (id: string) => Delivery | undefined;
-  calculateFreight: (
-    clientId: string,
-    weight: number,
-    deliveryType: DeliveryType,
-    cargoType: CargoType,
-    cargoValue?: number,
-    distance?: number,
-    cityId?: string
-  ) => number;
-  isDoorToDoorDelivery: (deliveryType: DeliveryType) => boolean;
-  checkMinuteNumberExists: (minuteNumber: string, clientId: string) => boolean;
-  createDeliveriesFromShipment: (shipment: Shipment, deliveryDetails: DeliveryDetails) => Promise<void>;
+  createDeliveriesFromShipment: (shipment: any, deliveryDetails: any) => Promise<void>;
+  refreshDeliveries: () => Promise<void>;
 }
 
 const DeliveriesContext = createContext<DeliveriesContextType | undefined>(undefined);
 
-export function useDeliveries() {
-  const context = useContext(DeliveriesContext);
-  if (!context) {
-    throw new Error("useDeliveries must be used within a DeliveriesProvider");
-  }
-  return context;
-}
-
-export function DeliveriesProvider({ children }: { children: ReactNode }) {
+export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-  const { priceTables } = usePriceTables();
-  
-  useEffect(() => {
-    const loadDeliveries = async () => {
-      try {
-        setLoading(true);
-        
-        const { data, error } = await supabase
-          .from('deliveries')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          throw error;
-        }
-        
-        const mappedDeliveries = data.map(delivery => ({
-          id: delivery.id,
-          minuteNumber: delivery.minute_number,
-          clientId: delivery.client_id,
-          deliveryDate: delivery.delivery_date,
-          deliveryTime: delivery.delivery_time,
-          receiver: delivery.receiver,
-          weight: delivery.weight,
-          packages: delivery.packages,
-          deliveryType: delivery.delivery_type as DeliveryType,
-          cargoType: delivery.cargo_type as CargoType,
-          totalFreight: delivery.total_freight,
-          notes: delivery.notes,
-          occurrence: delivery.occurrence,
-          cargoValue: delivery.cargo_value,
-          cityId: delivery.city_id,
-          createdAt: delivery.created_at,
-          updatedAt: delivery.updated_at
-        }));
-        
-        setDeliveries(mappedDeliveries);
-      } catch (error) {
-        console.error("Error loading deliveries:", error);
-        toast.error("Failed to load deliveries");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadDeliveries();
-  }, [user]);
 
-  const addDelivery = async (deliveryData: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'>): Promise<Delivery> => {
+  // Fetch deliveries from Supabase
+  const fetchDeliveries = async () => {
     try {
-      console.log("Adding delivery with data:", deliveryData);
-      
-      const supabaseDelivery = {
-        minute_number: deliveryData.minuteNumber,
-        client_id: deliveryData.clientId,
-        delivery_date: deliveryData.deliveryDate,
-        delivery_time: deliveryData.deliveryTime,
-        receiver: deliveryData.receiver,
-        weight: deliveryData.weight,
-        packages: deliveryData.packages,
-        delivery_type: deliveryData.deliveryType,
-        cargo_type: deliveryData.cargoType || 'standard',
-        total_freight: deliveryData.totalFreight,
-        notes: deliveryData.notes,
-        occurrence: deliveryData.occurrence,
-        cargo_value: deliveryData.cargoValue,
-        city_id: deliveryData.cityId,
-        user_id: user?.id
-      };
-      
-      console.log("Supabase delivery data:", supabaseDelivery);
-      
-      const { data: newDelivery, error } = await supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from('deliveries')
-        .insert(supabaseDelivery)
-        .select()
-        .single();
-        
+        .select('*, clients(name)')
+        .order('created_at', { ascending: false });
+
       if (error) {
-        console.error("Supabase insert error:", error);
         throw error;
       }
-      
-      console.log("Supabase response:", newDelivery);
-      
-      const mappedDelivery: Delivery = {
-        id: newDelivery.id,
-        minuteNumber: newDelivery.minute_number,
-        clientId: newDelivery.client_id,
-        deliveryDate: newDelivery.delivery_date,
-        deliveryTime: newDelivery.delivery_time,
-        receiver: newDelivery.receiver,
-        weight: newDelivery.weight,
-        packages: newDelivery.packages,
-        deliveryType: newDelivery.delivery_type as DeliveryType,
-        cargoType: newDelivery.cargo_type as CargoType,
-        totalFreight: newDelivery.total_freight,
-        notes: newDelivery.notes,
-        occurrence: newDelivery.occurrence,
-        cargoValue: newDelivery.cargo_value,
-        cityId: newDelivery.city_id,
-        createdAt: newDelivery.created_at,
-        updatedAt: newDelivery.updated_at
+
+      const formattedDeliveries = data.map((item: any) => ({
+        id: item.id,
+        clientId: item.client_id,
+        clientName: item.clients?.name,
+        cityId: item.city_id,
+        minuteNumber: item.minute_number,
+        packages: item.packages,
+        weight: item.weight,
+        cargoType: item.cargo_type,
+        cargoValue: item.cargo_value,
+        deliveryType: item.delivery_type,
+        notes: item.notes,
+        occurrence: item.occurrence,
+        receiver: item.receiver,
+        deliveryDate: item.delivery_date,
+        deliveryTime: item.delivery_time,
+        totalFreight: item.total_freight,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+      }));
+
+      setDeliveries(formattedDeliveries);
+      return formattedDeliveries;
+    } catch (error) {
+      console.error('Error fetching deliveries:', error);
+      toast.error('Erro ao buscar entregas');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create a new delivery
+  const addDelivery = async (deliveryData: DeliveryFormData) => {
+    try {
+      // Ensure total_freight is a valid number and correctly calculated
+      const totalFreight = parseFloat(deliveryData.totalFreight.toString()) || 0;
+
+      const { data, error } = await supabase
+        .from('deliveries')
+        .insert({
+          id: uuidv4(),
+          client_id: deliveryData.clientId,
+          city_id: deliveryData.cityId,
+          minute_number: deliveryData.minuteNumber,
+          packages: deliveryData.packages,
+          weight: deliveryData.weight,
+          cargo_type: deliveryData.cargoType,
+          cargo_value: deliveryData.cargoValue,
+          delivery_type: deliveryData.deliveryType,
+          notes: deliveryData.notes,
+          occurrence: deliveryData.occurrence,
+          receiver: deliveryData.receiver,
+          delivery_date: deliveryData.deliveryDate,
+          delivery_time: deliveryData.deliveryTime,
+          total_freight: totalFreight, // Ensure this is a number
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Format the new delivery to match our app's structure
+      const newDelivery: Delivery = {
+        id: data.id,
+        clientId: data.client_id,
+        cityId: data.city_id,
+        minuteNumber: data.minute_number,
+        packages: data.packages,
+        weight: data.weight,
+        cargoType: data.cargo_type,
+        cargoValue: data.cargo_value,
+        deliveryType: data.delivery_type,
+        notes: data.notes,
+        occurrence: data.occurrence,
+        receiver: data.receiver,
+        deliveryDate: data.delivery_date,
+        deliveryTime: data.delivery_time,
+        totalFreight: data.total_freight,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
       };
-      
-      setDeliveries(prev => [mappedDelivery, ...prev]);
-      
-      toast.success('Entrega adicionada com sucesso');
-      return mappedDelivery;
+
+      // Update local state
+      setDeliveries((prevDeliveries) => [newDelivery, ...prevDeliveries]);
+
+      return newDelivery;
     } catch (error) {
       console.error('Error adding delivery:', error);
       toast.error('Erro ao adicionar entrega');
-      throw error;
+      return undefined;
     }
   };
 
-  const updateDelivery = async (id: string, delivery: Partial<Delivery>) => {
+  // Update an existing delivery
+  const updateDelivery = async (id: string, data: Partial<Delivery>) => {
     try {
-      const supabaseDelivery: any = {};
-      
-      if (delivery.minuteNumber !== undefined) supabaseDelivery.minute_number = delivery.minuteNumber;
-      if (delivery.clientId !== undefined) supabaseDelivery.client_id = delivery.clientId;
-      if (delivery.deliveryDate !== undefined) supabaseDelivery.delivery_date = delivery.deliveryDate;
-      if (delivery.deliveryTime !== undefined) supabaseDelivery.delivery_time = delivery.deliveryTime;
-      if (delivery.receiver !== undefined) supabaseDelivery.receiver = delivery.receiver;
-      if (delivery.weight !== undefined) supabaseDelivery.weight = delivery.weight;
-      if (delivery.packages !== undefined) supabaseDelivery.packages = delivery.packages;
-      if (delivery.deliveryType !== undefined) supabaseDelivery.delivery_type = delivery.deliveryType;
-      if (delivery.cargoType !== undefined) supabaseDelivery.cargo_type = delivery.cargoType;
-      if (delivery.totalFreight !== undefined) supabaseDelivery.total_freight = delivery.totalFreight;
-      if (delivery.notes !== undefined) supabaseDelivery.notes = delivery.notes;
-      if (delivery.occurrence !== undefined) supabaseDelivery.occurrence = delivery.occurrence;
-      if (delivery.cargoValue !== undefined) supabaseDelivery.cargo_value = delivery.cargoValue;
-      if (delivery.cityId !== undefined) supabaseDelivery.city_id = delivery.cityId;
-      
-      const { error } = await supabase
+      // Convert app data structure to Supabase structure
+      const supabaseData: any = {
+        client_id: data.clientId,
+        city_id: data.cityId,
+        minute_number: data.minuteNumber,
+        packages: data.packages,
+        weight: data.weight,
+        cargo_type: data.cargoType,
+        cargo_value: data.cargoValue,
+        delivery_type: data.deliveryType,
+        notes: data.notes,
+        occurrence: data.occurrence,
+        receiver: data.receiver,
+        delivery_date: data.deliveryDate,
+        delivery_time: data.deliveryTime,
+        total_freight: parseFloat(String(data.totalFreight)) || 0, // Ensure this is a number
+      };
+
+      // Remove undefined values
+      Object.keys(supabaseData).forEach(
+        (key) => supabaseData[key] === undefined && delete supabaseData[key]
+      );
+
+      const { data: updatedData, error } = await supabase
         .from('deliveries')
-        .update(supabaseDelivery)
-        .eq('id', id);
-      
+        .update(supabaseData)
+        .eq('id', id)
+        .select()
+        .single();
+
       if (error) {
         throw error;
       }
-      
-      setDeliveries(prevDeliveries =>
-        prevDeliveries.map(prevDelivery =>
-          prevDelivery.id === id ? { ...prevDelivery, ...delivery } : prevDelivery
+
+      // Format the updated delivery
+      const updatedDelivery: Delivery = {
+        id: updatedData.id,
+        clientId: updatedData.client_id,
+        cityId: updatedData.city_id,
+        minuteNumber: updatedData.minute_number,
+        packages: updatedData.packages,
+        weight: updatedData.weight,
+        cargoType: updatedData.cargo_type,
+        cargoValue: updatedData.cargo_value,
+        deliveryType: updatedData.delivery_type,
+        notes: updatedData.notes,
+        occurrence: updatedData.occurrence,
+        receiver: updatedData.receiver,
+        deliveryDate: updatedData.delivery_date,
+        deliveryTime: updatedData.delivery_time,
+        totalFreight: updatedData.total_freight,
+        createdAt: updatedData.created_at,
+        updatedAt: updatedData.updated_at,
+      };
+
+      // Update local state
+      setDeliveries((prevDeliveries) =>
+        prevDeliveries.map((delivery) =>
+          delivery.id === id ? { ...delivery, ...updatedDelivery } : delivery
         )
       );
-      
-      toast.success('Entrega atualizada com sucesso');
+
+      return updatedDelivery;
     } catch (error) {
       console.error('Error updating delivery:', error);
       toast.error('Erro ao atualizar entrega');
+      return undefined;
     }
   };
 
+  // Delete a delivery
   const deleteDelivery = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('deliveries')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await supabase.from('deliveries').delete().eq('id', id);
+
       if (error) {
         throw error;
       }
-      
-      setDeliveries(prevDeliveries =>
-        prevDeliveries.filter(delivery => delivery.id !== id)
+
+      // Update local state
+      setDeliveries((prevDeliveries) =>
+        prevDeliveries.filter((delivery) => delivery.id !== id)
       );
-      
-      toast.success('Entrega excluída com sucesso');
+
+      return true;
     } catch (error) {
       console.error('Error deleting delivery:', error);
       toast.error('Erro ao excluir entrega');
+      return false;
     }
   };
 
-  const getDeliveryById = (id: string): Delivery | undefined => {
-    return deliveries.find(delivery => delivery.id === id);
+  // Get a delivery by ID
+  const getDeliveryById = (id: string) => {
+    return deliveries.find((delivery) => delivery.id === id);
   };
-  
-  const calculateFreight = (
-    clientId: string,
-    weight: number,
-    deliveryType: DeliveryType,
-    cargoType: CargoType,
-    cargoValue?: number,
-    distance?: number,
-    cityId?: string
-  ): number => {
+
+  // Create deliveries from shipment
+  const createDeliveriesFromShipment = async (shipment: any, deliveryDetails: any) => {
     try {
-      const defaultPriceTable = priceTables.length > 0 ? priceTables[0] : undefined;
-      return utilsCalculateFreight(
-        defaultPriceTable,
-        weight,
-        deliveryType,
-        cargoType,
-        cargoValue,
-        distance
-      );
-    } catch (error) {
-      console.error('Error calculating freight:', error);
-      return 50; // Default fallback value
-    }
-  };
-  
-  const isDoorToDoorDelivery = (deliveryType: DeliveryType): boolean => {
-    return checkIfDoorToDoor(deliveryType);
-  };
-  
-  const checkMinuteNumberExists = (minuteNumber: string, clientId: string): boolean => {
-    return checkMinuteExists(deliveries, minuteNumber, clientId);
-  };
-  
-  const createDeliveriesFromShipment = async (shipment: Shipment, deliveryDetails: DeliveryDetails) => {
-    try {
-      const selectedDocuments = shipment.documents.filter(doc => 
-        deliveryDetails.selectedDocumentIds.includes(doc.id)
-      );
-      
-      if (selectedDocuments.length === 0) {
-        console.log("No documents selected for delivery creation");
+      console.log("Creating deliveries from shipment:", shipment);
+      console.log("Delivery details:", deliveryDetails);
+
+      if (!shipment || !deliveryDetails || !deliveryDetails.selectedDocumentIds || deliveryDetails.selectedDocumentIds.length === 0) {
+        console.error("Invalid shipment or delivery details");
         return;
       }
-      
-      console.log(`Creating ${selectedDocuments.length} deliveries from shipment ${shipment.id}`);
-      
-      const newDeliveries = await Promise.all(selectedDocuments.map(async (document) => {
-        const deliveryData: Omit<Delivery, 'id' | 'createdAt' | 'updatedAt'> = {
-          minuteNumber: document.minuteNumber || `DOC-${document.id.substring(0, 8)}`,
+
+      // Get selected documents
+      const selectedDocs = shipment.documents.filter((doc: any) => 
+        deliveryDetails.selectedDocumentIds.includes(doc.id)
+      );
+
+      if (selectedDocs.length === 0) {
+        console.error("No selected documents found");
+        return;
+      }
+
+      console.log("Selected documents:", selectedDocs);
+
+      // Create a delivery for each selected document
+      for (const doc of selectedDocs) {
+        const newDelivery: DeliveryFormData = {
           clientId: shipment.companyId,
+          minuteNumber: doc.minuteNumber || "",
+          packages: doc.packages || 1,
+          weight: doc.weight || 0,
+          cargoType: "cargo", // Default value
+          deliveryType: "normal", // Default value
+          receiver: deliveryDetails.receiverName,
           deliveryDate: deliveryDetails.deliveryDate,
           deliveryTime: deliveryDetails.deliveryTime,
-          receiver: deliveryDetails.receiverName,
-          weight: document.weight || shipment.weight / shipment.documents.length,
-          packages: document.packages || 1,
-          deliveryType: 'standard',
-          cargoType: 'standard',
-          totalFreight: 0,
-          notes: `Entrega criada a partir do embarque ${shipment.trackingNumber}`,
-          occurrence: '',
+          totalFreight: 0, // This will be calculated correctly
         };
-        
-        return await addDelivery(deliveryData);
-      }));
-      
-      console.log(`Created ${newDeliveries.length} deliveries successfully`);
-      
-      const event = new CustomEvent('deliveries-updated');
-      window.dispatchEvent(event);
-      
-      toast.success(`${newDeliveries.length} entregas criadas com sucesso`);
+
+        console.log("Creating new delivery:", newDelivery);
+        await addDelivery(newDelivery);
+      }
+
+      // Update the shipment documents as delivered
+      if (shipment.id && deliveryDetails.selectedDocumentIds.length > 0) {
+        try {
+          const { error } = await supabase
+            .from('shipment_documents')
+            .update({ is_delivered: true })
+            .in('id', deliveryDetails.selectedDocumentIds);
+
+          if (error) {
+            console.error("Error updating shipment documents:", error);
+          }
+        } catch (err) {
+          console.error("Error updating shipment documents:", err);
+        }
+      }
+
+      toast.success("Entregas criadas com sucesso");
     } catch (error) {
-      console.error('Error creating deliveries from shipment:', error);
-      toast.error('Erro ao criar entregas a partir do embarque');
+      console.error("Error creating deliveries from shipment:", error);
+      toast.error("Erro ao criar entregas a partir do embarque");
     }
   };
-  
+
+  // Initial fetch
+  useEffect(() => {
+    fetchDeliveries();
+  }, []);
+
+  const refreshDeliveries = async () => {
+    await fetchDeliveries();
+  };
+
   return (
-    <DeliveriesContext.Provider value={{
-      deliveries,
-      loading,
-      addDelivery,
-      updateDelivery,
-      deleteDelivery,
-      getDeliveryById,
-      calculateFreight,
-      isDoorToDoorDelivery,
-      checkMinuteNumberExists,
-      createDeliveriesFromShipment
-    }}>
+    <DeliveriesContext.Provider
+      value={{
+        deliveries,
+        loading,
+        addDelivery,
+        updateDelivery,
+        deleteDelivery,
+        getDeliveryById,
+        createDeliveriesFromShipment,
+        refreshDeliveries,
+      }}
+    >
       {children}
     </DeliveriesContext.Provider>
   );
-}
+};
+
+export const useDeliveries = () => {
+  const context = useContext(DeliveriesContext);
+  if (context === undefined) {
+    throw new Error('useDeliveries must be used within a DeliveriesProvider');
+  }
+  return context;
+};

@@ -44,11 +44,20 @@ export function useDeliveryStatusHandler({
         receiverName,
         deliveryDate,
         deliveryTime,
-        selectedDocumentIds: selectedDocumentIds
+        selectedDocumentIds
       };
       
+      // Check if all documents were selected or just a subset
+      const allDocumentsSelected = shipment && shipment.documents && 
+        shipment.documents.length > 0 && 
+        selectedDocumentIds.length === shipment.documents.length;
+      
+      // Determine the appropriate status based on selected documents
+      const newStatus = allDocumentsSelected ? "delivered_final" : "partially_delivered";
+      console.log(`Setting status to ${newStatus} (all docs selected: ${allDocumentsSelected})`);
+      
       // Update shipment status with delivery details
-      handleStatusUpdate(shipmentId, "delivered_final", deliveryDetails);
+      handleStatusUpdate(shipmentId, newStatus, deliveryDetails);
       
       // Create deliveries from shipment documents
       if (shipment && selectedDocumentIds.length > 0) {

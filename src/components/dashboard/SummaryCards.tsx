@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shipment/StatusBadge';
 import { Truck, Package, Clock } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
+import { useEffect } from 'react';
 
 interface SummaryCardsProps {
   inTransitShipments: number;
@@ -16,6 +17,7 @@ interface SummaryCardsProps {
   totalDeliveries: number;
   startDate: string;
   endDate: string;
+  onRefresh?: () => void; // Add refresh callback
 }
 
 export const SummaryCards = ({
@@ -27,9 +29,17 @@ export const SummaryCards = ({
   totalWeight,
   totalDeliveries,
   startDate,
-  endDate
+  endDate,
+  onRefresh
 }: SummaryCardsProps) => {
   const navigate = useNavigate();
+  
+  // Refresh summary data when component mounts
+  useEffect(() => {
+    if (onRefresh) {
+      onRefresh();
+    }
+  }, [onRefresh]);
   
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
