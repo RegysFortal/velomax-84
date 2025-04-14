@@ -9,7 +9,7 @@ interface UseDocumentOperationsProps {
 }
 
 export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps) {
-  const { addDocument, updateDocument, deleteDocument } = useShipments();
+  const { addDocument, updateDocument, deleteDocument, shipments } = useShipments();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   
@@ -67,20 +67,21 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
         return;
       }
       
+      console.log("Submitting document with invoice numbers:", invoiceNumbers);
+      
       if (editingDocument) {
         // Update existing document
         const updatedDocument = {
           ...editingDocument,
           minuteNumber: minuteNumber.trim() || undefined,
-          invoiceNumbers: invoiceNumbers.length > 0 ? invoiceNumbers : undefined,
+          invoiceNumbers: invoiceNumbers,
           packages: packageCount,
           weight: weightValue,
           notes: notes.trim() || undefined,
           isDelivered
         };
         
-        // Get the current shipment's documents
-        const { shipments } = useShipments();
+        // Get the current shipment
         const shipment = shipments.find(s => s.id === shipmentId);
         
         if (!shipment) {
@@ -105,7 +106,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
           name: docName,
           type: "invoice", // Default type
           minuteNumber: minuteNumber.trim() || undefined,
-          invoiceNumbers: invoiceNumbers.length > 0 ? invoiceNumbers : undefined,
+          invoiceNumbers: invoiceNumbers,
           packages: packageCount,
           weight: weightValue,
           notes: notes.trim() || undefined,

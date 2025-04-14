@@ -1,10 +1,9 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { InvoiceNumberInput } from './InvoiceNumberInput';
 
@@ -43,6 +42,11 @@ export function DocumentForm({
   onSubmit,
   onCancel
 }: DocumentFormProps) {
+  // Log the current invoice numbers for debugging
+  useEffect(() => {
+    console.log("DocumentForm - Current invoice numbers:", invoiceNumbers);
+  }, [invoiceNumbers]);
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">

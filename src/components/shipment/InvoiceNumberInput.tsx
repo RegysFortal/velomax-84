@@ -17,7 +17,9 @@ export function InvoiceNumberInput({ invoiceNumbers, setInvoiceNumbers }: Invoic
       e.preventDefault();
       // Add invoice number if it doesn't already exist
       if (!invoiceNumbers.includes(currentInput.trim())) {
-        setInvoiceNumbers([...invoiceNumbers, currentInput.trim()]);
+        const updatedInvoices = [...invoiceNumbers, currentInput.trim()];
+        console.log("Updated invoice numbers:", updatedInvoices);
+        setInvoiceNumbers(updatedInvoices);
       }
       setCurrentInput('');
     }
@@ -26,6 +28,7 @@ export function InvoiceNumberInput({ invoiceNumbers, setInvoiceNumbers }: Invoic
   const removeInvoiceNumber = (index: number) => {
     const newInvoiceNumbers = [...invoiceNumbers];
     newInvoiceNumbers.splice(index, 1);
+    console.log("After removal invoice numbers:", newInvoiceNumbers);
     setInvoiceNumbers(newInvoiceNumbers);
   };
   
