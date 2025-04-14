@@ -61,18 +61,8 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     isEditMode
   });
 
-  // Trigger calculation when form values change
-  useEffect(() => {
-    calculateFreight();
-  }, [
-    form.watch('clientId'),
-    form.watch('weight'),
-    form.watch('deliveryType'),
-    form.watch('cargoType'),
-    form.watch('cargoValue'),
-    form.watch('cityId'),
-    calculateFreight
-  ]);
+  // Removemos o useEffect para evitar cálculos duplicados
+  // O useDeliveryFormCalculations já lida com os cálculos quando os campos relevantes mudam
 
   const onSubmit = (data: any) => {
     handleSubmit(data, freight);

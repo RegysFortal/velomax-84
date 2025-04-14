@@ -122,9 +122,8 @@ export const useDeliveryFormCalculations = ({
     const multiplier = weight <= 5 ? 1 : weight <= 10 ? 1.5 : weight <= 20 ? 2 : 3;
     return Math.max(baseRate * multiplier, 50); // Garantir que frete mínimo é 50
   };
-  
-  // Executar cálculo inicial quando componente é montado ou quando 
-  // delivery/isEditMode muda
+
+  // Remover o useEffect redundante que estava recalculando o frete duas vezes
   useEffect(() => {
     // Cálculo inicial com um pequeno atraso para garantir que valores do formulário são carregados
     const timer = setTimeout(() => {
@@ -134,7 +133,7 @@ export const useDeliveryFormCalculations = ({
     return () => clearTimeout(timer);
   }, [recalculateFreight, delivery, isEditMode]);
   
-  // Reagir a mudanças nos valores do formulário que afetam o frete
+  // Reagir a mudanças nos valores do formulário que afetam o frete - preservamos apenas esta lógica
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
       if (['clientId', 'weight', 'deliveryType', 'cargoType', 'cargoValue', 'cityId'].includes(name || '')) {
