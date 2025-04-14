@@ -175,7 +175,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
               };
               selectedDocuments.push(updatedDocuments[i]);
               
-              await updateDocument(shipment.id, updatedDocuments[i].id, { ...updatedDocuments[i] });
+              // Fix: Pass the updated document as part of an array
+              await updateDocument(shipment.id, updatedDocuments[i].id, updatedDocuments);
             }
           }
           
@@ -258,6 +259,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           }));
           
           for (const doc of updatedDocuments) {
+            // Fix: Pass the updated documents as an array
             await updateDocument(shipment.id, doc.id, updatedDocuments);
           }
           
