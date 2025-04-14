@@ -5,10 +5,12 @@ import { useState, useEffect } from 'react';
 import { DatePicker } from '@/components/ui/date-picker';
 
 interface DatePickerFieldProps {
-  id: string;
+  id?: string;
   label?: string;
-  value: Date | undefined;
-  onChange: (date: Date | undefined) => void;
+  value?: Date;
+  onChange?: (date: Date | undefined) => void;
+  date?: Date;
+  onDateChange?: (date: Date) => void;
   placeholder?: string;
   allowTyping?: boolean;
 }
@@ -18,20 +20,31 @@ export function DatePickerField({
   label,
   value,
   onChange,
+  date,
+  onDateChange,
   placeholder = "Selecione uma data",
   allowTyping = true
 }: DatePickerFieldProps) {
   // When value changes externally, ensure the component reflects it
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(value);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(value || date);
 
   useEffect(() => {
-    setSelectedDate(value);
-  }, [value]);
+    setSelectedDate(value || date);
+  }, [value, date]);
 
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-    onChange(date);
-    console.log('Date selected:', date);
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    setSelectedDate(selectedDate);
+    
+    // Call the appropriate callback
+    if (onChange) {
+      onChange(selectedDate);
+    }
+    
+    if (onDateChange && selectedDate) {
+      onDateChange(selectedDate);
+    }
+    
+    console.log('Date selected:', selectedDate);
   };
 
   return (

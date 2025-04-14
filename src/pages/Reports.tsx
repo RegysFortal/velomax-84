@@ -19,6 +19,7 @@ import { useClients } from '@/contexts';
 import { ReportTable } from '@/components/report/ReportTable';
 import { ReportSummary } from '@/components/report/ReportSummary';
 import { FinancialReport } from '@/types';
+import { Delivery as TypedDelivery } from '@/types/delivery';
 
 const Reports = () => {
   const location = useLocation();
@@ -82,7 +83,7 @@ const Reports = () => {
     const endDate = new Date(currentReport.endDate);
     
     return deliveryDate >= startDate && deliveryDate <= endDate;
-  });
+  }) as unknown as TypedDelivery[];
 
   return (
     <AppLayout>

@@ -23,123 +23,74 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ date, onSelect, placeholder = "Selecionar data", allowTyping = true }: DatePickerProps) {
-  const [inputValue, setInputValue] = React.useState<string>("");
-  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(false)
+  const [inputValue, setInputValue] = React.useState<string>("")
   
   // Update input value when date changes externally
   React.useEffect(() => {
     if (date) {
-      setInputValue(format(date, "dd/MM/yyyy"));
+      setInputValue(format(date, "dd/MM/yyyy", { locale: ptBR }))
     } else {
-      setInputValue("");
+      setInputValue("")
     }
-  }, [date]);
-
-  const handleDateSelect = (selectedDate: Date | undefined) => {
-    if (selectedDate) {
-      // Create date at noon to avoid timezone issues
-      const year = selectedDate.getFullYear();
-      const month = selectedDate.getMonth();
-      const day = selectedDate.getDate();
-      const cleanDate = new Date(year, month, day, 12, 0, 0);
-      
-      setInputValue(format(cleanDate, "dd/MM/yyyy"));
-      
-      // Ensure we're passing a valid date to the parent component
-      if (onSelect) {
-        console.log('DatePicker - Selecting date:', format(cleanDate, 'yyyy-MM-dd'));
-        onSelect(cleanDate);
-      }
-    } else {
-      setInputValue("");
-      if (onSelect) {
-        onSelect(undefined);
-      }
-    }
-    
-    setIsPopoverOpen(false);
-  };
-
+  }, [date])
+  
+  // Handle manual input when allowTyping is true
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
+    if (!allowTyping) return
     
-    // Only attempt to parse input as date if allowTyping is true
-    if (allowTyping && value.length === 10) { // Complete date format: DD/MM/YYYY
-      const [day, month, year] = value.split('/').map(Number);
-      
-      // Validate date components
-      if (
-        !isNaN(day) && !isNaN(month) && !isNaN(year) &&
-        day >= 1 && day <= 31 &&
-        month >= 1 && month <= 12 &&
-        year >= 1900 && year <= 2100
-      ) {
-        // Important: Set hours to noon (12) to avoid timezone issues
-        const newDate = new Date(year, month - 1, day, 12, 0, 0);
-        
-        // Check if it's a valid date (e.g., not Feb 31)
-        if (newDate.getDate() === day) {
-          console.log('DatePicker - Manual date input parsed:', format(newDate, 'yyyy-MM-dd'));
-          handleDateSelect(newDate);
-          return;
+    const value = e.target.value
+    setInputValue(value)
+    
+    // Try to parse the date from the input
+    if (value && value.length >= 8) {
+      try {
+        const parsedDate = parseDateString(value)
+        if (parsedDate && !isNaN(parsedDate.getTime())) {
+          onSelect?.(parsedDate)
         }
+      } catch (error) {
+        // Invalid date format, do nothing
       }
     }
-  };
-
-  const handleInputBlur = () => {
-    // Try to parse the input value as a date
-    if (inputValue && inputValue.length > 0) {
-      const parsedDate = parseDateString(inputValue);
-      
-      if (parsedDate) {
-        handleDateSelect(parsedDate);
-        return;
-      }
-      
-      // If we couldn't parse the date, reset to the current date
-      if (date) {
-        setInputValue(format(date, "dd/MM/yyyy"));
-      } else {
-        setInputValue("");
-      }
+  }
+  
+  const handleSelect = (date: Date | undefined) => {
+    setOpen(false)
+    onSelect?.(date)
+    
+    if (date) {
+      setInputValue(format(date, "dd/MM/yyyy", { locale: ptBR }))
     }
-  };
+  }
 
   return (
-    <div className="flex space-x-2">
-      <Input
-        type="text"
-        value={inputValue}
-        onChange={handleInputChange}
-        onBlur={handleInputBlur}
-        placeholder="DD/MM/AAAA"
-        className="flex-1"
-      />
-      {!allowTyping && (
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className="px-2"
-              type="button"
-            >
-              <CalendarIcon className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-background z-[1000]" align="end">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={handleDateSelect}
-              initialFocus
-              locale={ptBR}
-              className="pointer-events-auto z-[1000]"
-            />
-          </PopoverContent>
-        </Popover>
-      )}
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div className="relative">
+          <Input
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder={placeholder}
+            className="pr-10" // Make room for the calendar icon
+            readOnly={!allowTyping}
+          />
+          <CalendarIcon 
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 opacity-70 cursor-pointer"
+            onClick={() => setOpen(true)}
+          />
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={handleSelect}
+          initialFocus
+          locale={ptBR}
+          className="p-3 pointer-events-auto"
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

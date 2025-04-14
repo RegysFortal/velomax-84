@@ -12,6 +12,7 @@ import {
   SummaryCards,
   EventsCalendar 
 } from '@/components/dashboard';
+import { Delivery as TypedDelivery } from '@/types/delivery';
 
 const Dashboard = () => {
   const { deliveries, loading: deliveriesLoading } = useDeliveries();
@@ -39,7 +40,7 @@ const Dashboard = () => {
     end.setHours(23, 59, 59, 999);
     
     return deliveryDate >= start && deliveryDate <= end;
-  });
+  }) as unknown as TypedDelivery[];
 
   // Filter shipments by date range - only use arrival date if available
   const filteredShipments = shipments.filter(shipment => {
@@ -113,6 +114,7 @@ const Dashboard = () => {
           totalDeliveries={filteredDeliveries.length}
           startDate={startDate}
           endDate={endDate}
+          onRefresh={() => setRefreshTrigger(prev => prev + 1)}
         />
         
         <div className="grid gap-6 md:grid-cols-2">

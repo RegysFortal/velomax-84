@@ -1,8 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { DeliveryType, CargoType, doorToDoorDeliveryTypes } from '@/types/delivery';
+import { calculateFreight as utilsCalculateFreight } from '@/utils/deliveryUtils';
 
 export interface Delivery {
   id: string;
@@ -24,6 +25,11 @@ export interface Delivery {
   totalFreight: number;
   createdAt: string;
   updatedAt: string;
+  receiverId?: string;
+  pickupName?: string;
+  pickupDate?: string;
+  pickupTime?: string;
+  invoiceNumbers?: string[];
 }
 
 export interface DeliveryFormData {
@@ -52,6 +58,17 @@ interface DeliveriesContextType {
   getDeliveryById: (id: string) => Delivery | undefined;
   createDeliveriesFromShipment: (shipment: any, deliveryDetails: any) => Promise<void>;
   refreshDeliveries: () => Promise<void>;
+  calculateFreight: (
+    clientId: string,
+    weight: number,
+    deliveryType: DeliveryType,
+    cargoType: CargoType,
+    cargoValue?: number,
+    distance?: number,
+    cityId?: string
+  ) => number;
+  isDoorToDoorDelivery: (deliveryType: DeliveryType) => boolean;
+  checkMinuteNumberExists: (minuteNumber: string, clientId: string) => boolean;
 }
 
 const DeliveriesContext = createContext<DeliveriesContextType | undefined>(undefined);
@@ -60,7 +77,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch deliveries from Supabase
   const fetchDeliveries = async () => {
     try {
       setLoading(true);
@@ -105,10 +121,8 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  // Create a new delivery
   const addDelivery = async (deliveryData: DeliveryFormData) => {
     try {
-      // Ensure total_freight is a valid number and correctly calculated
       const totalFreight = parseFloat(deliveryData.totalFreight.toString()) || 0;
 
       const { data, error } = await supabase
@@ -128,7 +142,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           receiver: deliveryData.receiver,
           delivery_date: deliveryData.deliveryDate,
           delivery_time: deliveryData.deliveryTime,
-          total_freight: totalFreight, // Ensure this is a number
+          total_freight: totalFreight,
         })
         .select()
         .single();
@@ -137,7 +151,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         throw error;
       }
 
-      // Format the new delivery to match our app's structure
       const newDelivery: Delivery = {
         id: data.id,
         clientId: data.client_id,
@@ -158,7 +171,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updatedAt: data.updated_at,
       };
 
-      // Update local state
       setDeliveries((prevDeliveries) => [newDelivery, ...prevDeliveries]);
 
       return newDelivery;
@@ -169,10 +181,8 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  // Update an existing delivery
   const updateDelivery = async (id: string, data: Partial<Delivery>) => {
     try {
-      // Convert app data structure to Supabase structure
       const supabaseData: any = {
         client_id: data.clientId,
         city_id: data.cityId,
@@ -187,10 +197,9 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         receiver: data.receiver,
         delivery_date: data.deliveryDate,
         delivery_time: data.deliveryTime,
-        total_freight: parseFloat(String(data.totalFreight)) || 0, // Ensure this is a number
+        total_freight: parseFloat(String(data.totalFreight)) || 0,
       };
 
-      // Remove undefined values
       Object.keys(supabaseData).forEach(
         (key) => supabaseData[key] === undefined && delete supabaseData[key]
       );
@@ -206,7 +215,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         throw error;
       }
 
-      // Format the updated delivery
       const updatedDelivery: Delivery = {
         id: updatedData.id,
         clientId: updatedData.client_id,
@@ -227,7 +235,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updatedAt: updatedData.updated_at,
       };
 
-      // Update local state
       setDeliveries((prevDeliveries) =>
         prevDeliveries.map((delivery) =>
           delivery.id === id ? { ...delivery, ...updatedDelivery } : delivery
@@ -242,7 +249,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  // Delete a delivery
   const deleteDelivery = async (id: string) => {
     try {
       const { error } = await supabase.from('deliveries').delete().eq('id', id);
@@ -251,7 +257,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         throw error;
       }
 
-      // Update local state
       setDeliveries((prevDeliveries) =>
         prevDeliveries.filter((delivery) => delivery.id !== id)
       );
@@ -264,12 +269,10 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  // Get a delivery by ID
   const getDeliveryById = (id: string) => {
     return deliveries.find((delivery) => delivery.id === id);
   };
 
-  // Create deliveries from shipment
   const createDeliveriesFromShipment = async (shipment: any, deliveryDetails: any) => {
     try {
       console.log("Creating deliveries from shipment:", shipment);
@@ -280,7 +283,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return;
       }
 
-      // Get selected documents
       const selectedDocs = shipment.documents.filter((doc: any) => 
         deliveryDetails.selectedDocumentIds.includes(doc.id)
       );
@@ -292,26 +294,24 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       console.log("Selected documents:", selectedDocs);
 
-      // Create a delivery for each selected document
       for (const doc of selectedDocs) {
         const newDelivery: DeliveryFormData = {
           clientId: shipment.companyId,
           minuteNumber: doc.minuteNumber || "",
           packages: doc.packages || 1,
           weight: doc.weight || 0,
-          cargoType: "cargo", // Default value
-          deliveryType: "normal", // Default value
+          cargoType: "cargo",
+          deliveryType: "normal",
           receiver: deliveryDetails.receiverName,
           deliveryDate: deliveryDetails.deliveryDate,
           deliveryTime: deliveryDetails.deliveryTime,
-          totalFreight: 0, // This will be calculated correctly
+          totalFreight: 0,
         };
 
         console.log("Creating new delivery:", newDelivery);
         await addDelivery(newDelivery);
       }
 
-      // Update the shipment documents as delivered
       if (shipment.id && deliveryDetails.selectedDocumentIds.length > 0) {
         try {
           const { error } = await supabase
@@ -334,7 +334,60 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  // Initial fetch
+  const calculateFreight = (
+    clientId: string,
+    weight: number,
+    deliveryType: DeliveryType,
+    cargoType: CargoType,
+    cargoValue?: number,
+    distance?: number,
+    cityId?: string
+  ): number => {
+    let baseFreight = 50;
+
+    switch (deliveryType) {
+      case 'emergency':
+        baseFreight += 30;
+        break;
+      case 'exclusive':
+        baseFreight += 100;
+        break;
+      case 'saturday':
+      case 'sundayHoliday':
+        baseFreight += 50;
+        break;
+      case 'door_to_door':
+      case 'doorToDoorInterior':
+        baseFreight += 25;
+        break;
+      default:
+        break;
+    }
+
+    baseFreight += weight * 2;
+
+    if (cargoType === 'perishable') {
+      baseFreight *= 1.2;
+    }
+
+    if (cargoValue && cargoValue > 0) {
+      baseFreight += cargoValue * 0.01;
+    }
+
+    return baseFreight;
+  };
+
+  const isDoorToDoorDelivery = (deliveryType: DeliveryType): boolean => {
+    return doorToDoorDeliveryTypes.includes(deliveryType);
+  };
+
+  const checkMinuteNumberExists = (minuteNumber: string, clientId: string): boolean => {
+    return deliveries.some(delivery => 
+      delivery.minuteNumber === minuteNumber && 
+      delivery.clientId === clientId
+    );
+  };
+
   useEffect(() => {
     fetchDeliveries();
   }, []);
@@ -354,6 +407,9 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         getDeliveryById,
         createDeliveriesFromShipment,
         refreshDeliveries,
+        calculateFreight,
+        isDoorToDoorDelivery,
+        checkMinuteNumberExists
       }}
     >
       {children}

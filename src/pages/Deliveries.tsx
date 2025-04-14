@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { Delivery } from '@/types';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useDeliveries, Delivery as ContextDelivery } from '@/contexts/DeliveriesContext';
+import { Delivery as TypedDelivery } from '@/types/delivery';
 import { useClients } from '@/contexts';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
 import { useFinancial } from '@/contexts/FinancialContext';
@@ -29,8 +28,8 @@ const Deliveries = () => {
   const { financialReports } = useFinancial();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
-  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
+  const [editingDelivery, setEditingDelivery] = useState<TypedDelivery | null>(null);
+  const [selectedDelivery, setSelectedDelivery] = useState<TypedDelivery | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
   
   // Filtering state
@@ -58,7 +57,7 @@ const Deliveries = () => {
     console.log('Entregas com IDs de clientes:', deliveries.map(d => ({ deliveryId: d.id, clientId: d.clientId })));
   }, [clients, deliveries, clientsLoading]);
 
-  const isDeliveryInClosedReport = (delivery: Delivery) => {
+  const isDeliveryInClosedReport = (delivery: ContextDelivery) => {
     const closedReports = financialReports.filter(report => report.status === 'closed');
     
     return closedReports.some(report => {
@@ -76,45 +75,43 @@ const Deliveries = () => {
     });
   };
 
-  const filteredDeliveries = deliveries.filter(delivery => {
-    // Filter out deliveries in closed reports
-    if (isDeliveryInClosedReport(delivery)) {
-      return false;
-    }
-    
-    // Filter by client
-    if (selectedClientId && delivery.clientId !== selectedClientId) {
-      return false;
-    }
-    
-    // Filter by date range
-    if (startDate && endDate) {
-      const deliveryDate = parseISO(delivery.deliveryDate);
-      const filterStartDate = new Date(startDate);
-      const filterEndDate = new Date(endDate);
-      filterEndDate.setHours(23, 59, 59, 999);
-      
-      if (!isWithinInterval(deliveryDate, { start: filterStartDate, end: filterEndDate })) {
+  const filteredDeliveries = deliveries
+    .filter(delivery => {
+      if (isDeliveryInClosedReport(delivery)) {
         return false;
       }
-    }
-    
-    // Apply text search
-    const client = clients.find(c => c.id === delivery.clientId);
-    const searchFields = [
-      delivery.minuteNumber,
-      client?.tradingName || '',
-      client?.name || '',
-      delivery.receiver,
-      delivery.deliveryDate,
-      delivery.occurrence || '',
-    ].join(' ').toLowerCase();
-    
-    return searchFields.includes(searchTerm.toLowerCase());
-  }).sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime());
+      
+      if (selectedClientId && delivery.clientId !== selectedClientId) {
+        return false;
+      }
+      
+      if (startDate && endDate) {
+        const deliveryDate = parseISO(delivery.deliveryDate);
+        const filterStartDate = new Date(startDate);
+        const filterEndDate = new Date(endDate);
+        filterEndDate.setHours(23, 59, 59, 999);
+        
+        if (!isWithinInterval(deliveryDate, { start: filterStartDate, end: filterEndDate })) {
+          return false;
+        }
+      }
+      
+      const client = clients.find(c => c.id === delivery.clientId);
+      const searchFields = [
+        delivery.minuteNumber,
+        client?.tradingName || '',
+        client?.name || '',
+        delivery.receiver,
+        delivery.deliveryDate,
+        delivery.occurrence || '',
+      ].join(' ').toLowerCase();
+      
+      return searchFields.includes(searchTerm.toLowerCase());
+    })
+    .sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime()) as unknown as TypedDelivery[];
 
-  const handleEditDelivery = (delivery: Delivery) => {
-    const deliveryCopy = JSON.parse(JSON.stringify(delivery));
+  const handleEditDelivery = (delivery: ContextDelivery) => {
+    const deliveryCopy = JSON.parse(JSON.stringify(delivery)) as TypedDelivery;
     setEditingDelivery(deliveryCopy);
     setIsDialogOpen(true);
     setSelectedDelivery(null);
@@ -148,7 +145,7 @@ const Deliveries = () => {
     handleRefreshDeliveries();
   };
 
-  const handleViewDetails = (delivery: Delivery) => {
+  const handleViewDetails = (delivery: TypedDelivery) => {
     setSelectedDelivery(delivery);
   };
 
