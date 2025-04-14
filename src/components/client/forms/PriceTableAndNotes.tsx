@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -8,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { usePriceTables } from '@/contexts';
 
 interface PriceTableAndNotesProps {
   priceTableId: string;
@@ -22,6 +24,8 @@ export function PriceTableAndNotes({
   notes,
   setNotes,
 }: PriceTableAndNotesProps) {
+  const { priceTables, loading } = usePriceTables();
+  
   return (
     <>
       <div className="space-y-2">
@@ -31,10 +35,17 @@ export function PriceTableAndNotes({
             <SelectValue placeholder="Selecione uma tabela" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="table-a">Tabela A</SelectItem>
-            <SelectItem value="table-b">Tabela B</SelectItem>
-            <SelectItem value="table-c">Tabela C</SelectItem>
-            <SelectItem value="table-d">Tabela D</SelectItem>
+            {loading ? (
+              <SelectItem value="loading" disabled>Carregando tabelas...</SelectItem>
+            ) : priceTables.length > 0 ? (
+              priceTables.map((table) => (
+                <SelectItem key={table.id} value={table.id}>
+                  {table.name}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="no-tables" disabled>Nenhuma tabela disponível</SelectItem>
+            )}
           </SelectContent>
         </Select>
       </div>

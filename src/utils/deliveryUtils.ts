@@ -82,7 +82,7 @@ export const calculateFreight = (
         const insurance = cargoValue * insuranceRate;
         totalFreight += insurance;
         break;
-      // Add default cases for remaining delivery types
+      // Casos padrão para outros tipos de entrega
       case 'door_to_door':
       case 'scheduled':
         baseRate = priceTable.minimumRate.standardDelivery;
@@ -90,20 +90,47 @@ export const calculateFreight = (
         break;
     }
     
-    if (weight <= weightLimit) {
-      totalFreight += baseRate;
-    } else {
+    // Adicione a taxa base ao frete total
+    totalFreight += baseRate;
+    
+    // Calcule excesso de peso se o peso exceder o limite
+    if (weight > weightLimit) {
       const excessWeight = weight - weightLimit;
-      totalFreight += baseRate + (excessWeight * excessWeightRate);
+      totalFreight += excessWeight * excessWeightRate;
     }
     
+    // Aplique multiplicador para carga perecível
     if (cargoType === 'perishable') {
       totalFreight *= 1.2;
     }
     
+    // Adicione valor de seguro se houver valor da carga
+    if (cargoValue > 0) {
+      const insuranceRate = priceTable.insurance.rate || 0.01;
+      if (cargoType === 'perishable' && priceTable.insurance.perishable) {
+        totalFreight += cargoValue * priceTable.insurance.perishable;
+      } else if (priceTable.insurance.standard) {
+        totalFreight += cargoValue * priceTable.insurance.standard;
+      } else {
+        totalFreight += cargoValue * insuranceRate;
+      }
+    }
+    
+    // Aplique multiplicador se existir na tabela de preços
+    if (priceTable.multiplier && priceTable.multiplier > 0) {
+      totalFreight *= priceTable.multiplier;
+    }
+    
+    // Aplique desconto se existir na tabela de preços
+    if (priceTable.defaultDiscount && priceTable.defaultDiscount > 0) {
+      const discountValue = totalFreight * (priceTable.defaultDiscount / 100);
+      totalFreight -= discountValue;
+    }
+    
+    // Garanta valor mínimo de 0
     return Math.max(totalFreight, 0);
   } catch (error) {
-    console.error('Error calculating freight:', error);
+    console.error('Erro calculando frete:', error);
     return 0;
   }
 };

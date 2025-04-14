@@ -7,7 +7,8 @@ import { DeliveryFormValues } from '../context/DeliveryFormContext';
 import { usePriceTables } from '@/contexts';
 import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
 import { calculateFreight as utilsCalculateFreight } from '@/utils/deliveryUtils';
-import { calculateBudgetValue } from '@/contexts/priceTables/priceTableUtils';
+import { useClients } from '@/contexts';
+import { useCities } from '@/contexts/CitiesContext';
 
 export interface UseDeliveryFormCalculationsProps {
   form: UseFormReturn<DeliveryFormValues>;
@@ -25,6 +26,8 @@ export const useDeliveryFormCalculations = ({
   const { calculateFreight: contextCalculateFreight } = useDeliveries();
   const { priceTables } = usePriceTables();
   const { getClientPriceTable } = useClientPriceTable();
+  const { clients } = useClients();
+  const { cities } = useCities();
 
   const recalculateFreight = useCallback(() => {
     const watchClientId = form.watch('clientId');
@@ -34,7 +37,7 @@ export const useDeliveryFormCalculations = ({
     const watchCargoValue = form.watch('cargoValue');
     const watchCityId = form.watch('cityId');
 
-    console.log("Recalculating freight with values:", {
+    console.log("Recalculando frete com valores:", {
       clientId: watchClientId,
       weight: watchWeight,
       deliveryType: watchDeliveryType,
@@ -50,27 +53,32 @@ export const useDeliveryFormCalculations = ({
         const cargoTypeValue = watchCargoType as CargoType;
         const cargoValueValue = watchCargoValue ? parseFloat(watchCargoValue) : undefined;
         
-        // Get client's price table
+        // Obter a tabela de preço do cliente
         const priceTable = getClientPriceTable(watchClientId);
-        console.log("Using price table:", priceTable);
+        console.log("Usando tabela de preço:", priceTable);
+        
+        // Obter a cidade, se especificada
+        const selectedCity = watchCityId 
+          ? cities.find(city => city.id === watchCityId)
+          : undefined;
         
         let calculatedFreight = 0;
         
         if (priceTable) {
-          // Using the updated budgetValue calculation, but adapting for delivery
-          calculatedFreight = calculateBudgetValue(
+          // Usar a função de cálculo de frete baseada na tabela de preços
+          calculatedFreight = utilsCalculateFreight(
             priceTable,
-            deliveryTypeValue,
             weightValue,
-            cargoValueValue,
-            [], // No additional services for deliveries
-            true, // Assume both collection and delivery for deliveries
-            true
+            deliveryTypeValue,
+            cargoTypeValue,
+            cargoValueValue || 0,
+            undefined,
+            selectedCity
           );
           
-          console.log("Calculated freight using price table:", calculatedFreight);
+          console.log("Frete calculado usando tabela de preço:", calculatedFreight);
         } else {
-          // Fall back to context calculation if price table isn't available
+          // Usar cálculo de fallback se tabela de preço não estiver disponível
           calculatedFreight = contextCalculateFreight(
             watchClientId,
             weightValue,
@@ -80,45 +88,45 @@ export const useDeliveryFormCalculations = ({
             undefined,
             watchCityId || undefined
           );
-          console.log("Calculated freight using context:", calculatedFreight);
+          console.log("Frete calculado usando contexto:", calculatedFreight);
         }
         
-        // Ensure we have a reasonable minimum value
+        // Garantir que temos um valor mínimo razoável
         if (calculatedFreight <= 0) {
           calculatedFreight = calculateBasicFreight(cargoTypeValue, weightValue);
-          console.log("Using basic freight calculation:", calculatedFreight);
+          console.log("Usando cálculo básico de frete:", calculatedFreight);
         }
         
         setFreight(calculatedFreight);
       } catch (error) {
-        console.error('Error calculating freight:', error);
-        // Set a default freight value
+        console.error('Erro calculando frete:', error);
+        // Definir um valor padrão de frete
         const defaultFreight = 50;
-        console.log("Using default freight value due to error:", defaultFreight);
+        console.log("Usando valor padrão de frete devido a erro:", defaultFreight);
         setFreight(defaultFreight);
       }
     } else {
-      console.log("Can't calculate freight, missing required values");
+      console.log("Não é possível calcular frete, valores necessários ausentes");
       if (delivery?.totalFreight) {
-        // Keep existing freight value for edit mode
+        // Manter valor de frete existente para modo de edição
         setFreight(delivery.totalFreight);
       } else {
-        setFreight(50); // Ensure a default value is always set
+        setFreight(50); // Garantir que um valor padrão é sempre definido
       }
     }
-  }, [form, contextCalculateFreight, setFreight, getClientPriceTable, delivery]);
+  }, [form, contextCalculateFreight, setFreight, getClientPriceTable, delivery, cities]);
   
-  // Basic fallback freight calculation
+  // Cálculo básico de frete alternativo
   const calculateBasicFreight = (cargoType: CargoType, weight: number): number => {
     const baseRate = cargoType === 'perishable' ? 25 : 15;
     const multiplier = weight <= 5 ? 1 : weight <= 10 ? 1.5 : weight <= 20 ? 2 : 3;
-    return Math.max(baseRate * multiplier, 50); // Ensure minimum freight is 50
+    return Math.max(baseRate * multiplier, 50); // Garantir que frete mínimo é 50
   };
   
-  // Execute initial calculation when component mounts or when 
-  // delivery/isEditMode changes
+  // Executar cálculo inicial quando componente é montado ou quando 
+  // delivery/isEditMode muda
   useEffect(() => {
-    // Initial calculation with a slight delay to ensure form values are loaded
+    // Cálculo inicial com um pequeno atraso para garantir que valores do formulário são carregados
     const timer = setTimeout(() => {
       recalculateFreight();
     }, 300);
@@ -126,11 +134,11 @@ export const useDeliveryFormCalculations = ({
     return () => clearTimeout(timer);
   }, [recalculateFreight, delivery, isEditMode]);
   
-  // React to changes in form values that affect freight
+  // Reagir a mudanças nos valores do formulário que afetam o frete
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
       if (['clientId', 'weight', 'deliveryType', 'cargoType', 'cargoValue', 'cityId'].includes(name || '')) {
-        console.log(`${name} changed, recalculating freight`);
+        console.log(`${name} mudou, recalculando frete`);
         recalculateFreight();
       }
     });
