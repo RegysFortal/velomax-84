@@ -1,153 +1,177 @@
 
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { StatusBadge } from '@/components/shipment/StatusBadge';
-import { Truck, Package, Clock } from 'lucide-react';
-import { differenceInDays } from 'date-fns';
 import { useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Truck, AlertTriangle, Check, Package, RefreshCw, RotateCcw } from 'lucide-react';
+import { useShipmentSummary } from './hooks/useShipmentSummary';
 
 interface SummaryCardsProps {
   inTransitShipments: number;
   retainedShipments: number;
   deliveredShipments: number;
-  partiallyDeliveredShipments: number; // Added for the "partially_delivered" status
-  finalDeliveredShipments: number; // For the "delivered_final" status
+  partiallyDeliveredShipments: number;
+  finalDeliveredShipments: number;
   totalWeight: number;
   totalDeliveries: number;
   startDate: string;
   endDate: string;
-  onRefresh?: () => void; // Add refresh callback
+  onRefresh: () => void;
 }
 
-export const SummaryCards = ({
-  inTransitShipments,
-  retainedShipments,
-  deliveredShipments,
-  partiallyDeliveredShipments, // New prop
-  finalDeliveredShipments,
+export function SummaryCards({
   totalWeight,
   totalDeliveries,
   startDate,
   endDate,
   onRefresh
-}: SummaryCardsProps) => {
-  const navigate = useNavigate();
-  
-  // Refresh summary data when component mounts
+}: SummaryCardsProps) {
+  // Use our custom hook to get real-time summary data
+  const summary = useShipmentSummary(startDate, endDate);
+
+  // Trigger a refresh when the component mounts
   useEffect(() => {
-    if (onRefresh) {
-      onRefresh();
-    }
-  }, [onRefresh]);
-  
+    window.dispatchEvent(new CustomEvent('shipments-updated'));
+  }, []);
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Status de Embarques</CardTitle>
-          <CardDescription>
-            Resumo dos embarques por status
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Em Trânsito
+          </CardTitle>
+          <Truck className="h-4 w-4 text-blue-500" />
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <StatusBadge status="in_transit" />
-                <span className="ml-2">Em Trânsito</span>
-              </div>
-              <span className="font-medium">{inTransitShipments}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <StatusBadge status="retained" />
-                <span className="ml-2">Retidas</span>
-              </div>
-              <span className="font-medium">{retainedShipments}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <StatusBadge status="delivered" />
-                <span className="ml-2">Retiradas</span>
-              </div>
-              <span className="font-medium">{deliveredShipments}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <StatusBadge status="partially_delivered" />
-                <span className="ml-2">Entregues Parcial</span>
-              </div>
-              <span className="font-medium">{partiallyDeliveredShipments}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <StatusBadge status="delivered_final" />
-                <span className="ml-2">Entregues</span>
-              </div>
-              <span className="font-medium">{finalDeliveredShipments}</span>
-            </div>
-          </div>
-          <Button 
-            variant="outline" 
-            className="w-full mt-4" 
-            onClick={() => navigate('/shipments')}
-          >
-            <Truck className="mr-2 h-4 w-4" />
-            Ver Todos Embarques
-          </Button>
+          <div className="text-2xl font-bold">{summary.inTransitShipments}</div>
+          <p className="text-xs text-muted-foreground">
+            {summary.inTransitShipments > 0 
+              ? `${((summary.inTransitShipments / summary.totalShipments) * 100).toFixed(1)}% do total`
+              : 'Nenhum embarque em trânsito'}
+          </p>
         </CardContent>
       </Card>
       
       <Card>
-        <CardHeader>
-          <CardTitle>Peso Transportado</CardTitle>
-          <CardDescription>
-            Total em kg no período
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Retidas
+          </CardTitle>
+          <AlertTriangle className="h-4 w-4 text-orange-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">
-            <div className="text-3xl font-bold">
-              {totalWeight.toFixed(2)} kg
-            </div>
-            <div className="text-sm text-muted-foreground mt-1">em {totalDeliveries} entregas</div>
-          </div>
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={() => navigate('/deliveries')}
-          >
-            <Package className="mr-2 h-4 w-4" />
-            Ver Entregas
-          </Button>
+          <div className="text-2xl font-bold">{summary.retainedShipments}</div>
+          <p className="text-xs text-muted-foreground">
+            {summary.retainedShipments > 0 
+              ? `${((summary.retainedShipments / summary.totalShipments) * 100).toFixed(1)}% do total`
+              : 'Nenhum embarque retido'}
+          </p>
         </CardContent>
       </Card>
       
       <Card>
-        <CardHeader>
-          <CardTitle>Média de Entregas</CardTitle>
-          <CardDescription>
-            Média diária de entregas no período
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Entrega Parcial
+          </CardTitle>
+          <RotateCcw className="h-4 w-4 text-yellow-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">
-            <div className="text-3xl font-bold">
-              {(totalDeliveries / Math.max(differenceInDays(new Date(endDate), new Date(startDate)) + 1, 1)).toFixed(1)}
-            </div>
-            <div className="text-sm text-muted-foreground mt-1">entregas por dia</div>
-          </div>
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={() => navigate('/shipment-reports')}
+          <div className="text-2xl font-bold">{summary.partiallyDeliveredShipments}</div>
+          <p className="text-xs text-muted-foreground">
+            {summary.partiallyDeliveredShipments > 0 
+              ? `${((summary.partiallyDeliveredShipments / summary.totalShipments) * 100).toFixed(1)}% do total`
+              : 'Nenhum embarque com entrega parcial'}
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Entregas
+          </CardTitle>
+          <Check className="h-4 w-4 text-green-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{summary.finalDeliveredShipments}</div>
+          <p className="text-xs text-muted-foreground">
+            {summary.finalDeliveredShipments > 0 
+              ? `${((summary.finalDeliveredShipments / summary.totalShipments) * 100).toFixed(1)}% do total`
+              : 'Nenhum embarque entregue'}
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Total de Embarques
+          </CardTitle>
+          <Package className="h-4 w-4 text-gray-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{summary.totalShipments}</div>
+          <p className="text-xs text-muted-foreground">
+            {summary.loading ? 'Carregando...' : 'No período selecionado'}
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Total de Entregas
+          </CardTitle>
+          <Package className="h-4 w-4 text-indigo-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{totalDeliveries}</div>
+          <p className="text-xs text-muted-foreground">
+            No período selecionado
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Peso Movimentado
+          </CardTitle>
+          <Package className="h-4 w-4 text-purple-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{totalWeight.toLocaleString('pt-BR')} Kg</div>
+          <p className="text-xs text-muted-foreground">
+            No período selecionado
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Atualizar
+          </CardTitle>
+          <RefreshCw 
+            onClick={() => {
+              onRefresh();
+              window.dispatchEvent(new CustomEvent('shipments-updated'));
+            }} 
+            className="h-4 w-4 text-blue-500 cursor-pointer hover:text-blue-700"
+          />
+        </CardHeader>
+        <CardContent>
+          <button 
+            onClick={() => {
+              onRefresh();
+              window.dispatchEvent(new CustomEvent('shipments-updated'));
+            }}
+            className="w-full py-2 bg-blue-50 hover:bg-blue-100 rounded-md text-sm text-blue-600 transition-colors"
           >
-            <Clock className="mr-2 h-4 w-4" />
-            Relatórios de Embarques
-          </Button>
+            Atualizar dados
+          </button>
         </CardContent>
       </Card>
     </div>
   );
-};
+}

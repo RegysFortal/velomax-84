@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -123,7 +124,10 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const addDelivery = async (deliveryData: DeliveryFormData) => {
     try {
-      const totalFreight = parseFloat(deliveryData.totalFreight.toString()) || 0;
+      // Ensure totalFreight is a number
+      const totalFreight = typeof deliveryData.totalFreight === 'string' 
+        ? parseFloat(deliveryData.totalFreight) 
+        : deliveryData.totalFreight;
 
       const { data, error } = await supabase
         .from('deliveries')
@@ -142,7 +146,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           receiver: deliveryData.receiver,
           delivery_date: deliveryData.deliveryDate,
           delivery_time: deliveryData.deliveryTime,
-          total_freight: totalFreight,
+          total_freight: totalFreight || 0,
         })
         .select()
         .single();
@@ -183,6 +187,14 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const updateDelivery = async (id: string, data: Partial<Delivery>) => {
     try {
+      // Ensure totalFreight is a number
+      let totalFreightValue = 0;
+      if (data.totalFreight !== undefined) {
+        totalFreightValue = typeof data.totalFreight === 'string' 
+          ? parseFloat(data.totalFreight) 
+          : data.totalFreight;
+      }
+
       const supabaseData: any = {
         client_id: data.clientId,
         city_id: data.cityId,
@@ -197,7 +209,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         receiver: data.receiver,
         delivery_date: data.deliveryDate,
         delivery_time: data.deliveryTime,
-        total_freight: parseFloat(String(data.totalFreight)) || 0,
+        total_freight: data.totalFreight !== undefined ? totalFreightValue : undefined,
       };
 
       Object.keys(supabaseData).forEach(
@@ -295,17 +307,26 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.log("Selected documents:", selectedDocs);
 
       for (const doc of selectedDocs) {
+        // Calculate proper freight for this delivery
+        const deliveryWeight = doc.weight || shipment.weight || 0;
+        const baseFreight = calculateFreight(
+          shipment.companyId,
+          deliveryWeight,
+          'normal' as DeliveryType,
+          'cargo' as CargoType
+        );
+
         const newDelivery: DeliveryFormData = {
           clientId: shipment.companyId,
           minuteNumber: doc.minuteNumber || "",
           packages: doc.packages || 1,
-          weight: doc.weight || 0,
+          weight: deliveryWeight,
           cargoType: "cargo",
           deliveryType: "normal",
           receiver: deliveryDetails.receiverName,
           deliveryDate: deliveryDetails.deliveryDate,
           deliveryTime: deliveryDetails.deliveryTime,
-          totalFreight: 0,
+          totalFreight: baseFreight,
         };
 
         console.log("Creating new delivery:", newDelivery);
@@ -328,6 +349,10 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
 
       toast.success("Entregas criadas com sucesso");
+      
+      // Dispatch event to refresh shipment status display
+      window.dispatchEvent(new CustomEvent('shipments-updated'));
+      
     } catch (error) {
       console.error("Error creating deliveries from shipment:", error);
       toast.error("Erro ao criar entregas a partir do embarque");
@@ -364,17 +389,20 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         break;
     }
 
-    baseFreight += weight * 2;
+    // Ensure weight is treated as a number
+    const numWeight = typeof weight === 'string' ? parseFloat(weight) : weight;
+    baseFreight += numWeight * 2;
 
     if (cargoType === 'perishable') {
       baseFreight *= 1.2;
     }
 
     if (cargoValue && cargoValue > 0) {
-      baseFreight += cargoValue * 0.01;
+      const numCargoValue = typeof cargoValue === 'string' ? parseFloat(cargoValue) : cargoValue;
+      baseFreight += numCargoValue * 0.01;
     }
 
-    return baseFreight;
+    return Math.round(baseFreight * 100) / 100; // Round to 2 decimal places
   };
 
   const isDoorToDoorDelivery = (deliveryType: DeliveryType): boolean => {

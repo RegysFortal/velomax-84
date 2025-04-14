@@ -50,13 +50,16 @@ export function useEmployeeForm(employee: User | null, isCreating: boolean, onCo
         const lowerPos = employee.position.toLowerCase();
         if (lowerPos === 'motorista') {
           setPositionType('motorista');
+          setPosition('Motorista');
           setCustomPosition('');
         } else if (lowerPos === 'ajudante') {
           setPositionType('ajudante');
+          setPosition('Ajudante');
           setCustomPosition('');
         } else {
           setPositionType('outro');
           setCustomPosition(employee.position);
+          setPosition(employee.position);
         }
       }
     } else {
@@ -153,9 +156,8 @@ export function useEmployeeForm(employee: User | null, isCreating: boolean, onCo
       if (onSave) {
         await onSave(userData, isCreating);
         toast.success(isCreating ? "Colaborador adicionado com sucesso" : "Colaborador atualizado com sucesso");
+        onComplete();
       }
-      
-      onComplete();
     } catch (error) {
       console.error('Error saving employee:', error);
       toast.error("Ocorreu um erro ao salvar. Tente novamente.");

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Shipment, ShipmentStatus, Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
@@ -11,7 +10,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const [isEditing, setIsEditing] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   
-  // Form state
   const [companyId, setCompanyId] = useState(shipment.companyId);
   const [companyName, setCompanyName] = useState(shipment.companyName);
   const [transportMode, setTransportMode] = useState<"air" | "road">(shipment.transportMode);
@@ -27,7 +25,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const [deliveryTime, setDeliveryTime] = useState(shipment.deliveryTime || "");
   const [receiverName, setReceiverName] = useState(shipment.receiverName || "");
   
-  // Retention-specific fields
   const [retentionReason, setRetentionReason] = useState(shipment.fiscalAction?.reason || "");
   const [retentionAmount, setRetentionAmount] = useState(shipment.fiscalAction?.amountToPay.toString() || "");
   const [paymentDate, setPaymentDate] = useState(shipment.fiscalAction?.paymentDate || "");
@@ -42,7 +39,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const handleCancelEdit = () => {
     setIsEditing(false);
     
-    // Reset form state to original shipment values
     setCompanyId(shipment.companyId);
     setCompanyName(shipment.companyName);
     setTransportMode(shipment.transportMode);
@@ -67,7 +63,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   
   const handleSave = async () => {
     try {
-      // Validate form
       if (!companyId.trim() || !carrierName.trim() || !trackingNumber.trim()) {
         toast.error("Preencha todos os campos obrigatórios");
         return;
@@ -81,13 +76,11 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         return;
       }
       
-      // Validate retention-specific fields if status is "retained"
       if (status === "retained" && !retentionReason.trim()) {
         toast.error("Informe o motivo da retenção");
         return;
       }
       
-      // Build updated shipment object
       const updatedShipment = {
         companyId: companyId.trim(),
         companyName,
@@ -108,7 +101,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       
       await updateShipment(shipment.id, updatedShipment);
 
-      // Update fiscal action if status is retained
       if (status === "retained") {
         const retentionAmountValue = parseFloat(retentionAmount || "0");
         
@@ -140,7 +132,7 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       await deleteShipment(shipment.id);
       toast.success("Embarque removido com sucesso");
       setDeleteAlertOpen(false);
-      onClose(); // Close the dialog after successful deletion
+      onClose();
     } catch (error) {
       toast.error("Erro ao remover embarque");
       console.error(error);
@@ -162,13 +154,11 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
     try {
       console.log(`Changing status to: ${newStatus}`, details);
       
-      // Prepare shipment update data
       let updateData: Partial<Shipment> = { 
         status: newStatus,
         isRetained: newStatus === "retained"
       };
       
-      // Process selected documents if any
       if ((newStatus === "delivered_final" || newStatus === "partially_delivered") && 
           details && details.selectedDocumentIds) {
         const selectedDocumentIds = details.selectedDocumentIds;
@@ -177,7 +167,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           const updatedDocuments: Document[] = [...shipment.documents];
           const selectedDocuments: Document[] = [];
           
-          // Mark the selected documents as delivered
           for (let i = 0; i < updatedDocuments.length; i++) {
             if (selectedDocumentIds.includes(updatedDocuments[i].id)) {
               updatedDocuments[i] = {
@@ -186,68 +175,44 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
               };
               selectedDocuments.push(updatedDocuments[i]);
               
-              // Update document in the database - pass all three required arguments
-              await updateDocument(shipment.id, updatedDocuments[i].id, updatedDocuments);
+              await updateDocument(shipment.id, updatedDocuments[i].id, { ...updatedDocuments[i] });
             }
           }
           
-          // Create deliveries from selected documents
           console.log(`Creating ${selectedDocuments.length} deliveries from selected documents`);
           
           for (const document of selectedDocuments) {
-            try {
-              // Generate unique minute number for each document
-              const minuteNumber = document.minuteNumber || 
+            const minuteNumber = document.minuteNumber || 
                               `${shipment.trackingNumber}-${document.id.substring(0, 4)}`;
-              
-              console.log("Creating delivery from document with data:", {
-                minuteNumber,
-                clientId: shipment.companyId,
-                deliveryDate: details.deliveryDate,
-                deliveryTime: details.deliveryTime,
-                receiver: details.receiverName,
-                weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
-                packages: document.packages !== undefined ? document.packages : shipment.packages
-              });
-              
-              const deliveryData = {
-                minuteNumber,
-                clientId: shipment.companyId,
-                deliveryDate: details.deliveryDate,
-                deliveryTime: details.deliveryTime,
-                receiver: details.receiverName,
-                // Use document weight and packages if available, otherwise use shipment values
-                weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
-                packages: document.packages !== undefined ? document.packages : shipment.packages,
-                deliveryType: 'standard' as const,
-                cargoType: 'standard' as const,
-                totalFreight: 0,
-                notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`
-              };
-              
-              // Add invoice numbers to notes if they exist
-              if (document.invoiceNumbers && document.invoiceNumbers.length > 0) {
-                const invoiceList = document.invoiceNumbers.join(', ');
-                deliveryData.notes = `${deliveryData.notes}\nNotas Fiscais: ${invoiceList}`;
-              }
-              
-              await addDelivery(deliveryData);
-              console.log(`Created delivery for document: ${document.name}`);
-            } catch (error) {
-              console.error(`Error creating delivery for document ${document.name}:`, error);
+            
+            const deliveryData = {
+              minuteNumber,
+              clientId: shipment.companyId,
+              deliveryDate: details.deliveryDate,
+              deliveryTime: details.deliveryTime,
+              receiver: details.receiverName,
+              weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
+              packages: document.packages !== undefined ? document.packages : shipment.packages,
+              deliveryType: 'standard' as const,
+              cargoType: 'standard' as const,
+              totalFreight: 0,
+              notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`
+            };
+            
+            if (document.invoiceNumbers && document.invoiceNumbers.length > 0) {
+              const invoiceList = document.invoiceNumbers.join(', ');
+              deliveryData.notes = `${deliveryData.notes}\nNotas Fiscais: ${invoiceList}`;
             }
+            
+            await addDelivery(deliveryData);
+            console.log(`Created delivery for document: ${document.name}`);
           }
           
-          toast.success(`${selectedDocuments.length} entregas criadas com sucesso`);
-          
-          // Update the shipment with the modified document array
           updateData.documents = updatedDocuments;
           
-          // Check if all documents are now delivered
           const allDocumentsDelivered = updatedDocuments.every(doc => doc.isDelivered);
           const someDocumentsDelivered = updatedDocuments.some(doc => doc.isDelivered);
           
-          // Set the status based on delivery status of documents
           if (allDocumentsDelivered) {
             updateData.status = "delivered_final";
           } else if (someDocumentsDelivered) {
@@ -256,12 +221,10 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
             updateData.status = "in_transit";
           }
           
-          // Update delivery details
           updateData.deliveryDate = details.deliveryDate;
           updateData.deliveryTime = details.deliveryTime;
           updateData.receiverName = details.receiverName;
           
-          // First update the status in the database
           await updateStatus(shipment.id, updateData.status);
           
           if (allDocumentsDelivered) {
@@ -271,9 +234,14 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           } else {
             toast.success(`${selectedDocuments.length} entregas criadas com sucesso. Embarque ainda tem documentos em trânsito.`);
           }
+          
+          setStatus(updateData.status);
+          window.dispatchEvent(new CustomEvent('shipments-updated'));
+          return;
         }
-      } else if (newStatus === "delivered_final" && details) {
-        // If delivered_final and we have delivery details but no specific documents
+      }
+      
+      if (newStatus === "delivered_final" && details) {
         updateData = {
           ...updateData,
           receiverName: details.receiverName,
@@ -281,18 +249,14 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           deliveryTime: details.deliveryTime
         };
         
-        // First update the status in the database
         await updateStatus(shipment.id, "delivered_final");
         
-        // Create deliveries from all documents or a single shipment delivery
         if (shipment.documents && shipment.documents.length > 0) {
-          // Update all documents as delivered
           const updatedDocuments = shipment.documents.map(doc => ({
             ...doc,
             isDelivered: true
           }));
           
-          // Update documents in the database
           for (const doc of updatedDocuments) {
             await updateDocument(shipment.id, doc.id, updatedDocuments);
           }
@@ -302,42 +266,34 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           console.log(`Creating ${shipment.documents.length} deliveries from all documents`);
           
           for (const document of shipment.documents) {
-            try {
-              // Generate unique minute number for each document
-              const minuteNumber = document.minuteNumber || 
+            const minuteNumber = document.minuteNumber || 
                               `${shipment.trackingNumber}-${document.id.substring(0, 4)}`;
-              
-              const deliveryData = {
-                minuteNumber,
-                clientId: shipment.companyId,
-                deliveryDate: details.deliveryDate,
-                deliveryTime: details.deliveryTime,
-                receiver: details.receiverName,
-                // Use document weight and packages if available, otherwise use shipment values
-                weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
-                packages: document.packages !== undefined ? document.packages : shipment.packages,
-                deliveryType: 'standard' as const,
-                cargoType: 'standard' as const,
-                totalFreight: 0,
-                notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`
-              };
-              
-              // Add invoice numbers to notes if they exist
-              if (document.invoiceNumbers && document.invoiceNumbers.length > 0) {
-                const invoiceList = document.invoiceNumbers.join(', ');
-                deliveryData.notes = `${deliveryData.notes}\nNotas Fiscais: ${invoiceList}`;
-              }
-              
-              await addDelivery(deliveryData);
-              console.log(`Created delivery for document: ${document.name}`);
-            } catch (error) {
-              console.error(`Error creating delivery for document ${document.name}:`, error);
+            
+            const deliveryData = {
+              minuteNumber,
+              clientId: shipment.companyId,
+              deliveryDate: details.deliveryDate,
+              deliveryTime: details.deliveryTime,
+              receiver: details.receiverName,
+              weight: document.weight !== undefined ? Number(document.weight) : shipment.weight,
+              packages: document.packages !== undefined ? document.packages : shipment.packages,
+              deliveryType: 'standard' as const,
+              cargoType: 'standard' as const,
+              totalFreight: 0,
+              notes: `Entrega do documento ${document.name} do embarque ${shipment.trackingNumber}`
+            };
+            
+            if (document.invoiceNumbers && document.invoiceNumbers.length > 0) {
+              const invoiceList = document.invoiceNumbers.join(', ');
+              deliveryData.notes = `${deliveryData.notes}\nNotas Fiscais: ${invoiceList}`;
             }
+            
+            await addDelivery(deliveryData);
+            console.log(`Created delivery for document: ${document.name}`);
           }
           
           toast.success(`${shipment.documents.length} entregas criadas com sucesso`);
         } else {
-          // If no documents, create a single delivery from this shipment
           try {
             const minuteNumber = `${shipment.trackingNumber}-${new Date().getTime().toString().slice(-4)}`;
             
@@ -374,14 +330,11 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         }
       }
       
-      // If changing to "retained" and we have retention details
       if (newStatus === "retained" && details && details.retentionReason) {
-        // First update the shipment status
         await updateStatus(shipment.id, newStatus);
         
         await updateShipment(shipment.id, updateData);
         
-        // Then create/update the fiscal action
         const retentionAmountValue = parseFloat(details.retentionAmount || "0");
         
         await updateFiscalAction(shipment.id, {
@@ -395,7 +348,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         
         toast.success("Status alterado para Retida e informações de retenção atualizadas");
         
-        // Update the local state
         setStatus("retained");
         setRetentionReason(details.retentionReason);
         setRetentionAmount(details.retentionAmount);
@@ -407,10 +359,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         return;
       }
       
-      // Update the shipment with our prepared data
       await updateShipment(shipment.id, updateData);
       
-      // Trigger an event to refresh the deliveries list
       setTimeout(() => {
         window.dispatchEvent(new Event('deliveries-updated'));
       }, 1000);
@@ -423,12 +373,10 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
         toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
       }
       
-      // If status is no longer "retained", clear fiscal action
       if (shipment.status === "retained" && newStatus !== "retained") {
         await updateFiscalAction(shipment.id, null);
       }
       
-      // Update local state
       setStatus(updateData.status || newStatus);
       if (details && (newStatus === "delivered_final" || newStatus === "partially_delivered")) {
         setReceiverName(details.receiverName);
