@@ -98,7 +98,7 @@ export function StatusMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <StatusMenuItems 
-            currentStatus={status} 
+            status={status} 
             onStatusChange={handleStatusChange} 
           />
         </DropdownMenuContent>

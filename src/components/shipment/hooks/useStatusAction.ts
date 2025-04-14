@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import { ShipmentStatus } from "@/types/shipment";
 
-export type DeliveryDetailsType = {
+import { useState } from 'react';
+import { ShipmentStatus } from '@/types/shipment';
+import { useToast } from '@/hooks/use-toast';
+import { useStatusDialogState } from './useStatusDialogState';
+
+export interface DeliveryDetailsType {
   receiverName: string;
   deliveryDate: string;
   deliveryTime: string;
-  selectedDocumentIds?: string[];
-};
+  selectedDocumentIds: string[];  // Make this required, not optional
+}
 
 interface UseStatusActionProps {
   status: ShipmentStatus;

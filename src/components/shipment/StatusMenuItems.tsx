@@ -6,10 +6,10 @@ import { useShipments } from "@/contexts/shipments";
 
 interface StatusMenuItemsProps {
   status: ShipmentStatus;
-  onStatusChangeClick: (status: ShipmentStatus) => void;
+  onStatusChange: (status: ShipmentStatus) => void;
 }
 
-export function StatusMenuItems({ status, onStatusChangeClick }: StatusMenuItemsProps) {
+export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps) {
   // Build the list of available status options based on current status
   const getAvailableStatusOptions = () => {
     switch (status) {
@@ -67,6 +67,11 @@ export function StatusMenuItems({ status, onStatusChangeClick }: StatusMenuItems
             value: "delivered_final", 
             label: "Entregue",
             icon: <Check className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "partially_delivered", 
+            label: "Entregue Parcial",
+            icon: <PackageCheck className="mr-2 h-4 w-4" />
           }
         ];
         
@@ -121,7 +126,7 @@ export function StatusMenuItems({ status, onStatusChangeClick }: StatusMenuItems
         <div
           key={option.value}
           className="flex items-center px-3 py-2 cursor-pointer hover:bg-accent"
-          onClick={() => onStatusChangeClick(option.value as ShipmentStatus)}
+          onClick={() => onStatusChange(option.value as ShipmentStatus)}
         >
           {option.icon}
           <span>{option.label}</span>

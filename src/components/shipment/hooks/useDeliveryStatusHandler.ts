@@ -40,12 +40,11 @@ export function useDeliveryStatusHandler({
       }
       
       // Process the delivery
-      // Ensure selectedDocumentIds is always provided as non-optional
       const deliveryDetails: DeliveryDetailsType = {
         receiverName,
         deliveryDate,
         deliveryTime,
-        selectedDocumentIds: selectedDocumentIds || [] // Provide empty array as fallback
+        selectedDocumentIds: selectedDocumentIds
       };
       
       // Update shipment status with delivery details
