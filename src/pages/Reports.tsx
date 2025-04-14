@@ -22,10 +22,12 @@ import { FinancialReport } from '@/types';
 import { Delivery as TypedDelivery } from '@/types/delivery';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 const Reports = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { financialReports, createReport, loading: reportLoading } = useFinancial();
   const { deliveries } = useDeliveries();
   const { clients, loading: clientsLoading } = useClients();
@@ -138,8 +140,16 @@ const Reports = () => {
               <div>
                 <Label>Período</Label>
                 <div className="flex gap-2">
-                  <DatePicker onSelect={setStartDate} disabled={isGenerating} />
-                  <DatePicker onSelect={setEndDate} disabled={isGenerating} />
+                  <DatePicker 
+                    date={startDate} 
+                    onSelect={setStartDate} 
+                    placeholder={isGenerating ? "Carregando..." : "Data inicial"} 
+                  />
+                  <DatePicker 
+                    date={endDate} 
+                    onSelect={setEndDate} 
+                    placeholder={isGenerating ? "Carregando..." : "Data final"} 
+                  />
                 </div>
               </div>
             </div>
