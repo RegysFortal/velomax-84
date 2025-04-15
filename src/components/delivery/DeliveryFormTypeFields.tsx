@@ -89,7 +89,7 @@ export function DeliveryFormTypeFields({
           name="cargoValue"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Valor da Carga (R$)</FormLabel>
+              <FormLabel>Valor da Carga (R$) - Seguro: 1%</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -101,6 +101,9 @@ export function DeliveryFormTypeFields({
                 />
               </FormControl>
               <FormMessage />
+              <p className="text-xs text-muted-foreground mt-1">
+                O valor do seguro é calculado como 1% do valor da carga para redespacho.
+              </p>
             </FormItem>
           )}
         />

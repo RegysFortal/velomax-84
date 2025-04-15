@@ -1,4 +1,3 @@
-
 import { PriceTable } from '@/types';
 
 export const getPriceTable = (priceTables: PriceTable[], id: string): PriceTable | undefined => {
@@ -26,14 +25,12 @@ export const calculateInsurance = (
   return invoiceValue * rate;
 };
 
-// Update the interface for additional services to match what's being passed
 type AdditionalService = {
   id?: string;
   description: string;
   value: number;
 };
 
-// Add utility function to calculate budget value
 export const calculateBudgetValue = (
   priceTable: PriceTable,
   deliveryType: string,
@@ -51,7 +48,6 @@ export const calculateBudgetValue = (
   
   console.log('Starting budget calculation with price table:', priceTable.name);
   
-  // Start with the base rate according to delivery type
   let totalValue = 0;
   
   switch (deliveryType) {
@@ -81,6 +77,12 @@ export const calculateBudgetValue = (
       break;
     case 'reshipment':
       totalValue = priceTable.minimumRate.reshipment;
+      
+      if (merchandiseValue && merchandiseValue > 0) {
+        const insuranceValue = merchandiseValue * 0.01;
+        console.log(`Reshipment insurance value: ${insuranceValue} (${merchandiseValue} × 0.01)`);
+        totalValue += insuranceValue;
+      }
       break;
     case 'normalBiological':
       totalValue = priceTable.minimumRate.normalBiological;
@@ -97,9 +99,7 @@ export const calculateBudgetValue = (
   
   console.log(`Base rate for ${deliveryType}: ${totalValue}`);
   
-  // Calculate excess weight charge only if the total weight exceeds 10kg
   if (totalWeight > 10) {
-    // Determine which rate to use based on delivery type
     let ratePerKg = priceTable.excessWeight.minPerKg;
     
     if (deliveryType === 'emergency' || 
@@ -117,12 +117,10 @@ export const calculateBudgetValue = (
     const excessWeightCharge = (totalWeight - 10) * ratePerKg;
     console.log(`Excess weight: ${totalWeight - 10}kg at rate ${ratePerKg}/kg = ${excessWeightCharge}`);
     
-    // Only apply the excess weight rate to weight above 10kg
     totalValue += excessWeightCharge;
   }
   
-  // Add insurance if applicable
-  if (merchandiseValue && merchandiseValue > 0) {
+  if (merchandiseValue && merchandiseValue > 0 && deliveryType !== 'reshipment') {
     const insuranceRate = cargoType === 'perishable' 
       ? (priceTable.insurance.perishable || priceTable.insurance.rate) 
       : (priceTable.insurance.standard || priceTable.insurance.rate);
@@ -130,13 +128,11 @@ export const calculateBudgetValue = (
     const insuranceValue = merchandiseValue * insuranceRate;
     console.log(`Insurance value: ${insuranceValue} (${merchandiseValue} × ${insuranceRate})`);
     totalValue += insuranceValue;
-  } else {
+  } else if (deliveryType !== 'reshipment') {
     console.log('No merchandise value set for insurance calculation');
   }
   
-  // Add additional services
   if (additionalServices && additionalServices.length > 0) {
-    // Make sure we only use services with valid descriptions and values
     const validServices = additionalServices.filter(
       service => service.description && typeof service.value === 'number'
     );
@@ -146,24 +142,20 @@ export const calculateBudgetValue = (
     totalValue += additionalServicesValue;
   }
   
-  // If both collection and delivery are selected, multiply by 2
   if (hasCollection && hasDelivery) {
     console.log(`Collection + Delivery: ${totalValue} * 2 = ${totalValue * 2}`);
     totalValue *= 2;
   } else if (!hasDelivery && hasCollection) {
-    // If only collection is selected (no delivery), reduce value
     console.log(`Collection only: ${totalValue} * 0.7 = ${totalValue * 0.7}`);
     totalValue *= 0.7;
   }
   
-  // Apply discount if configured in price table
   if (priceTable.defaultDiscount && priceTable.defaultDiscount > 0) {
     const discountValue = totalValue * (priceTable.defaultDiscount / 100);
     console.log(`Discount: ${discountValue} (${priceTable.defaultDiscount}%)`);
     totalValue = totalValue - discountValue;
   }
   
-  // Apply multiplier if exists
   if (priceTable.multiplier && priceTable.multiplier > 0) {
     console.log(`Multiplier: ${totalValue} * ${priceTable.multiplier} = ${totalValue * priceTable.multiplier}`);
     totalValue *= priceTable.multiplier;

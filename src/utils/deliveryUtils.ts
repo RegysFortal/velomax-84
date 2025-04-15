@@ -78,11 +78,15 @@ export const calculateFreight = (
         baseRate = priceTable.minimumRate.reshipment;
         excessWeightRate = priceTable.excessWeight.reshipmentPerKg;
         
-        const insuranceRate = 0.01;
-        const insurance = cargoValue * insuranceRate;
-        totalFreight += insurance;
+        // For reshipment, calculate insurance as 1% of cargo value
+        if (cargoValue > 0) {
+          // Apply 1% insurance rate specifically for reshipment
+          const insurance = cargoValue * 0.01;
+          totalFreight += insurance;
+          console.log(`Reshipment insurance (1%): ${cargoValue} × 0.01 = ${insurance}`);
+        }
         break;
-      // Casos padrão para outros tipos de entrega
+      // Default cases for other delivery types
       case 'door_to_door':
       case 'scheduled':
         baseRate = priceTable.minimumRate.standardDelivery;
@@ -90,22 +94,23 @@ export const calculateFreight = (
         break;
     }
     
-    // Adicione a taxa base ao frete total
+    // Add base rate to total freight
     totalFreight += baseRate;
     
-    // Calcule excesso de peso se o peso exceder o limite
+    // Calculate excess weight if weight exceeds the limit
     if (weight > weightLimit) {
       const excessWeight = weight - weightLimit;
       totalFreight += excessWeight * excessWeightRate;
     }
     
-    // Aplique multiplicador para carga perecível
+    // Apply multiplier for perishable cargo
     if (cargoType === 'perishable') {
       totalFreight *= 1.2;
     }
     
-    // Adicione valor de seguro se houver valor da carga
-    if (cargoValue > 0) {
+    // Add insurance value if there's cargo value - but only for non-reshipment deliveries
+    // since we already calculated insurance for reshipment above
+    if (cargoValue > 0 && deliveryType !== 'reshipment') {
       const insuranceRate = priceTable.insurance.rate || 0.01;
       if (cargoType === 'perishable' && priceTable.insurance.perishable) {
         totalFreight += cargoValue * priceTable.insurance.perishable;
@@ -116,18 +121,18 @@ export const calculateFreight = (
       }
     }
     
-    // Aplique multiplicador se existir na tabela de preços
+    // Apply multiplier if it exists in the price table
     if (priceTable.multiplier && priceTable.multiplier > 0) {
       totalFreight *= priceTable.multiplier;
     }
     
-    // Aplique desconto se existir na tabela de preços
+    // Apply discount if it exists in the price table
     if (priceTable.defaultDiscount && priceTable.defaultDiscount > 0) {
       const discountValue = totalFreight * (priceTable.defaultDiscount / 100);
       totalFreight -= discountValue;
     }
     
-    // Garanta valor mínimo de 0
+    // Ensure minimum value of 0
     return Math.max(totalFreight, 0);
   } catch (error) {
     console.error('Erro calculando frete:', error);
