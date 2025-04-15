@@ -30,7 +30,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
       <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
         <Calculator className="mr-2 h-4 w-4" />
-        Fechamento
+        Financeiro
       </NavigationMenuTrigger>
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
@@ -56,7 +56,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                 )}
               >
                 <Calculator className="mr-2 h-4 w-4" />
-                Fechamento
+                Financeiro
               </Link>
             )}
             {hasPermission('reports') && (
@@ -68,7 +68,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                 )}
               >
                 <FileText className="mr-2 h-4 w-4" />
-                Relatórios a fechar
+                Relatórios a Fechar
               </Link>
             )}
             {hasPermission('priceTables') && (
