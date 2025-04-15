@@ -11,12 +11,20 @@ interface OptionItemProps {
 }
 
 export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
+  // Add explicit click handler to ensure the selection works
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onSelect(option.value);
+  };
+
   return (
     <CommandItem
       key={option.value}
       value={option.value}
       onSelect={() => onSelect(option.value)}
-      className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground"
+      onClick={handleClick}
+      className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground cursor-pointer"
     >
       <div className="flex flex-col">
         <span className="font-medium">

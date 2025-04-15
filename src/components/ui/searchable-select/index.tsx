@@ -60,7 +60,7 @@ export function SearchableSelect({
     }
   }, [options, value, selectedOption]);
   
-  // Handle selection
+  // Handle selection - Improved to handle both click and keypress
   const handleSelect = (currentValue: string) => {
     console.log("SearchableSelect - Option selected:", currentValue);
     onValueChange(currentValue);

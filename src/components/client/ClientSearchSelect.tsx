@@ -90,9 +90,11 @@ export function ClientSearchSelect({
       setIsProcessing(true);
       console.log("ClientSearchSelect - Valor alterado para:", newValue);
       
-      // Add a small delay to prevent UI freezing when selecting a client
+      // Ensure onValueChange is called immediately
+      onValueChange(newValue);
+      
+      // Add a small delay to reset processing state
       setTimeout(() => {
-        onValueChange(newValue);
         setIsProcessing(false);
       }, 50);
     } catch (error) {
