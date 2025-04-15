@@ -2,26 +2,27 @@
 import React from "react";
 import { CommandItem } from "@/components/ui/command";
 import { Check } from "lucide-react";
+import { SearchableSelectOption } from "./types";
 
 interface OptionItemProps {
-  label: string;
-  description?: string;
+  option: SearchableSelectOption;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (value: string) => void;
 }
 
-export function OptionItem({ label, description, isSelected, onSelect }: OptionItemProps) {
+export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
   return (
     <CommandItem
-      value={label}
-      onSelect={onSelect}
+      key={option.value}
+      value={option.value}
+      onSelect={() => onSelect(option.value)}
       className="flex items-center justify-between"
     >
       <div>
-        <div>{label}</div>
-        {description && (
+        <div>{option.label}</div>
+        {option.description && (
           <div className="text-xs text-muted-foreground">
-            {description}
+            {option.description}
           </div>
         )}
       </div>

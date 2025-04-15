@@ -1,6 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Command } from '@/components/ui/command';
+import { 
+  Command, 
+  CommandInput, 
+  CommandList, 
+  CommandEmpty,
+  CommandGroup,
+  CommandItem 
+} from '@/components/ui/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { SearchableSelectTrigger } from './trigger';
 import { OptionItem } from './option-item';
@@ -100,7 +107,7 @@ export function SearchableSelect({
         <Command className="rounded-lg border shadow-md">
           <div className="flex items-center border-b px-3">
             <div className="flex-1">
-              <Command.Input
+              <CommandInput
                 placeholder="Search..."
                 value={searchValue}
                 onValueChange={handleSearchChange}
@@ -109,11 +116,11 @@ export function SearchableSelect({
             </div>
           </div>
           
-          <Command.List className="max-h-[250px] overflow-y-auto p-1">
+          <CommandList className="max-h-[250px] overflow-y-auto p-1">
             {filteredOptions.length === 0 && !showCreateOption ? (
-              <Command.Empty className="py-6 text-center text-sm">{emptyMessage}</Command.Empty>
+              <CommandEmpty className="py-6 text-center text-sm">{emptyMessage}</CommandEmpty>
             ) : (
-              <>
+              <CommandGroup>
                 {filteredOptions.map((option) => (
                   <OptionItem
                     key={option.value}
@@ -124,11 +131,14 @@ export function SearchableSelect({
                 ))}
                 
                 {showCreateOption && onCreateNew && (
-                  <CreateOption label={createOptionLabel} onSelect={handleCreateNew} />
+                  <CreateOption 
+                    label={createOptionLabel} 
+                    onSelect={handleCreateNew} 
+                  />
                 )}
-              </>
+              </CommandGroup>
             )}
-          </Command.List>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
