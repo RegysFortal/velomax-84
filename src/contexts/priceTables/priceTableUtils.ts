@@ -1,3 +1,4 @@
+
 import { PriceTable } from '@/types';
 
 export const getPriceTable = (priceTables: PriceTable[], id: string): PriceTable | undefined => {
@@ -99,6 +100,7 @@ export const calculateBudgetValue = (
   
   console.log(`Base rate for ${deliveryType}: ${totalValue}`);
   
+  // Only add excess weight charge if there is actual excess weight
   if (totalWeight > 10) {
     let ratePerKg = priceTable.excessWeight.minPerKg;
     
@@ -120,6 +122,16 @@ export const calculateBudgetValue = (
     totalValue += excessWeightCharge;
   }
   
+  // Apply perishable multiplier if cargo type is perishable and it's not already applied in base rate
+  if (cargoType === 'perishable' && 
+      deliveryType !== 'normalBiological' && 
+      deliveryType !== 'infectiousBiological') {
+    const perishableMultiplier = 1.2;
+    console.log(`Applying perishable multiplier: ${totalValue} × ${perishableMultiplier} = ${totalValue * perishableMultiplier}`);
+    totalValue *= perishableMultiplier;
+  }
+  
+  // Add insurance for non-reshipment deliveries
   if (merchandiseValue && merchandiseValue > 0 && deliveryType !== 'reshipment') {
     const insuranceRate = cargoType === 'perishable' 
       ? (priceTable.insurance.perishable || priceTable.insurance.rate) 

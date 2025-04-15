@@ -31,8 +31,9 @@ export function ClientSelection({
   useEffect(() => {
     if (clients.length > 0) {
       console.log("ClientSelection - Available clients:", clients.length);
+      console.log("ClientSelection - Current companyId:", companyId);
     }
-  }, [clients]);
+  }, [clients, companyId]);
   
   if (loading) {
     return <Skeleton className="h-10 w-full" />;

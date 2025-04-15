@@ -56,6 +56,7 @@ export function ClientSearchSelect({
         ];
         
         setClientOptions(options);
+        console.log("ClientSearchSelect - Options formatted:", options.length);
       } else {
         console.log("ClientSearchSelect - No clients available");
         setClientOptions([]);
@@ -65,6 +66,12 @@ export function ClientSearchSelect({
       setClientOptions([]);
     }
   }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
+  
+  // Debug current value
+  useEffect(() => {
+    console.log("ClientSearchSelect - Current value:", value);
+    console.log("ClientSearchSelect - Options count:", clientOptions.length);
+  }, [value, clientOptions]);
   
   const handleCreateNewClient = () => {
     // Store current route to return after client creation

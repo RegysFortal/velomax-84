@@ -104,7 +104,7 @@ export const calculateFreight = (
     // Add base rate to total freight
     totalFreight += baseRate;
     
-    // Calculate excess weight if weight exceeds the limit
+    // Calculate excess weight if weight exceeds the limit and only if there is actual excess weight
     if (weight > weightLimit) {
       const excessWeight = weight - weightLimit;
       const excessWeightCharge = excessWeight * excessWeightRate;
@@ -112,8 +112,8 @@ export const calculateFreight = (
       totalFreight += excessWeightCharge;
     }
     
-    // Apply multiplier for perishable cargo
-    if (cargoType === 'perishable') {
+    // Apply multiplier for perishable cargo if not already applied by base rate
+    if (cargoType === 'perishable' && deliveryType !== 'normalBiological' && deliveryType !== 'infectiousBiological') {
       const perishableMultiplier = 1.2;
       console.log(`Multiplicador de perecível: ${totalFreight} × ${perishableMultiplier} = ${totalFreight * perishableMultiplier}`);
       totalFreight *= perishableMultiplier;
