@@ -50,7 +50,9 @@ export const calculateBudgetValue = (
   console.log('Starting budget calculation with price table:', priceTable.name);
   
   let totalValue = 0;
+  const weightLimit = 10; // Standard weight limit
   
+  // Set base rate based on delivery type
   switch (deliveryType) {
     case 'standard':
       totalValue = priceTable.minimumRate.standardDelivery;
@@ -101,7 +103,7 @@ export const calculateBudgetValue = (
   console.log(`Base rate for ${deliveryType}: ${totalValue}`);
   
   // Only add excess weight charge if there is actual excess weight
-  if (totalWeight > 10) {
+  if (totalWeight > weightLimit) {
     let ratePerKg = priceTable.excessWeight.minPerKg;
     
     if (deliveryType === 'emergency' || 
@@ -116,8 +118,8 @@ export const calculateBudgetValue = (
       ratePerKg = priceTable.excessWeight.reshipmentPerKg;
     }
     
-    const excessWeightCharge = (totalWeight - 10) * ratePerKg;
-    console.log(`Excess weight: ${totalWeight - 10}kg at rate ${ratePerKg}/kg = ${excessWeightCharge}`);
+    const excessWeightCharge = (totalWeight - weightLimit) * ratePerKg;
+    console.log(`Excess weight: ${totalWeight - weightLimit}kg at rate ${ratePerKg}/kg = ${excessWeightCharge}`);
     
     totalValue += excessWeightCharge;
   }

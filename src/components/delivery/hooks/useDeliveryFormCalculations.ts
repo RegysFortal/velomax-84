@@ -58,7 +58,7 @@ export const useDeliveryFormCalculations = ({
         const weightValue = parseFloat(watchWeight);
         const deliveryTypeValue = watchDeliveryType as DeliveryType;
         const cargoTypeValue = watchCargoType as CargoType;
-        const cargoValueValue = watchCargoValue ? parseFloat(watchCargoValue) : undefined;
+        const cargoValueValue = watchCargoValue ? parseFloat(watchCargoValue) : 0;
         
         // Obter a tabela de preço do cliente
         const priceTable = getClientPriceTable(watchClientId);
@@ -78,7 +78,7 @@ export const useDeliveryFormCalculations = ({
             weightValue,
             deliveryTypeValue,
             cargoTypeValue,
-            cargoValueValue || 0,
+            cargoValueValue,
             undefined,
             selectedCity
           );

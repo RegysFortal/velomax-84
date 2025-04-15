@@ -1,159 +1,134 @@
 
-import React, { useState, useRef, useEffect } from "react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus } from "lucide-react";
-import { SearchTrigger } from "./trigger";
-import { CreateOption } from "./create-option";
-import { SearchableSelectProps } from "./types";
-
-export type { SearchableSelectOption, SearchableSelectProps } from "./types";
+import React, { useState, useRef, useEffect } from 'react';
+import { Command } from '@/components/ui/command';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { SearchableSelectTrigger } from './trigger';
+import { OptionItem } from './option-item';
+import { CreateOption } from './create-option';
+import { SearchableSelectProps } from './types';
 
 export function SearchableSelect({
-  options,
+  options = [],
   value,
   onValueChange,
-  placeholder = "Selecione uma opção...",
-  emptyMessage = "Nenhum resultado encontrado.",
-  onCreateNew,
+  placeholder = 'Select an option',
+  emptyMessage = 'No results found',
   showCreateOption = false,
-  createOptionLabel = "Cadastrar novo",
+  createOptionLabel = 'Create new item',
+  onCreateNew,
   disabled = false
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchValue, setSearchValue] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
-
-  // Debug logs
-  useEffect(() => {
-    console.log("SearchableSelect - options count:", options.length);
-    console.log("SearchableSelect - current value:", value);
-    
-    if (options.length > 0) {
-      console.log("SearchableSelect - First few options:", options.slice(0, 3));
-    }
-  }, [options, value]);
-
-  // Find the selected option label
+  
+  // Find the selected option to display in the trigger
   const selectedOption = options.find(option => option.value === value);
-  const displayValue = selectedOption ? selectedOption.label : placeholder;
 
-  // Filter options based on search query
+  // Filter options based on search value
   const filteredOptions = options.filter(option => {
-    const label = option.label.toLowerCase();
-    const description = option.description?.toLowerCase() || '';
-    const query = searchQuery.toLowerCase();
-    
-    return label.includes(query) || description.includes(query);
+    const optionText = `${option.label} ${option.description || ''}`.toLowerCase();
+    return optionText.includes(searchValue.toLowerCase());
   });
-
-  // Handle option selection
+  
+  // Handle outside click to close popover
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Debug options and selected value
+  useEffect(() => {
+    if (options.length > 0) {
+      console.log("SearchableSelect - Options available:", options.length);
+      console.log("SearchableSelect - Current value:", value);
+      console.log("SearchableSelect - Selected option:", selectedOption);
+    }
+  }, [options, value, selectedOption]);
+  
+  // Handle selection
   const handleSelect = (currentValue: string) => {
-    console.log("SearchableSelect - Item selected:", currentValue);
+    console.log("SearchableSelect - Option selected:", currentValue);
     onValueChange(currentValue);
+    setSearchValue('');
     setOpen(false);
-    setSearchQuery(""); // Clear search when an item is selected
   };
-
+  
   // Handle create new option
   const handleCreateNew = () => {
     if (onCreateNew) {
-      console.log("SearchableSelect - Create new option clicked");
       onCreateNew();
-      setOpen(false);
+    }
+    setOpen(false);
+  };
+  
+  // Handle search input change
+  const handleSearchChange = (input: string) => {
+    setSearchValue(input);
+  };
+  
+  // Handle trigger click
+  const handleTriggerClick = () => {
+    if (!disabled) {
+      setOpen(!open);
     }
   };
-
-  // Force correct positioning
-  useEffect(() => {
-    const handleResize = () => {
-      if (open && popoverRef.current) {
-        // Force reposition of popover when window size changes
-        const event = new Event('resize');
-        window.dispatchEvent(event);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [open]);
-
+  
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <SearchTrigger 
-          displayValue={displayValue}
-          open={open}
-          onClick={() => !disabled && setOpen(!open)}
-          disabled={disabled}
-        />
-      </PopoverTrigger>
-      <PopoverContent 
-        className="w-[var(--radix-popover-trigger-width)] p-0 bg-white dark:bg-gray-900 z-[9999]" 
-        ref={popoverRef}
-        align="start"
-        sideOffset={4}
-        avoidCollisions={true}
-        collisionPadding={20}
-        style={{ 
-          maxHeight: "80vh", 
-          overflowY: "auto",
-          position: "absolute",
-          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-        }}
-      >
-        <Command className="bg-white dark:bg-gray-900 rounded-md">
-          <CommandInput 
-            placeholder={`Procurar ${placeholder.toLowerCase()}`} 
-            className="h-9" 
-            value={searchQuery}
-            onValueChange={setSearchQuery}
+        <div>
+          <SearchableSelectTrigger
+            placeholder={placeholder}
+            value={selectedOption?.label || ''}
+            description={selectedOption?.description || ''}
+            onClick={handleTriggerClick}
             disabled={disabled}
-            autoFocus
           />
-          <CommandList className="max-h-[300px] overflow-auto">
-            <CommandEmpty>
-              <div className="py-2 px-2 text-sm text-muted-foreground">
-                {emptyMessage}
-                {showCreateOption && onCreateNew && (
-                  <CreateOption
-                    onClick={handleCreateNew}
-                    label={createOptionLabel}
+        </div>
+      </PopoverTrigger>
+      
+      <PopoverContent className="p-0 max-h-[300px] overflow-hidden" ref={popoverRef} align="start">
+        <Command className="rounded-lg border shadow-md">
+          <div className="flex items-center border-b px-3">
+            <div className="flex-1">
+              <Command.Input
+                placeholder="Search..."
+                value={searchValue}
+                onValueChange={handleSearchChange}
+                className="h-9 w-full border-0 focus:ring-0 focus:outline-none"
+              />
+            </div>
+          </div>
+          
+          <Command.List className="max-h-[250px] overflow-y-auto p-1">
+            {filteredOptions.length === 0 && !showCreateOption ? (
+              <Command.Empty className="py-6 text-center text-sm">{emptyMessage}</Command.Empty>
+            ) : (
+              <>
+                {filteredOptions.map((option) => (
+                  <OptionItem
+                    key={option.value}
+                    option={option}
+                    isSelected={value === option.value}
+                    onSelect={handleSelect}
                   />
+                ))}
+                
+                {showCreateOption && onCreateNew && (
+                  <CreateOption label={createOptionLabel} onSelect={handleCreateNew} />
                 )}
-              </div>
-            </CommandEmpty>
-            <CommandGroup>
-              {filteredOptions.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={handleSelect}
-                  className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                >
-                  <div>
-                    <div>{option.label}</div>
-                    {option.description && (
-                      <div className="text-xs text-muted-foreground">
-                        {option.description}
-                      </div>
-                    )}
-                  </div>
-                  {value === option.value && <span className="ml-2">✓</span>}
-                </CommandItem>
-              ))}
-              {showCreateOption && onCreateNew && filteredOptions.length > 0 && (
-                <CommandItem
-                  value="__create-new__"
-                  onSelect={handleCreateNew}
-                  className="flex items-center border-t hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  {createOptionLabel}
-                </CommandItem>
-              )}
-            </CommandGroup>
-          </CommandList>
+              </>
+            )}
+          </Command.List>
         </Command>
       </PopoverContent>
     </Popover>
