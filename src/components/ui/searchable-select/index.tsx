@@ -6,7 +6,6 @@ import {
   CommandList, 
   CommandEmpty,
   CommandGroup,
-  CommandItem 
 } from '@/components/ui/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { SearchableSelectTrigger } from './trigger';

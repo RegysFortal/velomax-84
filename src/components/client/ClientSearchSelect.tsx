@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Client } from "@/types";
+import { SearchableSelectOption } from "@/components/ui/searchable-select/types";
 
 interface ClientSearchSelectProps {
   value: string;
@@ -32,7 +33,7 @@ export function ClientSearchSelect({
   disabled = false,
   clients = []
 }: ClientSearchSelectProps) {
-  const [clientOptions, setClientOptions] = useState<any[]>([]);
+  const [clientOptions, setClientOptions] = useState<SearchableSelectOption[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
   

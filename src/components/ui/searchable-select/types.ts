@@ -11,8 +11,8 @@ export interface SearchableSelectProps {
   onValueChange: (value: string) => void;
   placeholder?: string;
   emptyMessage?: string;
-  onCreateNew?: () => void;
   showCreateOption?: boolean;
   createOptionLabel?: string;
+  onCreateNew?: () => void;
   disabled?: boolean;
 }
