@@ -91,7 +91,7 @@ export function SearchableSelect({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div>
+        <div onClick={handleTriggerClick}>
           <SearchableSelectTrigger
             placeholder={placeholder}
             value={selectedOption?.label || ''}

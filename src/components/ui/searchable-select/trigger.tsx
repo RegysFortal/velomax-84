@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
@@ -25,6 +26,7 @@ export function SearchableSelectTrigger({
       className="w-full justify-between text-left font-normal"
       onClick={onClick}
       disabled={disabled}
+      type="button"
     >
       <div className="flex flex-col items-start gap-1 truncate">
         {value ? (
