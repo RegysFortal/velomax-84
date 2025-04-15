@@ -33,7 +33,7 @@ export const useUpdateDelivery = (
       if (updates.totalFreight !== undefined) {
         // Ensure totalFreight is a number by converting it properly
         const freightValue = typeof updates.totalFreight === 'string' 
-          ? parseFloat(updates.totalFreight.replace ? updates.totalFreight.replace(',', '.') : updates.totalFreight) 
+          ? parseFloat(String(updates.totalFreight).replace(',', '.')) 
           : updates.totalFreight;
         
         supabaseDelivery.total_freight = freightValue;

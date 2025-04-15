@@ -34,6 +34,9 @@ export const useDeliveryFormCalculations = ({
   const initialCalculationDone = useRef(false);
 
   const recalculateFreight = useCallback(() => {
+    // Reset manual flag when explicitly calling recalculate
+    manuallyChanged.current = false;
+    
     const watchClientId = form.watch('clientId');
     const watchWeight = form.watch('weight');
     const watchDeliveryType = form.watch('deliveryType');
@@ -49,9 +52,6 @@ export const useDeliveryFormCalculations = ({
       cargoValue: watchCargoValue,
       cityId: watchCityId
     });
-
-    // Reset manual flag when explicitly calling recalculate
-    manuallyChanged.current = false;
 
     if (watchClientId && watchWeight && !isNaN(parseFloat(watchWeight))) {
       try {
@@ -146,6 +146,23 @@ export const useDeliveryFormCalculations = ({
       return () => clearTimeout(timer);
     }
   }, [recalculateFreight]);
+  
+  // Listen to input events to detect manual changes to freight value
+  useEffect(() => {
+    const handleInputEvent = (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      if (target && target.type === 'number' && target.classList.contains('w-32')) {
+        console.log("Manual freight input detected", target.value);
+        manuallyChanged.current = true;
+      }
+    };
+    
+    document.addEventListener('input', handleInputEvent);
+    
+    return () => {
+      document.removeEventListener('input', handleInputEvent);
+    };
+  }, []);
   
   // React to changes in form values that affect freight
   useEffect(() => {

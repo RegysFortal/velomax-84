@@ -90,6 +90,7 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
   const handleFreightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     if (!isNaN(value)) {
+      console.log("Setting freight manually to:", value);
       setFreight(value);
     } else {
       setFreight(0);
