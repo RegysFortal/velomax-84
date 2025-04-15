@@ -30,7 +30,14 @@ export const useUpdateDelivery = (
       if (updates.deliveryType !== undefined) supabaseDelivery.delivery_type = updates.deliveryType;
       if (updates.cargoType !== undefined) supabaseDelivery.cargo_type = updates.cargoType;
       if (updates.cargoValue !== undefined) supabaseDelivery.cargo_value = updates.cargoValue;
-      if (updates.totalFreight !== undefined) supabaseDelivery.total_freight = updates.totalFreight;
+      if (updates.totalFreight !== undefined) {
+        // Ensure totalFreight is a number by converting it properly
+        const freightValue = typeof updates.totalFreight === 'string' 
+          ? parseFloat(updates.totalFreight.replace ? updates.totalFreight.replace(',', '.') : updates.totalFreight) 
+          : updates.totalFreight;
+        
+        supabaseDelivery.total_freight = freightValue;
+      }
       if (updates.notes !== undefined) supabaseDelivery.notes = updates.notes;
       if (updates.occurrence !== undefined) supabaseDelivery.occurrence = updates.occurrence;
       if (updates.cityId !== undefined) supabaseDelivery.city_id = updates.cityId;

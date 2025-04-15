@@ -41,7 +41,6 @@ interface DeliveryFormContextType {
   setFormData: React.Dispatch<React.SetStateAction<any>>;
   clients: Client[];
   setFreight: React.Dispatch<React.SetStateAction<number>>;
-  setManualFreight?: (value: number) => void;
 }
 
 const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
@@ -52,7 +51,7 @@ export const DeliveryFormProvider: React.FC<{
 }> = ({ children, delivery = null }) => {
   const [formData, setFormData] = useState<any>(null);
   const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
-  const [freight, setFreight] = useState(0);
+  const [freight, setFreight] = useState<number>(delivery?.totalFreight || 0);
   const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
   const isEditMode = !!delivery;
   const { clients, loading: clientsLoading } = useClients();
@@ -97,12 +96,6 @@ export const DeliveryFormProvider: React.FC<{
   const deliveryType = form.watch('deliveryType');
   const showDoorToDoor = isDoorToDoorDelivery(deliveryType as DeliveryType);
 
-  // Function to manually set freight
-  const setManualFreight = (value: number) => {
-    console.log("Setting manual freight:", value);
-    setFreight(value);
-  };
-
   return (
     <DeliveryFormContext.Provider
       value={{
@@ -116,7 +109,7 @@ export const DeliveryFormProvider: React.FC<{
         formData,
         setFormData,
         clients,
-        setFreight: setManualFreight,
+        setFreight,
       }}
     >
       {children}

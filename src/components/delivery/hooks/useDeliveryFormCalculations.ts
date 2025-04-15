@@ -161,14 +161,7 @@ export const useDeliveryFormCalculations = ({
     return () => subscription.unsubscribe();
   }, [form, recalculateFreight]);
 
-  // Function to signal that the value was manually changed
-  const setManualFreight = (value: number) => {
-    manuallyChanged.current = true;
-    setFreight(value);
-  };
-
   return {
-    calculateFreight: recalculateFreight,
-    setManualFreight
+    calculateFreight: recalculateFreight
   };
 };
