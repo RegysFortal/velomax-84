@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { Client } from "@/types";
 import { ClientSelection } from "./ClientSelection";
@@ -63,16 +64,26 @@ export function ShipmentFormSection({
   // Handler to update client name when client ID changes
   const handleClientChange = (id: string) => {
     try {
+      console.log("ShipmentFormSection - Client selected:", id);
       setCompanyId(id);
       // Find client and set name
       const selectedClient = clients.find(client => client.id === id);
       if (selectedClient) {
-        setCompanyName(selectedClient.tradingName || selectedClient.name);
+        const displayName = selectedClient.tradingName || selectedClient.name;
+        console.log("ShipmentFormSection - Setting company name to:", displayName);
+        setCompanyName(displayName);
       }
     } catch (error) {
       console.error("Error handling client change:", error);
     }
   };
+
+  // Debug output to help diagnose issues
+  useEffect(() => {
+    if (clients.length > 0) {
+      console.log("ShipmentFormSection - Available clients:", clients.length);
+    }
+  }, [clients]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

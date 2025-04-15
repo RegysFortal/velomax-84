@@ -52,6 +52,7 @@ export function SearchableSelect({
     console.log("SearchableSelect - Item selected:", currentValue);
     onValueChange(currentValue);
     setOpen(false);
+    setSearchQuery(""); // Clear search when an item is selected
   };
 
   // Handle create new option
@@ -116,7 +117,7 @@ export function SearchableSelect({
                 {emptyMessage}
                 {showCreateOption && onCreateNew && (
                   <CreateOption
-                    onClick={handleCreateNew}
+                    onClick={handleCreateNewClient}
                     label={createOptionLabel}
                   />
                 )}
@@ -128,7 +129,7 @@ export function SearchableSelect({
                   key={option.value}
                   value={option.value}
                   onSelect={handleSelect}
-                  className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground"
+                  className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground cursor-pointer"
                 >
                   <div>
                     <div>{option.label}</div>
@@ -145,7 +146,7 @@ export function SearchableSelect({
                 <CommandItem
                   value="__create-new__"
                   onSelect={handleCreateNew}
-                  className="flex items-center border-t hover:bg-accent hover:text-accent-foreground"
+                  className="flex items-center border-t hover:bg-accent hover:text-accent-foreground cursor-pointer"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   {createOptionLabel}

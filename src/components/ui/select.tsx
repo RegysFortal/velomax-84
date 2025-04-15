@@ -114,10 +114,8 @@ const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >(({ className, children, ...props }, ref) => {
-  // Usa o stopPropagation para evitar que o clique no item feche o diálogo
+  // Add a handleClick function to debug selection events
   const handleClick = (e: React.MouseEvent) => {
-    // Não use stopPropagation, pois o Select precisa capturar o evento
-    // Apenas log para debug
     console.log("SelectItem clicked:", props.value);
   };
 
@@ -125,13 +123,13 @@ const SelectItem = React.forwardRef<
     <SelectPrimitive.Item
       ref={ref}
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className
       )}
       {...props}
       onClick={(e) => {
         handleClick(e);
-        // O componente original mantém seu comportamento padrão
+        // The component original behavior is preserved
       }}
     >
       <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">

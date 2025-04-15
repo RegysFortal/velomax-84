@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ClientSearchSelect } from "@/components/client/ClientSearchSelect";
 import { useClients } from "@/contexts/clients";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +24,13 @@ export function ClientSelection({
     console.log("ClientSelection - Company changed to:", newCompanyId);
     onCompanyChange(newCompanyId);
   };
+  
+  // Debug output to help diagnose issues
+  useEffect(() => {
+    if (clients.length > 0) {
+      console.log("ClientSelection - Available clients:", clients.length);
+    }
+  }, [clients]);
   
   if (loading) {
     return <Skeleton className="h-10 w-full" />;

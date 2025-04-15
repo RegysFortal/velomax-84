@@ -40,6 +40,8 @@ export function ClientSearchSelect({
   useEffect(() => {
     try {
       if (clients && clients.length > 0) {
+        console.log("ClientSearchSelect - Formatting options for", clients.length, "clients");
+        
         // Format client options for the searchable select
         const options = [
           ...(includeAllOption ? [{ 
@@ -55,6 +57,7 @@ export function ClientSearchSelect({
         
         setClientOptions(options);
       } else {
+        console.log("ClientSearchSelect - No clients available");
         setClientOptions([]);
       }
     } catch (error) {
@@ -79,6 +82,7 @@ export function ClientSearchSelect({
       setIsProcessing(true);
       // Add a small delay to prevent UI freezing when selecting a client
       setTimeout(() => {
+        console.log("ClientSearchSelect - Value changed to:", newValue);
         onValueChange(newValue);
         setIsProcessing(false);
       }, 50);
