@@ -1,22 +1,22 @@
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import React from 'react';
+import { CommandItem } from '@/components/ui/command';
+import { Plus } from 'lucide-react';
 
-export interface CreateOptionProps {
+interface CreateOptionProps {
   label: string;
   onSelect: () => void;
 }
 
 export function CreateOption({ label, onSelect }: CreateOptionProps) {
   return (
-    <Button 
-      variant="outline" 
-      className="mt-2 w-full flex items-center justify-center" 
-      onClick={onSelect}
+    <CommandItem
+      value="__create_new__"
+      onSelect={onSelect}
+      className="flex items-center gap-2 hover:bg-accent hover:text-accent-foreground border-t mt-1 pt-2"
     >
-      <Plus className="mr-2 h-4 w-4" />
-      {label}
-    </Button>
+      <Plus className="h-4 w-4" />
+      <span>{label}</span>
+    </CommandItem>
   );
 }

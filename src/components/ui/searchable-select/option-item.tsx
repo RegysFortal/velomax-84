@@ -1,8 +1,8 @@
 
-import React from "react";
-import { CommandItem } from "@/components/ui/command";
-import { Check } from "lucide-react";
-import { SearchableSelectOption } from "./types";
+import React from 'react';
+import { CommandItem } from '@/components/ui/command';
+import { Check } from 'lucide-react';
+import { SearchableSelectOption } from './types';
 
 interface OptionItemProps {
   option: SearchableSelectOption;
@@ -16,14 +16,16 @@ export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
       key={option.value}
       value={option.value}
       onSelect={() => onSelect(option.value)}
-      className="flex items-center justify-between"
+      className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground"
     >
-      <div>
-        <div>{option.label}</div>
+      <div className="flex flex-col">
+        <span className="font-medium">
+          {option.label}
+        </span>
         {option.description && (
-          <div className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {option.description}
-          </div>
+          </span>
         )}
       </div>
       {isSelected && <Check className="h-4 w-4" />}
