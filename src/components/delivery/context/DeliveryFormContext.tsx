@@ -41,6 +41,7 @@ interface DeliveryFormContextType {
   setFormData: React.Dispatch<React.SetStateAction<any>>;
   clients: Client[];
   setFreight: React.Dispatch<React.SetStateAction<number>>;
+  setManualFreight?: (value: number) => void;
 }
 
 const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
@@ -96,6 +97,12 @@ export const DeliveryFormProvider: React.FC<{
   const deliveryType = form.watch('deliveryType');
   const showDoorToDoor = isDoorToDoorDelivery(deliveryType as DeliveryType);
 
+  // Function to manually set freight
+  const setManualFreight = (value: number) => {
+    console.log("Setting manual freight:", value);
+    setFreight(value);
+  };
+
   return (
     <DeliveryFormContext.Provider
       value={{
@@ -109,7 +116,7 @@ export const DeliveryFormProvider: React.FC<{
         formData,
         setFormData,
         clients,
-        setFreight
+        setFreight: setManualFreight,
       }}
     >
       {children}

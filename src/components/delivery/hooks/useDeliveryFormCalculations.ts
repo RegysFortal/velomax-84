@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Delivery, DeliveryType, CargoType } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { UseFormReturn } from 'react-hook-form';
@@ -28,6 +28,10 @@ export const useDeliveryFormCalculations = ({
   const { getClientPriceTable } = useClientPriceTable();
   const { clients } = useClients();
   const { cities } = useCities();
+  
+  // Use a ref to track if the freight was manually changed
+  const manuallyChanged = useRef(false);
+  const initialCalculationDone = useRef(false);
 
   const recalculateFreight = useCallback(() => {
     const watchClientId = form.watch('clientId');
@@ -45,6 +49,9 @@ export const useDeliveryFormCalculations = ({
       cargoValue: watchCargoValue,
       cityId: watchCityId
     });
+
+    // Reset manual flag when explicitly calling recalculate
+    manuallyChanged.current = false;
 
     if (watchClientId && watchWeight && !isNaN(parseFloat(watchWeight))) {
       try {
@@ -114,6 +121,8 @@ export const useDeliveryFormCalculations = ({
         setFreight(50); // Garantir que um valor padrão é sempre definido
       }
     }
+    
+    initialCalculationDone.current = true;
   }, [form, contextCalculateFreight, setFreight, getClientPriceTable, delivery, cities]);
   
   // Cálculo básico de frete alternativo
@@ -123,29 +132,39 @@ export const useDeliveryFormCalculations = ({
     return Math.max(baseRate * multiplier, 50); // Garantir que frete mínimo é 50
   };
 
-  // Remover o useEffect redundante que estava recalculando o frete duas vezes
+  // Cálculo inicial com um pequeno atraso para garantir que valores do formulário são carregados
   useEffect(() => {
-    // Cálculo inicial com um pequeno atraso para garantir que valores do formulário são carregados
-    const timer = setTimeout(() => {
-      recalculateFreight();
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [recalculateFreight, delivery, isEditMode]);
+    if (!initialCalculationDone.current) {
+      const timer = setTimeout(() => {
+        recalculateFreight();
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [recalculateFreight]);
   
-  // Reagir a mudanças nos valores do formulário que afetam o frete - preservamos apenas esta lógica
+  // Reagir a mudanças nos valores do formulário que afetam o frete
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
-      if (['clientId', 'weight', 'deliveryType', 'cargoType', 'cargoValue', 'cityId'].includes(name || '')) {
-        console.log(`${name} mudou, recalculando frete`);
-        recalculateFreight();
+      if (!manuallyChanged.current && initialCalculationDone.current) {
+        if (['clientId', 'weight', 'deliveryType', 'cargoType', 'cargoValue', 'cityId'].includes(name || '')) {
+          console.log(`${name} mudou, recalculando frete`);
+          recalculateFreight();
+        }
       }
     });
     
     return () => subscription.unsubscribe();
   }, [form, recalculateFreight]);
 
+  // Função para sinalizar que o valor foi alterado manualmente
+  const setManualFreight = (value: number) => {
+    manuallyChanged.current = true;
+    setFreight(value);
+  };
+
   return {
-    calculateFreight: recalculateFreight
+    calculateFreight: recalculateFreight,
+    setManualFreight
   };
 };

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { DeliveryFormBasicFields } from './DeliveryFormBasicFields';
 import { DeliveryFormTypeFields } from './DeliveryFormTypeFields';
 import { DeliveryFormNotes } from './DeliveryFormNotes';
@@ -61,9 +62,6 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     isEditMode
   });
 
-  // Removemos o useEffect para evitar cálculos duplicados
-  // O useDeliveryFormCalculations já lida com os cálculos quando os campos relevantes mudam
-
   const onSubmit = (data: any) => {
     handleSubmit(data, freight);
   };
@@ -76,6 +74,16 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
 
   // Get the current delivery type from form
   const watchDeliveryType = form.watch('deliveryType');
+
+  // Handle manual freight value change
+  const handleFreightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+      setFreight(value);
+    } else {
+      setFreight(0);
+    }
+  };
 
   return (
     <>
@@ -111,13 +119,30 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
           </div>
           
           <div className="bg-muted p-4 rounded-md">
-            <div className="flex justify-between items-center">
-              <Label className="font-semibold">Valor Total do Frete:</Label>
-              <div className="text-xl font-bold">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                }).format(freight)}
+            <div className="flex flex-col space-y-2">
+              <div className="flex justify-between items-center">
+                <Label className="font-semibold">Valor Total do Frete:</Label>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={calculateFreight}
+                    className="text-xs"
+                  >
+                    Recalcular
+                  </Button>
+                  <Input
+                    type="number"
+                    value={freight}
+                    onChange={handleFreightChange}
+                    className="w-32 text-right font-bold"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground text-right italic">
+                Você pode ajustar o valor do frete manualmente se necessário
               </div>
             </div>
           </div>

@@ -38,6 +38,8 @@ export const useUpdateDelivery = (
       if (updates.pickupDate !== undefined) supabaseDelivery.pickup_date = updates.pickupDate;
       if (updates.pickupTime !== undefined) supabaseDelivery.pickup_time = updates.pickupTime;
       
+      console.log('Updating delivery with:', supabaseDelivery);
+      
       const { error } = await supabase
         .from('deliveries')
         .update(supabaseDelivery)
