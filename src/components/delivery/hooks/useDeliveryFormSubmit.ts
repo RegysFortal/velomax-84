@@ -30,7 +30,6 @@ export const useDeliveryFormSubmit = ({
   const handleSubmit = (data: any, freight: number) => {
     try {
       console.log("DeliveryForm - Dados do formulário enviado:", data);
-      console.log("DeliveryForm - Valor do frete:", freight);
       
       // Verifica se o cliente foi selecionado
       if (!data.clientId) {
@@ -158,7 +157,6 @@ export const useDeliveryFormSubmit = ({
       }
     } catch (error) {
       console.error('Error submitting delivery form:', error);
-      toast.error("Erro ao salvar entrega. Verifique os dados e tente novamente.");
     }
   };
 
@@ -177,7 +175,6 @@ export const useDeliveryFormSubmit = ({
       setShowDuplicateAlert(false);
     } catch (error) {
       console.error('Error submitting delivery form:', error);
-      toast.error("Erro ao salvar entrega com número duplicado. Tente novamente.");
     }
   };
 

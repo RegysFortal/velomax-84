@@ -30,23 +30,7 @@ export const useUpdateDelivery = (
       if (updates.deliveryType !== undefined) supabaseDelivery.delivery_type = updates.deliveryType;
       if (updates.cargoType !== undefined) supabaseDelivery.cargo_type = updates.cargoType;
       if (updates.cargoValue !== undefined) supabaseDelivery.cargo_value = updates.cargoValue;
-      
-      // Ensure totalFreight is always saved properly, handling different number formats
-      if (updates.totalFreight !== undefined) {
-        let freightValue = updates.totalFreight;
-        
-        // If it's a string (from input field), convert to number
-        if (typeof freightValue === 'string') {
-          // Fix: Safely replace comma with dot for string values
-          freightValue = parseFloat(freightValue.toString().replace(',', '.'));
-        }
-        
-        // Only assign if it's a valid number
-        if (!isNaN(freightValue as number)) {
-          supabaseDelivery.total_freight = freightValue;
-        }
-      }
-      
+      if (updates.totalFreight !== undefined) supabaseDelivery.total_freight = updates.totalFreight;
       if (updates.notes !== undefined) supabaseDelivery.notes = updates.notes;
       if (updates.occurrence !== undefined) supabaseDelivery.occurrence = updates.occurrence;
       if (updates.cityId !== undefined) supabaseDelivery.city_id = updates.cityId;

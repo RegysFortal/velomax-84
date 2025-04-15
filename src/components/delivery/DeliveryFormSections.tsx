@@ -63,7 +63,6 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
   });
 
   const onSubmit = (data: any) => {
-    // Ensure freight value is included with form data
     handleSubmit(data, freight);
   };
 
@@ -89,19 +88,10 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
 
   // Handle manual freight value change
   const handleFreightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      const input = e.target.value.replace(',', '.');
-      const value = parseFloat(input);
-      
-      if (!isNaN(value)) {
-        console.log("Alterando valor do frete manualmente para:", value);
-        setFreight(value);
-      } else {
-        console.log("Valor inválido para frete, mantendo como zero");
-        setFreight(0);
-      }
-    } catch (error) {
-      console.error("Erro ao alterar valor do frete:", error);
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+      setFreight(value);
+    } else {
       setFreight(0);
     }
   };
