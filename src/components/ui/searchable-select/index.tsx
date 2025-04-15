@@ -117,7 +117,7 @@ export function SearchableSelect({
                 {emptyMessage}
                 {showCreateOption && onCreateNew && (
                   <CreateOption
-                    onClick={handleCreateNewClient}
+                    onClick={handleCreateNew}
                     label={createOptionLabel}
                   />
                 )}
