@@ -1,4 +1,3 @@
-
 import { Delivery, PriceTable, City, doorToDoorDeliveryTypes, DeliveryType } from '@/types';
 
 /**
@@ -122,20 +121,12 @@ export const calculateFreight = (
     // Add insurance value if there's cargo value - but only for non-reshipment deliveries
     // since we already calculated insurance for reshipment above
     if (cargoValue > 0 && deliveryType !== 'reshipment') {
-      const insuranceRate = priceTable.insurance.rate || 0.01;
-      let insuranceCharge = 0;
+      const insuranceRate = cargoType === 'perishable' 
+        ? (priceTable.insurance.perishable || priceTable.insurance.rate) 
+        : (priceTable.insurance.standard || priceTable.insurance.rate);
       
-      if (cargoType === 'perishable' && priceTable.insurance.perishable) {
-        insuranceCharge = cargoValue * priceTable.insurance.perishable;
-        console.log(`Seguro perecível: ${cargoValue} × ${priceTable.insurance.perishable} = ${insuranceCharge}`);
-      } else if (priceTable.insurance.standard) {
-        insuranceCharge = cargoValue * priceTable.insurance.standard;
-        console.log(`Seguro padrão: ${cargoValue} × ${priceTable.insurance.standard} = ${insuranceCharge}`);
-      } else {
-        insuranceCharge = cargoValue * insuranceRate;
-        console.log(`Seguro (taxa padrão): ${cargoValue} × ${insuranceRate} = ${insuranceCharge}`);
-      }
-      
+      const insuranceCharge = cargoValue * insuranceRate;
+      console.log(`Seguro: ${cargoValue} × ${insuranceRate} = ${insuranceCharge}`);
       totalFreight += insuranceCharge;
     }
     

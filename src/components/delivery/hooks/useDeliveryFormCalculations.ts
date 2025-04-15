@@ -107,6 +107,7 @@ export const useDeliveryFormCalculations = ({
           console.log("Usando cálculo básico de frete:", calculatedFreight);
         }
         
+        console.log("Setting manual freight:", calculatedFreight);
         setFreight(calculatedFreight);
       } catch (error) {
         console.error('Erro calculando frete:', error);
