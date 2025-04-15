@@ -60,11 +60,11 @@ export const useDeliveryFormCalculations = ({
         const cargoTypeValue = watchCargoType as CargoType;
         const cargoValueValue = watchCargoValue ? parseFloat(watchCargoValue) : 0;
         
-        // Obter a tabela de preço do cliente
+        // Get the client's price table - this is the critical part we need to fix
         const priceTable = getClientPriceTable(watchClientId);
         console.log("Usando tabela de preço:", priceTable);
         
-        // Obter a cidade, se especificada
+        // Get city if specified
         const selectedCity = watchCityId 
           ? cities.find(city => city.id === watchCityId)
           : undefined;
@@ -72,7 +72,7 @@ export const useDeliveryFormCalculations = ({
         let calculatedFreight = 0;
         
         if (priceTable) {
-          // Usar a função de cálculo de frete baseada na tabela de preços
+          // Calculate freight based on the client's price table
           calculatedFreight = utilsCalculateFreight(
             priceTable,
             weightValue,
@@ -85,7 +85,7 @@ export const useDeliveryFormCalculations = ({
           
           console.log("Frete calculado usando tabela de preço:", calculatedFreight);
         } else {
-          // Usar cálculo de fallback se tabela de preço não estiver disponível
+          // Fallback calculation if price table not available
           calculatedFreight = contextCalculateFreight(
             watchClientId,
             weightValue,
@@ -95,23 +95,23 @@ export const useDeliveryFormCalculations = ({
             undefined,
             watchCityId || undefined
           );
-          console.log("Frete calculado usando contexto:", calculatedFreight);
+          console.log("Frete calculado usando contexto (sem tabela específica):", calculatedFreight);
         }
         
-        // Arredondar o valor do frete para duas casas decimais
+        // Round to two decimal places
         calculatedFreight = Math.round(calculatedFreight * 100) / 100;
         
-        // Garantir que temos um valor mínimo razoável
+        // Ensure we have a reasonable minimum value
         if (calculatedFreight <= 0) {
           calculatedFreight = calculateBasicFreight(cargoTypeValue, weightValue);
-          console.log("Usando cálculo básico de frete:", calculatedFreight);
+          console.log("Usando cálculo básico de frete (valor zero ou negativo):", calculatedFreight);
         }
         
-        console.log("Setting manual freight:", calculatedFreight);
+        console.log("Definindo valor final do frete:", calculatedFreight);
         setFreight(calculatedFreight);
       } catch (error) {
         console.error('Erro calculando frete:', error);
-        // Definir um valor padrão de frete
+        // Set a default freight value
         const defaultFreight = 50;
         console.log("Usando valor padrão de frete devido a erro:", defaultFreight);
         setFreight(defaultFreight);
@@ -122,21 +122,21 @@ export const useDeliveryFormCalculations = ({
         // Manter valor de frete existente para modo de edição
         setFreight(delivery.totalFreight);
       } else {
-        setFreight(50); // Garantir que um valor padrão é sempre definido
+        setFreight(50); // Ensure a default value is always set
       }
     }
     
     initialCalculationDone.current = true;
   }, [form, contextCalculateFreight, setFreight, getClientPriceTable, delivery, cities]);
   
-  // Cálculo básico de frete alternativo
+  // Basic alternative freight calculation
   const calculateBasicFreight = (cargoType: CargoType, weight: number): number => {
     const baseRate = cargoType === 'perishable' ? 25 : 15;
     const multiplier = weight <= 5 ? 1 : weight <= 10 ? 1.5 : weight <= 20 ? 2 : 3;
-    return Math.max(baseRate * multiplier, 50); // Garantir que frete mínimo é 50
+    return Math.max(baseRate * multiplier, 50); // Ensure minimum freight is 50
   };
 
-  // Cálculo inicial com um pequeno atraso para garantir que valores do formulário são carregados
+  // Initial calculation with a small delay to ensure form values are loaded
   useEffect(() => {
     if (!initialCalculationDone.current) {
       const timer = setTimeout(() => {
@@ -147,12 +147,12 @@ export const useDeliveryFormCalculations = ({
     }
   }, [recalculateFreight]);
   
-  // Reagir a mudanças nos valores do formulário que afetam o frete
+  // React to changes in form values that affect freight
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
       if (!manuallyChanged.current && initialCalculationDone.current) {
         if (['clientId', 'weight', 'deliveryType', 'cargoType', 'cargoValue', 'cityId'].includes(name || '')) {
-          console.log(`${name} mudou, recalculando frete`);
+          console.log(`Valor ${name} mudou, recalculando frete automaticamente`);
           recalculateFreight();
         }
       }
@@ -161,7 +161,7 @@ export const useDeliveryFormCalculations = ({
     return () => subscription.unsubscribe();
   }, [form, recalculateFreight]);
 
-  // Função para sinalizar que o valor foi alterado manualmente
+  // Function to signal that the value was manually changed
   const setManualFreight = (value: number) => {
     manuallyChanged.current = true;
     setFreight(value);

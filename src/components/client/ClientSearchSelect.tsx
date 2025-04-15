@@ -41,7 +41,7 @@ export function ClientSearchSelect({
   useEffect(() => {
     try {
       if (clients && clients.length > 0) {
-        console.log("ClientSearchSelect - Formatting options for", clients.length, "clients");
+        console.log("ClientSearchSelect - Formatando opções para", clients.length, "clientes");
         
         // Format client options for the searchable select
         const options = [
@@ -57,21 +57,21 @@ export function ClientSearchSelect({
         ];
         
         setClientOptions(options);
-        console.log("ClientSearchSelect - Options formatted:", options.length);
+        console.log("ClientSearchSelect - Opções formatadas:", options.length);
       } else {
-        console.log("ClientSearchSelect - No clients available");
+        console.log("ClientSearchSelect - Nenhum cliente disponível");
         setClientOptions([]);
       }
     } catch (error) {
-      console.error("Error formatting client options:", error);
+      console.error("Erro formatando opções de clientes:", error);
       setClientOptions([]);
     }
   }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
   
   // Debug current value
   useEffect(() => {
-    console.log("ClientSearchSelect - Current value:", value);
-    console.log("ClientSearchSelect - Options count:", clientOptions.length);
+    console.log("ClientSearchSelect - Valor atual:", value);
+    console.log("ClientSearchSelect - Número de opções:", clientOptions.length);
   }, [value, clientOptions]);
   
   const handleCreateNewClient = () => {
@@ -88,7 +88,7 @@ export function ClientSearchSelect({
     
     try {
       setIsProcessing(true);
-      console.log("ClientSearchSelect - Value changed to:", newValue);
+      console.log("ClientSearchSelect - Valor alterado para:", newValue);
       
       // Add a small delay to prevent UI freezing when selecting a client
       setTimeout(() => {
@@ -96,7 +96,7 @@ export function ClientSearchSelect({
         setIsProcessing(false);
       }, 50);
     } catch (error) {
-      console.error("Error changing client value:", error);
+      console.error("Erro ao alterar valor do cliente:", error);
       setIsProcessing(false);
     }
   };

@@ -74,6 +74,17 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
 
   // Get the current delivery type from form
   const watchDeliveryType = form.watch('deliveryType');
+  
+  // Get the current client ID
+  const watchClientId = form.watch('clientId');
+  
+  // Recalculate freight when client changes
+  useEffect(() => {
+    if (watchClientId) {
+      console.log("Cliente alterado, recalculando frete...");
+      calculateFreight();
+    }
+  }, [watchClientId, calculateFreight]);
 
   // Handle manual freight value change
   const handleFreightChange = (e: React.ChangeEvent<HTMLInputElement>) => {

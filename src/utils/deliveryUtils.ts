@@ -1,3 +1,4 @@
+
 import { Delivery, PriceTable, City, doorToDoorDeliveryTypes, DeliveryType } from '@/types';
 
 /**
@@ -13,7 +14,10 @@ export const calculateFreight = (
   city?: City
 ): number => {
   try {
-    if (!priceTable) return 0;
+    if (!priceTable) {
+      console.warn('Tabela de preço não encontrada para cálculo de frete');
+      return 0;
+    }
     
     console.log(`Calculando frete - Tabela: ${priceTable.name}, Peso: ${weight}kg, Tipo: ${deliveryType}, Valor: ${cargoValue}`);
     
@@ -86,7 +90,7 @@ export const calculateFreight = (
         if (cargoValue > 0) {
           // Apply 1% insurance rate specifically for reshipment
           const insurance = cargoValue * 0.01;
-          console.log(`Reshipment insurance (1%): ${cargoValue} × 0.01 = ${insurance}`);
+          console.log(`Seguro de redespacho (1%): ${cargoValue} × 0.01 = ${insurance}`);
           totalFreight += insurance;
         }
         break;
@@ -144,7 +148,7 @@ export const calculateFreight = (
       totalFreight -= discountValue;
     }
     
-    // Arredondar para duas casas decimais
+    // Round to two decimal places
     totalFreight = Math.round(totalFreight * 100) / 100;
     
     console.log(`Valor final do frete: ${totalFreight}`);
