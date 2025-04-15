@@ -37,11 +37,12 @@ export const useUpdateDelivery = (
         
         // If it's a string (from input field), convert to number
         if (typeof freightValue === 'string') {
-          freightValue = parseFloat(freightValue.replace(',', '.'));
+          // Fix: Safely replace comma with dot for string values
+          freightValue = parseFloat(freightValue.toString().replace(',', '.'));
         }
         
         // Only assign if it's a valid number
-        if (!isNaN(freightValue)) {
+        if (!isNaN(freightValue as number)) {
           supabaseDelivery.total_freight = freightValue;
         }
       }
