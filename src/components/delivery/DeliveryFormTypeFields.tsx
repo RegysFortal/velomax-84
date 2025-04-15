@@ -46,7 +46,7 @@ export function DeliveryFormTypeFields({
                 <SelectItem value="difficultAccess">Difícil Acesso</SelectItem>
                 <SelectItem value="metropolitanRegion">Região Metropolitana</SelectItem>
                 <SelectItem value="doorToDoorInterior">Porta a Porta Interior</SelectItem>
-                <SelectItem value="reshipment">Redespacho</SelectItem>
+                <SelectItem value="reshipment">Redespacho (1% seguro)</SelectItem>
                 <SelectItem value="normalBiological">Biológico Normal</SelectItem>
                 <SelectItem value="infectiousBiological">Biológico Infeccioso</SelectItem>
                 <SelectItem value="tracked">Veículo Rastreado</SelectItem>
@@ -89,7 +89,7 @@ export function DeliveryFormTypeFields({
           name="cargoValue"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Valor da Carga (R$) - Seguro: 1%</FormLabel>
+              <FormLabel>Valor da Nota Fiscal (R$)</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -101,8 +101,8 @@ export function DeliveryFormTypeFields({
                 />
               </FormControl>
               <FormMessage />
-              <p className="text-xs text-muted-foreground mt-1">
-                O valor do seguro é calculado como 1% do valor da carga para redespacho.
+              <p className="text-xs text-muted-foreground mt-1 font-medium text-amber-600">
+                Para redespacho, o seguro é calculado como 1% do valor da carga
               </p>
             </FormItem>
           )}

@@ -22,7 +22,9 @@ export function ClientSelection({
   
   const handleCompanyChange = (newCompanyId: string) => {
     console.log("ClientSelection - Company changed to:", newCompanyId);
-    onCompanyChange(newCompanyId);
+    if (newCompanyId) {
+      onCompanyChange(newCompanyId);
+    }
   };
   
   // Debug output to help diagnose issues
@@ -44,6 +46,7 @@ export function ClientSelection({
         placeholder={loading ? "Carregando clientes..." : "Selecione o cliente"}
         disabled={isDisabled}
         clients={clients}
+        showCreateOption={false}
       />
     </div>
   );

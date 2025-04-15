@@ -80,9 +80,10 @@ export function ClientSearchSelect({
     
     try {
       setIsProcessing(true);
+      console.log("ClientSearchSelect - Value changed to:", newValue);
+      
       // Add a small delay to prevent UI freezing when selecting a client
       setTimeout(() => {
-        console.log("ClientSearchSelect - Value changed to:", newValue);
         onValueChange(newValue);
         setIsProcessing(false);
       }, 50);

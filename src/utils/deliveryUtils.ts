@@ -16,6 +16,8 @@ export const calculateFreight = (
   try {
     if (!priceTable) return 0;
     
+    console.log(`Calculando frete - Tabela: ${priceTable.name}, Peso: ${weight}kg, Tipo: ${deliveryType}, Valor: ${cargoValue}`);
+    
     let baseRate = 0;
     let excessWeightRate = 0;
     let totalFreight = 0;
@@ -71,7 +73,10 @@ export const calculateFreight = (
         
         if (city) {
           const distance = city.distance;
-          totalFreight += distance * priceTable.doorToDoor.ratePerKm;
+          const ratePerKm = priceTable.doorToDoor.ratePerKm || 0;
+          const distanceCharge = distance * ratePerKm;
+          console.log(`Cobrança de distância: ${distanceCharge} (${distance}km × ${ratePerKm}/km)`);
+          totalFreight += distanceCharge;
         }
         break;
       case 'reshipment':
@@ -82,8 +87,8 @@ export const calculateFreight = (
         if (cargoValue > 0) {
           // Apply 1% insurance rate specifically for reshipment
           const insurance = cargoValue * 0.01;
-          totalFreight += insurance;
           console.log(`Reshipment insurance (1%): ${cargoValue} × 0.01 = ${insurance}`);
+          totalFreight += insurance;
         }
         break;
       // Default cases for other delivery types
@@ -94,43 +99,64 @@ export const calculateFreight = (
         break;
     }
     
+    console.log(`Taxa base para ${deliveryType}: ${baseRate}`);
+    
     // Add base rate to total freight
     totalFreight += baseRate;
     
     // Calculate excess weight if weight exceeds the limit
     if (weight > weightLimit) {
       const excessWeight = weight - weightLimit;
-      totalFreight += excessWeight * excessWeightRate;
+      const excessWeightCharge = excessWeight * excessWeightRate;
+      console.log(`Excesso de peso: ${excessWeight}kg à taxa ${excessWeightRate}/kg = ${excessWeightCharge}`);
+      totalFreight += excessWeightCharge;
     }
     
     // Apply multiplier for perishable cargo
     if (cargoType === 'perishable') {
-      totalFreight *= 1.2;
+      const perishableMultiplier = 1.2;
+      console.log(`Multiplicador de perecível: ${totalFreight} × ${perishableMultiplier} = ${totalFreight * perishableMultiplier}`);
+      totalFreight *= perishableMultiplier;
     }
     
     // Add insurance value if there's cargo value - but only for non-reshipment deliveries
     // since we already calculated insurance for reshipment above
     if (cargoValue > 0 && deliveryType !== 'reshipment') {
       const insuranceRate = priceTable.insurance.rate || 0.01;
+      let insuranceCharge = 0;
+      
       if (cargoType === 'perishable' && priceTable.insurance.perishable) {
-        totalFreight += cargoValue * priceTable.insurance.perishable;
+        insuranceCharge = cargoValue * priceTable.insurance.perishable;
+        console.log(`Seguro perecível: ${cargoValue} × ${priceTable.insurance.perishable} = ${insuranceCharge}`);
       } else if (priceTable.insurance.standard) {
-        totalFreight += cargoValue * priceTable.insurance.standard;
+        insuranceCharge = cargoValue * priceTable.insurance.standard;
+        console.log(`Seguro padrão: ${cargoValue} × ${priceTable.insurance.standard} = ${insuranceCharge}`);
       } else {
-        totalFreight += cargoValue * insuranceRate;
+        insuranceCharge = cargoValue * insuranceRate;
+        console.log(`Seguro (taxa padrão): ${cargoValue} × ${insuranceRate} = ${insuranceCharge}`);
       }
+      
+      totalFreight += insuranceCharge;
     }
     
     // Apply multiplier if it exists in the price table
     if (priceTable.multiplier && priceTable.multiplier > 0) {
+      console.log(`Multiplicador da tabela: ${totalFreight} × ${priceTable.multiplier} = ${totalFreight * priceTable.multiplier}`);
       totalFreight *= priceTable.multiplier;
     }
     
     // Apply discount if it exists in the price table
     if (priceTable.defaultDiscount && priceTable.defaultDiscount > 0) {
-      const discountValue = totalFreight * (priceTable.defaultDiscount / 100);
+      const discountRate = priceTable.defaultDiscount / 100;
+      const discountValue = totalFreight * discountRate;
+      console.log(`Desconto (${priceTable.defaultDiscount}%): ${discountValue}`);
       totalFreight -= discountValue;
     }
+    
+    // Arredondar para duas casas decimais
+    totalFreight = Math.round(totalFreight * 100) / 100;
+    
+    console.log(`Valor final do frete: ${totalFreight}`);
     
     // Ensure minimum value of 0
     return Math.max(totalFreight, 0);

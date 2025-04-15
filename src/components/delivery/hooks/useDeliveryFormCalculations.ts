@@ -98,6 +98,9 @@ export const useDeliveryFormCalculations = ({
           console.log("Frete calculado usando contexto:", calculatedFreight);
         }
         
+        // Arredondar o valor do frete para duas casas decimais
+        calculatedFreight = Math.round(calculatedFreight * 100) / 100;
+        
         // Garantir que temos um valor mínimo razoável
         if (calculatedFreight <= 0) {
           calculatedFreight = calculateBasicFreight(cargoTypeValue, weightValue);
