@@ -1,3 +1,4 @@
+
 export interface PriceTable {
   id: string;
   name: string;
