@@ -1,4 +1,3 @@
-
 import { Delivery, PriceTable, City, doorToDoorDeliveryTypes, DeliveryType } from '@/types';
 
 /**

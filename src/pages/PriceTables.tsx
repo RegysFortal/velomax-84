@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -469,7 +467,7 @@ const PriceTables = () => {
                           ))}
                         </div>
                       ) : (
-                        <span className="text-muted-foreground text-sm">Nenhum</span>
+                        <span className="text-sm text-muted-foreground">Nenhum</span>
                       )}
                     </TableCell>
                     <TableCell className="flex gap-2">
@@ -499,7 +497,7 @@ const PriceTables = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     <div>
                       <Label htmlFor="name">Nome da Tabela</Label>
                       <Input
@@ -522,234 +520,271 @@ const PriceTables = () => {
                       />
                     </div>
                   </div>
+                  
+                  <ScrollArea className="h-[500px] pr-4">
+                    <div className="space-y-8">
+                      {/* Seção de Tarifas Mínimas */}
+                      <div className="border p-4 rounded-md">
+                        <h3 className="font-medium mb-4 text-lg">Tarifas Mínimas</h3>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-4 gap-2 items-center border-b pb-2">
+                              <div className="col-span-2 font-medium">Tipo de Serviço</div>
+                              <div className="font-medium">Peso Mínimo</div>
+                              <div className="font-medium">Taxa Base (R$)</div>
+                            </div>
+                            
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Entrega Normal em Fortaleza</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="standardDelivery" 
+                                name="minimumRate.standardDelivery" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.standardDelivery} 
+                                onChange={handleChange}
+                              />
+                            </div>
 
-                  <Tabs defaultValue="tarifas">
-                    <TabsList className="grid grid-cols-5">
-                      <TabsTrigger value="tarifas">Tarifas Mínimas</TabsTrigger>
-                      <TabsTrigger value="peso">Excesso de Peso</TabsTrigger>
-                      <TabsTrigger value="adicionais">Valores Adicionais</TabsTrigger>
-                      <TabsTrigger value="cidades">Região Metropolitana</TabsTrigger>
-                      <TabsTrigger value="servicos">Serviços Personalizados</TabsTrigger>
-                    </TabsList>
-                    
-                    {/* Aba de Tarifas Mínimas */}
-                    <TabsContent value="tarifas" className="space-y-4 mt-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="standardDelivery">Entrega Normal em Fortaleza (até 10kg)</Label>
-                          <Input 
-                            id="standardDelivery" 
-                            name="minimumRate.standardDelivery" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.standardDelivery} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="emergencyCollection">Coleta Emergencial em Fortaleza (até 10kg)</Label>
-                          <Input 
-                            id="emergencyCollection" 
-                            name="minimumRate.emergencyCollection" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.emergencyCollection} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="saturdayCollection">Coleta em Fortaleza aos Sábados (até 10kg)</Label>
-                          <Input 
-                            id="saturdayCollection" 
-                            name="minimumRate.saturdayCollection" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.saturdayCollection} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="exclusiveVehicle">Veículo Exclusivo em Fortaleza (até 10kg)</Label>
-                          <Input 
-                            id="exclusiveVehicle" 
-                            name="minimumRate.exclusiveVehicle" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.exclusiveVehicle} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="scheduledDifficultAccess">Difícil Acesso em Fortaleza (até 10kg)</Label>
-                          <Input 
-                            id="scheduledDifficultAccess" 
-                            name="minimumRate.scheduledDifficultAccess" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.scheduledDifficultAccess} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="metropolitanRegion">Região Metropolitana (até 10kg)</Label>
-                          <Input 
-                            id="metropolitanRegion" 
-                            name="minimumRate.metropolitanRegion" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.metropolitanRegion} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="sundayHoliday">Domingos/Feriados em Fortaleza (até 10kg)</Label>
-                          <Input 
-                            id="sundayHoliday" 
-                            name="minimumRate.sundayHoliday" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.sundayHoliday} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="normalBiological">Biológico Normal em Fortaleza (até 10kg)</Label>
-                          <Input 
-                            id="normalBiological" 
-                            name="minimumRate.normalBiological" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.normalBiological} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="infectiousBiological">Biológico Infeccioso em Fortaleza (até 10kg)</Label>
-                          <Input 
-                            id="infectiousBiological" 
-                            name="minimumRate.infectiousBiological" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.infectiousBiological} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="trackedVehicle">Veículo Rastreado em Fortaleza (até 100kg)</Label>
-                          <Input 
-                            id="trackedVehicle" 
-                            name="minimumRate.trackedVehicle" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.trackedVehicle} 
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="doorToDoorInterior">Exclusivo Interior (até 100kg)</Label>
-                          <Input 
-                            id="doorToDoorInterior" 
-                            name="minimumRate.doorToDoorInterior" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.doorToDoorInterior} 
-                            onChange={handleChange}
-                          />
-                          <p className="text-xs text-muted-foreground">Cobrado por km rodado</p>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="reshipment">Redespacho (até 10kg + 1% do valor da NF)</Label>
-                          <Input 
-                            id="reshipment" 
-                            name="minimumRate.reshipment" 
-                            type="number"
-                            step="0.01"
-                            value={formData.minimumRate.reshipment} 
-                            onChange={handleChange}
-                          />
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Coleta Emergencial em Fortaleza</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="emergencyCollection" 
+                                name="minimumRate.emergencyCollection" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.emergencyCollection} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Coleta em Fortaleza aos Sábados</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="saturdayCollection" 
+                                name="minimumRate.saturdayCollection" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.saturdayCollection} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Veículo Exclusivo em Fortaleza</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="exclusiveVehicle" 
+                                name="minimumRate.exclusiveVehicle" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.exclusiveVehicle} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Difícil Acesso em Fortaleza</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="scheduledDifficultAccess" 
+                                name="minimumRate.scheduledDifficultAccess" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.scheduledDifficultAccess} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Região Metropolitana</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="metropolitanRegion" 
+                                name="minimumRate.metropolitanRegion" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.metropolitanRegion} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Domingos/Feriados em Fortaleza</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="sundayHoliday" 
+                                name="minimumRate.sundayHoliday" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.sundayHoliday} 
+                                onChange={handleChange}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-4 gap-2 items-center border-b pb-2">
+                              <div className="col-span-2 font-medium">Tipo de Serviço</div>
+                              <div className="font-medium">Peso Mínimo</div>
+                              <div className="font-medium">Taxa Base (R$)</div>
+                            </div>
+                          
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Biológico Normal em Fortaleza</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="normalBiological" 
+                                name="minimumRate.normalBiological" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.normalBiological} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Biológico Infeccioso em Fortaleza</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="infectiousBiological" 
+                                name="minimumRate.infectiousBiological" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.infectiousBiological} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Veículo Rastreado em Fortaleza</div>
+                              <div>100 kg</div>
+                              <Input 
+                                id="trackedVehicle" 
+                                name="minimumRate.trackedVehicle" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.trackedVehicle} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Exclusivo Interior</div>
+                              <div>100 kg</div>
+                              <Input 
+                                id="doorToDoorInterior" 
+                                name="minimumRate.doorToDoorInterior" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.doorToDoorInterior} 
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 items-center">
+                              <div className="col-span-2">Redespacho</div>
+                              <div>10 kg</div>
+                              <Input 
+                                id="reshipment" 
+                                name="minimumRate.reshipment" 
+                                type="number"
+                                step="0.01"
+                                value={formData.minimumRate.reshipment} 
+                                onChange={handleChange}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </TabsContent>
-                    
-                    {/* Aba de Excesso de Peso */}
-                    <TabsContent value="peso" className="space-y-4 mt-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="minPerKg">Valor por Kg Excedente (Normal)</Label>
-                          <Input
-                            id="minPerKg"
-                            name="excessWeight.minPerKg"
-                            type="number"
-                            step="0.01"
-                            value={formData.excessWeight.minPerKg}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="maxPerKg">Valor por Kg Excedente (Emergencial/Exclusivo)</Label>
-                          <Input
-                            id="maxPerKg"
-                            name="excessWeight.maxPerKg"
-                            type="number"
-                            step="0.01"
-                            value={formData.excessWeight.maxPerKg}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="biologicalPerKg">Valor por Kg Excedente (Material Biológico)</Label>
-                          <Input
-                            id="biologicalPerKg"
-                            name="excessWeight.biologicalPerKg"
-                            type="number"
-                            step="0.01"
-                            value={formData.excessWeight.biologicalPerKg}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="reshipmentPerKg">Valor por Kg Excedente (Redespacho)</Label>
-                          <Input
-                            id="reshipmentPerKg"
-                            name="excessWeight.reshipmentPerKg"
-                            type="number"
-                            step="0.01"
-                            value={formData.excessWeight.reshipmentPerKg}
-                            onChange={handleChange}
-                          />
+
+                      {/* Seção de Excesso de Peso */}
+                      <div className="border p-4 rounded-md">
+                        <h3 className="font-medium mb-4 text-lg">Taxa por KG Excedente</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="minPerKg">Valor por Kg Excedente (Normal)</Label>
+                            <Input
+                              id="minPerKg"
+                              name="excessWeight.minPerKg"
+                              type="number"
+                              step="0.01"
+                              value={formData.excessWeight.minPerKg}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="maxPerKg">Valor por Kg Excedente (Emergencial/Exclusivo)</Label>
+                            <Input
+                              id="maxPerKg"
+                              name="excessWeight.maxPerKg"
+                              type="number"
+                              step="0.01"
+                              value={formData.excessWeight.maxPerKg}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="biologicalPerKg">Valor por Kg Excedente (Material Biológico)</Label>
+                            <Input
+                              id="biologicalPerKg"
+                              name="excessWeight.biologicalPerKg"
+                              type="number"
+                              step="0.01"
+                              value={formData.excessWeight.biologicalPerKg}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="reshipmentPerKg">Valor por Kg Excedente (Redespacho)</Label>
+                            <Input
+                              id="reshipmentPerKg"
+                              name="excessWeight.reshipmentPerKg"
+                              type="number"
+                              step="0.01"
+                              value={formData.excessWeight.reshipmentPerKg}
+                              onChange={handleChange}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </TabsContent>
 
-                    {/* Aba de Valores Adicionais */}
-                    <TabsContent value="adicionais" className="space-y-4 mt-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="ratePerKm">Taxa por Km (Porta a Porta Interior)</Label>
-                          <Input
-                            id="ratePerKm"
-                            name="doorToDoor.ratePerKm"
-                            type="number"
-                            step="0.01"
-                            value={formData.doorToDoor.ratePerKm}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="maxWeight">Peso Máximo (Porta a Porta Interior)</Label>
-                          <Input
-                            id="maxWeight"
-                            name="doorToDoor.maxWeight"
-                            type="number"
-                            step="0.01"
-                            value={formData.doorToDoor.maxWeight}
-                            onChange={handleChange}
-                          />
+                      {/* Seção de Porta a Porta Interior */}
+                      <div className="border p-4 rounded-md">
+                        <h3 className="font-medium mb-4 text-lg">Porta a Porta Interior</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="ratePerKm">Taxa por Km (Porta a Porta Interior)</Label>
+                            <Input
+                              id="ratePerKm"
+                              name="doorToDoor.ratePerKm"
+                              type="number"
+                              step="0.01"
+                              value={formData.doorToDoor.ratePerKm}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="maxWeight">Peso Máximo (Porta a Porta Interior)</Label>
+                            <Input
+                              id="maxWeight"
+                              name="doorToDoor.maxWeight"
+                              type="number"
+                              step="0.01"
+                              value={formData.doorToDoor.maxWeight}
+                              onChange={handleChange}
+                            />
+                          </div>
                         </div>
                       </div>
                       
+                      {/* Seção de Hora Parada */}
                       <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-2">Hora Parada</h3>
+                        <h3 className="font-medium mb-4 text-lg">Hora Parada</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="fiorino">Veículo Pequeno (R$/hora)</Label>
@@ -787,8 +822,9 @@ const PriceTables = () => {
                         </div>
                       </div>
                       
+                      {/* Seção de Seguro */}
                       <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-2">Seguro (% sobre valor da mercadoria)</h3>
+                        <h3 className="font-medium mb-4 text-lg">Seguro (% sobre valor da mercadoria)</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="standard">Mercadoria Padrão (%)</Label>
@@ -814,223 +850,64 @@ const PriceTables = () => {
                           </div>
                         </div>
                       </div>
-
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="allowCustomPricing"
-                            name="allowCustomPricing"
-                            checked={formData.allowCustomPricing}
-                            onCheckedChange={(checked) => {
-                              setFormData(prev => ({
-                                ...prev,
-                                allowCustomPricing: !!checked
-                              }));
-                            }}
-                          />
-                          <Label htmlFor="allowCustomPricing">Permitir preços customizados</Label>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="defaultDiscount">Desconto padrão (%)</Label>
-                          <Input
-                            id="defaultDiscount"
-                            name="defaultDiscount"
-                            type="number"
-                            step="0.01"
-                            value={formData.defaultDiscount}
-                            onChange={handleChange}
-                          />
+                      
+                      {/* Seção de Configurações Adicionais */}
+                      <div className="border p-4 rounded-md">
+                        <h3 className="font-medium mb-4 text-lg">Configurações Adicionais</h3>
+                        <div className="flex flex-col space-y-4">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="allowCustomPricing"
+                              name="allowCustomPricing"
+                              checked={formData.allowCustomPricing}
+                              onCheckedChange={(checked) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  allowCustomPricing: !!checked
+                                }));
+                              }}
+                            />
+                            <Label htmlFor="allowCustomPricing">Permitir preços customizados</Label>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="defaultDiscount">Desconto padrão (%)</Label>
+                            <Input
+                              id="defaultDiscount"
+                              name="defaultDiscount"
+                              type="number"
+                              step="0.01"
+                              value={formData.defaultDiscount}
+                              onChange={handleChange}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </TabsContent>
-                    
-                    {/* Aba de Cidades da Região Metropolitana */}
-                    <TabsContent value="cidades" className="space-y-4 mt-4">
-                      <div className="mb-2">
-                        <h3 className="font-medium">Selecione as cidades que fazem parte da Região Metropolitana</h3>
-                        <p className="text-sm text-muted-foreground">
+                      
+                      {/* Seção de Cidades da Região Metropolitana */}
+                      <div className="border p-4 rounded-md">
+                        <h3 className="font-medium mb-4 text-lg">Região Metropolitana</h3>
+                        <p className="mb-4 text-sm text-muted-foreground">
+                          Selecione as cidades que fazem parte da Região Metropolitana. 
                           As cidades selecionadas estarão sujeitas à tarifa de Região Metropolitana.
                         </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          {cities.map((city) => (
+                            <div key={city.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`city-${city.id}`}
+                                checked={(formData.metropolitanCityIds || []).includes(city.id)}
+                                onCheckedChange={() => handleToggleMetropolitanCity(city.id)}
+                              />
+                              <Label htmlFor={`city-${city.id}`} className="text-sm">
+                                {city.name}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 border p-4 rounded-md">
-                        {cities.map((city) => (
-                          <div key={city.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`city-${city.id}`}
-                              checked={(formData.metropolitanCityIds || []).includes(city.id)}
-                              onCheckedChange={() => handleToggleMetropolitanCity(city.id)}
-                            />
-                            <Label htmlFor={`city-${city.id}`} className="text-sm">
-                              {city.name}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </TabsContent>
-                    
-                    {/* Aba de Serviços Personalizados */}
-                    <TabsContent value="servicos" className="space-y-4 mt-4">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-medium">Serviços Personalizados</h3>
-                        <Button 
-                          type="button" 
-                          onClick={() => openCustomServiceDialog()}
-                          size="sm"
-                        >
-                          <Plus className="h-4 w-4 mr-1" /> Adicionar Serviço
-                        </Button>
-                      </div>
-                      
-                      <div className="border rounded-md">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Nome do Serviço</TableHead>
-                              <TableHead>Peso Mínimo</TableHead>
-                              <TableHead>Taxa Base</TableHead>
-                              <TableHead>Taxa Excedente</TableHead>
-                              <TableHead>Ações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {(formData.customServices || []).length === 0 ? (
-                              <TableRow>
-                                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                                  Nenhum serviço personalizado cadastrado
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              formData.customServices?.map((service) => (
-                                <TableRow key={service.id}>
-                                  <TableCell>{service.name}</TableCell>
-                                  <TableCell>{service.minWeight} kg</TableCell>
-                                  <TableCell>R$ {service.baseRate.toFixed(2)}</TableCell>
-                                  <TableCell>R$ {service.excessRate.toFixed(2)}/kg</TableCell>
-                                  <TableCell>
-                                    <div className="flex gap-1">
-                                      <Button type="button" variant="ghost" size="icon" onClick={() => openCustomServiceDialog(service)}>
-                                        <Edit className="h-4 w-4" />
-                                      </Button>
-                                      <Button type="button" variant="ghost" size="icon" onClick={() => deleteCustomService(service.id)}>
-                                        <Trash2 className="h-4 w-4 text-red-500" />
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-
-                  <DialogFooter className="mt-8">
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit">
-                      {editingPriceTable ? 'Atualizar' : 'Criar'} Tabela
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </div>
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
-
-        {/* Diálogo para adicionar/editar serviços personalizados */}
-        <Dialog open={customServiceDialogOpen} onOpenChange={setCustomServiceDialogOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{currentCustomService ? 'Editar Serviço' : 'Novo Serviço Personalizado'}</DialogTitle>
-              <DialogDescription>
-                Defina os detalhes do serviço personalizado.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome do Serviço</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={customServiceFormData.name}
-                  onChange={handleCustomServiceChange}
-                  placeholder="Ex: Entrega Rápida Zona Norte"
-                  required
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="minWeight">Peso Mínimo (kg)</Label>
-                  <Input
-                    id="minWeight"
-                    name="minWeight"
-                    type="number"
-                    step="0.01"
-                    value={customServiceFormData.minWeight}
-                    onChange={handleCustomServiceChange}
-                    placeholder="10"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="baseRate">Taxa Base (R$)</Label>
-                  <Input
-                    id="baseRate"
-                    name="baseRate"
-                    type="number"
-                    step="0.01"
-                    value={customServiceFormData.baseRate}
-                    onChange={handleCustomServiceChange}
-                    placeholder="50.00"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="excessRate">Taxa por KG Excedente (R$)</Label>
-                <Input
-                  id="excessRate"
-                  name="excessRate"
-                  type="number"
-                  step="0.01"
-                  value={customServiceFormData.excessRate}
-                  onChange={handleCustomServiceChange}
-                  placeholder="3.50"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="additionalInfo">Informações Adicionais</Label>
-                <Textarea
-                  id="additionalInfo"
-                  name="additionalInfo"
-                  value={customServiceFormData.additionalInfo}
-                  onChange={handleCustomServiceChange}
-                  placeholder="Observações e informações adicionais sobre este serviço"
-                  rows={3}
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCustomServiceDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={saveCustomService}>
-                {currentCustomService ? 'Atualizar' : 'Adicionar'} Serviço
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </AppLayout>
-  );
-};
-
-export default PriceTables;
+                      {/* Seção de Serviços Personalizados */}
+                      <div className="border p-4 rounded-md">
+                        <div className="flex justify-between

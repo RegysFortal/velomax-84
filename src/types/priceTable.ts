@@ -19,7 +19,6 @@ export interface PriceTable {
     trackedVehicle: number;
     doorToDoorInterior: number;
     reshipment: number;
-    // Campo para serviços personalizados
     customServices?: CustomService[];
   };
   excessWeight: {
