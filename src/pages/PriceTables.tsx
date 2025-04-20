@@ -48,7 +48,6 @@ interface PriceTableFormData extends Omit<PriceTable, 'id' | 'createdAt' | 'upda
   customServices?: CustomService[];
 }
 
-// Helper function for creating an empty price table
 const createEmptyPriceTable = (): PriceTableFormData => {
   return {
     name: '',
@@ -331,7 +330,6 @@ const PriceTables = () => {
         ? (prev.customServices || []).map(s => s.id === newService.id ? newService : s)
         : [...(prev.customServices || []), newService];
 
-      // Também atualize em minimumRate.customServices
       return {
         ...prev,
         customServices: updatedServices,
@@ -368,7 +366,6 @@ const PriceTables = () => {
     e.preventDefault();
     
     try {
-      // Prepare data for submission
       const priceTableData = {
         ...formData,
         metropolitanCities: formData.metropolitanCityIds,
@@ -389,7 +386,6 @@ const PriceTables = () => {
         }
       };
       
-      // Remove temporary fields
       delete (priceTableData as any).metropolitanCityIds;
       delete (priceTableData as any).customServices;
       
@@ -481,7 +477,6 @@ const PriceTables = () => {
           </CardContent>
         </Card>
 
-        {/* Diálogo principal da tabela de preços */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-6xl max-h-[90vh]">
             <ScrollArea className="h-[80vh]">
@@ -519,7 +514,6 @@ const PriceTables = () => {
                   
                   <ScrollArea className="h-[500px] pr-4">
                     <div className="space-y-8">
-                      {/* Seção de Tarifas Mínimas */}
                       <div className="border p-4 rounded-md">
                         <h3 className="font-medium mb-4 text-lg">Tarifas Mínimas</h3>
                         
@@ -796,7 +790,6 @@ const PriceTables = () => {
                         </div>
                       </div>
 
-                      {/* Seção de Porta a Porta Interior */}
                       <div className="border p-4 rounded-md">
                         <h3 className="font-medium mb-4 text-lg">Porta a Porta Interior</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -825,7 +818,6 @@ const PriceTables = () => {
                         </div>
                       </div>
                       
-                      {/* Seção de Hora Parada */}
                       <div className="border p-4 rounded-md">
                         <h3 className="font-medium mb-4 text-lg">Hora Parada</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -865,7 +857,6 @@ const PriceTables = () => {
                         </div>
                       </div>
                       
-                      {/* Update the Seção de Seguro to remove perishable option */}
                       <div className="border p-4 rounded-md">
                         <h3 className="font-medium mb-4 text-lg">Seguro (% sobre valor da mercadoria)</h3>
                         <div className="grid grid-cols-1 gap-4">
@@ -883,7 +874,6 @@ const PriceTables = () => {
                         </div>
                       </div>
                       
-                      {/* Seção de Configurações Adicionais */}
                       <div className="border p-4 rounded-md">
                         <h3 className="font-medium mb-4 text-lg">Configurações Adicionais</h3>
                         <div className="flex flex-col space-y-4">
@@ -916,7 +906,6 @@ const PriceTables = () => {
                         </div>
                       </div>
                       
-                      {/* Seção de Cidades da Região Metropolitana */}
                       <div className="border p-4 rounded-md">
                         <h3 className="font-medium mb-4 text-lg">Região Metropolitana</h3>
                         <p className="mb-4 text-sm text-muted-foreground">
@@ -925,4 +914,164 @@ const PriceTables = () => {
                         </p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                          {cities.map((
+                          {cities.map((city) => (
+                            <div key={city.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`city-${city.id}`}
+                                checked={(formData.metropolitanCityIds || []).includes(city.id)}
+                                onCheckedChange={() => handleToggleMetropolitanCity(city.id)}
+                              />
+                              <Label htmlFor={`city-${city.id}`}>{city.name}</Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="border p-4 rounded-md">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-medium text-lg">Serviços Personalizados</h3>
+                          <Button type="button" onClick={() => openCustomServiceDialog()} size="sm">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Adicionar Serviço
+                          </Button>
+                        </div>
+                        
+                        {formData.customServices && formData.customServices.length > 0 ? (
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Nome</TableHead>
+                                <TableHead>Peso Mínimo (kg)</TableHead>
+                                <TableHead>Taxa Base (R$)</TableHead>
+                                <TableHead>Taxa Excedente (R$/kg)</TableHead>
+                                <TableHead>Ações</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {formData.customServices.map((service) => (
+                                <TableRow key={service.id}>
+                                  <TableCell>{service.name}</TableCell>
+                                  <TableCell>{service.minWeight}</TableCell>
+                                  <TableCell>R$ {service.baseRate.toFixed(2)}</TableCell>
+                                  <TableCell>R$ {service.excessRate.toFixed(2)}</TableCell>
+                                  <TableCell className="flex gap-2">
+                                    <Button variant="ghost" size="icon" onClick={() => openCustomServiceDialog(service)}>
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => deleteCustomService(service.id)}>
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <div className="text-center p-4 text-muted-foreground">
+                            Nenhum serviço personalizado adicionado.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </ScrollArea>
+
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">
+                      {editingPriceTable ? 'Atualizar' : 'Criar'} Tabela
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={customServiceDialogOpen} onOpenChange={setCustomServiceDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>
+                {currentCustomService ? 'Editar Serviço Personalizado' : 'Adicionar Serviço Personalizado'}
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome do Serviço</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={customServiceFormData.name}
+                  onChange={handleCustomServiceChange}
+                  placeholder="Ex: Transporte de Frágeis"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="minWeight">Peso Mínimo (kg)</Label>
+                  <Input
+                    id="minWeight"
+                    name="minWeight"
+                    type="number"
+                    step="0.1"
+                    value={customServiceFormData.minWeight}
+                    onChange={handleCustomServiceChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="baseRate">Taxa Base (R$)</Label>
+                  <Input
+                    id="baseRate"
+                    name="baseRate"
+                    type="number"
+                    step="0.01"
+                    value={customServiceFormData.baseRate}
+                    onChange={handleCustomServiceChange}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="excessRate">Taxa Excedente (R$/kg)</Label>
+                <Input
+                  id="excessRate"
+                  name="excessRate"
+                  type="number"
+                  step="0.01"
+                  value={customServiceFormData.excessRate}
+                  onChange={handleCustomServiceChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="additionalInfo">Informações Adicionais</Label>
+                <Textarea
+                  id="additionalInfo"
+                  name="additionalInfo"
+                  value={customServiceFormData.additionalInfo}
+                  onChange={handleCustomServiceChange}
+                  placeholder="Informações adicionais sobre este serviço..."
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCustomServiceDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="button" onClick={saveCustomService}>
+                {currentCustomService ? 'Atualizar' : 'Adicionar'} Serviço
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default PriceTables;
