@@ -103,7 +103,7 @@ export const calculateFreight = (
         // Check for custom services
         if (priceTable.minimumRate.customServices && priceTable.minimumRate.customServices.length > 0) {
           const customService = priceTable.minimumRate.customServices.find(
-            service => service.name && service.name.toLowerCase() === deliveryType.toString().toLowerCase()
+            service => service.name && service.name.toLowerCase() === deliveryType.toLowerCase()
           );
           if (customService) {
             baseRate = customService.baseRate;
