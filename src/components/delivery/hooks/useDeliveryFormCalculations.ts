@@ -2,8 +2,9 @@
 import { useCallback } from 'react';
 import { useClients } from '@/contexts';
 import { usePriceTables } from '@/contexts/priceTables/PriceTablesContext';
-import { Delivery, DeliveryType, CargoType } from '@/types';
+import { Delivery, DeliveryType, CargoType, City } from '@/types';
 import { calculateFreight as calculateFreightUtil } from '@/utils/deliveryUtils';
+import { useCities } from '@/contexts/CitiesContext';
 
 interface UseDeliveryFormCalculationsProps {
   form: any;
@@ -20,6 +21,7 @@ export const useDeliveryFormCalculations = ({
 }: UseDeliveryFormCalculationsProps) => {
   const { clients } = useClients();
   const { priceTables } = usePriceTables();
+  const { cities } = useCities();
   
   const calculateFreight = useCallback(() => {
     const formValues = form.getValues();
@@ -59,6 +61,15 @@ export const useDeliveryFormCalculations = ({
     console.log(`Calculando frete para cliente ${client.name} (${clientId}), tabela ${priceTable.name}`);
     console.log(`Parâmetros: peso=${weight}, tipo=${deliveryType}, carga=${cargoType}, valor=${cargoValue || 0}`);
     
+    // Encontrar a cidade completa a partir do ID
+    let cityObj: City | undefined;
+    if (cityId) {
+      cityObj = cities.find(c => c.id === cityId);
+      if (!cityObj) {
+        console.log(`Cidade com ID ${cityId} não encontrada`);
+      }
+    }
+    
     // Calcular o frete
     const calculatedFreight = calculateFreightUtil(
       priceTable,
@@ -67,14 +78,14 @@ export const useDeliveryFormCalculations = ({
       cargoType,
       cargoValue,
       undefined,
-      cityId ? { id: cityId, distance: 0 } : undefined
+      cityObj
     );
     
     console.log(`Frete calculado: ${calculatedFreight}`);
     
     setFreight(calculatedFreight);
     return calculatedFreight;
-  }, [form, clients, priceTables, setFreight]);
+  }, [form, clients, priceTables, setFreight, cities]);
   
   return {
     calculateFreight

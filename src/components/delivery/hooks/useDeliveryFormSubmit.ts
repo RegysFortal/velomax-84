@@ -1,4 +1,3 @@
-
 import { Delivery, DeliveryType, CargoType } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useActivityLogging } from './useActivityLogging';
@@ -32,7 +31,6 @@ export const useDeliveryFormSubmit = ({
       console.log("DeliveryForm - Dados do formulário enviado:", data);
       console.log("DeliveryForm - Valor do frete:", freight);
       
-      // Verifica se o cliente foi selecionado
       if (!data.clientId) {
         toast.error("Por favor, selecione um cliente");
         return;
@@ -46,7 +44,6 @@ export const useDeliveryFormSubmit = ({
       
       console.log("DeliveryForm - Cliente selecionado:", clientName);
       
-      // Check for duplicate minute number
       if (data.minuteNumber && checkMinuteNumberExists(data.minuteNumber, data.clientId) && 
           (!isEditMode || (isEditMode && delivery && delivery.minuteNumber !== data.minuteNumber))) {
         
@@ -105,7 +102,6 @@ export const useDeliveryFormSubmit = ({
         return;
       }
       
-      // Handle update of existing delivery
       if (isEditMode && delivery) {
         const updatedDelivery: Partial<Delivery> = {
           clientId: data.clientId,
@@ -129,7 +125,6 @@ export const useDeliveryFormSubmit = ({
         submitUpdatedDelivery(updatedDelivery, delivery.id);
         logDeliveryUpdate(delivery, data.clientId);
       } 
-      // Handle creation of new delivery
       else {
         let minuteNumber = generateNewMinuteNumber(data.minuteNumber, []);
         
