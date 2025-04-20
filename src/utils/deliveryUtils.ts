@@ -24,7 +24,7 @@ export const calculateFreight = (
     let baseRate = 0;
     let excessWeightRate = 0;
     let totalFreight = 0;
-    let weightLimit = 10;
+    let weightLimit = 10; // Padrão para a maioria dos tipos de entrega
     
     // Set base rate and excess weight rate based on delivery type
     switch (deliveryType) {
@@ -67,12 +67,12 @@ export const calculateFreight = (
       case 'tracked':
         baseRate = priceTable.minimumRate.trackedVehicle;
         excessWeightRate = priceTable.excessWeight.maxPerKg;
-        weightLimit = 100;
+        weightLimit = 100; // Veículo rastreado tem limite de 100kg
         break;
       case 'doorToDoorInterior':
         baseRate = priceTable.minimumRate.doorToDoorInterior;
         excessWeightRate = priceTable.excessWeight.maxPerKg;
-        weightLimit = 100;
+        weightLimit = 100; // Exclusivo interior tem limite de 100kg
         
         if (city) {
           const distance = city.distance;
@@ -99,6 +99,20 @@ export const calculateFreight = (
       case 'scheduled':
         baseRate = priceTable.minimumRate.standardDelivery;
         excessWeightRate = priceTable.excessWeight.minPerKg;
+        break;
+      default:
+        // Verificar se é um serviço customizado
+        if (priceTable.minimumRate.customServices) {
+          const customService = priceTable.minimumRate.customServices.find(
+            service => service.name.toLowerCase() === deliveryType.toLowerCase()
+          );
+          if (customService) {
+            baseRate = customService.baseRate;
+            excessWeightRate = customService.excessRate;
+            weightLimit = customService.minWeight;
+            console.log(`Serviço personalizado encontrado: ${customService.name}`);
+          }
+        }
         break;
     }
     

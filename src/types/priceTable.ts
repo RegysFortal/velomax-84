@@ -19,6 +19,8 @@ export interface PriceTable {
     trackedVehicle: number;
     doorToDoorInterior: number;
     reshipment: number;
+    // Campo para serviços personalizados
+    customServices?: CustomService[];
   };
   excessWeight: {
     minPerKg: number;
@@ -42,7 +44,17 @@ export interface PriceTable {
     standard?: number;
     perishable?: number;
   };
+  metropolitanCities?: string[]; // IDs das cidades que são metropolitanas
   createdAt: string;
   updatedAt: string;
   userId?: string;
+}
+
+export interface CustomService {
+  id: string;
+  name: string;
+  minWeight: number;
+  baseRate: number;
+  excessRate: number;
+  additionalInfo?: string;
 }
