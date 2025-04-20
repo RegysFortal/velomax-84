@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -44,7 +43,6 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     insurance: {
       rate: 0.01,
       standard: 0.01,
-      perishable: 0.015,
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
@@ -209,22 +207,40 @@ export const useFetchPriceTables = (userId?: string) => {
         }
         
         const mappedPriceTables = data.map((table: any): PriceTable => {
-          const waitingHour = table.waiting_hour || {};
-          if (!waitingHour.standard) waitingHour.standard = waitingHour.fiorino || 44.00;
-          if (!waitingHour.exclusive) waitingHour.exclusive = waitingHour.medium || 55.00;
+          const parsedMinimumRate = typeof table.minimum_rate === 'string'
+            ? JSON.parse(table.minimum_rate)
+            : table.minimum_rate || {};
+            
+          const parsedExcessWeight = typeof table.excess_weight === 'string'
+            ? JSON.parse(table.excess_weight)
+            : table.excess_weight || {};
+            
+          const parsedDoorToDoor = typeof table.door_to_door === 'string'
+            ? JSON.parse(table.door_to_door)
+            : table.door_to_door || {};
+            
+          const parsedWaitingHour = typeof table.waiting_hour === 'string'
+            ? JSON.parse(table.waiting_hour)
+            : table.waiting_hour || {};
+            
+          const parsedInsurance = typeof table.insurance === 'string'
+            ? JSON.parse(table.insurance)
+            : table.insurance || {};
+            
+          if (!parsedWaitingHour.standard) parsedWaitingHour.standard = parsedWaitingHour.fiorino || 44.00;
+          if (!parsedWaitingHour.exclusive) parsedWaitingHour.exclusive = parsedWaitingHour.medium || 55.00;
           
-          const insurance = table.insurance || {};
-          if (!insurance.rate) insurance.rate = insurance.standard || 0.01;
+          if (!parsedInsurance.rate) parsedInsurance.rate = parsedInsurance.standard || 0.01;
           
           return {
             id: table.id,
             name: table.name,
             description: table.description || '',
-            minimumRate: table.minimum_rate as PriceTable['minimumRate'],
-            excessWeight: table.excess_weight as PriceTable['excessWeight'],
-            doorToDoor: table.door_to_door as PriceTable['doorToDoor'],
-            waitingHour: waitingHour as PriceTable['waitingHour'],
-            insurance: insurance as PriceTable['insurance'],
+            minimumRate: parsedMinimumRate,
+            excessWeight: parsedExcessWeight,
+            doorToDoor: parsedDoorToDoor,
+            waitingHour: parsedWaitingHour,
+            insurance: parsedInsurance,
             allowCustomPricing: table.allow_custom_pricing,
             defaultDiscount: table.default_discount || 0,
             createdAt: table.created_at || new Date().toISOString(),
@@ -290,7 +306,6 @@ export const useFetchPriceTables = (userId?: string) => {
     }
   }, [toast, userId]);
   
-  // Save to localStorage when priceTables changes
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('velomax_price_tables', JSON.stringify(priceTables));

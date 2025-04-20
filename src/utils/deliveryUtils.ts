@@ -100,10 +100,10 @@ export const calculateFreight = (
         excessWeightRate = priceTable.excessWeight.minPerKg;
         break;
       default:
-        // Verificar se é um serviço customizado
-        if (priceTable.minimumRate.customServices) {
+        // Check for custom services
+        if (priceTable.minimumRate.customServices && priceTable.minimumRate.customServices.length > 0) {
           const customService = priceTable.minimumRate.customServices.find(
-            service => service.name.toLowerCase() === deliveryType.toLowerCase()
+            service => service.name && service.name.toLowerCase() === deliveryType.toString().toLowerCase()
           );
           if (customService) {
             baseRate = customService.baseRate;
@@ -138,9 +138,8 @@ export const calculateFreight = (
     // Add insurance value if there's cargo value - but only for non-reshipment deliveries
     // since we already calculated insurance for reshipment above
     if (cargoValue > 0 && deliveryType !== 'reshipment') {
-      const insuranceRate = cargoType === 'perishable' 
-        ? (priceTable.insurance.perishable || priceTable.insurance.rate) 
-        : (priceTable.insurance.standard || priceTable.insurance.rate);
+      // Use standard rate for all cargo types now
+      const insuranceRate = priceTable.insurance.standard || priceTable.insurance.rate;
       
       const insuranceCharge = cargoValue * insuranceRate;
       console.log(`Seguro: ${cargoValue} × ${insuranceRate} = ${insuranceCharge}`);

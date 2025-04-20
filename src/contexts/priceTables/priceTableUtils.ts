@@ -1,4 +1,3 @@
-
 import { PriceTable } from '@/types';
 
 export const getPriceTable = (priceTables: PriceTable[], id: string): PriceTable | undefined => {
@@ -19,9 +18,7 @@ export const calculateInsurance = (
     return invoiceValue * 0.01;
   }
   
-  const rate = cargoType === 'perishable' 
-    ? (table.insurance.perishable || table.insurance.rate) 
-    : (table.insurance.standard || table.insurance.rate);
+  const rate = table.insurance.standard || table.insurance.rate;
     
   return invoiceValue * rate;
 };
@@ -135,9 +132,7 @@ export const calculateBudgetValue = (
   
   // Add insurance for non-reshipment deliveries
   if (merchandiseValue && merchandiseValue > 0 && deliveryType !== 'reshipment') {
-    const insuranceRate = cargoType === 'perishable' 
-      ? (priceTable.insurance.perishable || priceTable.insurance.rate) 
-      : (priceTable.insurance.standard || priceTable.insurance.rate);
+    const insuranceRate = priceTable.insurance.standard || priceTable.insurance.rate;
     
     const insuranceValue = merchandiseValue * insuranceRate;
     console.log(`Insurance value: ${insuranceValue} (${merchandiseValue} × ${insuranceRate})`);

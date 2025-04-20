@@ -44,15 +44,36 @@ export const usePriceTableOperations = (
         throw error;
       }
       
+      // Parse the JSON data safely
+      const minimumRate = typeof data.minimum_rate === 'string' 
+        ? JSON.parse(data.minimum_rate) 
+        : data.minimum_rate;
+        
+      const excessWeight = typeof data.excess_weight === 'string'
+        ? JSON.parse(data.excess_weight)
+        : data.excess_weight;
+        
+      const doorToDoor = typeof data.door_to_door === 'string'
+        ? JSON.parse(data.door_to_door)
+        : data.door_to_door;
+        
+      const waitingHour = typeof data.waiting_hour === 'string'
+        ? JSON.parse(data.waiting_hour)
+        : data.waiting_hour;
+        
+      const insurance = typeof data.insurance === 'string'
+        ? JSON.parse(data.insurance)
+        : data.insurance;
+      
       const newPriceTable: PriceTable = {
         id: data.id,
         name: data.name,
         description: data.description || '',
-        minimumRate: JSON.parse(data.minimum_rate),
-        excessWeight: JSON.parse(data.excess_weight),
-        doorToDoor: JSON.parse(data.door_to_door),
-        waitingHour: JSON.parse(data.waiting_hour),
-        insurance: JSON.parse(data.insurance),
+        minimumRate,
+        excessWeight,
+        doorToDoor,
+        waitingHour,
+        insurance,
         allowCustomPricing: data.allow_custom_pricing,
         defaultDiscount: data.default_discount || 0,
         createdAt: data.created_at || timestamp,

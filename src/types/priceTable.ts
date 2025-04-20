@@ -41,6 +41,7 @@ export interface PriceTable {
   insurance: {
     rate: number;
     standard?: number;
+    perishable?: number; // Keep this optional for backward compatibility
   };
   metropolitanCities?: string[]; // IDs das cidades que são metropolitanas
   createdAt: string;
