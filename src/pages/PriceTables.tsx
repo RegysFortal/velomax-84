@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -921,4 +922,239 @@ const PriceTables = () => {
                       
                       {/* Seção de Seguro */}
                       <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-4 text
+                        <h3 className="font-medium mb-4 text-lg">Seguro (% sobre valor da mercadoria)</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="standard">Mercadoria Padrão (%)</Label>
+                            <Input
+                              id="standard"
+                              name="insurance.standard"
+                              type="number"
+                              step="0.001"
+                              value={formData.insurance.standard}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="perishable">Mercadoria Perecível (%)</Label>
+                            <Input
+                              id="perishable"
+                              name="insurance.perishable"
+                              type="number"
+                              step="0.001"
+                              value={formData.insurance.perishable}
+                              onChange={handleChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Seção de Configurações Adicionais */}
+                      <div className="border p-4 rounded-md">
+                        <h3 className="font-medium mb-4 text-lg">Configurações Adicionais</h3>
+                        <div className="flex flex-col space-y-4">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="allowCustomPricing"
+                              name="allowCustomPricing"
+                              checked={formData.allowCustomPricing}
+                              onCheckedChange={(checked) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  allowCustomPricing: !!checked
+                                }));
+                              }}
+                            />
+                            <Label htmlFor="allowCustomPricing">Permitir preços customizados</Label>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="defaultDiscount">Desconto padrão (%)</Label>
+                            <Input
+                              id="defaultDiscount"
+                              name="defaultDiscount"
+                              type="number"
+                              step="0.01"
+                              value={formData.defaultDiscount}
+                              onChange={handleChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Seção de Cidades da Região Metropolitana */}
+                      <div className="border p-4 rounded-md">
+                        <h3 className="font-medium mb-4 text-lg">Região Metropolitana</h3>
+                        <p className="mb-4 text-sm text-muted-foreground">
+                          Selecione as cidades que fazem parte da Região Metropolitana. 
+                          As cidades selecionadas estarão sujeitas à tarifa de Região Metropolitana.
+                        </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          {cities.map((city) => (
+                            <div key={city.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`city-${city.id}`}
+                                checked={(formData.metropolitanCityIds || []).includes(city.id)}
+                                onCheckedChange={() => handleToggleMetropolitanCity(city.id)}
+                              />
+                              <Label htmlFor={`city-${city.id}`} className="text-sm">
+                                {city.name}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Seção de Serviços Personalizados */}
+                      <div className="border p-4 rounded-md">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="font-medium text-lg">Serviços Personalizados</h3>
+                          <Button 
+                            type="button" 
+                            size="sm" 
+                            onClick={() => openCustomServiceDialog()}
+                          >
+                            <Plus className="h-4 w-4 mr-1" /> Adicionar Serviço
+                          </Button>
+                        </div>
+                        
+                        {formData.customServices && formData.customServices.length > 0 ? (
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-5 gap-2 border-b pb-2">
+                              <div className="col-span-1 font-medium">Nome</div>
+                              <div className="font-medium text-center">Peso Mín.</div>
+                              <div className="font-medium text-center">Taxa Base</div>
+                              <div className="font-medium text-center">Taxa Excedente</div>
+                              <div className="font-medium text-right">Ações</div>
+                            </div>
+                            
+                            {formData.customServices.map(service => (
+                              <div key={service.id} className="grid grid-cols-5 gap-2 items-center py-1">
+                                <div className="col-span-1 font-medium">{service.name}</div>
+                                <div className="text-center">{service.minWeight} kg</div>
+                                <div className="text-center">R$ {service.baseRate.toFixed(2)}</div>
+                                <div className="text-center">R$ {service.excessRate.toFixed(2)}/kg</div>
+                                <div className="flex justify-end gap-2">
+                                  <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => openCustomServiceDialog(service)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => deleteCustomService(service.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-sm">
+                            Nenhum serviço personalizado cadastrado.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </ScrollArea>
+                  
+                  <DialogFooter className="pt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">
+                      {editingPriceTable ? 'Atualizar Tabela' : 'Criar Tabela'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+
+        {/* Diálogo para serviços customizados */}
+        <Dialog open={customServiceDialogOpen} onOpenChange={setCustomServiceDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{currentCustomService ? 'Editar Serviço' : 'Novo Serviço Personalizado'}</DialogTitle>
+              <DialogDescription>
+                Configure os detalhes do serviço personalizado.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="serviceName">Nome do Serviço</Label>
+                <Input
+                  id="serviceName"
+                  name="name"
+                  value={customServiceFormData.name}
+                  onChange={handleCustomServiceChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="minWeight">Peso Mínimo (kg)</Label>
+                <Input
+                  id="minWeight"
+                  name="minWeight"
+                  type="number"
+                  step="0.01"
+                  value={customServiceFormData.minWeight}
+                  onChange={handleCustomServiceChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="baseRate">Taxa Base (R$)</Label>
+                <Input
+                  id="baseRate"
+                  name="baseRate"
+                  type="number"
+                  step="0.01"
+                  value={customServiceFormData.baseRate}
+                  onChange={handleCustomServiceChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="excessRate">Taxa por kg Excedente (R$)</Label>
+                <Input
+                  id="excessRate"
+                  name="excessRate"
+                  type="number"
+                  step="0.01"
+                  value={customServiceFormData.excessRate}
+                  onChange={handleCustomServiceChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="additionalInfo">Informações Adicionais</Label>
+                <Textarea
+                  id="additionalInfo"
+                  name="additionalInfo"
+                  value={customServiceFormData.additionalInfo}
+                  onChange={handleCustomServiceChange}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCustomServiceDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="button" onClick={saveCustomService}>
+                {currentCustomService ? 'Atualizar Serviço' : 'Adicionar Serviço'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default PriceTables;
