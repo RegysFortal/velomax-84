@@ -38,7 +38,6 @@ import { usePriceTables } from '@/contexts/priceTables';
 import { useCities } from '@/contexts/CitiesContext';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
 import { PriceTable, CustomService, City } from '@/types';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -526,178 +525,167 @@ const PriceTables = () => {
                       {/* Seção de Tarifas Mínimas */}
                       <div className="border p-4 rounded-md">
                         <h3 className="font-medium mb-4 text-lg">Tarifas Mínimas</h3>
+                        <div className="grid grid-cols-4 gap-2 items-center border-b pb-2 mb-4">
+                          <div className="col-span-2 font-medium">Tipo de Serviço</div>
+                          <div className="font-medium">Peso Mínimo</div>
+                          <div className="font-medium">Taxa Base (R$)</div>
+                        </div>
                         
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-4 gap-2 items-center border-b pb-2">
-                              <div className="col-span-2 font-medium">Tipo de Serviço</div>
-                              <div className="font-medium">Peso Mínimo</div>
-                              <div className="font-medium">Taxa Base (R$)</div>
-                            </div>
-                            
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Entrega Normal em Fortaleza</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="standardDelivery" 
-                                name="minimumRate.standardDelivery" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.standardDelivery} 
-                                onChange={handleChange}
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Coleta Emergencial em Fortaleza</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="emergencyCollection" 
-                                name="minimumRate.emergencyCollection" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.emergencyCollection} 
-                                onChange={handleChange}
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Coleta em Fortaleza aos Sábados</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="saturdayCollection" 
-                                name="minimumRate.saturdayCollection" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.saturdayCollection} 
-                                onChange={handleChange}
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Veículo Exclusivo em Fortaleza</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="exclusiveVehicle" 
-                                name="minimumRate.exclusiveVehicle" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.exclusiveVehicle} 
-                                onChange={handleChange}
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Difícil Acesso em Fortaleza</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="scheduledDifficultAccess" 
-                                name="minimumRate.scheduledDifficultAccess" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.scheduledDifficultAccess} 
-                                onChange={handleChange}
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Região Metropolitana</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="metropolitanRegion" 
-                                name="minimumRate.metropolitanRegion" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.metropolitanRegion} 
-                                onChange={handleChange}
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Domingos/Feriados em Fortaleza</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="sundayHoliday" 
-                                name="minimumRate.sundayHoliday" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.sundayHoliday} 
-                                onChange={handleChange}
-                              />
-                            </div>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Entrega Normal em Fortaleza</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="standardDelivery" 
+                              name="minimumRate.standardDelivery" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.standardDelivery} 
+                              onChange={handleChange}
+                            />
                           </div>
 
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-4 gap-2 items-center border-b pb-2">
-                              <div className="col-span-2 font-medium">Tipo de Serviço</div>
-                              <div className="font-medium">Peso Mínimo</div>
-                              <div className="font-medium">Taxa Base (R$)</div>
-                            </div>
-                          
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Biológico Normal em Fortaleza</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="normalBiological" 
-                                name="minimumRate.normalBiological" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.normalBiological} 
-                                onChange={handleChange}
-                              />
-                            </div>
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Coleta Emergencial em Fortaleza</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="emergencyCollection" 
+                              name="minimumRate.emergencyCollection" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.emergencyCollection} 
+                              onChange={handleChange}
+                            />
+                          </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Biológico Infeccioso em Fortaleza</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="infectiousBiological" 
-                                name="minimumRate.infectiousBiological" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.infectiousBiological} 
-                                onChange={handleChange}
-                              />
-                            </div>
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Coleta em Fortaleza aos Sábados</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="saturdayCollection" 
+                              name="minimumRate.saturdayCollection" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.saturdayCollection} 
+                              onChange={handleChange}
+                            />
+                          </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Veículo Rastreado em Fortaleza</div>
-                              <div>100 kg</div>
-                              <Input 
-                                id="trackedVehicle" 
-                                name="minimumRate.trackedVehicle" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.trackedVehicle} 
-                                onChange={handleChange}
-                              />
-                            </div>
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Veículo Exclusivo em Fortaleza</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="exclusiveVehicle" 
+                              name="minimumRate.exclusiveVehicle" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.exclusiveVehicle} 
+                              onChange={handleChange}
+                            />
+                          </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Exclusivo Interior</div>
-                              <div>100 kg</div>
-                              <Input 
-                                id="doorToDoorInterior" 
-                                name="minimumRate.doorToDoorInterior" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.doorToDoorInterior} 
-                                onChange={handleChange}
-                              />
-                            </div>
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Difícil Acesso em Fortaleza</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="scheduledDifficultAccess" 
+                              name="minimumRate.scheduledDifficultAccess" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.scheduledDifficultAccess} 
+                              onChange={handleChange}
+                            />
+                          </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
-                              <div className="col-span-2">Redespacho</div>
-                              <div>10 kg</div>
-                              <Input 
-                                id="reshipment" 
-                                name="minimumRate.reshipment" 
-                                type="number"
-                                step="0.01"
-                                value={formData.minimumRate.reshipment} 
-                                onChange={handleChange}
-                              />
-                            </div>
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Região Metropolitana</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="metropolitanRegion" 
+                              name="minimumRate.metropolitanRegion" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.metropolitanRegion} 
+                              onChange={handleChange}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Domingos/Feriados em Fortaleza</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="sundayHoliday" 
+                              name="minimumRate.sundayHoliday" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.sundayHoliday} 
+                              onChange={handleChange}
+                            />
+                          </div>
+                        
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Biológico Normal em Fortaleza</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="normalBiological" 
+                              name="minimumRate.normalBiological" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.normalBiological} 
+                              onChange={handleChange}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Biológico Infeccioso em Fortaleza</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="infectiousBiological" 
+                              name="minimumRate.infectiousBiological" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.infectiousBiological} 
+                              onChange={handleChange}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Veículo Rastreado em Fortaleza</div>
+                            <div>100 kg</div>
+                            <Input 
+                              id="trackedVehicle" 
+                              name="minimumRate.trackedVehicle" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.trackedVehicle} 
+                              onChange={handleChange}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Exclusivo Interior</div>
+                            <div>100 kg</div>
+                            <Input 
+                              id="doorToDoorInterior" 
+                              name="minimumRate.doorToDoorInterior" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.doorToDoorInterior} 
+                              onChange={handleChange}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="col-span-2">Redespacho</div>
+                            <div>10 kg</div>
+                            <Input 
+                              id="reshipment" 
+                              name="minimumRate.reshipment" 
+                              type="number"
+                              step="0.01"
+                              value={formData.minimumRate.reshipment} 
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                       </div>
@@ -910,4 +898,18 @@ const PriceTables = () => {
                       
                       {/* Seção de Serviços Personalizados */}
                       <div className="border p-4 rounded-md">
-                        <div className="flex justify-between
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="font-medium text-lg">Serviços Personalizados</h3>
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            onClick={() => openCustomServiceDialog()}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar Serviço
+                          </Button>
+                        </div>
+                        
+                        {formData.customServices && formData.customServices.length > 0 ? (
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-6 gap-2 mb-2 font-
