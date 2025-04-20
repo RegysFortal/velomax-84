@@ -30,6 +30,7 @@ export const useDeliveryFormSubmit = ({
   const handleSubmit = (data: any, freight: number) => {
     try {
       console.log("DeliveryForm - Dados do formulário enviado:", data);
+      console.log("DeliveryForm - Valor do frete:", freight);
       
       // Verifica se o cliente foi selecionado
       if (!data.clientId) {
