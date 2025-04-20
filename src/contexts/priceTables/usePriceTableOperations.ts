@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -25,7 +24,10 @@ export const usePriceTableOperations = (
         excess_weight: JSON.stringify(priceTable.excessWeight),
         door_to_door: JSON.stringify(priceTable.doorToDoor),
         waiting_hour: JSON.stringify(priceTable.waitingHour),
-        insurance: JSON.stringify(priceTable.insurance),
+        insurance: JSON.stringify({ 
+          rate: priceTable.insurance.rate,
+          standard: priceTable.insurance.standard
+        }),
         allow_custom_pricing: priceTable.allowCustomPricing,
         default_discount: priceTable.defaultDiscount || 0,
         user_id: userId
