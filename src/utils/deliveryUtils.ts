@@ -1,3 +1,4 @@
+
 import { Delivery, PriceTable, City, doorToDoorDeliveryTypes, DeliveryType } from '@/types';
 
 /**
@@ -73,7 +74,7 @@ export const calculateFreight = (
         excessWeightRate = priceTable.excessWeight.maxPerKg;
         weightLimit = 100; // Exclusivo interior tem limite de 100kg
         
-        if (city) {
+        if (city && city.distance) {
           const distance = city.distance;
           const ratePerKm = priceTable.doorToDoor.ratePerKm || 0;
           const distanceCharge = distance * ratePerKm;
