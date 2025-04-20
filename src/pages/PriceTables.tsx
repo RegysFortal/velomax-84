@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -529,13 +528,14 @@ const PriceTables = () => {
                         
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           <div className="space-y-4">
-                            <div className="grid grid-cols-4 gap-2 items-center border-b pb-2">
+                            <div className="grid grid-cols-5 gap-2 items-center border-b pb-2">
                               <div className="col-span-2 font-medium">Tipo de Serviço</div>
                               <div className="font-medium">Peso Mínimo</div>
                               <div className="font-medium">Taxa Base (R$)</div>
+                              <div className="font-medium">Excedente (R$/kg)</div>
                             </div>
                             
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Entrega Normal em Fortaleza</div>
                               <div>10 kg</div>
                               <Input 
@@ -546,9 +546,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.standardDelivery} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="minPerKg" 
+                                name="excessWeight.minPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.minPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Coleta Emergencial em Fortaleza</div>
                               <div>10 kg</div>
                               <Input 
@@ -559,9 +567,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.emergencyCollection} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="maxPerKg" 
+                                name="excessWeight.maxPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.maxPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Coleta em Fortaleza aos Sábados</div>
                               <div>10 kg</div>
                               <Input 
@@ -572,9 +588,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.saturdayCollection} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="maxPerKgSat" 
+                                name="excessWeight.maxPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.maxPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Veículo Exclusivo em Fortaleza</div>
                               <div>10 kg</div>
                               <Input 
@@ -585,9 +609,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.exclusiveVehicle} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="maxPerKgExc" 
+                                name="excessWeight.maxPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.maxPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Difícil Acesso em Fortaleza</div>
                               <div>10 kg</div>
                               <Input 
@@ -598,9 +630,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.scheduledDifficultAccess} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="maxPerKgDif" 
+                                name="excessWeight.maxPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.maxPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Região Metropolitana</div>
                               <div>10 kg</div>
                               <Input 
@@ -611,9 +651,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.metropolitanRegion} 
                                 onChange={handleChange}
                               />
+                               <Input 
+                                id="maxPerKgMetro" 
+                                name="excessWeight.maxPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.maxPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Domingos/Feriados em Fortaleza</div>
                               <div>10 kg</div>
                               <Input 
@@ -624,17 +672,26 @@ const PriceTables = () => {
                                 value={formData.minimumRate.sundayHoliday} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="maxPerKgDom" 
+                                name="excessWeight.maxPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.maxPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
                           </div>
 
                           <div className="space-y-4">
-                            <div className="grid grid-cols-4 gap-2 items-center border-b pb-2">
+                            <div className="grid grid-cols-5 gap-2 items-center border-b pb-2">
                               <div className="col-span-2 font-medium">Tipo de Serviço</div>
                               <div className="font-medium">Peso Mínimo</div>
                               <div className="font-medium">Taxa Base (R$)</div>
+                              <div className="font-medium">Excedente (R$/kg)</div>
                             </div>
                           
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Biológico Normal em Fortaleza</div>
                               <div>10 kg</div>
                               <Input 
@@ -645,9 +702,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.normalBiological} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="biologicalPerKg" 
+                                name="excessWeight.biologicalPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.biologicalPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Biológico Infeccioso em Fortaleza</div>
                               <div>10 kg</div>
                               <Input 
@@ -658,9 +723,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.infectiousBiological} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="biologicalPerKgInf" 
+                                name="excessWeight.biologicalPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.biologicalPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Veículo Rastreado em Fortaleza</div>
                               <div>100 kg</div>
                               <Input 
@@ -671,9 +744,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.trackedVehicle} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="trackedVehicleKg" 
+                                name="excessWeight.minPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.minPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Exclusivo Interior</div>
                               <div>100 kg</div>
                               <Input 
@@ -684,9 +765,17 @@ const PriceTables = () => {
                                 value={formData.minimumRate.doorToDoorInterior} 
                                 onChange={handleChange}
                               />
+                              <Input 
+                                id="doorToDoorInteriorKg" 
+                                name="excessWeight.minPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.minPerKg}
+                                onChange={handleChange}
+                              />
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-5 gap-2 items-center">
                               <div className="col-span-2">Redespacho</div>
                               <div>10 kg</div>
                               <Input 
@@ -695,6 +784,14 @@ const PriceTables = () => {
                                 type="number"
                                 step="0.01"
                                 value={formData.minimumRate.reshipment} 
+                                onChange={handleChange}
+                              />
+                              <Input 
+                                id="reshipmentKg" 
+                                name="excessWeight.reshipmentPerKg" 
+                                type="number"
+                                step="0.01"
+                                value={formData.excessWeight.reshipmentPerKg}
                                 onChange={handleChange}
                               />
                             </div>
@@ -824,258 +921,4 @@ const PriceTables = () => {
                       
                       {/* Seção de Seguro */}
                       <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-4 text-lg">Seguro (% sobre valor da mercadoria)</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="standard">Mercadoria Padrão (%)</Label>
-                            <Input
-                              id="standard"
-                              name="insurance.standard"
-                              type="number"
-                              step="0.001"
-                              value={formData.insurance.standard}
-                              onChange={handleChange}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="perishable">Mercadoria Perecível (%)</Label>
-                            <Input
-                              id="perishable"
-                              name="insurance.perishable"
-                              type="number"
-                              step="0.001"
-                              value={formData.insurance.perishable}
-                              onChange={handleChange}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Seção de Configurações Adicionais */}
-                      <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-4 text-lg">Configurações Adicionais</h3>
-                        <div className="flex flex-col space-y-4">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="allowCustomPricing"
-                              name="allowCustomPricing"
-                              checked={formData.allowCustomPricing}
-                              onCheckedChange={(checked) => {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  allowCustomPricing: !!checked
-                                }));
-                              }}
-                            />
-                            <Label htmlFor="allowCustomPricing">Permitir preços customizados</Label>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="defaultDiscount">Desconto padrão (%)</Label>
-                            <Input
-                              id="defaultDiscount"
-                              name="defaultDiscount"
-                              type="number"
-                              step="0.01"
-                              value={formData.defaultDiscount}
-                              onChange={handleChange}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Seção de Cidades da Região Metropolitana */}
-                      <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-4 text-lg">Região Metropolitana</h3>
-                        <p className="mb-4 text-sm text-muted-foreground">
-                          Selecione as cidades que fazem parte da Região Metropolitana. 
-                          As cidades selecionadas estarão sujeitas à tarifa de Região Metropolitana.
-                        </p>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                          {cities.map((city) => (
-                            <div key={city.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`city-${city.id}`}
-                                checked={(formData.metropolitanCityIds || []).includes(city.id)}
-                                onCheckedChange={() => handleToggleMetropolitanCity(city.id)}
-                              />
-                              <Label htmlFor={`city-${city.id}`} className="text-sm">
-                                {city.name}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/* Seção de Serviços Personalizados */}
-                      <div className="border p-4 rounded-md">
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-medium text-lg">Serviços Personalizados</h3>
-                          <Button 
-                            type="button"
-                            variant="outline" 
-                            onClick={() => openCustomServiceDialog()}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Adicionar Serviço
-                          </Button>
-                        </div>
-                        
-                        {formData.customServices && formData.customServices.length > 0 ? (
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-6 gap-2 mb-2 font-medium text-sm border-b pb-1">
-                              <div className="col-span-1">Nome</div>
-                              <div className="col-span-1">Peso Mínimo</div>
-                              <div className="col-span-1">Taxa Base</div>
-                              <div className="col-span-1">Taxa Excedente</div>
-                              <div className="col-span-1">Informações</div>
-                              <div className="col-span-1">Ações</div>
-                            </div>
-                            
-                            {formData.customServices.map(service => (
-                              <div key={service.id} className="grid grid-cols-6 gap-2 items-center">
-                                <div className="col-span-1 font-medium">{service.name}</div>
-                                <div className="col-span-1">{service.minWeight} kg</div>
-                                <div className="col-span-1">R$ {service.baseRate.toFixed(2)}</div>
-                                <div className="col-span-1">R$ {service.excessRate.toFixed(2)}/kg</div>
-                                <div className="col-span-1 truncate" title={service.additionalInfo}>
-                                  {service.additionalInfo || '-'}
-                                </div>
-                                <div className="col-span-1 flex gap-1">
-                                  <Button 
-                                    type="button"
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => openCustomServiceDialog(service)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    type="button"
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => deleteCustomService(service.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-6 text-muted-foreground">
-                            Nenhum serviço personalizado adicionado.
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </ScrollArea>
-                  
-                  <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsDialogOpen(false)}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button type="submit">
-                      {editingPriceTable ? 'Atualizar Tabela' : 'Criar Tabela'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </div>
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
-
-        {/* Diálogo de serviço personalizado */}
-        <Dialog open={customServiceDialogOpen} onOpenChange={setCustomServiceDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {currentCustomService ? 'Editar Serviço' : 'Adicionar Serviço Personalizado'}
-              </DialogTitle>
-              <DialogDescription>
-                Preencha os detalhes do serviço personalizado.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome do Serviço</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={customServiceFormData.name}
-                  onChange={handleCustomServiceChange}
-                  placeholder="Ex: Entrega Refrigerada"
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="minWeight">Peso Mínimo (kg)</Label>
-                  <Input
-                    id="minWeight"
-                    name="minWeight"
-                    type="number"
-                    step="0.1"
-                    value={customServiceFormData.minWeight}
-                    onChange={handleCustomServiceChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="baseRate">Taxa Base (R$)</Label>
-                  <Input
-                    id="baseRate"
-                    name="baseRate"
-                    type="number"
-                    step="0.01"
-                    value={customServiceFormData.baseRate}
-                    onChange={handleCustomServiceChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="excessRate">Taxa Excedente (R$/kg)</Label>
-                  <Input
-                    id="excessRate"
-                    name="excessRate"
-                    type="number"
-                    step="0.01"
-                    value={customServiceFormData.excessRate}
-                    onChange={handleCustomServiceChange}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="additionalInfo">Informações Adicionais</Label>
-                <Textarea
-                  id="additionalInfo"
-                  name="additionalInfo"
-                  value={customServiceFormData.additionalInfo}
-                  onChange={handleCustomServiceChange}
-                  placeholder="Detalhes adicionais sobre o serviço"
-                  rows={3}
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCustomServiceDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={saveCustomService}>
-                {currentCustomService ? 'Atualizar' : 'Adicionar'} Serviço
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </AppLayout>
-  );
-};
-
-export default PriceTables;
+                        <h3 className="font-medium mb-4 text
