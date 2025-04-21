@@ -37,7 +37,8 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
   };
 
   const handleRecalculate = () => {
-    calculateFreight();
+    const calculated = calculateFreight();
+    console.log(`Frete recalculado: ${calculated}`);
   };
 
   return (

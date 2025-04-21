@@ -31,14 +31,14 @@ export const useDeliveryFormCalculations = ({
     
     if (!clientId) {
       console.log("Não é possível calcular o frete: ID do cliente não fornecido");
-      return;
+      return 0; // Return 0 instead of undefined
     }
     
     // Usar o hook do useClientPriceTable para obter a tabela de preço
     const priceTable = getClientPriceTable(clientId);
     if (!priceTable) {
       console.log(`Cliente não possui tabela de preço associada`);
-      return;
+      return 0; // Return 0 instead of undefined
     }
     
     // Obter valores do formulário
