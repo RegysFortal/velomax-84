@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { Delivery } from '@/types/delivery';
@@ -105,7 +106,7 @@ const Deliveries = () => {
       
       return searchFields.includes(searchTerm.toLowerCase());
     })
-    .sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime()) as unknown as Delivery[];
+    .sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime());
 
   const handleEditDelivery = (delivery: Delivery) => {
     const deliveryCopy = JSON.parse(JSON.stringify(delivery)) as Delivery;

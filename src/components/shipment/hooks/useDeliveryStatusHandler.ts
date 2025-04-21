@@ -59,7 +59,7 @@ export function useDeliveryStatusHandler({
       console.log(`Setting status to ${newStatus} (all docs selected: ${allDocumentsSelected})`);
       
       // Update shipment status with delivery details
-      handleStatusUpdate(shipmentId, newStatus, deliveryDetails);
+      handleStatusUpdate(shipmentId, newStatus as ShipmentStatus, deliveryDetails);
       
       // Create deliveries from shipment documents
       if (shipment && selectedDocumentIds.length > 0) {
