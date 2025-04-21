@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -158,9 +157,9 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         minuteNumber: updatedData.minute_number,
         packages: updatedData.packages,
         weight: updatedData.weight,
-        cargoType: updatedData.cargo_type,
+        cargoType: updatedData.cargo_type as CargoType,
         cargoValue: updatedData.cargo_value,
-        deliveryType: updatedData.delivery_type,
+        deliveryType: updatedData.delivery_type as DeliveryType,
         notes: updatedData.notes,
         occurrence: updatedData.occurrence,
         receiver: updatedData.receiver,

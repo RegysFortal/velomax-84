@@ -1,9 +1,11 @@
+
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 import { useShipments } from '@/contexts/shipments';
 import { supabase } from '@/integrations/supabase/client';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { DeliveryDetailsType } from './useStatusAction';
+import { ShipmentStatus } from '@/types/shipment';
 
 interface UseDeliveryStatusHandlerProps {
   shipmentId: string;

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
-import { Delivery as TypedDelivery } from '@/types/delivery';
+import { Delivery } from '@/types/delivery';
 import { useClients } from '@/contexts';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
 import { useFinancial } from '@/contexts/FinancialContext';
@@ -15,7 +14,6 @@ import { DeliveryDetails } from '@/components/delivery/DeliveryDetails';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { SearchableSelect } from '@/components/ui/searchable-select';
 import { format, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { X, RefreshCcw } from 'lucide-react';
@@ -29,16 +27,14 @@ const Deliveries = () => {
   const { financialReports } = useFinancial();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingDelivery, setEditingDelivery] = useState<TypedDelivery | null>(null);
-  const [selectedDelivery, setSelectedDelivery] = useState<TypedDelivery | null>(null);
+  const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
   
-  // Filtering state
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   
-  // Listen for deliveries-updated event
   useEffect(() => {
     const handleDeliveriesUpdated = () => {
       console.log("Deliveries updated event received, refreshing data");
@@ -58,7 +54,7 @@ const Deliveries = () => {
     console.log('Entregas com IDs de clientes:', deliveries.map(d => ({ deliveryId: d.id, clientId: d.clientId })));
   }, [clients, deliveries, clientsLoading]);
 
-  const isDeliveryInClosedReport = (delivery: ContextDelivery) => {
+  const isDeliveryInClosedReport = (delivery: Delivery) => {
     const closedReports = financialReports.filter(report => report.status === 'closed');
     
     return closedReports.some(report => {
@@ -109,10 +105,10 @@ const Deliveries = () => {
       
       return searchFields.includes(searchTerm.toLowerCase());
     })
-    .sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime()) as unknown as TypedDelivery[];
+    .sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime()) as unknown as Delivery[];
 
-  const handleEditDelivery = (delivery: ContextDelivery) => {
-    const deliveryCopy = JSON.parse(JSON.stringify(delivery)) as TypedDelivery;
+  const handleEditDelivery = (delivery: Delivery) => {
+    const deliveryCopy = JSON.parse(JSON.stringify(delivery)) as Delivery;
     setEditingDelivery(deliveryCopy);
     setIsDialogOpen(true);
     setSelectedDelivery(null);
@@ -146,7 +142,7 @@ const Deliveries = () => {
     handleRefreshDeliveries();
   };
 
-  const handleViewDetails = (delivery: TypedDelivery) => {
+  const handleViewDetails = (delivery: Delivery) => {
     setSelectedDelivery(delivery);
   };
 

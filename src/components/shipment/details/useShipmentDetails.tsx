@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Shipment, ShipmentStatus, Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
-import { useEmployees } from '@/contexts/employees/EmployeesContext';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
-import { NewDeliveryDialog } from '../NewDeliveryDialog';
 import { toast } from "sonner";
 
 export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const { updateShipment, deleteShipment, updateStatus, updateFiscalAction, updateDocument } = useShipments();
   const { addDelivery } = useDeliveries();
-  const { getEmployeeById } = useEmployees();
+  
   const [isEditing, setIsEditing] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   
