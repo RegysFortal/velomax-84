@@ -2,7 +2,7 @@
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { toast } from 'sonner';
 import { Delivery } from '@/types';
-import { generateMinuteNumber } from '@/utils/deliveryUtils';
+import { generateMinuteNumber } from '@/utils/delivery';
 import { useClients } from '@/contexts';
 import { useAuth } from '@/contexts/auth/AuthContext';
 

@@ -1,10 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { DeliveryType, CargoType, doorToDoorDeliveryTypes } from '@/types/delivery';
-import { calculateFreight as utilsCalculateFreight } from '@/utils/deliveryUtils';
+import { calculateFreight as utilsCalculateFreight } from '@/utils/delivery';
 
 export interface Delivery {
   id: string;
@@ -124,7 +123,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const addDelivery = async (deliveryData: DeliveryFormData) => {
     try {
-      // Ensure totalFreight is a number
       const totalFreight = typeof deliveryData.totalFreight === 'string' 
         ? parseFloat(deliveryData.totalFreight) 
         : deliveryData.totalFreight;
@@ -187,7 +185,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const updateDelivery = async (id: string, data: Partial<Delivery>) => {
     try {
-      // Ensure totalFreight is a number
       let totalFreightValue = 0;
       if (data.totalFreight !== undefined) {
         totalFreightValue = typeof data.totalFreight === 'string' 
@@ -307,7 +304,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.log("Selected documents:", selectedDocs);
 
       for (const doc of selectedDocs) {
-        // Calculate proper freight for this delivery
         const deliveryWeight = doc.weight || shipment.weight || 0;
         const baseFreight = calculateFreight(
           shipment.companyId,
@@ -350,9 +346,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       toast.success("Entregas criadas com sucesso");
       
-      // Dispatch event to refresh shipment status display
       window.dispatchEvent(new CustomEvent('shipments-updated'));
-      
     } catch (error) {
       console.error("Error creating deliveries from shipment:", error);
       toast.error("Erro ao criar entregas a partir do embarque");
@@ -389,7 +383,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         break;
     }
 
-    // Ensure weight is treated as a number
     const numWeight = typeof weight === 'string' ? parseFloat(weight) : weight;
     baseFreight += numWeight * 2;
 
@@ -402,7 +395,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       baseFreight += numCargoValue * 0.01;
     }
 
-    return Math.round(baseFreight * 100) / 100; // Round to 2 decimal places
+    return Math.round(baseFreight * 100) / 100;
   };
 
   const isDoorToDoorDelivery = (deliveryType: DeliveryType): boolean => {

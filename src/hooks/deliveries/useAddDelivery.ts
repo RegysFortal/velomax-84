@@ -4,7 +4,7 @@ import { Delivery } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { useActivityLog } from '@/contexts/ActivityLogContext';
 import { useClients } from '@/contexts';
-import { generateMinuteNumber } from '@/utils/deliveryUtils';
+import { generateMinuteNumber } from '@/utils/delivery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { DeliveryCreateInput, DeliveryResponse } from './types';

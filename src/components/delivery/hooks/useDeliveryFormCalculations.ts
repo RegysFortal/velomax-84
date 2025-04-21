@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useClients } from '@/contexts';
 import { usePriceTables } from '@/contexts/priceTables/PriceTablesContext';
 import { Delivery, DeliveryType, CargoType, City } from '@/types';
-import { calculateFreight as calculateFreightUtil } from '@/utils/deliveryUtils';
+import { calculateFreight as calculateFreightUtil } from '@/utils/delivery';
 import { useCities } from '@/contexts/CitiesContext';
 import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
 
