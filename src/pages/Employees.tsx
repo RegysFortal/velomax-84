@@ -8,6 +8,7 @@ import { EmployeeEditForm } from '@/components/employee/EmployeeEditForm';
 import { toast } from 'sonner';
 import { EmployeesHeader } from '@/components/employee/EmployeesHeader';
 import { EmployeesTable } from '@/components/employee/EmployeesTable';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function Employees() {
   const { employees, loading, addEmployee, updateEmployee, deleteEmployee } = useEmployeesData();
@@ -63,47 +64,49 @@ export default function Employees() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col gap-6">
-        <EmployeesHeader onCreateClick={handleCreateClick} />
-        
-        <EmployeesTable
-          employees={employees}
-          loading={loading}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onEditClick={handleEditClick}
-          onDeleteClick={handleDeleteEmployee}
-        />
+      <ScrollArea className="h-[calc(100vh-120px)] w-full">
+        <div className="flex flex-col gap-6 p-6">
+          <EmployeesHeader onCreateClick={handleCreateClick} />
+          
+          <EmployeesTable
+            employees={employees}
+            loading={loading}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onEditClick={handleEditClick}
+            onDeleteClick={handleDeleteEmployee}
+          />
 
-        <Dialog 
-          open={isDialogOpen} 
-          onOpenChange={(open) => {
-            if (!open) {
-              handleCloseDialog();
-            } else {
-              setIsDialogOpen(open);
-            }
-          }}
-        >
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>{isCreating ? 'Novo Colaborador' : 'Editar Colaborador'}</DialogTitle>
-              <DialogDescription>
-                {isCreating 
-                  ? 'Adicione um novo colaborador ao sistema.'
-                  : 'Altere as informações do colaborador.'}
-              </DialogDescription>
-            </DialogHeader>
-            <EmployeeEditForm 
-              employee={selectedEmployee}
-              isCreating={isCreating}
-              onComplete={handleCloseDialog}
-              onSave={handleSaveEmployee}
-              isEmployeeForm={true}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+          <Dialog 
+            open={isDialogOpen} 
+            onOpenChange={(open) => {
+              if (!open) {
+                handleCloseDialog();
+              } else {
+                setIsDialogOpen(open);
+              }
+            }}
+          >
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>{isCreating ? 'Novo Colaborador' : 'Editar Colaborador'}</DialogTitle>
+                <DialogDescription>
+                  {isCreating 
+                    ? 'Adicione um novo colaborador ao sistema.'
+                    : 'Altere as informações do colaborador.'}
+                </DialogDescription>
+              </DialogHeader>
+              <EmployeeEditForm 
+                employee={selectedEmployee}
+                isCreating={isCreating}
+                onComplete={handleCloseDialog}
+                onSave={handleSaveEmployee}
+                isEmployeeForm={true}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </ScrollArea>
     </AppLayout>
   );
 }
