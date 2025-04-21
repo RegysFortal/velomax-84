@@ -1,77 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { DeliveryType, CargoType, doorToDoorDeliveryTypes } from '@/types/delivery';
 import { calculateFreight as utilsCalculateFreight } from '@/utils/delivery';
-
-export interface Delivery {
-  id: string;
-  clientId: string;
-  clientName?: string;
-  cityId?: string;
-  cityName?: string;
-  minuteNumber: string;
-  packages: number;
-  weight: number;
-  cargoType: string;
-  cargoValue?: number;
-  deliveryType: string;
-  notes?: string;
-  occurrence?: string;
-  receiver: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  totalFreight: number;
-  createdAt: string;
-  updatedAt: string;
-  receiverId?: string;
-  pickupName?: string;
-  pickupDate?: string;
-  pickupTime?: string;
-  invoiceNumbers?: string[];
-}
-
-export interface DeliveryFormData {
-  minuteNumber: string;
-  clientId: string;
-  cityId?: string;
-  packages: number;
-  weight: number;
-  cargoType: string;
-  cargoValue?: number;
-  deliveryType: string;
-  notes?: string;
-  occurrence?: string;
-  receiver: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  totalFreight: number;
-}
-
-interface DeliveriesContextType {
-  deliveries: Delivery[];
-  loading: boolean;
-  addDelivery: (delivery: DeliveryFormData) => Promise<Delivery | undefined>;
-  updateDelivery: (id: string, data: Partial<Delivery>) => Promise<Delivery | undefined>;
-  deleteDelivery: (id: string) => Promise<boolean>;
-  getDeliveryById: (id: string) => Delivery | undefined;
-  createDeliveriesFromShipment: (shipment: any, deliveryDetails: any) => Promise<void>;
-  refreshDeliveries: () => Promise<void>;
-  calculateFreight: (
-    clientId: string,
-    weight: number,
-    deliveryType: DeliveryType,
-    cargoType: CargoType,
-    cargoValue?: number,
-    distance?: number,
-    cityId?: string
-  ) => number;
-  isDoorToDoorDelivery: (deliveryType: DeliveryType) => boolean;
-  checkMinuteNumberExists: (minuteNumber: string, clientId: string) => boolean;
-}
-
-const DeliveriesContext = createContext<DeliveriesContextType | undefined>(undefined);
+import type { Delivery, DeliveryFormData } from '@/types';
+import { DeliveriesContext } from './DeliveriesContext';
 
 export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
@@ -85,9 +20,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .select('*, clients(name)')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       const formattedDeliveries = data.map((item: any) => ({
         id: item.id,
@@ -109,7 +42,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         createdAt: item.created_at,
         updatedAt: item.updated_at,
       }));
-
       setDeliveries(formattedDeliveries);
       return formattedDeliveries;
     } catch (error) {
@@ -126,7 +58,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const totalFreight = typeof deliveryData.totalFreight === 'string' 
         ? parseFloat(deliveryData.totalFreight) 
         : deliveryData.totalFreight;
-
       const { data, error } = await supabase
         .from('deliveries')
         .insert({
@@ -149,9 +80,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .select()
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       const newDelivery: Delivery = {
         id: data.id,
@@ -220,9 +149,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .select()
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       const updatedDelivery: Delivery = {
         id: updatedData.id,
@@ -262,14 +189,11 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       const { error } = await supabase.from('deliveries').delete().eq('id', id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       setDeliveries((prevDeliveries) =>
         prevDeliveries.filter((delivery) => delivery.id !== id)
       );
-
       return true;
     } catch (error) {
       console.error('Error deleting delivery:', error);
@@ -284,25 +208,15 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const createDeliveriesFromShipment = async (shipment: any, deliveryDetails: any) => {
     try {
-      console.log("Creating deliveries from shipment:", shipment);
-      console.log("Delivery details:", deliveryDetails);
-
       if (!shipment || !deliveryDetails || !deliveryDetails.selectedDocumentIds || deliveryDetails.selectedDocumentIds.length === 0) {
-        console.error("Invalid shipment or delivery details");
         return;
       }
-
       const selectedDocs = shipment.documents.filter((doc: any) => 
         deliveryDetails.selectedDocumentIds.includes(doc.id)
       );
-
       if (selectedDocs.length === 0) {
-        console.error("No selected documents found");
         return;
       }
-
-      console.log("Selected documents:", selectedDocs);
-
       for (const doc of selectedDocs) {
         const deliveryWeight = doc.weight || shipment.weight || 0;
         const baseFreight = calculateFreight(
@@ -311,7 +225,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           'normal' as DeliveryType,
           'cargo' as CargoType
         );
-
         const newDelivery: DeliveryFormData = {
           clientId: shipment.companyId,
           minuteNumber: doc.minuteNumber || "",
@@ -324,28 +237,20 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           deliveryTime: deliveryDetails.deliveryTime,
           totalFreight: baseFreight,
         };
-
-        console.log("Creating new delivery:", newDelivery);
         await addDelivery(newDelivery);
       }
-
       if (shipment.id && deliveryDetails.selectedDocumentIds.length > 0) {
         try {
           const { error } = await supabase
             .from('shipment_documents')
             .update({ is_delivered: true })
             .in('id', deliveryDetails.selectedDocumentIds);
-
-          if (error) {
-            console.error("Error updating shipment documents:", error);
-          }
+          if (error) console.error("Error updating shipment documents:", error);
         } catch (err) {
           console.error("Error updating shipment documents:", err);
         }
       }
-
       toast.success("Entregas criadas com sucesso");
-      
       window.dispatchEvent(new CustomEvent('shipments-updated'));
     } catch (error) {
       console.error("Error creating deliveries from shipment:", error);
@@ -363,7 +268,6 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     cityId?: string
   ): number => {
     let baseFreight = 50;
-
     switch (deliveryType) {
       case 'emergency':
         baseFreight += 30;
@@ -382,19 +286,13 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       default:
         break;
     }
-
     const numWeight = typeof weight === 'string' ? parseFloat(weight) : weight;
     baseFreight += numWeight * 2;
-
-    if (cargoType === 'perishable') {
-      baseFreight *= 1.2;
-    }
-
+    if (cargoType === 'perishable') baseFreight *= 1.2;
     if (cargoValue && cargoValue > 0) {
       const numCargoValue = typeof cargoValue === 'string' ? parseFloat(cargoValue) : cargoValue;
       baseFreight += numCargoValue * 0.01;
     }
-
     return Math.round(baseFreight * 100) / 100;
   };
 
@@ -436,12 +334,4 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       {children}
     </DeliveriesContext.Provider>
   );
-};
-
-export const useDeliveries = () => {
-  const context = useContext(DeliveriesContext);
-  if (context === undefined) {
-    throw new Error('useDeliveries must be used within a DeliveriesProvider');
-  }
-  return context;
 };
