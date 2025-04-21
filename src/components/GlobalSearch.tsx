@@ -4,7 +4,7 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useDeliveries } from "@/contexts/DeliveriesContext";
+import { useDeliveries } from "@/contexts/deliveries/useDeliveries";
 import { useShipments } from "@/contexts/shipments";
 import { useClients } from "@/contexts";
 import { format } from "date-fns";

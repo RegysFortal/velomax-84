@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Shipment, ShipmentStatus, Document } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
-import { useDeliveries } from "@/contexts/DeliveriesContext";
+import { useEmployees } from '@/contexts/employees/EmployeesContext';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
+import { NewDeliveryDialog } from '../NewDeliveryDialog';
 import { toast } from "sonner";
 
 export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const { updateShipment, deleteShipment, updateStatus, updateFiscalAction, updateDocument } = useShipments();
   const { addDelivery } = useDeliveries();
+  const { getEmployeeById } = useEmployees();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   
@@ -175,7 +178,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
               };
               selectedDocuments.push(updatedDocuments[i]);
               
-              // Fix: Pass the updated document as part of an array
               await updateDocument(shipment.id, updatedDocuments[i].id, updatedDocuments);
             }
           }
@@ -259,7 +261,6 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
           }));
           
           for (const doc of updatedDocuments) {
-            // Fix: Pass the updated documents as an array
             await updateDocument(shipment.id, doc.id, updatedDocuments);
           }
           

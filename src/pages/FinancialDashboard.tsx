@@ -9,7 +9,7 @@ import { FinancialChartSection } from '@/components/dashboard/financial/Financia
 import { FinancialSummaryCards } from '@/components/dashboard/financial/FinancialSummaryCards';
 import { RecentReportsTable } from '@/components/dashboard/financial/RecentReportsTable';
 import { TopClientsTable } from '@/components/dashboard/financial/TopClientsTable';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts/clients';
 import { useFinancial } from '@/contexts/FinancialContext';
 

@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { useDeliveries, Delivery as ContextDelivery } from '@/contexts/DeliveriesContext';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { Delivery as TypedDelivery } from '@/types/delivery';
 import { useClients } from '@/contexts';
 import { useActivityLog } from '@/contexts/ActivityLogContext';

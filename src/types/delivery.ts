@@ -48,3 +48,26 @@ export interface Delivery {
   pickupTime?: string;
   invoiceNumbers?: string[]; // Add this property to support invoice numbers in delivery objects
 }
+
+// Adding DeliveryFormData interface which was missing
+export interface DeliveryFormData {
+  minuteNumber?: string;
+  clientId: string;
+  deliveryDate: string;
+  deliveryTime?: string;
+  receiver: string;
+  receiverId?: string;
+  weight: number;
+  packages: number;
+  deliveryType: DeliveryType;
+  cargoType: CargoType;
+  cargoValue?: number;
+  totalFreight: number;
+  notes?: string;
+  occurrence?: string;
+  cityId?: string;
+  pickupName?: string;
+  pickupDate?: string;
+  pickupTime?: string;
+  invoiceNumbers?: string[];
+}

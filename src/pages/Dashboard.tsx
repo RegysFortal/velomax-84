@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { format, subDays, isWithinInterval } from 'date-fns';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
 import { useShipments } from '@/contexts/shipments';
 import { 

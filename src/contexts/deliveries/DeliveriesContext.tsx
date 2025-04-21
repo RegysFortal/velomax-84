@@ -1,6 +1,7 @@
 
 import React, { createContext } from 'react';
-import type { Delivery, DeliveryFormData, DeliveryType, CargoType } from '@/types';
+import type { Delivery, DeliveryType, CargoType } from '@/types';
+import type { DeliveryFormData } from '@/types/delivery';
 import type { ReactNode } from 'react';
 
 export interface DeliveriesContextType {

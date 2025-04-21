@@ -25,6 +25,7 @@ export const DeliveryFormSections: React.FC<{
     setShowDuplicateAlert,
     formData,
     setFormData,
+    freight
   } = useDeliveryFormContext();
 
   const { cities } = useCities();
@@ -41,7 +42,7 @@ export const DeliveryFormSections: React.FC<{
   const onSubmit = (data: any) => {
     // O valor do frete é lido do context, sempre atualizado
     // O hook já faz o cálculo/manual mapping
-    handleSubmit(data);
+    handleSubmit(data, freight);
   };
 
   return (

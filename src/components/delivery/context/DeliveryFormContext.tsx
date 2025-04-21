@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { deliveryFormSchema } from '../schema/deliveryFormSchema';
 import { Delivery, Client, DeliveryType } from '@/types';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
 import { useDeliveryFormEffects } from '../hooks/useDeliveryFormEffects';
 

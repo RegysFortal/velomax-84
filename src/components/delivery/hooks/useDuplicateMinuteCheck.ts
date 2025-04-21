@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 
 export const useDuplicateMinuteCheck = () => {
   const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);

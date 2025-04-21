@@ -1,5 +1,5 @@
 
-import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { toast } from 'sonner';
 import { Delivery } from '@/types';
 import { generateMinuteNumber } from '@/utils/delivery';

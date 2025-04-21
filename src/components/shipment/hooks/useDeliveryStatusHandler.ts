@@ -1,8 +1,8 @@
-
-import { ShipmentStatus } from "@/types/shipment";
-import { toast } from "sonner";
-import { useShipments } from "@/contexts/shipments";
-import { useDeliveries } from "@/contexts/DeliveriesContext";
+import { useCallback } from 'react';
+import { toast } from 'sonner';
+import { useShipments } from '@/contexts/shipments';
+import { supabase } from '@/integrations/supabase/client';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { DeliveryDetailsType } from './useStatusAction';
 
 interface UseDeliveryStatusHandlerProps {
@@ -31,7 +31,7 @@ export function useDeliveryStatusHandler({
   const shipment = getShipmentById(shipmentId);
   
   // Handler for delivery confirmation
-  const handleDeliveryConfirm = () => {
+  const handleDeliveryConfirm = useCallback(() => {
     try {
       // Validate form
       if (!receiverName.trim() || !deliveryDate || !deliveryTime) {
@@ -75,7 +75,7 @@ export function useDeliveryStatusHandler({
       toast.error("Erro ao finalizar entrega");
       console.error(error);
     }
-  };
+  }, [receiverName, deliveryDate, deliveryTime, selectedDocumentIds, handleStatusUpdate, createDeliveriesFromShipment, shipment, onStatusChange, resetForms]);
   
   return {
     handleDeliveryConfirm

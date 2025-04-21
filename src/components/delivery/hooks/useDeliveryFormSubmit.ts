@@ -1,6 +1,6 @@
 
 import { Delivery, DeliveryType, CargoType } from '@/types';
-import { useDeliveries } from '@/contexts/DeliveriesContext';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useActivityLogging } from './useActivityLogging';
 import { useNewDeliverySubmission } from './useNewDeliverySubmission';
 import { useDeliverySubmission } from './useDeliverySubmission';

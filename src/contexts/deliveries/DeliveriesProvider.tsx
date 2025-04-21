@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { DeliveryType, CargoType, doorToDoorDeliveryTypes } from '@/types/delivery';
+import { DeliveryType, CargoType, doorToDoorDeliveryTypes, DeliveryFormData } from '@/types/delivery';
 import { calculateFreight as utilsCalculateFreight } from '@/utils/delivery';
-import type { Delivery, DeliveryFormData } from '@/types';
+import type { Delivery } from '@/types';
 import { DeliveriesContext } from './DeliveriesContext';
 
 export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -89,9 +89,9 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         minuteNumber: data.minute_number,
         packages: data.packages,
         weight: data.weight,
-        cargoType: data.cargo_type,
+        cargoType: data.cargo_type as CargoType,
         cargoValue: data.cargo_value,
-        deliveryType: data.delivery_type,
+        deliveryType: data.delivery_type as DeliveryType,
         notes: data.notes,
         occurrence: data.occurrence,
         receiver: data.receiver,
@@ -222,16 +222,16 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const baseFreight = calculateFreight(
           shipment.companyId,
           deliveryWeight,
-          'normal' as DeliveryType,
-          'cargo' as CargoType
+          'standard' as DeliveryType,
+          'standard' as CargoType
         );
         const newDelivery: DeliveryFormData = {
           clientId: shipment.companyId,
           minuteNumber: doc.minuteNumber || "",
           packages: doc.packages || 1,
           weight: deliveryWeight,
-          cargoType: "cargo",
-          deliveryType: "normal",
+          cargoType: 'standard' as CargoType,
+          deliveryType: 'standard' as DeliveryType,
           receiver: deliveryDetails.receiverName,
           deliveryDate: deliveryDetails.deliveryDate,
           deliveryTime: deliveryDetails.deliveryTime,
