@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Edit, Trash2, UserPlus } from 'lucide-react';
 import { User } from '@/types';
@@ -96,7 +96,6 @@ export default function Employees() {
 
   const handleEditClick = (employee: User) => {
     console.log("Edit employee clicked:", employee);
-    // Create a deep copy to avoid reference issues
     setSelectedEmployee(JSON.parse(JSON.stringify(employee)));
     setIsCreating(false);
     setIsDialogOpen(true);
@@ -180,60 +179,62 @@ export default function Employees() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="py-8 text-center text-muted-foreground">
-                Carregando colaboradores...
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Cargo</TableHead>
-                    <TableHead>Departamento</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEmployees.length === 0 ? (
+          <CardContent className="relative">
+            <ScrollArea className="h-[500px] w-full pr-4">
+              {loading ? (
+                <div className="py-8 text-center text-muted-foreground">
+                  Carregando colaboradores...
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                        Nenhum colaborador encontrado
-                      </TableCell>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Cargo</TableHead>
+                      <TableHead>Departamento</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredEmployees.map((emp) => (
-                      <TableRow key={emp.id}>
-                        <TableCell className="font-medium">{emp.name}</TableCell>
-                        <TableCell>{emp.email}</TableCell>
-                        <TableCell>{emp.position ? getPositionBadge(emp.position) : '-'}</TableCell>
-                        <TableCell>{getDepartmentLabel(emp.department)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditClick(emp)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteEmployee(emp.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredEmployees.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                          Nenhum colaborador encontrado
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            )}
+                    ) : (
+                      filteredEmployees.map((emp) => (
+                        <TableRow key={emp.id}>
+                          <TableCell className="font-medium">{emp.name}</TableCell>
+                          <TableCell>{emp.email}</TableCell>
+                          <TableCell>{emp.position ? getPositionBadge(emp.position) : '-'}</TableCell>
+                          <TableCell>{getDepartmentLabel(emp.department)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditClick(emp)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteEmployee(emp.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
+            </ScrollArea>
           </CardContent>
         </Card>
 
