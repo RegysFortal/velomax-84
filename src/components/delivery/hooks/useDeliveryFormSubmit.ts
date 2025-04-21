@@ -1,10 +1,8 @@
-
 import { Delivery, DeliveryType, CargoType } from '@/types';
 import { useDeliveries } from '@/contexts/DeliveriesContext';
 import { useActivityLogging } from './useActivityLogging';
 import { useNewDeliverySubmission } from './useNewDeliverySubmission';
 import { useDeliverySubmission } from './useDeliverySubmission';
-import { useDuplicateMinuteCheck } from './useDuplicateMinuteCheck';
 import { toast } from 'sonner';
 
 interface UseDeliveryFormSubmitProps {
