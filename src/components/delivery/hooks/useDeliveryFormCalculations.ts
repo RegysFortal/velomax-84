@@ -79,7 +79,7 @@ export const useDeliveryFormCalculations = ({
     return calculatedFreight;
   }, [form, cities, getClientPriceTable, setFreight]);
 
-  // New function to allow manual freight setting, regardless of client price table
+  // Nova função para permitir a definição manual do frete, independente da tabela de preço do cliente
   const setManualFreight = useCallback((value: number) => {
     console.log(`Definindo frete manualmente para: ${value}`);
     setFreight(value);

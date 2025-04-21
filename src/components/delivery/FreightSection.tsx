@@ -20,7 +20,7 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
     isEditMode,
   });
 
-  // Synchronize input value with outer state
+  // Sincronizar o valor de entrada com o estado externo
   useEffect(() => {
     setFreightInput(String(freight));
   }, [freight]);
@@ -28,8 +28,11 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
   const handleFreightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFreightInput(value);
-    if (!isNaN(parseFloat(value))) {
-      setManualFreight(parseFloat(value));
+    
+    // Converter para número e atualizar o estado apenas se for um número válido
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      setManualFreight(numValue);
     }
   };
 
