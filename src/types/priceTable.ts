@@ -1,4 +1,3 @@
-
 export interface PriceTable {
   id: string;
   name: string;
@@ -41,9 +40,9 @@ export interface PriceTable {
   insurance: {
     rate: number;
     standard?: number;
-    perishable?: number; // Keep this optional for backward compatibility
+    perishable?: number;
   };
-  metropolitanCities?: string[]; // IDs das cidades que são metropolitanas
+  metropolitanCities: string[]; // Changed from optional to required
   createdAt: string;
   updatedAt: string;
   userId?: string;

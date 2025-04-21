@@ -243,19 +243,15 @@ const PriceTables = () => {
 
   const handleToggleMetropolitanCity = (cityId: string) => {
     setFormData(prev => {
-      const currentIds = prev.metropolitanCityIds || [];
-      
-      if (currentIds.includes(cityId)) {
-        return {
-          ...prev,
-          metropolitanCityIds: currentIds.filter(id => id !== cityId)
-        };
-      } else {
-        return {
-          ...prev,
-          metropolitanCityIds: [...currentIds, cityId]
-        };
-      }
+      const currentCities = prev.metropolitanCityIds || [];
+      const updatedCities = currentCities.includes(cityId)
+        ? currentCities.filter(id => id !== cityId)
+        : [...currentCities, cityId];
+
+      return {
+        ...prev,
+        metropolitanCityIds: updatedCities
+      };
     });
   };
 
@@ -368,7 +364,7 @@ const PriceTables = () => {
     try {
       const priceTableData = {
         ...formData,
-        metropolitanCities: formData.metropolitanCityIds,
+        metropolitanCities: formData.metropolitanCityIds || [],
         minimumRate: {
           ...formData.minimumRate,
           customServices: formData.customServices,
@@ -910,7 +906,7 @@ const PriceTables = () => {
                         <h3 className="font-medium mb-4 text-lg">Região Metropolitana</h3>
                         <p className="mb-4 text-sm text-muted-foreground">
                           Selecione as cidades que fazem parte da Região Metropolitana. 
-                          As cidades selecionadas estarão sujeitas à tarifa de Região Metropolitana.
+                          As cidades selecionadas terão a tarifa de Região Metropolitana aplicada automaticamente.
                         </p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
