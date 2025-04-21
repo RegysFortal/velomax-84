@@ -5,7 +5,6 @@ import { usePriceTables } from '@/contexts/priceTables/PriceTablesContext';
 import { Delivery, DeliveryType, CargoType, City } from '@/types';
 import { calculateFreight as calculateFreightUtil } from '@/utils/deliveryUtils';
 import { useCities } from '@/contexts/CitiesContext';
-import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
 
 interface UseDeliveryFormCalculationsProps {
   form: any;
@@ -23,7 +22,6 @@ export const useDeliveryFormCalculations = ({
   const { clients } = useClients();
   const { priceTables } = usePriceTables();
   const { cities } = useCities();
-  const { getClientPriceTable } = useClientPriceTable();
   
   const calculateFreight = useCallback(() => {
     const formValues = form.getValues();
@@ -34,10 +32,22 @@ export const useDeliveryFormCalculations = ({
       return;
     }
     
-    // Usar o hook do useClientPriceTable para obter a tabela de preço
-    const priceTable = getClientPriceTable(clientId);
+    const client = clients.find(c => c.id === clientId);
+    if (!client) {
+      console.log(`Cliente com ID ${clientId} não encontrado`);
+      return;
+    }
+    
+    // Obter a tabela de preço do cliente
+    const priceTableId = client.priceTableId;
+    if (!priceTableId) {
+      console.log(`Cliente ${client.name} não possui tabela de preço associada`);
+      return;
+    }
+    
+    const priceTable = priceTables.find(pt => pt.id === priceTableId);
     if (!priceTable) {
-      console.log(`Cliente não possui tabela de preço associada`);
+      console.log(`Tabela de preço ${priceTableId} não encontrada`);
       return;
     }
     
@@ -48,7 +58,7 @@ export const useDeliveryFormCalculations = ({
     const cargoValue = formValues.cargoValue ? parseFloat(formValues.cargoValue) : undefined;
     const cityId = formValues.cityId;
     
-    console.log(`Calculando frete para cliente com tabela ${priceTable.name}`);
+    console.log(`Calculando frete para cliente ${client.name} (${clientId}), tabela ${priceTable.name}`);
     console.log(`Parâmetros: peso=${weight}, tipo=${deliveryType}, carga=${cargoType}, valor=${cargoValue || 0}`);
     
     // Encontrar a cidade completa a partir do ID
@@ -57,8 +67,6 @@ export const useDeliveryFormCalculations = ({
       cityObj = cities.find(c => c.id === cityId);
       if (!cityObj) {
         console.log(`Cidade com ID ${cityId} não encontrada`);
-      } else {
-        console.log(`Cidade encontrada: ${cityObj.name}, distância: ${cityObj.distance || 'N/A'}`);
       }
     }
     
@@ -77,7 +85,7 @@ export const useDeliveryFormCalculations = ({
     
     setFreight(calculatedFreight);
     return calculatedFreight;
-  }, [form, cities, getClientPriceTable, setFreight]);
+  }, [form, clients, priceTables, setFreight, cities]);
   
   return {
     calculateFreight

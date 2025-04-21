@@ -1,3 +1,4 @@
+
 import { Delivery, PriceTable, City, doorToDoorDeliveryTypes, DeliveryType } from '@/types';
 
 /**
@@ -30,7 +31,6 @@ export const calculateFreight = (
       case 'standard':
         baseRate = priceTable.minimumRate.standardDelivery;
         excessWeightRate = priceTable.excessWeight.minPerKg;
-        console.log(`Taxa base para entrega padrão: ${baseRate}`);
         break;
       case 'emergency':
         baseRate = priceTable.minimumRate.emergencyCollection;
@@ -94,6 +94,12 @@ export const calculateFreight = (
           totalFreight += insurance;
         }
         break;
+      // Default cases for other delivery types
+      case 'door_to_door':
+      case 'scheduled':
+        baseRate = priceTable.minimumRate.standardDelivery;
+        excessWeightRate = priceTable.excessWeight.minPerKg;
+        break;
       default:
         // Check for custom services
         if (priceTable.minimumRate.customServices && priceTable.minimumRate.customServices.length > 0) {
@@ -107,17 +113,7 @@ export const calculateFreight = (
             excessWeightRate = customService.excessRate;
             weightLimit = customService.minWeight;
             console.log(`Serviço personalizado encontrado: ${customService.name}`);
-          } else {
-            // Default to standard delivery if custom service not found
-            baseRate = priceTable.minimumRate.standardDelivery;
-            excessWeightRate = priceTable.excessWeight.minPerKg;
-            console.log(`Serviço personalizado não encontrado, usando padrão: ${baseRate}`);
           }
-        } else {
-          // Default to standard delivery if no custom services
-          baseRate = priceTable.minimumRate.standardDelivery;
-          excessWeightRate = priceTable.excessWeight.minPerKg;
-          console.log(`Sem serviços personalizados, usando padrão: ${baseRate}`);
         }
         break;
     }
@@ -133,8 +129,6 @@ export const calculateFreight = (
       const excessWeightCharge = excessWeight * excessWeightRate;
       console.log(`Excesso de peso: ${excessWeight}kg à taxa ${excessWeightRate}/kg = ${excessWeightCharge}`);
       totalFreight += excessWeightCharge;
-    } else {
-      console.log(`Sem excesso de peso: ${weight}kg <= ${weightLimit}kg`);
     }
     
     // Apply multiplier for perishable cargo if not already applied by base rate
