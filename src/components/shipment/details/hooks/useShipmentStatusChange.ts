@@ -61,7 +61,16 @@ export function useShipmentStatusChange(
         
         // Update each selected document
         for (const docId of selectedDocumentIds) {
-          await updateDocument(shipment.id, docId, { isDelivered: true });
+          // Fix: The updateDocument function needs to be called with a document object, not just properties
+          const docIndex = shipment.documents.findIndex(doc => doc.id === docId);
+          if (docIndex >= 0) {
+            const updatedDocs = [...shipment.documents];
+            updatedDocs[docIndex] = {
+              ...updatedDocs[docIndex],
+              isDelivered: true
+            };
+            await updateDocument(shipment.id, docId, updatedDocs);
+          }
         }
         
         // Create a delivery entry for each delivered document
