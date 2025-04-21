@@ -1,4 +1,5 @@
-import { Delivery, PriceTable, City, doorToDoorDeliveryTypes, DeliveryType } from '@/types';
+import { PriceTable, City, DeliveryType } from '@/types';
+import { Delivery } from '@/types/delivery';
 
 /**
  * Calculate the freight cost for a delivery
@@ -180,56 +181,4 @@ export const calculateFreight = (
     console.error('Erro calculando frete:', error);
     return 0;
   }
-};
-
-/**
- * Check if a delivery type is a door-to-door delivery
- */
-export const isDoorToDoorDelivery = (deliveryType: DeliveryType): boolean => {
-  return doorToDoorDeliveryTypes.includes(deliveryType);
-};
-
-/**
- * Check if a delivery type is an exclusive delivery
- */
-export const isExclusiveDelivery = (deliveryType: Delivery['deliveryType']): boolean => {
-  return deliveryType === 'exclusive';
-};
-
-/**
- * Generate a sequential minute number based on the current date
- */
-export const generateMinuteNumber = (deliveries: Delivery[]): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  
-  // Find the highest minute number for the current month
-  const currentMonthDeliveries = deliveries.filter(d => 
-    d.minuteNumber.includes(`/${month}/${year}`)
-  );
-  
-  let nextNumber = 1;
-  if (currentMonthDeliveries.length > 0) {
-    const numbers = currentMonthDeliveries.map(d => {
-      const parts = d.minuteNumber.split('/');
-      return parseInt(parts[0], 10);
-    });
-    nextNumber = Math.max(...numbers) + 1;
-  }
-  
-  return `${String(nextNumber).padStart(3, '0')}/${month}/${year}`;
-};
-
-/**
- * Check if a minute number already exists for a client
- */
-export const checkMinuteNumberExists = (
-  deliveries: Delivery[],
-  minuteNumber: string, 
-  clientId: string
-): boolean => {
-  return deliveries.some(d => 
-    d.minuteNumber === minuteNumber && d.clientId === clientId
-  );
 };
