@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,10 +7,16 @@ import { DeliveryType, CargoType, doorToDoorDeliveryTypes, DeliveryFormData } fr
 import { calculateFreight as utilsCalculateFreight } from '@/utils/delivery';
 import type { Delivery } from '@/types';
 import { DeliveriesContext } from './DeliveriesContext';
+import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
+import { useCities } from '@/contexts/CitiesContext';
+import { usePriceTables } from '@/contexts/priceTables';
 
 export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getClientPriceTable } = useClientPriceTable();
+  const { cities } = useCities();
+  const { priceTables } = usePriceTables();
 
   const fetchDeliveries = async () => {
     try {
@@ -266,33 +273,30 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     distance?: number,
     cityId?: string
   ): number => {
-    let baseFreight = 50;
-    switch (deliveryType) {
-      case 'emergency':
-        baseFreight += 30;
-        break;
-      case 'exclusive':
-        baseFreight += 100;
-        break;
-      case 'saturday':
-      case 'sundayHoliday':
-        baseFreight += 50;
-        break;
-      case 'door_to_door':
-      case 'doorToDoorInterior':
-        baseFreight += 25;
-        break;
-      default:
-        break;
+    // Usar o hook do useClientPriceTable para obter a tabela de preço do cliente
+    const priceTable = getClientPriceTable(clientId);
+    
+    if (!priceTable) {
+      console.log(`Cliente não possui tabela de preço associada`);
+      return 0;
     }
-    const numWeight = typeof weight === 'string' ? parseFloat(weight) : weight;
-    baseFreight += numWeight * 2;
-    if (cargoType === 'perishable') baseFreight *= 1.2;
-    if (cargoValue && cargoValue > 0) {
-      const numCargoValue = typeof cargoValue === 'string' ? parseFloat(cargoValue) : cargoValue;
-      baseFreight += numCargoValue * 0.01;
+    
+    // Encontrar a cidade completa a partir do ID
+    let cityObj = undefined;
+    if (cityId) {
+      cityObj = cities.find(c => c.id === cityId);
     }
-    return Math.round(baseFreight * 100) / 100;
+    
+    // Usar a função de cálculo de frete da utility
+    return utilsCalculateFreight(
+      priceTable,
+      weight,
+      deliveryType,
+      cargoType,
+      cargoValue,
+      distance,
+      cityObj
+    );
   };
 
   const isDoorToDoorDelivery = (deliveryType: DeliveryType): boolean => {

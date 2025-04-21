@@ -87,14 +87,6 @@ export const calculateFreight = (
       case 'reshipment':
         baseRate = priceTable.minimumRate.reshipment;
         excessWeightRate = priceTable.excessWeight.reshipmentPerKg;
-        
-        // For reshipment, calculate insurance as 1% of cargo value
-        if (cargoValue > 0) {
-          // Apply 1% insurance rate specifically for reshipment
-          const insurance = cargoValue * 0.01;
-          console.log(`Seguro de redespacho (1%): ${cargoValue} × 0.01 = ${insurance}`);
-          totalFreight += insurance;
-        }
         break;
       default:
         // Check for custom services
