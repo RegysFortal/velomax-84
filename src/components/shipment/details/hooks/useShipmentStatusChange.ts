@@ -1,3 +1,4 @@
+
 import { useShipments } from "@/contexts/shipments";
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { toast } from "sonner";
@@ -60,17 +61,22 @@ export function useShipmentStatusChange(
         
         // Update each selected document
         for (const docId of selectedDocumentIds) {
-          await updateDocument(shipment.id, docId, { delivered: true });
+          await updateDocument(shipment.id, docId, { isDelivered: true });
         }
         
         // Create a delivery entry for each delivered document
         for (const docId of selectedDocumentIds) {
           await addDelivery({
-            shipmentId: shipment.id,
-            documentId: docId,
+            clientId: shipment.companyId,
             deliveryDate,
             deliveryTime,
-            receiverName
+            receiver: receiverName,
+            weight: 0,
+            packages: 0,
+            deliveryType: 'standard',
+            cargoType: 'standard',
+            totalFreight: 0,
+            notes: `Documento do embarque ${shipment.trackingNumber}`
           });
         }
         
