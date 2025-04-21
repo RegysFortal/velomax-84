@@ -29,6 +29,7 @@ export const usePriceTableOperations = (
           rate: priceTable.insurance.rate,
           standard: priceTable.insurance.standard
         }),
+        metropolitan_cities: JSON.stringify(priceTable.metropolitanCities || []),
         allow_custom_pricing: priceTable.allowCustomPricing,
         default_discount: priceTable.defaultDiscount || 0,
         user_id: userId
@@ -64,6 +65,10 @@ export const usePriceTableOperations = (
       const insurance = typeof data.insurance === 'string'
         ? JSON.parse(data.insurance)
         : data.insurance;
+        
+      const metropolitanCities = typeof data.metropolitan_cities === 'string'
+        ? JSON.parse(data.metropolitan_cities)
+        : data.metropolitan_cities || [];
       
       const newPriceTable: PriceTable = {
         id: data.id,
@@ -74,6 +79,7 @@ export const usePriceTableOperations = (
         doorToDoor,
         waitingHour,
         insurance,
+        metropolitanCities,
         allowCustomPricing: data.allow_custom_pricing,
         defaultDiscount: data.default_discount || 0,
         createdAt: data.created_at || timestamp,
@@ -113,6 +119,7 @@ export const usePriceTableOperations = (
       if (priceTable.insurance !== undefined) supabasePriceTable.insurance = priceTable.insurance;
       if (priceTable.allowCustomPricing !== undefined) supabasePriceTable.allow_custom_pricing = priceTable.allowCustomPricing;
       if (priceTable.defaultDiscount !== undefined) supabasePriceTable.default_discount = priceTable.defaultDiscount;
+      if (priceTable.metropolitanCities !== undefined) supabasePriceTable.metropolitan_cities = priceTable.metropolitanCities;
 
       const { error } = await supabase
         .from('price_tables')

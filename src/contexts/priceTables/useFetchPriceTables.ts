@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -47,6 +48,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     allowCustomPricing: true,
     defaultDiscount: 0.00,
     multiplier: 1.0,
+    metropolitanCities: [], // Added this required property
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -92,6 +94,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
+    metropolitanCities: [], // Added this required property
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -137,6 +140,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
+    metropolitanCities: [], // Added this required property
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -182,6 +186,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
+    metropolitanCities: [], // Added this required property
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -232,6 +237,13 @@ export const useFetchPriceTables = (userId?: string) => {
           
           if (!parsedInsurance.rate) parsedInsurance.rate = parsedInsurance.standard || 0.01;
           
+          // Parse metropolitan cities or provide empty array
+          const metropolitanCities = table.metropolitan_cities 
+            ? (typeof table.metropolitan_cities === 'string' 
+                ? JSON.parse(table.metropolitan_cities) 
+                : table.metropolitan_cities) 
+            : [];
+            
           return {
             id: table.id,
             name: table.name,
@@ -243,6 +255,7 @@ export const useFetchPriceTables = (userId?: string) => {
             insurance: parsedInsurance,
             allowCustomPricing: table.allow_custom_pricing,
             defaultDiscount: table.default_discount || 0,
+            metropolitanCities: metropolitanCities, // Include metropolitan cities
             createdAt: table.created_at || new Date().toISOString(),
             updatedAt: table.updated_at || new Date().toISOString(),
           };
@@ -284,6 +297,10 @@ export const useFetchPriceTables = (userId?: string) => {
               
               if (!updatedTable.excessWeight.reshipmentPerKg) {
                 updatedTable.excessWeight.reshipmentPerKg = 0.70;
+              }
+              
+              if (!updatedTable.metropolitanCities) {
+                updatedTable.metropolitanCities = [];
               }
               
               return updatedTable;
