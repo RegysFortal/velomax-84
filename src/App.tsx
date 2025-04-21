@@ -1,5 +1,3 @@
-
-import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import LoginPage from './pages/Login';
@@ -9,8 +7,8 @@ import ClientsPage from './pages/Clients';
 import { Toaster } from '@/components/ui/toaster';
 import ProfilePage from './pages/Profile';
 import VehiclesPage from './pages/Vehicles';
-import DeliveriesPage from './pages/Deliveries';
-import ShipmentsPage from './pages/shipments'; // Updated import path
+import DeliveriesPage from './pages/deliveries';
+import ShipmentsPage from './pages/shipments';
 import EmployeesPage from './pages/Employees';
 import MaintenancePage from './pages/Maintenance';
 import LogbookPage from './pages/Logbook';
@@ -51,11 +49,9 @@ function App() {
                       <LogbookProvider>
                         <BudgetProvider>
                           <Routes>
-                            {/* Redirect from root to login page */}
                             <Route path="/" element={<Navigate to="/login" replace />} />
                             <Route path="/login" element={<LoginPage />} />
                             
-                            {/* Protected routes */}
                             <Route path="/dashboard" element={<DashboardPage />} />
                             <Route path="/clients" element={<ClientsPage />} />
                             <Route path="/profile" element={<ProfilePage />} />
