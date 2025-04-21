@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -45,6 +45,14 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     setFreight
   } = useDeliveryFormContext();
   
+  // Estado local para o campo de frete
+  const [freightInput, setFreightInput] = useState(String(freight));
+  
+  // Atualizar freightInput quando freight mudar externamente
+  useEffect(() => {
+    setFreightInput(String(freight));
+  }, [freight]);
+  
   const { cities } = useCities();
   const { handleSubmit, handleConfirmDuplicate } = useDeliveryFormSubmit({
     isEditMode,
@@ -63,7 +71,9 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
   });
 
   const onSubmit = (data: any) => {
-    handleSubmit(data, freight);
+    // Usar o valor exibido no input como valor final do frete
+    const finalFreight = parseFloat(freightInput) || 0;
+    handleSubmit(data, finalFreight);
   };
 
   const handleCancelClick = () => {
@@ -88,13 +98,18 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
 
   // Handle manual freight value change
   const handleFreightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value)) {
-      console.log("Setting freight manually to:", value);
-      setFreight(value);
-    } else {
-      setFreight(0);
+    const value = e.target.value;
+    console.log("Atualizando valor do frete manualmente para:", value);
+    setFreightInput(value);
+    
+    // Atualizar o estado global apenas quando houver um número válido
+    if (!isNaN(parseFloat(value))) {
+      setFreight(parseFloat(value));
     }
+  };
+  
+  const handleRecalculate = () => {
+    calculateFreight();
   };
 
   return (
@@ -139,14 +154,14 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
                     type="button" 
                     variant="outline" 
                     size="sm"
-                    onClick={calculateFreight}
+                    onClick={handleRecalculate}
                     className="text-xs"
                   >
                     Recalcular
                   </Button>
                   <Input
                     type="number"
-                    value={freight}
+                    value={freightInput}
                     onChange={handleFreightChange}
                     className="w-32 text-right font-bold"
                     step="0.01"
