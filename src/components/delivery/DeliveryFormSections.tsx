@@ -63,7 +63,7 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
   });
 
   // Use the calculation hook to auto-update freight
-  const { calculateFreight } = useDeliveryFormCalculations({
+  const { calculateFreight, setManualFreight } = useDeliveryFormCalculations({
     form,
     setFreight,
     delivery,
@@ -102,9 +102,10 @@ export const DeliveryFormSections: React.FC<DeliveryFormSectionsProps> = ({
     console.log("Atualizando valor do frete manualmente para:", value);
     setFreightInput(value);
     
-    // Atualizar o estado global apenas quando houver um número válido
+    // Atualizar o estado global imediatamente com o valor do input
+    // mesmo que não seja um número válido (para permitir edição parcial)
     if (!isNaN(parseFloat(value))) {
-      setFreight(parseFloat(value));
+      setManualFreight(parseFloat(value));
     }
   };
   
