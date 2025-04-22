@@ -18,7 +18,7 @@ export const usePriceTableOperations = (
     try {
       const timestamp = new Date().toISOString();
       
-      // Garantir que metropolitanCities seja um array antes de stringificar
+      // Ensure metropolitanCities is an array before stringifying
       const metropolitanCities = Array.isArray(priceTable.metropolitanCities) 
         ? priceTable.metropolitanCities 
         : [];
@@ -139,8 +139,9 @@ export const usePriceTableOperations = (
       if (priceTable.insurance !== undefined) supabasePriceTable.insurance = JSON.stringify(priceTable.insurance);
       if (priceTable.allowCustomPricing !== undefined) supabasePriceTable.allow_custom_pricing = priceTable.allowCustomPricing;
       if (priceTable.defaultDiscount !== undefined) supabasePriceTable.default_discount = priceTable.defaultDiscount;
+      
+      // Ensure metropolitanCities is properly handled
       if (priceTable.metropolitanCities !== undefined) {
-        // Garantir que metropolitanCities seja um array antes de stringificar
         const metropolitanCities = Array.isArray(priceTable.metropolitanCities) 
           ? priceTable.metropolitanCities 
           : [];
@@ -149,22 +150,57 @@ export const usePriceTableOperations = (
         console.log("Updating metropolitan cities in database:", metropolitanCities);
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('price_tables')
         .update(supabasePriceTable)
-        .eq('id', id);
+        .eq('id', id)
+        .select();
       
       if (error) {
         throw error;
       }
       
-      setPriceTables((prev) => 
-        prev.map((table) => 
-          table.id === id 
-            ? { ...table, ...priceTable, updatedAt: timestamp } 
-            : table
-        )
-      );
+      // Return the updated data from the database to ensure we have the latest values
+      if (data && data.length > 0) {
+        const updatedData = data[0];
+        
+        // Parse JSON fields if they're strings
+        let parsedMetropolitanCities: string[] = [];
+        try {
+          if (updatedData.metropolitan_cities) {
+            parsedMetropolitanCities = typeof updatedData.metropolitan_cities === 'string' 
+              ? JSON.parse(updatedData.metropolitan_cities) 
+              : updatedData.metropolitan_cities;
+          }
+        } catch (e) {
+          console.error("Error parsing metropolitan cities from update response:", e);
+          parsedMetropolitanCities = [];
+        }
+        
+        // Update the price table in state with the correct metropolitan cities
+        setPriceTables((prev) => 
+          prev.map((table) => {
+            if (table.id === id) {
+              const updatedTable = { ...table, ...priceTable, updatedAt: timestamp };
+              // Make sure to use the parsed metropolitan cities from the response
+              if (priceTable.metropolitanCities !== undefined) {
+                updatedTable.metropolitanCities = parsedMetropolitanCities;
+              }
+              return updatedTable;
+            }
+            return table;
+          })
+        );
+      } else {
+        // Fallback if no data returned - just update the state with what we have
+        setPriceTables((prev) => 
+          prev.map((table) => 
+            table.id === id 
+              ? { ...table, ...priceTable, updatedAt: timestamp } 
+              : table
+          )
+        );
+      }
       
       toast({
         title: "Tabela de preços atualizada",
