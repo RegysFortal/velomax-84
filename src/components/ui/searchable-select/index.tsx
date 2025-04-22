@@ -71,7 +71,7 @@ export function SearchableSelect({
   // Handle create new option
   const handleCreateNew = () => {
     if (onCreateNew) {
-      onCreateNew();
+      onCreateNew(searchValue);
     }
     setOpen(false);
   };
@@ -87,6 +87,10 @@ export function SearchableSelect({
       setOpen(!open);
     }
   };
+  
+  // Show create option only if there's a search value and no exact match
+  const shouldShowCreateOption = showCreateOption && searchValue && 
+    !filteredOptions.some(option => option.label.toLowerCase() === searchValue.toLowerCase());
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -116,7 +120,7 @@ export function SearchableSelect({
           </div>
           
           <CommandList className="max-h-[250px] overflow-y-auto p-1">
-            {filteredOptions.length === 0 && !showCreateOption ? (
+            {filteredOptions.length === 0 && !shouldShowCreateOption ? (
               <CommandEmpty className="py-6 text-center text-sm">{emptyMessage}</CommandEmpty>
             ) : (
               <CommandGroup>
@@ -129,9 +133,9 @@ export function SearchableSelect({
                   />
                 ))}
                 
-                {showCreateOption && onCreateNew && (
+                {shouldShowCreateOption && onCreateNew && (
                   <CreateOption 
-                    label={createOptionLabel} 
+                    label={`${createOptionLabel}: "${searchValue}"`} 
                     onSelect={handleCreateNew} 
                   />
                 )}

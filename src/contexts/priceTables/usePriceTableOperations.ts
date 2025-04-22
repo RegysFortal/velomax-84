@@ -18,10 +18,19 @@ export const usePriceTableOperations = (
     try {
       const timestamp = new Date().toISOString();
       
-      // Ensure metropolitanCities is an array before stringifying
+      // Process metropolitan cities
       const metropolitanCities = Array.isArray(priceTable.metropolitanCities) 
-        ? priceTable.metropolitanCities 
+        ? priceTable.metropolitanCities.filter(cityId => cityId && typeof cityId === 'string')
         : [];
+      
+      // Filter out temporary IDs
+      const validCityIds = metropolitanCities.filter(id => !id.startsWith('temp-'));
+      
+      // For custom city names (temp IDs), we would typically create them in the database first
+      // For this example, we'll just use the city names as is
+      const customCityNames = metropolitanCities
+        .filter(id => id.startsWith('temp-'))
+        .map(id => id.replace('temp-', ''));
         
       const supabasePriceTable: any = {
         name: priceTable.name,
@@ -34,7 +43,7 @@ export const usePriceTableOperations = (
           rate: priceTable.insurance.rate,
           standard: priceTable.insurance.standard
         }),
-        metropolitan_cities: JSON.stringify(metropolitanCities),
+        metropolitan_cities: JSON.stringify([...validCityIds, ...customCityNames]),
         allow_custom_pricing: priceTable.allowCustomPricing,
         default_discount: priceTable.defaultDiscount || 0,
         user_id: userId
@@ -140,14 +149,22 @@ export const usePriceTableOperations = (
       if (priceTable.allowCustomPricing !== undefined) supabasePriceTable.allow_custom_pricing = priceTable.allowCustomPricing;
       if (priceTable.defaultDiscount !== undefined) supabasePriceTable.default_discount = priceTable.defaultDiscount;
       
-      // Ensure metropolitanCities is properly handled
+      // Handle metropolitan cities, including custom ones
       if (priceTable.metropolitanCities !== undefined) {
         const metropolitanCities = Array.isArray(priceTable.metropolitanCities) 
-          ? priceTable.metropolitanCities 
+          ? priceTable.metropolitanCities.filter(cityId => cityId && typeof cityId === 'string')
           : [];
         
-        supabasePriceTable.metropolitan_cities = JSON.stringify(metropolitanCities);
-        console.log("Updating metropolitan cities in database:", metropolitanCities);
+        // Filter out temporary IDs
+        const validCityIds = metropolitanCities.filter(id => !id.startsWith('temp-'));
+        
+        // For custom city names (temp IDs), extract the name
+        const customCityNames = metropolitanCities
+          .filter(id => id.startsWith('temp-'))
+          .map(id => id.replace('temp-', ''));
+          
+        supabasePriceTable.metropolitan_cities = JSON.stringify([...validCityIds, ...customCityNames]);
+        console.log("Updating metropolitan cities in database:", [...validCityIds, ...customCityNames]);
       }
 
       const { data, error } = await supabase
