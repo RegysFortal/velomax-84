@@ -18,7 +18,7 @@ export const usePriceTableOperations = (
     try {
       const timestamp = new Date().toISOString();
       
-      const supabasePriceTable = {
+      const supabasePriceTable: any = {
         name: priceTable.name,
         description: priceTable.description,
         minimum_rate: JSON.stringify(priceTable.minimumRate),
@@ -65,12 +65,13 @@ export const usePriceTableOperations = (
       const insurance = typeof data.insurance === 'string'
         ? JSON.parse(data.insurance)
         : data.insurance;
-        
-      // Get metropolitan cities from response or fallback to empty array
-      const metropolitanCities = data.metropolitan_cities 
-        ? (typeof data.metropolitan_cities === 'string' 
-            ? JSON.parse(data.metropolitan_cities) 
-            : data.metropolitan_cities)
+      
+      // Using optional chaining and type assertion to safely handle the data
+      const responseData = data as any;
+      const metropolitanCities = responseData.metropolitan_cities 
+        ? (typeof responseData.metropolitan_cities === 'string' 
+            ? JSON.parse(responseData.metropolitan_cities) 
+            : responseData.metropolitan_cities)
         : [];
       
       const newPriceTable: PriceTable = {
