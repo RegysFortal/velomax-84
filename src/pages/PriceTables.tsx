@@ -431,14 +431,6 @@ const PriceTables = () => {
     city => city.name.toLowerCase().includes(searchCity.toLowerCase())
   );
 
-  const handleAddMetropolitanCities = (priceTableId: string) => {
-    const priceTable = priceTables.find(table => table.id === priceTableId);
-    if (priceTable) {
-      setEditingPriceTable(priceTable);
-      setIsDialogOpen(true);
-    }
-  };
-
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
@@ -468,7 +460,6 @@ const PriceTables = () => {
                   <TableHead>Nome</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Serviços Personalizados</TableHead>
-                  <TableHead>Região Metropolitana</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -487,31 +478,6 @@ const PriceTables = () => {
                       ) : (
                         <span className="text-sm text-muted-foreground">Nenhum</span>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex flex-wrap gap-1">
-                          {priceTable.metropolitanCities && priceTable.metropolitanCities.length > 0 ? (
-                            priceTable.metropolitanCities.map((cityId) => {
-                              const city = cities.find(c => c.id === cityId);
-                              return city ? (
-                                <Badge key={cityId} variant="outline">
-                                  {city.name}
-                                </Badge>
-                              ) : null;
-                            })
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Nenhuma cidade</span>
-                          )}
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleAddMetropolitanCities(priceTable.id)}
-                        >
-                          Gerenciar Cidades
-                        </Button>
-                      </div>
                     </TableCell>
                     <TableCell className="flex gap-2">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(priceTable)}>
