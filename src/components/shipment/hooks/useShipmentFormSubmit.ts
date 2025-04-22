@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { Client } from '@/types';
-import { ShipmentStatus, TransportMode } from '@/types/shipment';
+import { ShipmentStatus, TransportMode, Shipment } from '@/types/shipment';
+import { ShipmentCreateData } from '@/contexts/shipments/types';
 import { toast } from 'sonner';
 
 interface UseShipmentFormSubmitProps {
@@ -23,7 +24,7 @@ interface UseShipmentFormSubmitProps {
   actionNumber?: string;
   fiscalNotes?: string;
   clients: Client[];
-  addShipment: (shipment: any) => Promise<string>;
+  addShipment: (shipment: ShipmentCreateData) => Promise<Shipment>; // Updated return type
   checkDuplicateTrackingNumber: (trackingNumber: string) => boolean;
   closeDialog: () => void;
 }
@@ -120,17 +121,18 @@ export function useShipmentFormSubmit({
         })
       };
       
-      // Add shipment to database
-      const shipmentId = await addShipment(newShipment);
+      // Add shipment to database and get the Shipment object back
+      const shipment = await addShipment(newShipment);
       
       // Close dialog and show success message
       closeDialog();
       toast.success("Embarque criado com sucesso!");
       
-      return shipmentId;
+      return shipment.id; // Return the ID from the Shipment object
     } catch (error) {
       console.error("Error submitting shipment:", error);
       toast.error("Erro ao criar embarque");
+      throw error; // Re-throw to propagate the error
     }
   };
   
