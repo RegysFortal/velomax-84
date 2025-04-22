@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/select';
 import { usePriceTables } from '@/contexts/priceTables';
 import { useCities } from '@/contexts/CitiesContext';
-import { Plus, Edit, Trash2, X } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Minus } from 'lucide-react';
 import { PriceTable, CustomService, City } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -257,8 +257,6 @@ const PriceTables = () => {
       const newSelectedCities = isAlreadySelected
         ? prev.filter(id => id !== cityId)
         : [...prev, cityId];
-      
-      console.log("Toggled city:", cityId, "New selection:", newSelectedCities);
       
       setFormData(currentFormData => ({
         ...currentFormData,
@@ -930,54 +928,60 @@ const PriceTables = () => {
                           As cidades selecionadas terão a tarifa de Região Metropolitana aplicada automaticamente.
                         </p>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                          <div className="mb-4">
+                        <div className="space-y-4">
+                          <div className="flex items-center space-x-2">
                             <Input
                               placeholder="Buscar cidade..."
                               value={searchCity}
                               onChange={(e) => setSearchCity(e.target.value)}
-                              className="mb-2"
+                              className="max-w-sm"
                             />
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
-                            {filteredCities.map((city) => (
-                              <div key={city.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`city-${city.id}`}
-                                  checked={selectedCities.includes(city.id)}
-                                  onCheckedChange={() => handleToggleMetropolitanCity(city.id)}
-                                />
-                                <Label htmlFor={`city-${city.id}`}>{city.name}</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            <ScrollArea className="h-[200px] w-full border rounded-md p-4">
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-medium mb-2">Cidades Disponíveis</h4>
+                                {filteredCities
+                                  .filter(city => !selectedCities.includes(city.id))
+                                  .map((city) => (
+                                    <div key={city.id} className="flex items-center justify-between">
+                                      <span className="text-sm">{city.name}</span>
+                                      <Button 
+                                        type="button"
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={() => handleToggleMetropolitanCity(city.id)}
+                                      >
+                                        <Plus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ))}
                               </div>
-                            ))}
-                          </div>
-                          
-                          {selectedCities.length > 0 && (
-                            <div className="mt-4">
-                              <h4 className="text-sm font-medium mb-2">Cidades selecionadas:</h4>
-                              <div className="flex flex-wrap gap-2">
+                            </ScrollArea>
+
+                            <ScrollArea className="h-[200px] w-full border rounded-md p-4">
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-medium mb-2">Cidades Selecionadas</h4>
                                 {selectedCities.map(cityId => {
                                   const city = cities.find(c => c.id === cityId);
                                   return city ? (
-                                    <Badge key={cityId} variant="outline" className="flex items-center gap-1">
-                                      {city.name}
-                                      <button
+                                    <div key={cityId} className="flex items-center justify-between">
+                                      <span className="text-sm">{city.name}</span>
+                                      <Button 
                                         type="button"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          handleToggleMetropolitanCity(cityId);
-                                        }}
-                                        className="ml-1 rounded-full hover:bg-muted p-1"
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={() => handleToggleMetropolitanCity(cityId)}
                                       >
-                                        <X className="h-3 w-3" />
-                                      </button>
-                                    </Badge>
+                                        <Minus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
                                   ) : null;
                                 })}
                               </div>
-                            </div>
-                          )}
+                            </ScrollArea>
+                          </div>
                         </div>
                       </div>
 
