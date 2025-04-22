@@ -23,14 +23,19 @@ export const transformDatabaseResponse = (data: any): PriceTable => {
   let parsedMetropolitanCities: string[] = [];
   try {
     if (data.metropolitan_cities) {
-      let metroData = parseJsonField(data.metropolitan_cities);
+      const metroData = parseJsonField(data.metropolitan_cities);
       if (Array.isArray(metroData)) {
         parsedMetropolitanCities = metroData;
-      } else if (metroData.cityIds && metroData.customNames) {
-        const tempCityIds = metroData.customNames.map((name: string) => 
-          `temp-${name}`
-        );
-        parsedMetropolitanCities = [...metroData.cityIds, ...tempCityIds];
+      } else if (metroData && typeof metroData === 'object') {
+        // Handle cityIds array
+        const cityIds = Array.isArray(metroData.cityIds) ? metroData.cityIds : [];
+        
+        // Handle customNames array and transform to temp IDs
+        const customCityIds = Array.isArray(metroData.customNames) 
+          ? metroData.customNames.map((name: string) => `temp-${name}`)
+          : [];
+          
+        parsedMetropolitanCities = [...cityIds, ...customCityIds];
       }
     }
   } catch (e) {
@@ -56,11 +61,15 @@ export const transformDatabaseResponse = (data: any): PriceTable => {
 };
 
 export const preparePriceTableForDatabase = (priceTable: any) => {
+  // Validate and ensure metropolitanCities is an array
   const metropolitanCities = Array.isArray(priceTable.metropolitanCities) 
     ? priceTable.metropolitanCities.filter(cityId => cityId && typeof cityId === 'string')
     : [];
   
+  // Separate regular city IDs from temp (custom) city IDs
   const validCityIds = metropolitanCities.filter(id => !id.startsWith('temp-'));
+  
+  // Extract custom city names from temp IDs
   const customCityNames = metropolitanCities
     .filter(id => id.startsWith('temp-'))
     .map(id => id.replace('temp-', ''));

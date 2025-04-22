@@ -271,32 +271,41 @@ const PriceTables = () => {
   };
 
   const handleCreateNewCity = (cityName: string) => {
-    if (cityName) {
-      const tempId = `temp-${cityName.trim().replace(/\s+/g, '-').toLowerCase()}`;
-      
-      setSelectedCities(prev => {
-        if (prev.includes(tempId)) {
-          toast({
-            title: "Cidade já adicionada",
-            description: `A cidade ${cityName} já está na lista da região metropolitana.`,
-          });
-          return prev;
-        }
-        
-        return [...prev, tempId];
+    if (!cityName.trim()) {
+      toast({
+        title: "Nome inválido",
+        description: "Por favor, informe um nome de cidade válido.",
+        variant: "destructive"
       });
+      return;
+    }
+    
+    const tempId = `temp-${cityName.trim()}`;
+    
+    setSelectedCities(prev => {
+      if (prev.some(id => id === tempId)) {
+        toast({
+          title: "Cidade já adicionada",
+          description: `A cidade ${cityName} já está na lista da região metropolitana.`,
+        });
+        return prev;
+      }
       
-      setFormData(prev => ({
-        ...prev,
-        metropolitanCityIds: [...(prev.metropolitanCityIds || []), tempId],
-        metropolitanCities: [...(prev.metropolitanCities || []), tempId]
+      const newSelectedCities = [...prev, tempId];
+      
+      setFormData(currentFormData => ({
+        ...currentFormData,
+        metropolitanCityIds: newSelectedCities,
+        metropolitanCities: newSelectedCities
       }));
       
       toast({
         title: "Cidade adicionada",
         description: `A cidade ${cityName} foi adicionada à região metropolitana.`,
       });
-    }
+      
+      return newSelectedCities;
+    });
   };
 
   const handleEdit = (priceTable: PriceTable) => {
@@ -511,9 +520,7 @@ const PriceTables = () => {
                     const cityName = city 
                       ? city.name 
                       : cityId.startsWith('temp-') 
-                        ? cityId.replace('temp-', '').split('-').map(word => 
-                            word.charAt(0).toUpperCase() + word.slice(1)
-                          ).join(' ')
+                        ? cityId.replace('temp-', '')
                         : 'Cidade desconhecida';
                     
                     return (
