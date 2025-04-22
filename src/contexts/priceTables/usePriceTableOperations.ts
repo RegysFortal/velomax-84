@@ -162,7 +162,8 @@ export const usePriceTableOperations = (
       
       // Return the updated data from the database to ensure we have the latest values
       if (data && data.length > 0) {
-        const updatedData = data[0];
+        // Use type assertion for database response
+        const updatedData = data[0] as any;
         
         // Parse JSON fields if they're strings
         let parsedMetropolitanCities: string[] = [];
