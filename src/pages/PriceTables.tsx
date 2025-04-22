@@ -79,12 +79,18 @@ const PriceTables = () => {
   useEffect(() => {
     if (editingPriceTable) {
       const metropolitanCityIds = editingPriceTable.metropolitanCities || [];
+      const customServices = editingPriceTable.minimumRate.customServices || [];
+      
       setFormData({
         ...editingPriceTable,
         description: editingPriceTable.description || '',
         metropolitanCityIds,
         metropolitanCities: metropolitanCityIds,
-        customServices: editingPriceTable.minimumRate.customServices || [],
+        customServices,
+        minimumRate: {
+          ...editingPriceTable.minimumRate,
+          customServices,
+        },
       });
       setSelectedCities(metropolitanCityIds);
     } else {

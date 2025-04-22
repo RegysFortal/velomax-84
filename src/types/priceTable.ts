@@ -1,3 +1,4 @@
+
 export interface PriceTable {
   id: string;
   name: string;
@@ -18,7 +19,7 @@ export interface PriceTable {
     trackedVehicle: number;
     doorToDoorInterior: number;
     reshipment: number;
-    customServices?: CustomService[];
+    customServices: CustomService[]; // Changed from optional to required
   };
   excessWeight: {
     minPerKg: number;
@@ -42,7 +43,7 @@ export interface PriceTable {
     standard?: number;
     perishable?: number;
   };
-  metropolitanCities: string[]; // Changed from optional to required
+  metropolitanCities: string[]; // Required as per previous edits
   createdAt: string;
   updatedAt: string;
   userId?: string;
