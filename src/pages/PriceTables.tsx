@@ -50,10 +50,10 @@ const createEmptyPriceTable = () => ({
     standard: 0.01,
   },
   allowCustomPricing: false,
-  defaultDiscount: 0, // Explicitly set to 0
+  defaultDiscount: 0,
   metropolitanCities: [],
-  metropolitanCityIds: [], // Ensure this matches type requirements
-  customServices: [], // Ensure this matches type requirements
+  metropolitanCityIds: [],
+  customServices: [],
 });
 
 const PriceTables = () => {
@@ -223,6 +223,17 @@ const PriceTables = () => {
     }
     
     const tempId = `temp-${cityName.trim()}`;
+    
+    if (selectedCities.some(id => id === tempId || 
+        (id.startsWith('temp-') && id.replace('temp-', '') === cityName.trim()))) {
+      toast({
+        title: "Cidade já adicionada",
+        description: `A cidade ${cityName} já está na lista.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     handleToggleMetropolitanCity(tempId);
     
     toast({

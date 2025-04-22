@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
@@ -19,6 +19,8 @@ export function MetropolitanCitiesSection({
   onCityToggle,
   onCreateNewCity
 }: MetropolitanCitiesSectionProps) {
+  const [searchValue, setSearchValue] = useState('');
+
   return (
     <div className="border p-4 rounded-md">
       <h3 className="font-medium mb-4 text-lg">Região Metropolitana</h3>
@@ -40,23 +42,26 @@ export function MetropolitanCitiesSection({
                     label: city.name,
                     description: `${city.state} - ${city.distance} km`
                   }))}
-                value=""
-                placeholder="Selecionar ou adicionar cidade..."
+                value={searchValue}
                 onValueChange={(value) => {
                   const city = cities.find(c => c.id === value);
                   if (city) {
                     onCityToggle(city.id);
+                    setSearchValue('');
                   }
                 }}
+                placeholder="Selecionar ou adicionar cidade..."
                 emptyMessage="Nenhuma cidade encontrada"
                 showCreateOption={true}
                 createOptionLabel="Adicionar cidade"
-                onCreateNew={onCreateNewCity}
+                onCreateNew={(cityName) => {
+                  if (cityName.trim()) {
+                    onCreateNewCity(cityName);
+                    setSearchValue('');
+                  }
+                }}
+                allowCustomValue={true}
               />
-              
-              <div className="mt-2 text-sm text-muted-foreground">
-                Exemplos: Caucaia, Maracanaú, Pacajus, etc.
-              </div>
             </div>
           </div>
 

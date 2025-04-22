@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -52,18 +51,8 @@ export function SearchableSelect({
     };
   }, []);
   
-  // Debug options and selected value
-  useEffect(() => {
-    if (options.length > 0) {
-      console.log("SearchableSelect - Options available:", options.length);
-      console.log("SearchableSelect - Current value:", value);
-      console.log("SearchableSelect - Selected option:", selectedOption);
-    }
-  }, [options, value, selectedOption]);
-  
   // Handle selection - Improved to handle both click and keypress
   const handleSelect = (currentValue: string) => {
-    console.log("SearchableSelect - Option selected:", currentValue);
     onValueChange(currentValue);
     setSearchValue('');
     setOpen(false);
@@ -87,6 +76,26 @@ export function SearchableSelect({
   const handleTriggerClick = () => {
     if (!disabled) {
       setOpen(!open);
+    }
+  };
+  
+  // Handle keyboard events including Enter key for creating new items
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchValue && showCreateOption && onCreateNew) {
+      // Check if we have a direct match in options
+      const exactMatch = options.find(option => 
+        option.label.toLowerCase() === searchValue.toLowerCase()
+      );
+      
+      // If we have an exact match, select it
+      if (exactMatch) {
+        handleSelect(exactMatch.value);
+      } 
+      // Otherwise create a new item if allowed
+      else if (showCreateOption) {
+        e.preventDefault();
+        handleCreateNew();
+      }
     }
   };
   
@@ -116,6 +125,7 @@ export function SearchableSelect({
                 placeholder="Search..."
                 value={searchValue}
                 onValueChange={handleSearchChange}
+                onKeyDown={handleInputKeyDown}
                 className="h-9 w-full border-0 focus:ring-0 focus:outline-none"
               />
             </div>
