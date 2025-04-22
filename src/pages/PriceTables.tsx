@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -42,9 +41,9 @@ const createEmptyPriceTable = () => ({
   waitingHour: {
     standard: 0,
     exclusive: 0,
-    fiorino: 0, // Initialize with a value since we're using it
-    medium: 0,  // Initialize with a value since we're using it
-    large: 0,   // Initialize with a value since we're using it
+    fiorino: 0,
+    medium: 0,
+    large: 0,
   },
   insurance: {
     rate: 0.01,
@@ -101,6 +100,10 @@ const PriceTables = () => {
           fiorino: editingPriceTable.waitingHour.fiorino || 0,
           medium: editingPriceTable.waitingHour.medium || 0,
           large: editingPriceTable.waitingHour.large || 0,
+        },
+        insurance: {
+          ...editingPriceTable.insurance,
+          standard: editingPriceTable.insurance.standard || 0.01,
         }
       });
       setSelectedCities(metropolitanCityIds);

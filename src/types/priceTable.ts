@@ -1,4 +1,5 @@
 
+
 export interface PriceTable {
   id: string;
   name: string;
@@ -40,7 +41,7 @@ export interface PriceTable {
   };
   insurance: {
     rate: number;
-    standard?: number;
+    standard?: number; // Make optional to match actual usage
     perishable?: number;
   };
   metropolitanCities: string[]; // Required as per previous edits
@@ -57,3 +58,4 @@ export interface CustomService {
   excessRate: number;
   additionalInfo?: string;
 }
+

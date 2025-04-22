@@ -243,6 +243,7 @@ export const useFetchPriceTables = (userId?: string) => {
           if (!parsedWaitingHour.exclusive) parsedWaitingHour.exclusive = parsedWaitingHour.medium || 55.00;
           
           if (!parsedInsurance.rate) parsedInsurance.rate = parsedInsurance.standard || 0.01;
+          if (!parsedInsurance.standard) parsedInsurance.standard = 0.01;
           
           const metropolitanCities = table.metropolitan_cities 
             ? (typeof table.metropolitan_cities === 'string' 
@@ -307,6 +308,10 @@ export const useFetchPriceTables = (userId?: string) => {
               
               if (!updatedTable.metropolitanCities) {
                 updatedTable.metropolitanCities = [];
+              }
+              
+              if (!updatedTable.insurance.standard) {
+                updatedTable.insurance.standard = 0.01;
               }
               
               return updatedTable;
