@@ -47,7 +47,7 @@ export function ClientSelection({
         placeholder={loading ? "Carregando clientes..." : "Selecione o cliente"}
         disabled={isDisabled}
         clients={clients}
-        showCreateOption={false}
+        showCreateOption={!disabled}
       />
     </div>
   );

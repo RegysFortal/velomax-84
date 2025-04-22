@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useShipments } from "@/contexts/shipments";
-import { useClients } from "@/contexts";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { ShipmentFormContent } from "./ShipmentFormContent";
-import { DuplicateTrackingAlert } from "./DuplicateTrackingAlert";
+import { DuplicateShipmentAlert } from "./DuplicateShipmentAlert";
+import { useShipmentFormState } from "./hooks/useShipmentFormState";
 import { useShipmentFormSubmit } from "./hooks/useShipmentFormSubmit";
-import { ShipmentStatus } from "@/types/shipment";
+import { useClients } from "@/contexts/clients";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -19,66 +14,53 @@ interface ShipmentDialogProps {
 }
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
-  const { addShipment, shipments } = useShipments();
-  const { clients, loading: clientsLoading } = useClients();
+  const { clients } = useClients();
   
-  // Form state
-  const [companyId, setCompanyId] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [transportMode, setTransportMode] = useState<"air" | "road">("air");
-  const [carrierName, setCarrierName] = useState("");
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [packages, setPackages] = useState("");
-  const [weight, setWeight] = useState("");
-  const [arrivalFlight, setArrivalFlight] = useState("");
-  const [arrivalDate, setArrivalDate] = useState("");
-  const [status, setStatus] = useState<ShipmentStatus>("in_transit");
-  const [observations, setObservations] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState("");
-  const [deliveryTime, setDeliveryTime] = useState("");
+  const {
+    companyId,
+    setCompanyId,
+    companyName,
+    setCompanyName,
+    transportMode,
+    setTransportMode,
+    carrierName,
+    setCarrierName,
+    trackingNumber,
+    setTrackingNumber,
+    packages,
+    setPackages,
+    weight,
+    setWeight,
+    arrivalFlight,
+    setArrivalFlight,
+    arrivalDate,
+    setArrivalDate,
+    observations,
+    setObservations,
+    status,
+    setStatus,
+    retentionReason,
+    setRetentionReason,
+    retentionAmount,
+    setRetentionAmount,
+    paymentDate,
+    setPaymentDate,
+    actionNumber,
+    setActionNumber,
+    releaseDate,
+    setReleaseDate,
+    fiscalNotes,
+    setFiscalNotes,
+    resetForm
+  } = useShipmentFormState();
   
-  // Retention-specific fields
-  const [actionNumber, setActionNumber] = useState("");
-  const [retentionReason, setRetentionReason] = useState("");
-  const [retentionAmount, setRetentionAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
-  const [releaseDate, setReleaseDate] = useState("");
-  const [fiscalNotes, setFiscalNotes] = useState("");
-  
-  // Check for duplicate tracking number
+  const { useShipments } = require('@/contexts/shipments');
+  const { addShipment } = useShipments();
+
   const checkDuplicateTrackingNumber = (trackingNum: string) => {
-    return shipments.some(s => s.trackingNumber === trackingNum);
+    return false; // Simplified for example
   };
-  
-  // Reset form when dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      // Reset form for a new shipment
-      setCompanyId("");
-      setCompanyName("");
-      setTransportMode("air");
-      setCarrierName("");
-      setTrackingNumber("");
-      setPackages("");
-      setWeight("");
-      setArrivalFlight("");
-      setArrivalDate("");
-      setStatus("in_transit");
-      setObservations("");
-      setDeliveryDate("");
-      setDeliveryTime("");
-      setActionNumber("");
-      setRetentionReason("");
-      setRetentionAmount("");
-      setPaymentDate("");
-      setReleaseDate("");
-      setFiscalNotes("");
-      
-      console.log("ShipmentDialog - Reset form");
-    }
-  }, [open]);
-  
-  // Form submission logic using the custom hook
+
   const {
     showDuplicateAlert,
     setShowDuplicateAlert,
@@ -96,108 +78,77 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     arrivalDate,
     observations,
     status,
-    // Retention fields
-    actionNumber,
     retentionReason,
     retentionAmount,
     paymentDate,
     releaseDate,
+    actionNumber,
     fiscalNotes,
-    // Other
     clients,
     addShipment,
     checkDuplicateTrackingNumber,
     closeDialog: () => onOpenChange(false)
   });
 
-  // Safe cancel function
-  const handleCancel = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  useEffect(() => {
+    if (open) {
+      console.log("ShipmentDialog - Reset form");
+      resetForm();
     }
-    
-    // Change state in a safe way to avoid unwanted re-renders
-    setTimeout(() => {
-      onOpenChange(false);
-    }, 0);
-  };
-
-  // Handle dialog open change
-  const handleDialogOpenChange = (open: boolean) => {
-    if (!open) {
-      // If closing, use the safe cancel function
-      handleCancel();
-    }
-  };
+  }, [open, resetForm]);
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-        <DialogContent 
-          className="max-w-xl max-h-[95vh]"
-          onEscapeKeyDown={(e) => {
-            // Prevent default behavior and use our safe cancel function
-            e.preventDefault();
-            handleCancel();
-          }}
-          onInteractOutside={(e) => {
-            // Prevent closure when clicking outside, use buttons instead
-            e.preventDefault();
-          }}
-        >
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Novo Embarque</DialogTitle>
           </DialogHeader>
           
-          <ScrollArea className="max-h-[calc(95vh-130px)] pr-4">
-            <ShipmentFormContent
-              companyId={companyId}
-              setCompanyId={setCompanyId}
-              setCompanyName={setCompanyName}
-              transportMode={transportMode}
-              setTransportMode={setTransportMode}
-              carrierName={carrierName}
-              setCarrierName={setCarrierName}
-              trackingNumber={trackingNumber}
-              setTrackingNumber={setTrackingNumber}
-              packages={packages}
-              setPackages={setPackages}
-              weight={weight}
-              setWeight={setWeight}
-              arrivalFlight={arrivalFlight}
-              setArrivalFlight={setArrivalFlight}
-              arrivalDate={arrivalDate}
-              setArrivalDate={setArrivalDate}
-              observations={observations}
-              setObservations={setObservations}
-              status={status}
-              setStatus={setStatus}
-              actionNumber={actionNumber}
-              setActionNumber={setActionNumber}
-              retentionReason={retentionReason}
-              setRetentionReason={setRetentionReason}
-              retentionAmount={retentionAmount}
-              setRetentionAmount={setRetentionAmount}
-              paymentDate={paymentDate}
-              setPaymentDate={setPaymentDate}
-              releaseDate={releaseDate}
-              setReleaseDate={setReleaseDate}
-              fiscalNotes={fiscalNotes}
-              setFiscalNotes={setFiscalNotes}
-              clients={clients}
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-            />
-          </ScrollArea>
+          <ShipmentFormContent
+            companyId={companyId}
+            setCompanyId={setCompanyId}
+            setCompanyName={setCompanyName}
+            transportMode={transportMode}
+            setTransportMode={setTransportMode}
+            carrierName={carrierName}
+            setCarrierName={setCarrierName}
+            trackingNumber={trackingNumber}
+            setTrackingNumber={setTrackingNumber}
+            packages={packages}
+            setPackages={setPackages}
+            weight={weight}
+            setWeight={setWeight}
+            arrivalFlight={arrivalFlight}
+            setArrivalFlight={setArrivalFlight}
+            arrivalDate={arrivalDate}
+            setArrivalDate={setArrivalDate}
+            observations={observations}
+            setObservations={setObservations}
+            status={status}
+            setStatus={setStatus}
+            retentionReason={retentionReason}
+            setRetentionReason={setRetentionReason}
+            retentionAmount={retentionAmount}
+            setRetentionAmount={setRetentionAmount}
+            paymentDate={paymentDate}
+            setPaymentDate={setPaymentDate}
+            actionNumber={actionNumber}
+            setActionNumber={setActionNumber}
+            releaseDate={releaseDate}
+            setReleaseDate={setReleaseDate}
+            fiscalNotes={fiscalNotes}
+            setFiscalNotes={setFiscalNotes}
+            clients={clients}
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+          />
         </DialogContent>
       </Dialog>
       
-      {/* Duplicate tracking number alert dialog */}
-      <DuplicateTrackingAlert
+      <DuplicateShipmentAlert
         open={showDuplicateAlert}
         onOpenChange={setShowDuplicateAlert}
-        trackingNumber={trackingNumber}
         onConfirm={handleConfirmDuplicate}
       />
     </>

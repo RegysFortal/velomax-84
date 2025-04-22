@@ -41,6 +41,11 @@ export function useDeliveryStatusHandler({
         return;
       }
       
+      if (!shipment) {
+        toast.error("Embarque não encontrado");
+        return;
+      }
+      
       // Process the delivery
       const deliveryDetails: DeliveryDetailsType = {
         receiverName,
@@ -50,13 +55,20 @@ export function useDeliveryStatusHandler({
       };
       
       // Check if all documents were selected or just a subset
-      const allDocumentsSelected = shipment && shipment.documents && 
-        shipment.documents.length > 0 && 
-        selectedDocumentIds.length === shipment.documents.length;
+      const totalDocuments = shipment.documents?.length || 0;
+      const selectedCount = selectedDocumentIds.length;
+      const remainingCount = totalDocuments - selectedCount;
+      const allDocumentsSelected = totalDocuments > 0 && selectedCount === totalDocuments;
+      const onlyOneRemaining = remainingCount === 1;
       
       // Determine the appropriate status based on selected documents
-      const newStatus = allDocumentsSelected ? "delivered_final" : "partially_delivered";
-      console.log(`Setting status to ${newStatus} (all docs selected: ${allDocumentsSelected})`);
+      // Se tiver apenas um documento restante, automaticamente marcar como parcial
+      const newStatus = allDocumentsSelected 
+        ? "delivered_final" 
+        : (selectedCount > 0 ? "partially_delivered" : "in_transit");
+      
+      console.log(`Setting status to ${newStatus} (all docs selected: ${allDocumentsSelected}, remaining: ${remainingCount})`);
+      console.log(`Documents: Total=${totalDocuments}, Selected=${selectedCount}, Remaining=${remainingCount}`);
       
       // Update shipment status with delivery details
       handleStatusUpdate(shipmentId, newStatus as ShipmentStatus, deliveryDetails);
@@ -69,6 +81,15 @@ export function useDeliveryStatusHandler({
       // Call the onStatusChange callback if provided
       if (onStatusChange) {
         onStatusChange();
+      }
+      
+      // Status message based on delivery status
+      if (allDocumentsSelected) {
+        toast.success("Todos os documentos foram entregues. Embarque marcado como Entregue.");
+      } else if (selectedCount > 0) {
+        toast.success(`Documentos selecionados marcados como entregues. Embarque atualizado para Entrega Parcial.`);
+      } else {
+        toast.info("Nenhum documento selecionado para entrega. Embarque permanece em trânsito.");
       }
       
       // Reset forms and close dialogs

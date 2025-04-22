@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -27,6 +28,7 @@ export function SearchableSelect({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
   // Find the selected option to display in the trigger
   const selectedOption = options.find(option => option.value === value);
@@ -36,6 +38,15 @@ export function SearchableSelect({
     const optionText = `${option.label} ${option.description || ''}`.toLowerCase();
     return optionText.includes(searchValue.toLowerCase());
   });
+  
+  // Auto-focus input when popover opens
+  useEffect(() => {
+    if (open && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [open]);
   
   // Handle outside click to close popover
   useEffect(() => {
@@ -122,6 +133,7 @@ export function SearchableSelect({
           <div className="flex items-center border-b px-3">
             <div className="flex-1">
               <CommandInput
+                ref={inputRef}
                 placeholder="Search..."
                 value={searchValue}
                 onValueChange={handleSearchChange}
