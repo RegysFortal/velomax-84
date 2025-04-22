@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -83,6 +84,7 @@ const PriceTables = () => {
         ...editingPriceTable,
         metropolitanCityIds,
         metropolitanCities: metropolitanCityIds,
+        customServices: editingPriceTable.minimumRate.customServices || [],
       });
       setSelectedCities(metropolitanCityIds);
     } else {
@@ -174,8 +176,8 @@ const PriceTables = () => {
         ? prev.filter(id => id !== cityId)
         : [...prev, cityId];
       
-      setFormData(currentFormData => ({
-        ...currentFormData,
+      setFormData(prevFormData => ({
+        ...prevFormData,
         metropolitanCityIds: newSelectedCities,
         metropolitanCities: newSelectedCities
       }));
