@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -49,11 +50,11 @@ const createEmptyPriceTable = () => ({
     rate: 0.01,
     standard: 0.01,
   },
-  allowCustomPricing: false,
+  allowCustomPricing: false, // Explicitly set default value
   defaultDiscount: 0,
   metropolitanCities: [],
-  metropolitanCityIds: [],
-  customServices: [],
+  metropolitanCityIds: [], // Added for consistency
+  customServices: [], // Added for consistency
 });
 
 const PriceTables = () => {
