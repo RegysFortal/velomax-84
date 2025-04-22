@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -23,6 +22,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 200.00,
+      customServices: [], // Added required property
     },
     excessWeight: {
       minPerKg: 0.55,
@@ -48,7 +48,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     allowCustomPricing: true,
     defaultDiscount: 0.00,
     multiplier: 1.0,
-    metropolitanCities: [], // Added this required property
+    metropolitanCities: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -69,6 +69,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       trackedVehicle: 460.00,
       reshipment: 180.00,
       doorToDoorInterior: 220.00,
+      customServices: [], // Added required property
     },
     excessWeight: {
       minPerKg: 0.60,
@@ -94,7 +95,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
-    metropolitanCities: [], // Added this required property
+    metropolitanCities: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -115,6 +116,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 240.00,
+      customServices: [], // Added required property
     },
     excessWeight: {
       minPerKg: 0.65,
@@ -140,7 +142,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
-    metropolitanCities: [], // Added this required property
+    metropolitanCities: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -161,6 +163,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 260.00,
+      customServices: [], // Added required property
     },
     excessWeight: {
       minPerKg: 0.70,
@@ -186,7 +189,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
-    metropolitanCities: [], // Added this required property
+    metropolitanCities: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -216,6 +219,10 @@ export const useFetchPriceTables = (userId?: string) => {
             ? JSON.parse(table.minimum_rate)
             : table.minimum_rate || {};
             
+          if (!parsedMinimumRate.customServices) {
+            parsedMinimumRate.customServices = [];
+          }
+            
           const parsedExcessWeight = typeof table.excess_weight === 'string'
             ? JSON.parse(table.excess_weight)
             : table.excess_weight || {};
@@ -237,7 +244,6 @@ export const useFetchPriceTables = (userId?: string) => {
           
           if (!parsedInsurance.rate) parsedInsurance.rate = parsedInsurance.standard || 0.01;
           
-          // Parse metropolitan cities or provide empty array
           const metropolitanCities = table.metropolitan_cities 
             ? (typeof table.metropolitan_cities === 'string' 
                 ? JSON.parse(table.metropolitan_cities) 
@@ -255,7 +261,7 @@ export const useFetchPriceTables = (userId?: string) => {
             insurance: parsedInsurance,
             allowCustomPricing: table.allow_custom_pricing,
             defaultDiscount: table.default_discount || 0,
-            metropolitanCities: metropolitanCities, // Include metropolitan cities
+            metropolitanCities: metropolitanCities,
             createdAt: table.created_at || new Date().toISOString(),
             updatedAt: table.updated_at || new Date().toISOString(),
           };

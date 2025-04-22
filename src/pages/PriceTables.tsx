@@ -91,6 +91,10 @@ const PriceTables = () => {
           ...editingPriceTable.minimumRate,
           customServices,
         },
+        doorToDoor: {
+          ...editingPriceTable.doorToDoor,
+          maxWeight: editingPriceTable.doorToDoor.maxWeight || 0,
+        },
       });
       setSelectedCities(metropolitanCityIds);
     } else {

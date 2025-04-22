@@ -19,7 +19,7 @@ export interface PriceTable {
     trackedVehicle: number;
     doorToDoorInterior: number;
     reshipment: number;
-    customServices: CustomService[]; // Changed from optional to required
+    customServices: CustomService[]; // Required, not optional
   };
   excessWeight: {
     minPerKg: number;
@@ -29,7 +29,7 @@ export interface PriceTable {
   };
   doorToDoor: {
     ratePerKm: number;
-    maxWeight?: number;
+    maxWeight?: number; // Keep as optional since it's used that way
   };
   waitingHour: {
     standard: number;
