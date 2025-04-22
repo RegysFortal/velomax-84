@@ -1,16 +1,11 @@
-import { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/AppLayout';
-import { Button } from '@/components/ui/button';
+
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { Plus } from 'lucide-react';
 import { usePriceTables } from '@/contexts/priceTables';
 import { useCities } from '@/contexts/CitiesContext';
 import { PriceTable, CustomService } from '@/types';
-import { PriceTableList } from '@/components/price-tables/PriceTableList';
-import { PriceTableDialog } from '@/components/price-tables/PriceTableDialog';
-import { CustomServiceDialog } from '@/components/price-tables/CustomServiceDialog';
 
-const createEmptyPriceTable = () => ({
+export const createEmptyPriceTable = () => ({
   name: '',
   description: '',
   minimumRate: {
@@ -56,11 +51,11 @@ const createEmptyPriceTable = () => ({
   customServices: [],
 });
 
-const PriceTables = () => {
+export function usePriceTablesForm() {
   const { priceTables, addPriceTable, updatePriceTable, deletePriceTable } = usePriceTables();
   const { cities } = useCities();
   const { toast } = useToast();
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [customServiceDialogOpen, setCustomServiceDialogOpen] = useState(false);
   const [editingPriceTable, setEditingPriceTable] = useState<PriceTable | null>(null);
@@ -80,11 +75,10 @@ const PriceTables = () => {
     if (editingPriceTable) {
       const metropolitanCityIds = editingPriceTable.metropolitanCities || [];
       const customServices = editingPriceTable.minimumRate.customServices || [];
-      
       const defaultDiscountValue = typeof editingPriceTable.defaultDiscount === 'number' 
         ? editingPriceTable.defaultDiscount
         : 0;
-      
+
       setFormData({
         ...editingPriceTable,
         description: editingPriceTable.description || '',
@@ -123,7 +117,6 @@ const PriceTables = () => {
     const { name, value, type } = e.target;
     const inputElem = e.target as HTMLInputElement;
     const checked = type === 'checkbox' ? inputElem.checked : undefined;
-    
     if (name.startsWith('minimumRate.')) {
       const minimumRateKey = name.split('.')[1] as keyof typeof formData.minimumRate;
       setFormData(prev => ({
@@ -195,24 +188,22 @@ const PriceTables = () => {
     }));
   };
 
-  const handleToggleMetropolitanCity = (cityId: string) => {
+  const handleToggleMetropolitanCity = useCallback((cityId: string) => {
     setSelectedCities(prev => {
       const isAlreadySelected = prev.includes(cityId);
       const newSelectedCities = isAlreadySelected
         ? prev.filter(id => id !== cityId)
         : [...prev, cityId];
-      
       setFormData(prevFormData => ({
         ...prevFormData,
         metropolitanCityIds: newSelectedCities,
         metropolitanCities: newSelectedCities
       }));
-      
       return newSelectedCities;
     });
-  };
+  }, []);
 
-  const handleCreateNewCity = (cityName: string) => {
+  const handleCreateNewCity = useCallback((cityName: string) => {
     if (!cityName.trim()) {
       toast({
         title: "Nome inválido",
@@ -221,11 +212,10 @@ const PriceTables = () => {
       });
       return;
     }
-    
+
     const tempId = `temp-${cityName.trim()}`;
-    
-    if (selectedCities.some(id => id === tempId || 
-        (id.startsWith('temp-') && id.replace('temp-', '') === cityName.trim()))) {
+
+    if (selectedCities.some(id => id === tempId || (id.startsWith('temp-') && id.replace('temp-', '') === cityName.trim()))) {
       toast({
         title: "Cidade já adicionada",
         description: `A cidade ${cityName} já está na lista.`,
@@ -233,14 +223,12 @@ const PriceTables = () => {
       });
       return;
     }
-    
     handleToggleMetropolitanCity(tempId);
-    
     toast({
       title: "Cidade adicionada",
       description: `A cidade ${cityName} foi adicionada à região metropolitana.`,
     });
-  };
+  }, [selectedCities, handleToggleMetropolitanCity, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,10 +242,9 @@ const PriceTables = () => {
         },
         allowCustomPricing: formData.allowCustomPricing ?? false,
       };
-      
       delete (priceTableData as any).metropolitanCityIds;
       delete (priceTableData as any).customServices;
-      
+
       if (editingPriceTable) {
         await updatePriceTable(editingPriceTable.id, priceTableData);
         toast({
@@ -305,6 +292,7 @@ const PriceTables = () => {
     }
   };
 
+  // Custom services
   const openCustomServiceDialog = (service?: CustomService) => {
     if (service) {
       setCurrentCustomService(service);
@@ -374,7 +362,6 @@ const PriceTables = () => {
   const deleteCustomService = (id: string) => {
     setFormData(prev => {
       const updatedServices = (prev.customServices || []).filter(s => s.id !== id);
-      
       return {
         ...prev,
         customServices: updatedServices,
@@ -386,58 +373,31 @@ const PriceTables = () => {
     });
   };
 
-  return (
-    <AppLayout>
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Tabelas de Preços</h1>
-            <p className="text-muted-foreground">
-              Gerencie as tabelas de preços para diferentes tipos de serviço.
-            </p>
-          </div>
-          <Button onClick={() => { setIsDialogOpen(true); setEditingPriceTable(null); }}>
-            <Plus className="mr-2 h-4 w-4" />
-            Adicionar Tabela
-          </Button>
-        </div>
-
-        <PriceTableList 
-          priceTables={priceTables}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-
-        <PriceTableDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          formData={formData}
-          onChange={handleChange}
-          onSubmit={handleSubmit}
-          editingPriceTable={editingPriceTable}
-          selectedCities={selectedCities}
-          cities={cities}
-          onCityToggle={handleToggleMetropolitanCity}
-          onCreateNewCity={handleCreateNewCity}
-          onCheckboxChange={(checked) => {
-            setFormData(prev => ({
-              ...prev,
-              allowCustomPricing: checked,
-            }));
-          }}
-        />
-
-        <CustomServiceDialog
-          open={customServiceDialogOpen}
-          onOpenChange={setCustomServiceDialogOpen}
-          currentService={currentCustomService}
-          formData={customServiceFormData}
-          onChange={handleCustomServiceChange}
-          onSave={saveCustomService}
-        />
-      </div>
-    </AppLayout>
-  );
-};
-
-export default PriceTables;
+  return {
+    priceTables,
+    cities,
+    isDialogOpen,
+    setIsDialogOpen,
+    editingPriceTable,
+    setEditingPriceTable,
+    formData,
+    setFormData,
+    handleChange,
+    handleSubmit,
+    handleEdit,
+    handleDelete,
+    selectedCities,
+    setSelectedCities,
+    handleToggleMetropolitanCity,
+    handleCreateNewCity,
+    customServiceDialogOpen,
+    setCustomServiceDialogOpen,
+    openCustomServiceDialog,
+    currentCustomService,
+    customServiceFormData,
+    setCustomServiceFormData,
+    handleCustomServiceChange,
+    saveCustomService,
+    deleteCustomService,
+  };
+}
