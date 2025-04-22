@@ -51,10 +51,10 @@ const createEmptyPriceTable = () => ({
     standard: 0.01,
   },
   allowCustomPricing: false,
-  defaultDiscount: 0, // Explicitly set to 0
+  defaultDiscount: 0, // Ensure this is always set
   metropolitanCities: [],
-  metropolitanCityIds: [],
-  customServices: [],
+  metropolitanCityIds: [], // Add this to match the type
+  customServices: [], // Add this to match the type
 });
 
 const PriceTables = () => {
