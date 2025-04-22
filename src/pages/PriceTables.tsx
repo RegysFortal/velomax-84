@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -82,6 +81,7 @@ const PriceTables = () => {
       const metropolitanCityIds = editingPriceTable.metropolitanCities || [];
       setFormData({
         ...editingPriceTable,
+        description: editingPriceTable.description || '',
         metropolitanCityIds,
         metropolitanCities: metropolitanCityIds,
         customServices: editingPriceTable.minimumRate.customServices || [],
