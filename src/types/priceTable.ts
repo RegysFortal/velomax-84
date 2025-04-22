@@ -34,9 +34,9 @@ export interface PriceTable {
   waitingHour: {
     standard: number;
     exclusive: number;
-    fiorino?: number;
-    medium?: number;
-    large?: number;
+    fiorino?: number; // Make optional to match actual usage
+    medium?: number;  // Make optional to match actual usage
+    large?: number;   // Make optional to match actual usage
   };
   insurance: {
     rate: number;
