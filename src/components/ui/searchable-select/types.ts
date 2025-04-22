@@ -13,6 +13,6 @@ export interface SearchableSelectProps {
   emptyMessage?: string;
   showCreateOption?: boolean;
   createOptionLabel?: string;
-  onCreateNew?: () => void;
+  onCreateNew?: (value: string) => void;
   disabled?: boolean;
 }
