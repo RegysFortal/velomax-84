@@ -66,9 +66,12 @@ export const usePriceTableOperations = (
         ? JSON.parse(data.insurance)
         : data.insurance;
         
-      const metropolitanCities = typeof data.metropolitan_cities === 'string'
-        ? JSON.parse(data.metropolitan_cities)
-        : data.metropolitan_cities || [];
+      // Get metropolitan cities from response or fallback to empty array
+      const metropolitanCities = data.metropolitan_cities 
+        ? (typeof data.metropolitan_cities === 'string' 
+            ? JSON.parse(data.metropolitan_cities) 
+            : data.metropolitan_cities)
+        : [];
       
       const newPriceTable: PriceTable = {
         id: data.id,
@@ -112,14 +115,14 @@ export const usePriceTableOperations = (
       
       if (priceTable.name !== undefined) supabasePriceTable.name = priceTable.name;
       if (priceTable.description !== undefined) supabasePriceTable.description = priceTable.description;
-      if (priceTable.minimumRate !== undefined) supabasePriceTable.minimum_rate = priceTable.minimumRate;
-      if (priceTable.excessWeight !== undefined) supabasePriceTable.excess_weight = priceTable.excessWeight;
-      if (priceTable.doorToDoor !== undefined) supabasePriceTable.door_to_door = priceTable.doorToDoor;
-      if (priceTable.waitingHour !== undefined) supabasePriceTable.waiting_hour = priceTable.waitingHour;
-      if (priceTable.insurance !== undefined) supabasePriceTable.insurance = priceTable.insurance;
+      if (priceTable.minimumRate !== undefined) supabasePriceTable.minimum_rate = JSON.stringify(priceTable.minimumRate);
+      if (priceTable.excessWeight !== undefined) supabasePriceTable.excess_weight = JSON.stringify(priceTable.excessWeight);
+      if (priceTable.doorToDoor !== undefined) supabasePriceTable.door_to_door = JSON.stringify(priceTable.doorToDoor);
+      if (priceTable.waitingHour !== undefined) supabasePriceTable.waiting_hour = JSON.stringify(priceTable.waitingHour);
+      if (priceTable.insurance !== undefined) supabasePriceTable.insurance = JSON.stringify(priceTable.insurance);
       if (priceTable.allowCustomPricing !== undefined) supabasePriceTable.allow_custom_pricing = priceTable.allowCustomPricing;
       if (priceTable.defaultDiscount !== undefined) supabasePriceTable.default_discount = priceTable.defaultDiscount;
-      if (priceTable.metropolitanCities !== undefined) supabasePriceTable.metropolitan_cities = priceTable.metropolitanCities;
+      if (priceTable.metropolitanCities !== undefined) supabasePriceTable.metropolitan_cities = JSON.stringify(priceTable.metropolitanCities);
 
       const { error } = await supabase
         .from('price_tables')
