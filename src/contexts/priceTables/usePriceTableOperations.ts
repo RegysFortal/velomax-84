@@ -18,6 +18,11 @@ export const usePriceTableOperations = (
     try {
       const timestamp = new Date().toISOString();
       
+      // Garantir que metropolitanCities seja um array antes de stringificar
+      const metropolitanCities = Array.isArray(priceTable.metropolitanCities) 
+        ? priceTable.metropolitanCities 
+        : [];
+        
       const supabasePriceTable: any = {
         name: priceTable.name,
         description: priceTable.description,
@@ -29,11 +34,13 @@ export const usePriceTableOperations = (
           rate: priceTable.insurance.rate,
           standard: priceTable.insurance.standard
         }),
-        metropolitan_cities: JSON.stringify(priceTable.metropolitanCities || []),
+        metropolitan_cities: JSON.stringify(metropolitanCities),
         allow_custom_pricing: priceTable.allowCustomPricing,
         default_discount: priceTable.defaultDiscount || 0,
         user_id: userId
       };
+      
+      console.log("Saving metropolitan cities to database:", metropolitanCities);
       
       const { data, error } = await supabase
         .from('price_tables')
@@ -68,19 +75,19 @@ export const usePriceTableOperations = (
       
       // Using type assertion to safely handle the data
       const responseData = data as any;
-      let metropolitanCities: string[] = [];
+      let parsedMetropolitanCities: string[] = [];
       
       try {
         if (responseData.metropolitan_cities) {
           if (typeof responseData.metropolitan_cities === 'string') {
-            metropolitanCities = JSON.parse(responseData.metropolitan_cities);
+            parsedMetropolitanCities = JSON.parse(responseData.metropolitan_cities);
           } else {
-            metropolitanCities = responseData.metropolitan_cities;
+            parsedMetropolitanCities = responseData.metropolitan_cities;
           }
         }
       } catch (e) {
         console.error("Error parsing metropolitan cities:", e);
-        metropolitanCities = [];
+        parsedMetropolitanCities = [];
       }
       
       const newPriceTable: PriceTable = {
@@ -92,7 +99,7 @@ export const usePriceTableOperations = (
         doorToDoor,
         waitingHour,
         insurance,
-        metropolitanCities,
+        metropolitanCities: parsedMetropolitanCities,
         allowCustomPricing: data.allow_custom_pricing,
         defaultDiscount: data.default_discount || 0,
         createdAt: data.created_at || timestamp,
@@ -132,7 +139,15 @@ export const usePriceTableOperations = (
       if (priceTable.insurance !== undefined) supabasePriceTable.insurance = JSON.stringify(priceTable.insurance);
       if (priceTable.allowCustomPricing !== undefined) supabasePriceTable.allow_custom_pricing = priceTable.allowCustomPricing;
       if (priceTable.defaultDiscount !== undefined) supabasePriceTable.default_discount = priceTable.defaultDiscount;
-      if (priceTable.metropolitanCities !== undefined) supabasePriceTable.metropolitan_cities = JSON.stringify(priceTable.metropolitanCities);
+      if (priceTable.metropolitanCities !== undefined) {
+        // Garantir que metropolitanCities seja um array antes de stringificar
+        const metropolitanCities = Array.isArray(priceTable.metropolitanCities) 
+          ? priceTable.metropolitanCities 
+          : [];
+        
+        supabasePriceTable.metropolitan_cities = JSON.stringify(metropolitanCities);
+        console.log("Updating metropolitan cities in database:", metropolitanCities);
+      }
 
       const { error } = await supabase
         .from('price_tables')

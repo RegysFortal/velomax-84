@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +37,7 @@ import {
 import { usePriceTables } from '@/contexts/priceTables';
 import { useCities } from '@/contexts/CitiesContext';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
-import { PriceTable, CustomService } from '@/types';
+import { PriceTable, CustomService, City } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -113,9 +113,13 @@ const PriceTables = () => {
     excessRate: 0,
     additionalInfo: '',
   });
+  const [searchCity, setSearchCity] = useState('');
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
 
   useEffect(() => {
     if (editingPriceTable) {
+      const metropolitanCityIds = editingPriceTable.metropolitanCities || [];
+      
       setFormData({
         name: editingPriceTable.name,
         description: editingPriceTable.description || '',
@@ -157,12 +161,16 @@ const PriceTables = () => {
         },
         allowCustomPricing: editingPriceTable.allowCustomPricing || false,
         defaultDiscount: editingPriceTable.defaultDiscount || 0,
-        metropolitanCities: editingPriceTable.metropolitanCities || [],
-        metropolitanCityIds: editingPriceTable.metropolitanCities || [],
+        metropolitanCities: metropolitanCityIds,
+        metropolitanCityIds: metropolitanCityIds,
         customServices: editingPriceTable.minimumRate.customServices || [],
       });
+      
+      setSelectedCities(metropolitanCityIds);
+      console.log("Editing price table with metropolitan cities:", metropolitanCityIds);
     } else {
       setFormData(createEmptyPriceTable());
+      setSelectedCities([]);
     }
   }, [editingPriceTable]);
 
@@ -244,19 +252,21 @@ const PriceTables = () => {
   };
 
   const handleToggleMetropolitanCity = (cityId: string) => {
-    setFormData(prev => {
-      const currentCities = prev.metropolitanCityIds || [];
-      const updatedCities = currentCities.includes(cityId)
-        ? currentCities.filter(id => id !== cityId)
-        : [...currentCities, cityId];
+    setSelectedCities(prev => {
+      const isAlreadySelected = prev.includes(cityId);
+      const newSelectedCities = isAlreadySelected
+        ? prev.filter(id => id !== cityId)
+        : [...prev, cityId];
       
-      console.log("Toggled city:", cityId, "Updated cities:", updatedCities);
+      console.log("Toggled city:", cityId, "New selection:", newSelectedCities);
       
-      return {
-        ...prev,
-        metropolitanCityIds: updatedCities,
-        metropolitanCities: updatedCities
-      };
+      setFormData(currentFormData => ({
+        ...currentFormData,
+        metropolitanCityIds: newSelectedCities,
+        metropolitanCities: newSelectedCities
+      }));
+      
+      return newSelectedCities;
     });
   };
 
@@ -369,7 +379,7 @@ const PriceTables = () => {
     try {
       const priceTableData = {
         ...formData,
-        metropolitanCities: formData.metropolitanCityIds || [],
+        metropolitanCities: selectedCities,
         minimumRate: {
           ...formData.minimumRate,
           customServices: formData.customServices,
@@ -416,6 +426,10 @@ const PriceTables = () => {
       });
     }
   };
+
+  const filteredCities = cities.filter(
+    city => city.name.toLowerCase().includes(searchCity.toLowerCase())
+  );
 
   return (
     <AppLayout>
@@ -917,16 +931,53 @@ const PriceTables = () => {
                         </p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                          {cities.map((city) => (
-                            <div key={city.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`city-${city.id}`}
-                                checked={(formData.metropolitanCityIds || []).includes(city.id)}
-                                onCheckedChange={() => handleToggleMetropolitanCity(city.id)}
-                              />
-                              <Label htmlFor={`city-${city.id}`}>{city.name}</Label>
+                          <div className="mb-4">
+                            <Input
+                              placeholder="Buscar cidade..."
+                              value={searchCity}
+                              onChange={(e) => setSearchCity(e.target.value)}
+                              className="mb-2"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                            {filteredCities.map((city) => (
+                              <div key={city.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`city-${city.id}`}
+                                  checked={selectedCities.includes(city.id)}
+                                  onCheckedChange={() => handleToggleMetropolitanCity(city.id)}
+                                />
+                                <Label htmlFor={`city-${city.id}`}>{city.name}</Label>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {selectedCities.length > 0 && (
+                            <div className="mt-4">
+                              <h4 className="text-sm font-medium mb-2">Cidades selecionadas:</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {selectedCities.map(cityId => {
+                                  const city = cities.find(c => c.id === cityId);
+                                  return city ? (
+                                    <Badge key={cityId} variant="outline" className="flex items-center gap-1">
+                                      {city.name}
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          handleToggleMetropolitanCity(cityId);
+                                        }}
+                                        className="ml-1 rounded-full hover:bg-muted p-1"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    </Badge>
+                                  ) : null;
+                                })}
+                              </div>
                             </div>
-                          ))}
+                          )}
                         </div>
                       </div>
 
