@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Input } from '@/components/ui/input';
 import { City } from '@/types';
 
 interface MetropolitanCitiesSectionProps {
@@ -20,6 +20,14 @@ export function MetropolitanCitiesSection({
   onCreateNewCity
 }: MetropolitanCitiesSectionProps) {
   const [searchValue, setSearchValue] = useState('');
+  const [newCityName, setNewCityName] = useState('');
+
+  const handleAddNewCity = () => {
+    if (newCityName.trim()) {
+      onCreateNewCity(newCityName.trim());
+      setNewCityName('');
+    }
+  };
 
   return (
     <div className="border p-4 rounded-md">
@@ -33,35 +41,65 @@ export function MetropolitanCitiesSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="border rounded-md p-4">
             <h4 className="text-sm font-medium mb-2">Adicionar Cidade</h4>
+            
             <div className="space-y-4">
-              <SearchableSelect
-                options={cities
-                  .filter(city => !selectedCities.includes(city.id))
-                  .map(city => ({
-                    value: city.id,
-                    label: city.name,
-                    description: `${city.state} - ${city.distance} km`
-                  }))}
-                value={searchValue}
-                onValueChange={(value) => {
-                  const city = cities.find(c => c.id === value);
-                  if (city) {
-                    onCityToggle(city.id);
-                    setSearchValue('');
-                  }
-                }}
-                placeholder="Selecionar ou adicionar cidade..."
-                emptyMessage="Nenhuma cidade encontrada"
-                showCreateOption={true}
-                createOptionLabel="Adicionar cidade"
-                onCreateNew={(cityName) => {
-                  if (cityName.trim()) {
-                    onCreateNewCity(cityName);
-                    setSearchValue('');
-                  }
-                }}
-                allowCustomValue={true}
-              />
+              <div>
+                <label className="text-sm text-muted-foreground mb-1 block">Selecionar da lista:</label>
+                <SearchableSelect
+                  options={cities
+                    .filter(city => !selectedCities.includes(city.id))
+                    .map(city => ({
+                      value: city.id,
+                      label: city.name,
+                      description: `${city.state} - ${city.distance} km`
+                    }))}
+                  value={searchValue}
+                  onValueChange={(value) => {
+                    const city = cities.find(c => c.id === value);
+                    if (city) {
+                      onCityToggle(city.id);
+                      setSearchValue('');
+                    }
+                  }}
+                  placeholder="Buscar cidade..."
+                  emptyMessage="Nenhuma cidade encontrada"
+                  showCreateOption={true}
+                  createOptionLabel="Adicionar cidade"
+                  onCreateNew={(cityName) => {
+                    if (cityName.trim()) {
+                      onCreateNewCity(cityName);
+                      setSearchValue('');
+                    }
+                  }}
+                  allowCustomValue={true}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-muted-foreground mb-1 block">Incluir nova cidade:</label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newCityName}
+                    onChange={(e) => setNewCityName(e.target.value)}
+                    placeholder="Nome da cidade"
+                    className="flex-1"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newCityName.trim()) {
+                        handleAddNewCity();
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                  <Button 
+                    type="button" 
+                    onClick={handleAddNewCity}
+                    variant="secondary"
+                    disabled={!newCityName.trim()}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
 
