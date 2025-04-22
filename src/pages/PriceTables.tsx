@@ -979,6 +979,7 @@ const PriceTables = () => {
                                       label: city.name,
                                       description: `${city.state} - ${city.distance} km`
                                     }))}
+                                  value=""
                                   placeholder="Selecionar ou adicionar cidade..."
                                   onValueChange={(value) => {
                                     const city = cities.find(c => c.id === value);
