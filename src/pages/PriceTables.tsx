@@ -50,11 +50,11 @@ const createEmptyPriceTable = () => ({
     rate: 0.01,
     standard: 0.01,
   },
-  allowCustomPricing: false, // Explicitly set default value
+  allowCustomPricing: false,
   defaultDiscount: 0,
   metropolitanCities: [],
-  metropolitanCityIds: [], // Added for consistency
-  customServices: [], // Added for consistency
+  metropolitanCityIds: [],
+  customServices: [],
 });
 
 const PriceTables = () => {
@@ -105,7 +105,8 @@ const PriceTables = () => {
         insurance: {
           ...editingPriceTable.insurance,
           standard: editingPriceTable.insurance.standard || 0.01,
-        }
+        },
+        allowCustomPricing: editingPriceTable.allowCustomPricing ?? false, // Ensure this is always defined
       });
       setSelectedCities(metropolitanCityIds);
     } else {
@@ -235,7 +236,8 @@ const PriceTables = () => {
         minimumRate: {
           ...formData.minimumRate,
           customServices: formData.customServices,
-        }
+        },
+        allowCustomPricing: formData.allowCustomPricing ?? false, // Ensure this is always defined
       };
       
       delete (priceTableData as any).metropolitanCityIds;

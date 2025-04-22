@@ -1,10 +1,11 @@
 
 
+
 export interface PriceTable {
   id: string;
   name: string;
   description?: string;
-  allowCustomPricing?: boolean;
+  allowCustomPricing: boolean;
   defaultDiscount?: number;
   multiplier?: number;
   minimumRate: {
