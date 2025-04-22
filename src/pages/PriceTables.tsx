@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -82,6 +81,10 @@ const PriceTables = () => {
       const metropolitanCityIds = editingPriceTable.metropolitanCities || [];
       const customServices = editingPriceTable.minimumRate.customServices || [];
       
+      const defaultDiscountValue = typeof editingPriceTable.defaultDiscount === 'number' 
+        ? editingPriceTable.defaultDiscount
+        : 0;
+      
       setFormData({
         ...editingPriceTable,
         description: editingPriceTable.description || '',
@@ -107,7 +110,7 @@ const PriceTables = () => {
           standard: editingPriceTable.insurance.standard || 0.01,
         },
         allowCustomPricing: editingPriceTable.allowCustomPricing ?? false,
-        defaultDiscount: editingPriceTable.defaultDiscount ?? 0, // Ensure defaultDiscount is always defined
+        defaultDiscount: defaultDiscountValue,
       });
       setSelectedCities(metropolitanCityIds);
     } else {
@@ -238,7 +241,7 @@ const PriceTables = () => {
           ...formData.minimumRate,
           customServices: formData.customServices,
         },
-        allowCustomPricing: formData.allowCustomPricing ?? false, // Ensure this is always defined
+        allowCustomPricing: formData.allowCustomPricing ?? false,
       };
       
       delete (priceTableData as any).metropolitanCityIds;
