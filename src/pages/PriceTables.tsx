@@ -51,10 +51,10 @@ const createEmptyPriceTable = () => ({
     standard: 0.01,
   },
   allowCustomPricing: false,
-  defaultDiscount: 0, // Ensure this is always set
+  defaultDiscount: 0, // Explicitly set to 0
   metropolitanCities: [],
-  metropolitanCityIds: [], // Add this to match the type
-  customServices: [], // Add this to match the type
+  metropolitanCityIds: [], // Ensure this matches type requirements
+  customServices: [], // Ensure this matches type requirements
 });
 
 const PriceTables = () => {
@@ -106,7 +106,8 @@ const PriceTables = () => {
           ...editingPriceTable.insurance,
           standard: editingPriceTable.insurance.standard || 0.01,
         },
-        allowCustomPricing: editingPriceTable.allowCustomPricing ?? false, // Ensure this is always defined
+        allowCustomPricing: editingPriceTable.allowCustomPricing ?? false,
+        defaultDiscount: editingPriceTable.defaultDiscount ?? 0, // Ensure defaultDiscount is always defined
       });
       setSelectedCities(metropolitanCityIds);
     } else {
