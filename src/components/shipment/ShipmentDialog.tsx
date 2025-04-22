@@ -7,6 +7,7 @@ import { DuplicateShipmentAlert } from "./DuplicateShipmentAlert";
 import { useShipmentFormState } from "./hooks/useShipmentFormState";
 import { useShipmentFormSubmit } from "./hooks/useShipmentFormSubmit";
 import { useClients } from "@/contexts/clients";
+import { useShipments } from '@/contexts/shipments';
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -15,6 +16,7 @@ interface ShipmentDialogProps {
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const { clients } = useClients();
+  const { addShipment } = useShipments();
   
   const {
     companyId,
@@ -53,9 +55,6 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     setFiscalNotes,
     resetForm
   } = useShipmentFormState();
-  
-  const { useShipments } = require('@/contexts/shipments');
-  const { addShipment } = useShipments();
 
   const checkDuplicateTrackingNumber = (trackingNum: string) => {
     return false; // Simplified for example
