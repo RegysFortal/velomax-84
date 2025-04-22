@@ -249,10 +249,13 @@ const PriceTables = () => {
       const updatedCities = currentCities.includes(cityId)
         ? currentCities.filter(id => id !== cityId)
         : [...currentCities, cityId];
-
+      
+      console.log("Toggled city:", cityId, "Updated cities:", updatedCities);
+      
       return {
         ...prev,
-        metropolitanCityIds: updatedCities
+        metropolitanCityIds: updatedCities,
+        metropolitanCities: updatedCities
       };
     });
   };
@@ -383,6 +386,8 @@ const PriceTables = () => {
           standard: formData.insurance.standard || 0.01,
         }
       };
+      
+      console.log("Submitting price table with metropolitan cities:", priceTableData.metropolitanCities);
       
       delete (priceTableData as any).metropolitanCityIds;
       delete (priceTableData as any).customServices;

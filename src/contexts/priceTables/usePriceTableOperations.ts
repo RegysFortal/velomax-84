@@ -66,13 +66,22 @@ export const usePriceTableOperations = (
         ? JSON.parse(data.insurance)
         : data.insurance;
       
-      // Using optional chaining and type assertion to safely handle the data
+      // Using type assertion to safely handle the data
       const responseData = data as any;
-      const metropolitanCities = responseData.metropolitan_cities 
-        ? (typeof responseData.metropolitan_cities === 'string' 
-            ? JSON.parse(responseData.metropolitan_cities) 
-            : responseData.metropolitan_cities)
-        : [];
+      let metropolitanCities: string[] = [];
+      
+      try {
+        if (responseData.metropolitan_cities) {
+          if (typeof responseData.metropolitan_cities === 'string') {
+            metropolitanCities = JSON.parse(responseData.metropolitan_cities);
+          } else {
+            metropolitanCities = responseData.metropolitan_cities;
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing metropolitan cities:", e);
+        metropolitanCities = [];
+      }
       
       const newPriceTable: PriceTable = {
         id: data.id,
