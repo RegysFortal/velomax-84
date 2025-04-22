@@ -22,7 +22,8 @@ export function SearchableSelect({
   showCreateOption = false,
   createOptionLabel = 'Create new item',
   onCreateNew,
-  disabled = false
+  disabled = false,
+  allowCustomValue = false
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -70,8 +71,9 @@ export function SearchableSelect({
   
   // Handle create new option
   const handleCreateNew = () => {
-    if (onCreateNew) {
+    if (onCreateNew && searchValue) {
       onCreateNew(searchValue);
+      setSearchValue('');
     }
     setOpen(false);
   };

@@ -23,15 +23,14 @@ export const usePriceTableOperations = (
         ? priceTable.metropolitanCities.filter(cityId => cityId && typeof cityId === 'string')
         : [];
       
-      // Filter out temporary IDs
+      // Separate city IDs and custom city names
       const validCityIds = metropolitanCities.filter(id => !id.startsWith('temp-'));
-      
-      // For custom city names (temp IDs), we would typically create them in the database first
-      // For this example, we'll just use the city names as is
       const customCityNames = metropolitanCities
         .filter(id => id.startsWith('temp-'))
         .map(id => id.replace('temp-', ''));
         
+      console.log("Processing metropolitan cities:", { validCityIds, customCityNames });
+      
       const supabasePriceTable: any = {
         name: priceTable.name,
         description: priceTable.description,
@@ -43,13 +42,16 @@ export const usePriceTableOperations = (
           rate: priceTable.insurance.rate,
           standard: priceTable.insurance.standard
         }),
-        metropolitan_cities: JSON.stringify([...validCityIds, ...customCityNames]),
+        metropolitan_cities: JSON.stringify({
+          cityIds: validCityIds,
+          customNames: customCityNames
+        }),
         allow_custom_pricing: priceTable.allowCustomPricing,
         default_discount: priceTable.defaultDiscount || 0,
         user_id: userId
       };
       
-      console.log("Saving metropolitan cities to database:", metropolitanCities);
+      console.log("Saving metropolitan cities to database:", { cityIds: validCityIds, customNames: customCityNames });
       
       const { data, error } = await supabase
         .from('price_tables')
@@ -88,10 +90,24 @@ export const usePriceTableOperations = (
       
       try {
         if (responseData.metropolitan_cities) {
+          let metroData;
+          
           if (typeof responseData.metropolitan_cities === 'string') {
-            parsedMetropolitanCities = JSON.parse(responseData.metropolitan_cities);
+            metroData = JSON.parse(responseData.metropolitan_cities);
           } else {
-            parsedMetropolitanCities = responseData.metropolitan_cities;
+            metroData = responseData.metropolitan_cities;
+          }
+          
+          // Handle both legacy format (array) and new format (object with cityIds and customNames)
+          if (Array.isArray(metroData)) {
+            parsedMetropolitanCities = metroData;
+          } else if (metroData.cityIds && metroData.customNames) {
+            // Convert custom names to temp IDs
+            const tempCityIds = metroData.customNames.map((name: string) => 
+              `temp-${name}`
+            );
+            
+            parsedMetropolitanCities = [...metroData.cityIds, ...tempCityIds];
           }
         }
       } catch (e) {
@@ -155,16 +171,18 @@ export const usePriceTableOperations = (
           ? priceTable.metropolitanCities.filter(cityId => cityId && typeof cityId === 'string')
           : [];
         
-        // Filter out temporary IDs
+        // Separate city IDs and custom city names
         const validCityIds = metropolitanCities.filter(id => !id.startsWith('temp-'));
-        
-        // For custom city names (temp IDs), extract the name
         const customCityNames = metropolitanCities
           .filter(id => id.startsWith('temp-'))
           .map(id => id.replace('temp-', ''));
           
-        supabasePriceTable.metropolitan_cities = JSON.stringify([...validCityIds, ...customCityNames]);
-        console.log("Updating metropolitan cities in database:", [...validCityIds, ...customCityNames]);
+        supabasePriceTable.metropolitan_cities = JSON.stringify({
+          cityIds: validCityIds,
+          customNames: customCityNames
+        });
+        
+        console.log("Updating metropolitan cities in database:", { cityIds: validCityIds, customNames: customCityNames });
       }
 
       const { data, error } = await supabase
@@ -186,9 +204,25 @@ export const usePriceTableOperations = (
         let parsedMetropolitanCities: string[] = [];
         try {
           if (updatedData.metropolitan_cities) {
-            parsedMetropolitanCities = typeof updatedData.metropolitan_cities === 'string' 
-              ? JSON.parse(updatedData.metropolitan_cities) 
-              : updatedData.metropolitan_cities;
+            let metroData;
+            
+            if (typeof updatedData.metropolitan_cities === 'string') {
+              metroData = JSON.parse(updatedData.metropolitan_cities);
+            } else {
+              metroData = updatedData.metropolitan_cities;
+            }
+            
+            // Handle both legacy format (array) and new format (object with cityIds and customNames)
+            if (Array.isArray(metroData)) {
+              parsedMetropolitanCities = metroData;
+            } else if (metroData.cityIds && metroData.customNames) {
+              // Convert custom names to temp IDs
+              const tempCityIds = metroData.customNames.map((name: string) => 
+                `temp-${name}`
+              );
+              
+              parsedMetropolitanCities = [...metroData.cityIds, ...tempCityIds];
+            }
           }
         } catch (e) {
           console.error("Error parsing metropolitan cities from update response:", e);

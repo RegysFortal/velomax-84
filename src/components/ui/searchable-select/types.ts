@@ -15,4 +15,5 @@ export interface SearchableSelectProps {
   createOptionLabel?: string;
   onCreateNew?: (value: string) => void;
   disabled?: boolean;
+  allowCustomValue?: boolean;
 }

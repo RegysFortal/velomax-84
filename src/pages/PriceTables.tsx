@@ -117,7 +117,6 @@ const PriceTables = () => {
   const [searchCity, setSearchCity] = useState('');
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [newCityName, setNewCityName] = useState('');
-  const [showNewCityForm, setShowNewCityForm] = useState(false);
 
   useEffect(() => {
     if (editingPriceTable) {
@@ -273,16 +272,19 @@ const PriceTables = () => {
 
   const handleCreateNewCity = (cityName: string) => {
     if (cityName) {
-      const tempId = `temp-${Date.now()}`;
+      const tempId = `temp-${cityName.trim().replace(/\s+/g, '-').toLowerCase()}`;
       
-      const newCity = { 
-        id: tempId,
-        name: cityName,
-        state: "CE",
-        distance: 0
-      };
-      
-      setSelectedCities(prev => [...prev, tempId]);
+      setSelectedCities(prev => {
+        if (prev.includes(tempId)) {
+          toast({
+            title: "Cidade já adicionada",
+            description: `A cidade ${cityName} já está na lista da região metropolitana.`,
+          });
+          return prev;
+        }
+        
+        return [...prev, tempId];
+      });
       
       setFormData(prev => ({
         ...prev,
@@ -456,6 +458,89 @@ const PriceTables = () => {
 
   const filteredCities = cities.filter(
     city => city.name.toLowerCase().includes(searchCity.toLowerCase())
+  );
+
+  const renderMetropolitanCitiesSection = () => (
+    <div className="border p-4 rounded-md">
+      <h3 className="font-medium mb-4 text-lg">Região Metropolitana</h3>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Selecione as cidades que fazem parte da Região Metropolitana. 
+        Você pode adicionar cidades da lista ou incluir novas cidades.
+      </p>
+      
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border rounded-md p-4">
+            <h4 className="text-sm font-medium mb-2">Adicionar Cidade</h4>
+            <div className="space-y-4">
+              <SearchableSelect
+                options={cities
+                  .filter(city => !selectedCities.includes(city.id))
+                  .map(city => ({
+                    value: city.id,
+                    label: city.name,
+                    description: `${city.state} - ${city.distance} km`
+                  }))}
+                value=""
+                placeholder="Selecionar ou adicionar cidade..."
+                onValueChange={(value) => {
+                  const city = cities.find(c => c.id === value);
+                  if (city) {
+                    handleToggleMetropolitanCity(city.id);
+                  }
+                }}
+                emptyMessage="Nenhuma cidade encontrada"
+                showCreateOption={true}
+                createOptionLabel="Adicionar cidade"
+                onCreateNew={handleCreateNewCity}
+              />
+              
+              <div className="mt-2 text-sm text-muted-foreground">
+                Exemplos: Caucaia, Maracanaú, Pacajus, etc.
+              </div>
+            </div>
+          </div>
+
+          <div className="border rounded-md p-4">
+            <h4 className="text-sm font-medium mb-2">Cidades Selecionadas</h4>
+            {selectedCities.length > 0 ? (
+              <ScrollArea className="h-[200px]">
+                <div className="space-y-2">
+                  {selectedCities.map(cityId => {
+                    const city = cities.find(c => c.id === cityId);
+                    const cityName = city 
+                      ? city.name 
+                      : cityId.startsWith('temp-') 
+                        ? cityId.replace('temp-', '').split('-').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                          ).join(' ')
+                        : 'Cidade desconhecida';
+                    
+                    return (
+                      <div key={cityId} className="flex items-center justify-between bg-muted/30 p-2 rounded">
+                        <span className="text-sm">{cityName}</span>
+                        <Button 
+                          type="button"
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleToggleMetropolitanCity(cityId)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="text-sm text-muted-foreground text-center py-4">
+                Nenhuma cidade selecionada
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -951,131 +1036,7 @@ const PriceTables = () => {
                       </div>
                       
                       <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-4 text-lg">Região Metropolitana</h3>
-                        <p className="mb-4 text-sm text-muted-foreground">
-                          Selecione as cidades que fazem parte da Região Metropolitana. 
-                          As cidades selecionadas terão a tarifa de Região Metropolitana aplicada automaticamente.
-                        </p>
-                        
-                        <div className="space-y-4">
-                          <div className="flex items-center space-x-2">
-                            <Input
-                              placeholder="Buscar cidade..."
-                              value={searchCity}
-                              onChange={(e) => setSearchCity(e.target.value)}
-                              className="max-w-sm"
-                            />
-                          </div>
-                          
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            <div className="border rounded-md p-4">
-                              <h4 className="text-sm font-medium mb-2">Adicionar Cidade</h4>
-                              <div className="space-y-4">
-                                <SearchableSelect
-                                  options={cities
-                                    .filter(city => !selectedCities.includes(city.id))
-                                    .map(city => ({
-                                      value: city.id,
-                                      label: city.name,
-                                      description: `${city.state} - ${city.distance} km`
-                                    }))}
-                                  value=""
-                                  placeholder="Selecionar ou adicionar cidade..."
-                                  onValueChange={(value) => {
-                                    const city = cities.find(c => c.id === value);
-                                    if (city) {
-                                      handleToggleMetropolitanCity(city.id);
-                                    }
-                                  }}
-                                  emptyMessage="Nenhuma cidade encontrada"
-                                  showCreateOption={true}
-                                  createOptionLabel="Adicionar nova cidade"
-                                  onCreateNew={handleCreateNewCity}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="border rounded-md p-4">
-                              <h4 className="text-sm font-medium mb-2">Cidades Selecionadas</h4>
-                              {selectedCities.length > 0 ? (
-                                <ScrollArea className="h-[200px]">
-                                  <div className="space-y-2">
-                                    {selectedCities.map(cityId => {
-                                      const city = cities.find(c => c.id === cityId);
-                                      const cityName = city ? city.name : cityId.startsWith('temp-') 
-                                        ? cityId.replace('temp-', '') 
-                                        : 'Cidade desconhecida';
-                                      
-                                      return (
-                                        <div key={cityId} className="flex items-center justify-between">
-                                          <span className="text-sm">{cityName}</span>
-                                          <Button 
-                                            type="button"
-                                            variant="ghost" 
-                                            size="sm"
-                                            onClick={() => handleToggleMetropolitanCity(cityId)}
-                                          >
-                                            <Minus className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </ScrollArea>
-                              ) : (
-                                <div className="text-sm text-muted-foreground text-center py-4">
-                                  Nenhuma cidade selecionada
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="border p-4 rounded-md">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="font-medium text-lg">Serviços Personalizados</h3>
-                          <Button type="button" onClick={() => openCustomServiceDialog()} size="sm">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Adicionar Serviço
-                          </Button>
-                        </div>
-                        
-                        {formData.customServices && formData.customServices.length > 0 ? (
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Nome</TableHead>
-                                <TableHead>Peso Mínimo (kg)</TableHead>
-                                <TableHead>Taxa Base (R$)</TableHead>
-                                <TableHead>Taxa Excedente (R$/kg)</TableHead>
-                                <TableHead>Ações</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {formData.customServices.map((service) => (
-                                <TableRow key={service.id}>
-                                  <TableCell>{service.name}</TableCell>
-                                  <TableCell>{service.minWeight}</TableCell>
-                                  <TableCell>R$ {service.baseRate.toFixed(2)}</TableCell>
-                                  <TableCell>R$ {service.excessRate.toFixed(2)}</TableCell>
-                                  <TableCell className="flex gap-2">
-                                    <Button variant="ghost" size="icon" onClick={() => openCustomServiceDialog(service)}>
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => deleteCustomService(service.id)}>
-                                      <Trash2 className="h-4 w-4 text-red-500" />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        ) : (
-                          <div className="text-center p-4 text-muted-foreground">
-                            Nenhum serviço personalizado adicionado.
-                          </div>
-                        )}
+                        {renderMetropolitanCitiesSection()}
                       </div>
                     </div>
                   </ScrollArea>
