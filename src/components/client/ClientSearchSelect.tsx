@@ -34,7 +34,6 @@ export function ClientSearchSelect({
   clients = []
 }: ClientSearchSelectProps) {
   const [clientOptions, setClientOptions] = useState<SearchableSelectOption[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
   
   // Format client options
@@ -78,32 +77,15 @@ export function ClientSearchSelect({
   };
   
   const handleValueChange = (newValue: string) => {
-    if (isProcessing) {
-      console.log("ClientSearchSelect - Processing in progress, ignoring change");
-      return;
-    }
+    console.log("ClientSearchSelect - Value changed to:", newValue);
     
-    try {
-      setIsProcessing(true);
-      console.log("ClientSearchSelect - Value changed to:", newValue);
+    if (newValue) {
+      // Find the client to confirm it exists
+      const selectedOption = clientOptions.find(opt => opt.value === newValue);
+      console.log("ClientSearchSelect - Selected client option:", selectedOption?.label);
       
-      if (newValue) {
-        // Find the client to confirm it exists
-        const selectedOption = clientOptions.find(opt => opt.value === newValue);
-        console.log("ClientSearchSelect - Selected client option:", selectedOption?.label);
-        
-        // Use a setTimeout to ensure the state update completes
-        setTimeout(() => {
-          // Ensure onValueChange is called
-          onValueChange(newValue);
-          setIsProcessing(false);
-        }, 10);
-      } else {
-        setIsProcessing(false);
-      }
-    } catch (error) {
-      console.error("Error changing client value:", error);
-      setIsProcessing(false);
+      // Call the onValueChange prop
+      onValueChange(newValue);
     }
   };
   
@@ -119,7 +101,7 @@ export function ClientSearchSelect({
   }, [value, clientOptions]);
   
   return (
-    <div className="w-full relative" data-testid="client-search-select">
+    <div className="w-full" data-testid="client-search-select">
       <SearchableSelect
         options={clientOptions}
         value={value}
@@ -129,7 +111,7 @@ export function ClientSearchSelect({
         showCreateOption={showCreateOption}
         onCreateNew={handleCreateNewClient}
         createOptionLabel={createOptionLabel}
-        disabled={disabled || isProcessing}
+        disabled={disabled}
       />
     </div>
   );

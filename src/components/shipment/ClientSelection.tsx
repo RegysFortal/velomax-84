@@ -31,13 +31,7 @@ export function ClientSelection({
     
     // Only update if we have a valid ID
     if (newCompanyId && newCompanyId.trim() !== '') {
-      try {
-        // Call the onCompanyChange prop directly
-        onCompanyChange(newCompanyId);
-        console.log("ClientSelection - onCompanyChange called successfully");
-      } catch (error) {
-        console.error("Error in handleCompanyChange:", error);
-      }
+      onCompanyChange(newCompanyId);
     }
   };
   
@@ -47,14 +41,6 @@ export function ClientSelection({
       console.log("ClientSelection - Available clients:", clients.length);
     }
     console.log("ClientSelection - Current companyId:", companyId);
-    
-    // If we have a company ID but it's not in the client list, log a warning
-    if (companyId && clients.length > 0) {
-      const clientExists = clients.some(client => client.id === companyId);
-      if (!clientExists) {
-        console.warn("ClientSelection - Warning: Selected company ID not found in client list");
-      }
-    }
   }, [clients, companyId]);
   
   if (loading && !propClients) {

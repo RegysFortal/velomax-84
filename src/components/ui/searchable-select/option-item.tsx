@@ -11,28 +11,14 @@ interface OptionItemProps {
 }
 
 export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
-  const handleClick = (e: React.MouseEvent) => {
-    // Prevent default and propagation
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Call onSelect with option value
-    console.log("OptionItem - clicked directly:", option.value);
-    onSelect(option.value);
-  };
-
   return (
     <CommandItem
       key={option.value}
       value={option.value}
       onSelect={() => {
-        console.log("OptionItem - onSelect triggered:", option.value);
-        // Use a timeout to ensure React processes this after other events
-        setTimeout(() => {
-          onSelect(option.value);
-        }, 0);
+        console.log("OptionItem - Selected:", option.value);
+        onSelect(option.value);
       }}
-      onClick={handleClick}
       className="flex items-center justify-between gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent hover:text-accent-foreground data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
       data-selected={isSelected}
     >
