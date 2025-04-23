@@ -1,5 +1,6 @@
 
-import { useClients, usePriceTables } from '@/contexts';
+import { useClients } from '@/contexts';
+import { usePriceTables } from '@/contexts/priceTables';
 import { PriceTable } from '@/types/priceTable';
 
 export function useClientPriceTable() {

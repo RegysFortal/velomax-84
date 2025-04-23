@@ -4,11 +4,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/auth/AuthContext';
 import { ClientsProvider } from './contexts/clients';
+import { PriceTablesProvider } from './contexts/priceTables';
+import { CitiesProvider } from './contexts/CitiesContext';
 import { ShipmentsProvider } from './contexts/shipments';
 import { DeliveriesProvider } from './contexts/deliveries/DeliveriesProvider';
 import { FinancialProvider } from './contexts/FinancialContext';
-import { PriceTablesProvider } from './contexts/priceTables';
-import { CitiesProvider } from './contexts/CitiesContext';
 import { ActivityLogProvider } from './contexts/ActivityLogContext';
 
 import Login from './pages/Login';

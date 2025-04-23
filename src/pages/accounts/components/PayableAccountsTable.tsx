@@ -1,123 +1,103 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { PayableAccount } from '@/types';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Check, Edit, MoreHorizontal, Trash } from 'lucide-react';
+import { Edit2, Trash2, CheckCircle } from 'lucide-react';
+import { PayableAccount } from '@/types/financial';
 
-interface PayableAccountsTableProps {
+export interface PayableAccountsTableProps {
   accounts: PayableAccount[];
-  onEditAccount: (account: PayableAccount) => void;
-  onDeleteAccount: (id: string) => void;
+  onEdit: (account: PayableAccount) => void;
+  onDelete: (id: string) => void;
   onMarkAsPaid: (id: string) => void;
 }
 
-export function PayableAccountsTable({
-  accounts,
-  onEditAccount,
-  onDeleteAccount,
-  onMarkAsPaid
-}: PayableAccountsTableProps) {
+export function PayableAccountsTable({ accounts, onEdit, onDelete, onMarkAsPaid }: PayableAccountsTableProps) {
+  // Format currency
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
   };
-  
-  const getStatusBadge = (status: string) => {
-    switch(status) {
+
+  // Format date
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const getStatusBadge = (status: PayableAccount['status']) => {
+    switch (status) {
       case 'paid':
-        return <Badge className="bg-green-600 hover:bg-green-700">Pago</Badge>;
+        return <Badge className="bg-green-500">Pago</Badge>;
       case 'overdue':
-        return <Badge className="bg-red-600 hover:bg-red-700">Atrasado</Badge>;
+        return <Badge className="bg-red-500">Atrasado</Badge>;
       default:
-        return <Badge className="bg-yellow-600 hover:bg-yellow-700">Pendente</Badge>;
+        return <Badge className="bg-yellow-500">Pendente</Badge>;
     }
   };
-  
+
   return (
-    <div className="rounded-md border">
+    <div className="border rounded-md">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[200px]">Fornecedor</TableHead>
+            <TableHead>Fornecedor</TableHead>
             <TableHead>Descrição</TableHead>
-            <TableHead>Categoria</TableHead>
+            <TableHead>Valor</TableHead>
             <TableHead>Vencimento</TableHead>
-            <TableHead className="text-right">Valor</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="w-[100px] text-right">Ações</TableHead>
+            <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {accounts.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center">
-                Nenhuma conta a pagar encontrada
+              <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                Nenhuma conta a pagar registrada
               </TableCell>
             </TableRow>
           ) : (
             accounts.map((account) => (
               <TableRow key={account.id}>
                 <TableCell className="font-medium">{account.supplierName}</TableCell>
-                <TableCell>
-                  {account.description}
-                  {account.isFixedExpense && (
-                    <Badge variant="outline" className="ml-2">Fixa</Badge>
-                  )}
-                  {account.recurring && (
-                    <Badge variant="outline" className="ml-2">Recorrente</Badge>
-                  )}
-                </TableCell>
-                <TableCell>{account.categoryName || 'Sem categoria'}</TableCell>
-                <TableCell>{format(new Date(account.dueDate), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(account.amount)}</TableCell>
+                <TableCell>{account.description}</TableCell>
+                <TableCell>{formatCurrency(account.amount)}</TableCell>
+                <TableCell>{formatDate(account.dueDate)}</TableCell>
                 <TableCell>{getStatusBadge(account.status)}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Abrir menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {account.status !== 'paid' && (
-                        <DropdownMenuItem onClick={() => onMarkAsPaid(account.id)}>
-                          <Check className="mr-2 h-4 w-4" />
-                          <span>Marcar como pago</span>
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={() => onEditAccount(account)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Editar</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => onDeleteAccount(account.id)}
-                        className="text-red-600"
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => onEdit(account)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    
+                    {account.status !== 'paid' && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="text-green-600"
+                        onClick={() => onMarkAsPaid(account.id)}
+                        title="Marcar como pago"
                       >
-                        <Trash className="mr-2 h-4 w-4" />
-                        <span>Excluir</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <CheckCircle className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="text-red-600"
+                      onClick={() => onDelete(account.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))

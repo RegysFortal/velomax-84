@@ -1,399 +1,351 @@
 
 import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { PayableAccount } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
+import { PayableAccount } from '@/types/financial';
 
-// Mock categories for now
-const CATEGORIES = [
-  { id: '1', name: 'Combustível' },
-  { id: '2', name: 'Aluguel' },
-  { id: '3', name: 'Seguros' },
-  { id: '4', name: 'Água' },
-  { id: '5', name: 'Luz' },
-  { id: '6', name: 'Folha de pagamento' },
-  { id: '7', name: 'Impostos' },
-  { id: '8', name: 'Frete' },
-  { id: '9', name: 'Outros' },
-];
-
-const PAYMENT_METHODS = [
-  { value: 'boleto', label: 'Boleto' },
-  { value: 'pix', label: 'PIX' },
-  { value: 'card', label: 'Cartão' },
-  { value: 'transfer', label: 'Transferência' },
-  { value: 'cash', label: 'Dinheiro' },
-];
-
-const formSchema = z.object({
-  supplierName: z.string().min(1, 'Obrigatório'),
-  description: z.string().min(1, 'Obrigatório'),
-  amount: z.coerce.number().min(0.01, 'Valor deve ser maior que zero'),
-  dueDate: z.string().min(1, 'Obrigatório'),
-  paymentDate: z.string().optional(),
-  paymentMethod: z.string().min(1, 'Obrigatório'),
-  categoryId: z.string().min(1, 'Obrigatório'),
-  isFixedExpense: z.boolean().default(false),
-  recurring: z.boolean().default(false),
-  recurrenceFrequency: z.string().optional(),
-  installments: z.coerce.number().optional(),
-  currentInstallment: z.coerce.number().optional(),
-  notes: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-interface PayableAccountsFormProps {
+export interface PayableAccountsFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (account: Omit<PayableAccount, 'id' | 'createdAt' | 'updatedAt'>) => void;
   account: PayableAccount | null;
-  onSubmit: (account: PayableAccount) => void;
-  onCancel: () => void;
 }
 
-export function PayableAccountsForm({ account, onSubmit, onCancel }: PayableAccountsFormProps) {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: account ? {
-      supplierName: account.supplierName,
-      description: account.description,
-      amount: account.amount,
-      dueDate: account.dueDate,
-      paymentDate: account.paymentDate || '',
-      paymentMethod: account.paymentMethod,
-      categoryId: account.categoryId,
-      isFixedExpense: account.isFixedExpense,
-      recurring: account.recurring || false,
-      recurrenceFrequency: account.recurrenceFrequency || '',
-      installments: account.installments || undefined,
-      currentInstallment: account.currentInstallment || undefined,
-      notes: account.notes || '',
-    } : {
-      supplierName: '',
-      description: '',
-      amount: 0,
-      dueDate: '',
-      paymentDate: '',
-      paymentMethod: '',
-      categoryId: '',
-      isFixedExpense: false,
-      recurring: false,
-      recurrenceFrequency: '',
-      installments: undefined,
-      currentInstallment: undefined,
-      notes: '',
-    }
+export function PayableAccountsForm({ open, onOpenChange, onSubmit, account }: PayableAccountsFormProps) {
+  const [formData, setFormData] = React.useState({
+    supplierName: '',
+    description: '',
+    amount: '',
+    dueDate: '',
+    paymentDate: '',
+    paymentMethod: 'boleto',
+    categoryId: '1', // Default to first category
+    categoryName: 'Combustível', // Default category name
+    isFixedExpense: false,
+    recurring: false,
+    recurrenceFrequency: 'monthly',
+    installments: '',
+    currentInstallment: '',
+    notes: '',
   });
-  
-  const recurring = form.watch('recurring');
-  
-  const handleSubmit = (values: FormValues) => {
-    const category = CATEGORIES.find(c => c.id === values.categoryId);
+
+  React.useEffect(() => {
+    if (account) {
+      setFormData({
+        supplierName: account.supplierName,
+        description: account.description,
+        amount: account.amount.toString(),
+        dueDate: account.dueDate,
+        paymentDate: account.paymentDate || '',
+        paymentMethod: account.paymentMethod,
+        categoryId: account.categoryId,
+        categoryName: account.categoryName || '',
+        isFixedExpense: account.isFixedExpense,
+        recurring: account.recurring || false,
+        recurrenceFrequency: account.recurrenceFrequency || 'monthly',
+        installments: account.installments ? account.installments.toString() : '',
+        currentInstallment: account.currentInstallment ? account.currentInstallment.toString() : '',
+        notes: account.notes || '',
+      });
+    } else {
+      // Reset form for new account
+      setFormData({
+        supplierName: '',
+        description: '',
+        amount: '',
+        dueDate: '',
+        paymentDate: '',
+        paymentMethod: 'boleto',
+        categoryId: '1',
+        categoryName: 'Combustível',
+        isFixedExpense: false,
+        recurring: false,
+        recurrenceFrequency: 'monthly',
+        installments: '',
+        currentInstallment: '',
+        notes: '',
+      });
+    }
+  }, [account]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const formattedAccount: PayableAccount = {
-      id: account?.id || '',
-      supplierName: values.supplierName,
-      description: values.description,
-      amount: values.amount,
-      dueDate: values.dueDate,
-      paymentDate: values.paymentDate || undefined,
-      paymentMethod: values.paymentMethod,
-      status: values.paymentDate ? 'paid' : new Date(values.dueDate) < new Date() ? 'overdue' : 'pending',
-      categoryId: values.categoryId,
-      categoryName: category?.name,
-      isFixedExpense: values.isFixedExpense,
-      recurring: values.recurring,
-      recurrenceFrequency: values.recurring ? values.recurrenceFrequency as any : undefined,
-      installments: values.installments,
-      currentInstallment: values.currentInstallment,
-      notes: values.notes,
-      createdAt: account?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    const currentDate = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const dueDate = new Date(formData.dueDate);
+    
+    // Determine the status based on payment date and due date
+    let status: 'pending' | 'paid' | 'overdue' = 'pending';
+    if (formData.paymentDate) {
+      status = 'paid';
+    } else if (dueDate < today) {
+      status = 'overdue';
+    }
+    
+    const submittedData = {
+      supplierName: formData.supplierName,
+      description: formData.description,
+      amount: parseFloat(formData.amount),
+      dueDate: formData.dueDate,
+      paymentDate: formData.paymentDate || undefined,
+      paymentMethod: formData.paymentMethod,
+      status,
+      categoryId: formData.categoryId,
+      categoryName: formData.categoryName,
+      isFixedExpense: formData.isFixedExpense,
+      recurring: formData.recurring || undefined,
+      recurrenceFrequency: formData.recurring ? formData.recurrenceFrequency as 'daily' | 'weekly' | 'monthly' | 'yearly' : undefined,
+      installments: formData.installments ? parseInt(formData.installments) : undefined,
+      currentInstallment: formData.installments ? parseInt(formData.currentInstallment) || 1 : undefined,
+      notes: formData.notes || undefined,
     };
     
-    onSubmit(formattedAccount);
+    onSubmit(submittedData);
   };
   
+  const expenseCategories = [
+    { id: '1', name: 'Combustível' },
+    { id: '2', name: 'Aluguel' },
+    { id: '3', name: 'Serviços' },
+    { id: '4', name: 'Manutenção' },
+    { id: '5', name: 'Seguros' },
+    { id: '6', name: 'Impostos' },
+    { id: '7', name: 'Folha de Pagamento' },
+    { id: '8', name: 'Utilidades' },
+  ];
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="supplierName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome do Fornecedor</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categoria</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {CATEGORIES.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{account ? 'Editar Conta a Pagar' : 'Nova Conta a Pagar'}</DialogTitle>
+        </DialogHeader>
         
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição da despesa</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor a pagar</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="paymentMethod"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Forma de pagamento</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {PAYMENT_METHODS.map((method) => (
-                      <SelectItem key={method.value} value={method.value}>
-                        {method.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="dueDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de vencimento</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="paymentDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de pagamento</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Preencha apenas quando o pagamento for realizado
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className="flex flex-col space-y-3">
-          <FormField
-            control={form.control}
-            name="isFixedExpense"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    Despesa fixa
-                  </FormLabel>
-                  <FormDescription>
-                    Esta é uma conta que ocorre regularmente
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="recurring"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    Despesa recorrente
-                  </FormLabel>
-                  <FormDescription>
-                    Esta conta se repete automaticamente
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        {recurring && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-lg">
-            <FormField
-              control={form.control}
-              name="recurrenceFrequency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Frequência</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="daily">Diária</SelectItem>
-                      <SelectItem value="weekly">Semanal</SelectItem>
-                      <SelectItem value="monthly">Mensal</SelectItem>
-                      <SelectItem value="yearly">Anual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="supplierName">Fornecedor</Label>
+            <Input
+              id="supplierName"
+              name="supplierName"
+              value={formData.supplierName}
+              onChange={handleChange}
+              placeholder="Nome do fornecedor"
+              required
             />
-            
-            <div className="grid grid-cols-2 gap-2">
-              <FormField
-                control={form.control}
-                name="installments"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Parcelas</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição</Label>
+            <Input
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Descrição da despesa"
+              required
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Valor (R$)</Label>
+              <Input
+                id="amount"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0,00"
+                required
               />
-              
-              <FormField
-                control={form.control}
-                name="currentInstallment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Parcela atual</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">Data de Vencimento</Label>
+              <Input
+                id="dueDate"
+                name="dueDate"
+                value={formData.dueDate}
+                onChange={handleChange}
+                type="date"
+                required
               />
             </div>
           </div>
-        )}
-        
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Observações</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
+              <Select 
+                value={formData.paymentMethod} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
+              >
+                <SelectTrigger id="paymentMethod">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="pix">PIX</SelectItem>
+                  <SelectItem value="card">Cartão</SelectItem>
+                  <SelectItem value="transfer">Transferência</SelectItem>
+                  <SelectItem value="cash">Dinheiro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="paymentDate">Data de Pagamento</Label>
+              <Input
+                id="paymentDate"
+                name="paymentDate"
+                value={formData.paymentDate}
+                onChange={handleChange}
+                type="date"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="categoryId">Categoria</Label>
+            <Select 
+              value={formData.categoryId} 
+              onValueChange={(value) => {
+                const selectedCategory = expenseCategories.find(cat => cat.id === value);
+                setFormData(prev => ({ 
+                  ...prev, 
+                  categoryId: value,
+                  categoryName: selectedCategory ? selectedCategory.name : ''
+                }));
+              }}
+            >
+              <SelectTrigger id="categoryId">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {expenseCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="isFixedExpense" 
+                checked={formData.isFixedExpense} 
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({ ...prev, isFixedExpense: !!checked }))
+                }
+              />
+              <Label htmlFor="isFixedExpense">Despesa Fixa</Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="recurring" 
+                checked={formData.recurring} 
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({ ...prev, recurring: !!checked }))
+                }
+              />
+              <Label htmlFor="recurring">Pagamento Recorrente</Label>
+            </div>
+          </div>
+          
+          {formData.recurring && (
+            <div className="space-y-2">
+              <Label htmlFor="recurrenceFrequency">Frequência</Label>
+              <Select 
+                value={formData.recurrenceFrequency} 
+                onValueChange={(value) => setFormData(prev => ({ 
+                  ...prev, 
+                  recurrenceFrequency: value as 'daily' | 'weekly' | 'monthly' | 'yearly'
+                }))}
+              >
+                <SelectTrigger id="recurrenceFrequency">
+                  <SelectValue placeholder="Selecione a frequência" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Diária</SelectItem>
+                  <SelectItem value="weekly">Semanal</SelectItem>
+                  <SelectItem value="monthly">Mensal</SelectItem>
+                  <SelectItem value="yearly">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
-        />
-        
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit">
-            {account ? 'Atualizar' : 'Salvar'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="installments">Parcelas</Label>
+              <Input
+                id="installments"
+                name="installments"
+                value={formData.installments}
+                onChange={handleChange}
+                type="number"
+                min="0"
+                placeholder="Total de parcelas"
+              />
+            </div>
+            
+            {formData.installments && parseInt(formData.installments) > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="currentInstallment">Parcela Atual</Label>
+                <Input
+                  id="currentInstallment"
+                  name="currentInstallment"
+                  value={formData.currentInstallment}
+                  onChange={handleChange}
+                  type="number"
+                  min="1"
+                  max={formData.installments}
+                  placeholder="Parcela atual"
+                />
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="notes">Observações</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              placeholder="Observações adicionais..."
+            />
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit">
+              {account ? 'Atualizar' : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,321 +1,333 @@
 
 import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ReceivableAccount } from '@/types';
-import { useClients } from '@/contexts/clients';
+import { ReceivableAccount } from '@/types/financial';
 
-// Mock categories for now
-const CATEGORIES = [
-  { id: '1', name: 'Fretes' },
-  { id: '2', name: 'Vendas' },
-  { id: '3', name: 'Reembolsos' },
-  { id: '4', name: 'Serviços' },
-  { id: '5', name: 'Outros' },
-];
-
-const RECEIVED_METHODS = [
-  { value: 'pix', label: 'PIX' },
-  { value: 'bank_slip', label: 'Boleto' },
-  { value: 'cash', label: 'Dinheiro' },
-  { value: 'transfer', label: 'Transferência' },
-];
-
-const formSchema = z.object({
-  clientId: z.string().min(1, 'Obrigatório'),
-  description: z.string().min(1, 'Obrigatório'),
-  amount: z.coerce.number().min(0.01, 'Valor deve ser maior que zero'),
-  dueDate: z.string().min(1, 'Obrigatório'),
-  receivedDate: z.string().optional(),
-  receivedAmount: z.coerce.number().optional(),
-  receivedMethod: z.string().optional(),
-  categoryId: z.string().min(1, 'Obrigatório'),
-  notes: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-interface ReceivableAccountsFormProps {
+export interface ReceivableAccountsFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (account: Omit<ReceivableAccount, 'id' | 'createdAt' | 'updatedAt'>) => void;
   account: ReceivableAccount | null;
-  onSubmit: (account: ReceivableAccount) => void;
-  onCancel: () => void;
 }
 
-export function ReceivableAccountsForm({ account, onSubmit, onCancel }: ReceivableAccountsFormProps) {
-  const { clients } = useClients();
-  
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: account ? {
-      clientId: account.clientId,
-      description: account.description,
-      amount: account.amount,
-      dueDate: account.dueDate,
-      receivedDate: account.receivedDate || '',
-      receivedAmount: account.receivedAmount,
-      receivedMethod: account.receivedMethod || '',
-      categoryId: account.categoryId,
-      notes: account.notes || '',
-    } : {
-      clientId: '',
-      description: '',
-      amount: 0,
-      dueDate: '',
-      receivedDate: '',
-      receivedAmount: undefined,
-      receivedMethod: '',
-      categoryId: '',
-      notes: '',
-    }
+export function ReceivableAccountsForm({ open, onOpenChange, onSubmit, account }: ReceivableAccountsFormProps) {
+  const [formData, setFormData] = React.useState({
+    clientId: '',
+    clientName: '',
+    description: '',
+    amount: '',
+    dueDate: '',
+    receivedDate: '',
+    receivedAmount: '',
+    remainingAmount: '',
+    receivedMethod: 'pix',
+    categoryId: '1',
+    categoryName: 'Fretes',
+    notes: '',
   });
-  
-  const handleSubmit = (values: FormValues) => {
-    const client = clients.find(c => c.id === values.clientId);
-    const category = CATEGORIES.find(c => c.id === values.categoryId);
+
+  React.useEffect(() => {
+    if (account) {
+      setFormData({
+        clientId: account.clientId,
+        clientName: account.clientName,
+        description: account.description,
+        amount: account.amount.toString(),
+        dueDate: account.dueDate,
+        receivedDate: account.receivedDate || '',
+        receivedAmount: account.receivedAmount ? account.receivedAmount.toString() : '',
+        remainingAmount: account.remainingAmount ? account.remainingAmount.toString() : '',
+        receivedMethod: account.receivedMethod || 'pix',
+        categoryId: account.categoryId,
+        categoryName: account.categoryName || '',
+        notes: account.notes || '',
+      });
+    } else {
+      // Reset form for new account
+      setFormData({
+        clientId: '',
+        clientName: '',
+        description: '',
+        amount: '',
+        dueDate: '',
+        receivedDate: '',
+        receivedAmount: '',
+        remainingAmount: '',
+        receivedMethod: 'pix',
+        categoryId: '1',
+        categoryName: 'Fretes',
+        notes: '',
+      });
+    }
+  }, [account]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
+    const currentDate = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const dueDate = new Date(formData.dueDate);
+    
+    // Determine the status based on received date, received amount, and due date
     let status: 'pending' | 'received' | 'overdue' | 'partially_received' = 'pending';
-    let remainingAmount: number | undefined;
     
-    if (values.receivedDate) {
-      if (values.receivedAmount && values.receivedAmount < values.amount) {
-        status = 'partially_received';
-        remainingAmount = values.amount - values.receivedAmount;
-      } else {
+    if (formData.receivedDate) {
+      const receivedAmount = formData.receivedAmount ? parseFloat(formData.receivedAmount) : 0;
+      const totalAmount = parseFloat(formData.amount);
+      
+      if (receivedAmount >= totalAmount) {
         status = 'received';
+      } else if (receivedAmount > 0) {
+        status = 'partially_received';
       }
-    } else if (new Date(values.dueDate) < new Date()) {
+    } else if (dueDate < today) {
       status = 'overdue';
     }
     
-    const formattedAccount: ReceivableAccount = {
-      id: account?.id || '',
-      clientId: values.clientId,
-      clientName: client?.name || 'Cliente Não Encontrado',
-      description: values.description,
-      amount: values.amount,
-      dueDate: values.dueDate,
-      receivedDate: values.receivedDate || undefined,
-      receivedAmount: values.receivedAmount,
-      remainingAmount,
-      receivedMethod: values.receivedMethod || undefined,
+    const submittedData = {
+      clientId: formData.clientId,
+      clientName: formData.clientName,
+      description: formData.description,
+      amount: parseFloat(formData.amount),
+      dueDate: formData.dueDate,
+      receivedDate: formData.receivedDate || undefined,
+      receivedAmount: formData.receivedAmount ? parseFloat(formData.receivedAmount) : undefined,
+      remainingAmount: formData.remainingAmount ? parseFloat(formData.remainingAmount) : undefined,
+      receivedMethod: formData.receivedDate ? formData.receivedMethod : undefined,
       status,
-      categoryId: values.categoryId,
-      categoryName: category?.name,
-      notes: values.notes,
-      createdAt: account?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      categoryId: formData.categoryId,
+      categoryName: formData.categoryName,
+      notes: formData.notes || undefined,
     };
     
-    onSubmit(formattedAccount);
+    onSubmit(submittedData);
   };
   
+  const incomeCategories = [
+    { id: '1', name: 'Fretes' },
+    { id: '2', name: 'Serviços' },
+    { id: '3', name: 'Vendas' },
+    { id: '4', name: 'Reembolsos' },
+    { id: '5', name: 'Outros' },
+  ];
+  
+  // Mock clients for demonstration
+  const clients = [
+    { id: '1', name: 'Indústrias ABC' },
+    { id: '2', name: 'Farmácia Saúde Total' },
+    { id: '3', name: 'Supermercado Econômico' },
+    { id: '4', name: 'Construtora Horizonte' },
+    { id: '5', name: 'Restaurante Sabor & Arte' },
+  ];
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="clientId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cliente</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categoria</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {CATEGORIES.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{account ? 'Editar Conta a Receber' : 'Nova Conta a Receber'}</DialogTitle>
+        </DialogHeader>
         
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição da receita</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor a receber</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="clientId">Cliente</Label>
+            <Select 
+              value={formData.clientId} 
+              onValueChange={(value) => {
+                const selectedClient = clients.find(client => client.id === value);
+                setFormData(prev => ({ 
+                  ...prev, 
+                  clientId: value,
+                  clientName: selectedClient ? selectedClient.name : ''
+                }));
+              }}
+            >
+              <SelectTrigger id="clientId">
+                <SelectValue placeholder="Selecione um cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          <FormField
-            control={form.control}
-            name="dueDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de vencimento</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className="border p-4 rounded-md space-y-4">
-          <h3 className="font-medium">Informações de Recebimento</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="receivedDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data de recebimento</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Preencha apenas quando o pagamento for recebido
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="receivedMethod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Forma de recebimento</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {RECEIVED_METHODS.map((method) => (
-                        <SelectItem key={method.value} value={method.value}>
-                          {method.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição</Label>
+            <Input
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Descrição da receita"
+              required
             />
           </div>
           
-          <FormField
-            control={form.control}
-            name="receivedAmount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor recebido</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Deixe em branco para o valor total ou preencha para recebimento parcial
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Observações</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Valor (R$)</Label>
+              <Input
+                id="amount"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0,00"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">Data de Vencimento</Label>
+              <Input
+                id="dueDate"
+                name="dueDate"
+                value={formData.dueDate}
+                onChange={handleChange}
+                type="date"
+                required
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="receivedMethod">Forma de Recebimento</Label>
+              <Select 
+                value={formData.receivedMethod} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, receivedMethod: value }))}
+              >
+                <SelectTrigger id="receivedMethod">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pix">PIX</SelectItem>
+                  <SelectItem value="cash">Dinheiro</SelectItem>
+                  <SelectItem value="bank_slip">Boleto</SelectItem>
+                  <SelectItem value="transfer">Transferência</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="receivedDate">Data de Recebimento</Label>
+              <Input
+                id="receivedDate"
+                name="receivedDate"
+                value={formData.receivedDate}
+                onChange={handleChange}
+                type="date"
+              />
+            </div>
+          </div>
+          
+          {formData.receivedDate && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="receivedAmount">Valor Recebido (R$)</Label>
+                <Input
+                  id="receivedAmount"
+                  name="receivedAmount"
+                  value={formData.receivedAmount}
+                  onChange={(e) => {
+                    const receivedAmount = parseFloat(e.target.value) || 0;
+                    const totalAmount = parseFloat(formData.amount) || 0;
+                    const remainingAmount = totalAmount > receivedAmount ? totalAmount - receivedAmount : 0;
+                    
+                    setFormData(prev => ({
+                      ...prev,
+                      receivedAmount: e.target.value,
+                      remainingAmount: remainingAmount.toString()
+                    }));
+                  }}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0,00"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="remainingAmount">Valor Restante (R$)</Label>
+                <Input
+                  id="remainingAmount"
+                  name="remainingAmount"
+                  value={formData.remainingAmount}
+                  readOnly
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="bg-gray-50"
+                />
+              </div>
+            </div>
           )}
-        />
-        
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit">
-            {account ? 'Atualizar' : 'Salvar'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          
+          <div className="space-y-2">
+            <Label htmlFor="categoryId">Categoria</Label>
+            <Select 
+              value={formData.categoryId} 
+              onValueChange={(value) => {
+                const selectedCategory = incomeCategories.find(cat => cat.id === value);
+                setFormData(prev => ({ 
+                  ...prev, 
+                  categoryId: value,
+                  categoryName: selectedCategory ? selectedCategory.name : ''
+                }));
+              }}
+            >
+              <SelectTrigger id="categoryId">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {incomeCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="notes">Observações</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              placeholder="Observações adicionais..."
+            />
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit">
+              {account ? 'Atualizar' : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
