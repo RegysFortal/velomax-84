@@ -10,6 +10,7 @@ import { UserManagement } from '@/components/settings/UserManagement';
 import { CompanySettings } from '@/components/settings/CompanySettings';
 import { ClientsManagement } from '@/components/settings/ClientsManagement';
 import { toast } from 'sonner';
+import { BudgetProvider } from '@/contexts/budget';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('system');
@@ -61,7 +62,9 @@ const SettingsPage = () => {
           
           <TabsContent value="backup" className="space-y-6">
             <SystemBackup />
-            <BudgetBackupTools />
+            <BudgetProvider>
+              <BudgetBackupTools />
+            </BudgetProvider>
           </TabsContent>
           
           <TabsContent value="notifications" className="space-y-6">

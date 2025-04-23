@@ -10,6 +10,7 @@ import { ShipmentsProvider } from './contexts/shipments';
 import { DeliveriesProvider } from './contexts/deliveries/DeliveriesProvider';
 import { FinancialProvider } from './contexts/FinancialContext';
 import { ActivityLogProvider } from './contexts/ActivityLogContext';
+import { BudgetProvider } from './contexts/budget';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -79,7 +80,7 @@ function App() {
                           <Route path="/contractors" element={<ProtectedRoute><Contractors /></ProtectedRoute>} />
                           <Route path="/maintenance" element={<ProtectedRoute><Maintenance /></ProtectedRoute>} />
                           <Route path="/logbook" element={<ProtectedRoute><Logbook /></ProtectedRoute>} />
-                          <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
+                          <Route path="/budgets" element={<ProtectedRoute><BudgetProvider><Budgets /></BudgetProvider></ProtectedRoute>} />
                           
                           {/* New financial accounts routes */}
                           <Route path="/accounts/payable" element={<ProtectedRoute><PayableAccountsPage /></ProtectedRoute>} />
