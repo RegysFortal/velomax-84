@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -62,8 +61,9 @@ export function SearchableSelect({
     };
   }, []);
   
-  // Handle selection - Improved to handle both click and keypress
+  // Handle selection
   const handleSelect = (currentValue: string) => {
+    console.log("SearchableSelect - Selected value:", currentValue);
     onValueChange(currentValue);
     setSearchValue('');
     setOpen(false);
@@ -87,6 +87,7 @@ export function SearchableSelect({
   const handleTriggerClick = () => {
     if (!disabled) {
       setOpen(!open);
+      console.log("SearchableSelect - Popover open status changed to:", !open);
     }
   };
   
@@ -128,7 +129,7 @@ export function SearchableSelect({
         </div>
       </PopoverTrigger>
       
-      <PopoverContent className="p-0 max-h-[300px] overflow-hidden" ref={popoverRef} align="start">
+      <PopoverContent className="p-0 max-h-[300px] overflow-hidden w-full min-w-[250px]" ref={popoverRef} align="start">
         <Command className="rounded-lg border shadow-md">
           <div className="flex items-center border-b px-3">
             <div className="flex-1">

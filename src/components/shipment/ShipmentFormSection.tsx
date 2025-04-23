@@ -72,6 +72,8 @@ export function ShipmentFormSection({
         const displayName = selectedClient.tradingName || selectedClient.name;
         console.log("ShipmentFormSection - Setting company name to:", displayName);
         setCompanyName(displayName);
+      } else {
+        console.warn("ShipmentFormSection - Client not found with ID:", id);
       }
     } catch (error) {
       console.error("Error handling client change:", error);
@@ -80,18 +82,20 @@ export function ShipmentFormSection({
 
   // Debug output to help diagnose issues
   useEffect(() => {
-    if (clients.length > 0) {
-      console.log("ShipmentFormSection - Available clients:", clients.length);
-    }
-  }, [clients]);
+    console.log("ShipmentFormSection - Rendering with companyId:", companyId);
+    console.log("ShipmentFormSection - Available clients:", clients.length);
+  }, [clients, companyId]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <ClientSelection 
-        companyId={companyId}
-        onCompanyChange={handleClientChange}
-        disabled={disabled}
-      />
+      <div className="md:col-span-2">
+        <ClientSelection 
+          companyId={companyId}
+          onCompanyChange={handleClientChange}
+          disabled={disabled}
+          clients={clients}
+        />
+      </div>
       
       <TransportSection 
         transportMode={transportMode}

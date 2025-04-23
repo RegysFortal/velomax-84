@@ -68,12 +68,6 @@ export function ClientSearchSelect({
     }
   }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
   
-  // Debug current value
-  useEffect(() => {
-    console.log("ClientSearchSelect - Valor atual:", value);
-    console.log("ClientSearchSelect - Número de opções:", clientOptions.length);
-  }, [value, clientOptions]);
-  
   const handleCreateNewClient = () => {
     // Store current route to return after client creation
     localStorage.setItem('velomax_return_route', window.location.pathname);

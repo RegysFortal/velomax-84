@@ -3,19 +3,25 @@ import React, { useEffect } from 'react';
 import { ClientSearchSelect } from "@/components/client/ClientSearchSelect";
 import { useClients } from "@/contexts/clients";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Client } from "@/types";
 
 interface ClientSelectionProps {
   companyId: string;
   onCompanyChange: (id: string) => void;
   disabled?: boolean;
+  clients?: Client[];
 }
 
 export function ClientSelection({ 
   companyId, 
   onCompanyChange,
-  disabled = false
+  disabled = false,
+  clients: propClients
 }: ClientSelectionProps) {
-  const { clients, loading } = useClients();
+  const { clients: contextClients, loading } = useClients();
+  
+  // Use clients from props if provided, otherwise use from context
+  const clients = propClients || contextClients;
   
   // Prevent selection from being interactive while clients are loading
   const isDisabled = disabled || loading;
@@ -31,11 +37,11 @@ export function ClientSelection({
   useEffect(() => {
     if (clients.length > 0) {
       console.log("ClientSelection - Available clients:", clients.length);
-      console.log("ClientSelection - Current companyId:", companyId);
     }
+    console.log("ClientSelection - Current companyId:", companyId);
   }, [clients, companyId]);
   
-  if (loading) {
+  if (loading && !propClients) {
     return <Skeleton className="h-10 w-full" />;
   }
   
