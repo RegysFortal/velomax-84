@@ -31,10 +31,13 @@ export function ClientSelection({
     
     // Only update if we have a valid ID
     if (newCompanyId && newCompanyId.trim() !== '') {
-      // Delayed execution to ensure React state updates properly
-      setTimeout(() => {
+      try {
+        // Call the onCompanyChange prop directly
         onCompanyChange(newCompanyId);
-      }, 10);
+        console.log("ClientSelection - onCompanyChange called successfully");
+      } catch (error) {
+        console.error("Error in handleCompanyChange:", error);
+      }
     }
   };
   

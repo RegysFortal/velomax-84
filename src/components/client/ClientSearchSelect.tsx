@@ -92,17 +92,18 @@ export function ClientSearchSelect({
         const selectedOption = clientOptions.find(opt => opt.value === newValue);
         console.log("ClientSearchSelect - Selected client option:", selectedOption?.label);
         
-        // Ensure onValueChange is called
-        onValueChange(newValue);
+        // Use a setTimeout to ensure the state update completes
+        setTimeout(() => {
+          // Ensure onValueChange is called
+          onValueChange(newValue);
+          setIsProcessing(false);
+        }, 10);
+      } else {
+        setIsProcessing(false);
       }
-      
     } catch (error) {
       console.error("Error changing client value:", error);
-    } finally {
-      // Add a small delay to reset processing state
-      setTimeout(() => {
-        setIsProcessing(false);
-      }, 100);
+      setIsProcessing(false);
     }
   };
   
@@ -118,7 +119,7 @@ export function ClientSearchSelect({
   }, [value, clientOptions]);
   
   return (
-    <div className="w-full">
+    <div className="w-full relative" data-testid="client-search-select">
       <SearchableSelect
         options={clientOptions}
         value={value}

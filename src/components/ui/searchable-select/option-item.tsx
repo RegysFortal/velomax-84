@@ -11,11 +11,13 @@ interface OptionItemProps {
 }
 
 export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
-  // Use both click and onSelect handlers to ensure selection works consistently
   const handleClick = (e: React.MouseEvent) => {
+    // Prevent default and propagation
     e.preventDefault();
     e.stopPropagation();
-    console.log("OptionItem - clicked:", option.value);
+    
+    // Call onSelect with option value
+    console.log("OptionItem - clicked directly:", option.value);
     onSelect(option.value);
   };
 
@@ -25,10 +27,14 @@ export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
       value={option.value}
       onSelect={() => {
         console.log("OptionItem - onSelect triggered:", option.value);
-        onSelect(option.value);
+        // Use a timeout to ensure React processes this after other events
+        setTimeout(() => {
+          onSelect(option.value);
+        }, 0);
       }}
       onClick={handleClick}
-      className="flex items-center justify-between gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent hover:text-accent-foreground"
+      className="flex items-center justify-between gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent hover:text-accent-foreground data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
+      data-selected={isSelected}
     >
       <div className="flex flex-col">
         <span className="font-medium">

@@ -29,6 +29,12 @@ export function SearchableSelect({
   const [searchValue, setSearchValue] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const valueChangeRef = useRef(onValueChange);
+  
+  // Update ref when onValueChange changes
+  useEffect(() => {
+    valueChangeRef.current = onValueChange;
+  }, [onValueChange]);
   
   // Find the selected option to display in the trigger
   const selectedOption = options.find(option => option.value === value);
@@ -55,17 +61,21 @@ export function SearchableSelect({
     }
   }, [open]);
   
-  // Handle selection with explicit debug logging
+  // Handle selection with robust approach
   const handleSelect = (currentValue: string) => {
     console.log("SearchableSelect - handleSelect called with:", currentValue);
     
     if (currentValue) {
-      console.log("SearchableSelect - Calling onValueChange with:", currentValue);
-      onValueChange(currentValue);
-      
-      // Close the popover after selection
-      setSearchValue('');
-      setOpen(false);
+      try {
+        console.log("SearchableSelect - Calling onValueChange with:", currentValue);
+        valueChangeRef.current(currentValue);
+        
+        // Close the popover after selection
+        setSearchValue('');
+        setOpen(false);
+      } catch (error) {
+        console.error("Error in handleSelect:", error);
+      }
     }
   };
   
