@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -130,7 +131,7 @@ export function SearchableSelect({
       </PopoverTrigger>
       
       <PopoverContent className="p-0 max-h-[300px] overflow-hidden w-full min-w-[250px]" ref={popoverRef} align="start">
-        <Command className="rounded-lg border shadow-md">
+        <Command className="rounded-lg border shadow-md w-full">
           <div className="flex items-center border-b px-3">
             <div className="flex-1">
               <CommandInput
