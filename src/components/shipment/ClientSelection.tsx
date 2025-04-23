@@ -1,7 +1,6 @@
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { ClientSearchSelect } from "@/components/client/ClientSearchSelect";
-import { useClients } from "@/contexts/clients";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Client } from "@/types";
 
@@ -16,38 +15,11 @@ export function ClientSelection({
   companyId, 
   onCompanyChange,
   disabled = false,
-  clients: propClients
+  clients = []
 }: ClientSelectionProps) {
-  const { clients: contextClients, loading } = useClients();
+  const [loading, setLoading] = useState(false);
   
-  // Use clients from props if provided, otherwise use from context
-  const clients = propClients || contextClients;
-  
-  // Prevent selection from being interactive while clients are loading
-  const isDisabled = disabled || loading;
-  
-  const handleCompanyChange = (newCompanyId: string) => {
-    console.log("ClientSelection - Company changed to:", newCompanyId);
-    
-    // Only update if we have a valid ID
-    if (newCompanyId && newCompanyId.trim() !== '') {
-      // Add a small delay to ensure state updates properly
-      setTimeout(() => {
-        console.log("ClientSelection - Executing delayed onCompanyChange with:", newCompanyId);
-        onCompanyChange(newCompanyId);
-      }, 20);
-    }
-  };
-  
-  // Debug output to help diagnose issues
-  useEffect(() => {
-    if (clients.length > 0) {
-      console.log("ClientSelection - Available clients:", clients.length);
-    }
-    console.log("ClientSelection - Current companyId:", companyId);
-  }, [clients, companyId]);
-  
-  if (loading && !propClients) {
+  if (loading && clients.length === 0) {
     return <Skeleton className="h-10 w-full" />;
   }
   
@@ -55,9 +27,9 @@ export function ClientSelection({
     <div className="space-y-2 w-full">
       <ClientSearchSelect
         value={companyId}
-        onValueChange={handleCompanyChange}
-        placeholder={loading ? "Carregando clientes..." : "Selecione o cliente"}
-        disabled={isDisabled}
+        onValueChange={onCompanyChange}
+        placeholder="Selecione o cliente"
+        disabled={disabled}
         clients={clients}
         showCreateOption={!disabled}
       />
