@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, Home } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 
 const Index = () => {
   return (
@@ -15,21 +15,10 @@ const Index = () => {
       <div className="flex flex-col gap-4 w-full max-w-md">
         <Button asChild className="w-full">
           <Link to="/login">
-            <Calendar className="mr-2 h-4 w-4" />
-            Login
+            <LogIn className="mr-2 h-4 w-4" />
+            Entrar
           </Link>
         </Button>
-        
-        <Button asChild variant="secondary" className="w-full">
-          <Link to="/dashboard">
-            <Home className="mr-2 h-4 w-4" />
-            Dashboard
-          </Link>
-        </Button>
-      </div>
-      
-      <div className="mt-8 text-sm text-muted-foreground">
-        <p>Versão de teste: Acesse o dashboard para visualizar as funcionalidades</p>
       </div>
     </div>
   );
