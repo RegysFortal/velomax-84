@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -48,19 +47,12 @@ export function SearchableSelect({
     }
   }, [open]);
   
-  // Handle outside click to close popover
+  // Clear search when popover closes
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    if (!open) {
+      setTimeout(() => setSearchValue(''), 150);
+    }
+  }, [open]);
   
   // Handle selection
   const handleSelect = (currentValue: string) => {
@@ -119,7 +111,7 @@ export function SearchableSelect({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div onClick={handleTriggerClick}>
+        <div onClick={handleTriggerClick} className="w-full">
           <SearchableSelectTrigger
             placeholder={placeholder}
             value={selectedOption?.label || ''}
@@ -130,7 +122,12 @@ export function SearchableSelect({
         </div>
       </PopoverTrigger>
       
-      <PopoverContent className="p-0 max-h-[300px] overflow-hidden w-full min-w-[250px]" ref={popoverRef} align="start">
+      <PopoverContent 
+        className="p-0 max-h-[300px] overflow-hidden w-full min-w-[250px]" 
+        ref={popoverRef} 
+        align="start"
+        sideOffset={8}
+      >
         <Command className="rounded-lg border shadow-md w-full">
           <div className="flex items-center border-b px-3">
             <div className="flex-1">

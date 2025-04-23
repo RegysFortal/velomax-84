@@ -46,7 +46,7 @@ export function ClientSelection({
   }
   
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 w-full">
       <ClientSearchSelect
         value={companyId}
         onValueChange={handleCompanyChange}

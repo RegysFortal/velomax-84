@@ -24,7 +24,7 @@ export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
       value={option.value}
       onSelect={() => onSelect(option.value)}
       onClick={handleClick}
-      className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground cursor-pointer"
+      className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground cursor-pointer py-2"
     >
       <div className="flex flex-col">
         <span className="font-medium">

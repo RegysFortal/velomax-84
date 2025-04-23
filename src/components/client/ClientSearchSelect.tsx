@@ -41,7 +41,7 @@ export function ClientSearchSelect({
   useEffect(() => {
     try {
       if (clients && clients.length > 0) {
-        console.log("ClientSearchSelect - Formatando opções para", clients.length, "clientes");
+        console.log("ClientSearchSelect - Formatting options for", clients.length, "clients");
         
         // Format client options for the searchable select
         const options = [
@@ -57,13 +57,13 @@ export function ClientSearchSelect({
         ];
         
         setClientOptions(options);
-        console.log("ClientSearchSelect - Opções formatadas:", options.length);
+        console.log("ClientSearchSelect - Formatted options:", options.length);
       } else {
-        console.log("ClientSearchSelect - Nenhum cliente disponível");
+        console.log("ClientSearchSelect - No clients available");
         setClientOptions([]);
       }
     } catch (error) {
-      console.error("Erro formatando opções de clientes:", error);
+      console.error("Error formatting client options:", error);
       setClientOptions([]);
     }
   }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
@@ -82,7 +82,7 @@ export function ClientSearchSelect({
     
     try {
       setIsProcessing(true);
-      console.log("ClientSearchSelect - Valor alterado para:", newValue);
+      console.log("ClientSearchSelect - Value changed to:", newValue);
       
       // Ensure onValueChange is called immediately
       onValueChange(newValue);
@@ -92,22 +92,35 @@ export function ClientSearchSelect({
         setIsProcessing(false);
       }, 50);
     } catch (error) {
-      console.error("Erro ao alterar valor do cliente:", error);
+      console.error("Error changing client value:", error);
       setIsProcessing(false);
     }
   };
   
+  // Debug client options and selection
+  useEffect(() => {
+    console.log("ClientSearchSelect - Current value:", value);
+    console.log("ClientSearchSelect - Available options:", clientOptions.length);
+    
+    if (value) {
+      const selectedOption = clientOptions.find(opt => opt.value === value);
+      console.log("ClientSearchSelect - Selected client:", selectedOption?.label);
+    }
+  }, [value, clientOptions]);
+  
   return (
-    <SearchableSelect
-      options={clientOptions}
-      value={value}
-      onValueChange={handleValueChange}
-      placeholder={placeholder}
-      emptyMessage="Nenhum cliente encontrado"
-      showCreateOption={showCreateOption}
-      onCreateNew={handleCreateNewClient}
-      createOptionLabel={createOptionLabel}
-      disabled={disabled || isProcessing}
-    />
+    <div className="w-full">
+      <SearchableSelect
+        options={clientOptions}
+        value={value}
+        onValueChange={handleValueChange}
+        placeholder={placeholder}
+        emptyMessage="Nenhum cliente encontrado"
+        showCreateOption={showCreateOption}
+        onCreateNew={handleCreateNewClient}
+        createOptionLabel={createOptionLabel}
+        disabled={disabled || isProcessing}
+      />
+    </div>
   );
 }
