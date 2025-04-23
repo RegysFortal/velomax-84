@@ -28,12 +28,6 @@ export function SearchableSelect({
   const [searchValue, setSearchValue] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const valueChangeRef = useRef(onValueChange);
-  
-  // Update ref when onValueChange changes
-  useEffect(() => {
-    valueChangeRef.current = onValueChange;
-  }, [onValueChange]);
   
   // Find the selected option to display in the trigger
   const selectedOption = options.find(option => option.value === value);
@@ -67,7 +61,7 @@ export function SearchableSelect({
     if (currentValue) {
       try {
         console.log("SearchableSelect - Calling onValueChange with:", currentValue);
-        valueChangeRef.current(currentValue);
+        onValueChange(currentValue);
         
         // Close the popover after selection
         setSearchValue('');

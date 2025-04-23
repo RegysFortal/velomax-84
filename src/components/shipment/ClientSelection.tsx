@@ -31,7 +31,11 @@ export function ClientSelection({
     
     // Only update if we have a valid ID
     if (newCompanyId && newCompanyId.trim() !== '') {
-      onCompanyChange(newCompanyId);
+      // Add a small delay to ensure state updates properly
+      setTimeout(() => {
+        console.log("ClientSelection - Executing delayed onCompanyChange with:", newCompanyId);
+        onCompanyChange(newCompanyId);
+      }, 20);
     }
   };
   

@@ -84,8 +84,11 @@ export function ClientSearchSelect({
       const selectedOption = clientOptions.find(opt => opt.value === newValue);
       console.log("ClientSearchSelect - Selected client option:", selectedOption?.label);
       
-      // Call the onValueChange prop
-      onValueChange(newValue);
+      // Call the onValueChange prop with a small delay to ensure state changes are processed
+      setTimeout(() => {
+        console.log("ClientSearchSelect - Executing delayed onValueChange with:", newValue);
+        onValueChange(newValue);
+      }, 10);
     }
   };
   
