@@ -47,14 +47,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light">
+    <ThemeProvider>
       <AuthProvider>
         <ClientsProvider>
-          <ShipmentsProvider>
-            <DeliveriesProvider>
-              <FinancialProvider>
-                <PriceTablesProvider>
-                  <CitiesProvider>
+          <PriceTablesProvider>
+            <CitiesProvider>
+              <ShipmentsProvider>
+                <DeliveriesProvider>
+                  <FinancialProvider>
                     <ActivityLogProvider>
                       <Router>
                         <Routes>
@@ -92,11 +92,11 @@ function App() {
                         <Toaster />
                       </Router>
                     </ActivityLogProvider>
-                  </CitiesProvider>
-                </PriceTablesProvider>
-              </FinancialProvider>
-            </DeliveriesProvider>
-          </ShipmentsProvider>
+                  </FinancialProvider>
+                </DeliveriesProvider>
+              </ShipmentsProvider>
+            </CitiesProvider>
+          </PriceTablesProvider>
         </ClientsProvider>
       </AuthProvider>
     </ThemeProvider>
