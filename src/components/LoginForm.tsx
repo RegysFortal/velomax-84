@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -193,14 +192,104 @@ export const LoginForm = () => {
   };
   
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="text-2xl text-center">Acesso ao Sistema</CardTitle>
-        <CardDescription className="text-center">
-          {isRegistering ? "Crie sua conta para acessar o sistema" : "Entre com seu usuário e senha para acessar o sistema"}
-        </CardDescription>
-      </CardHeader>
-      
+    <div className="w-full">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+          Acesso ao Sistema
+        </h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+          Entre com suas credenciais para acessar
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="username" className="text-sm font-medium">
+            Usuário
+          </Label>
+          <div className="relative">
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="pl-10"
+              placeholder="Digite seu usuário"
+              disabled={isSubmitting}
+            />
+            <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-sm font-medium">
+            Senha
+          </Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10"
+              placeholder="Digite sua senha"
+              disabled={isSubmitting}
+            />
+            <LockIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          </div>
+        </div>
+
+        <Button 
+          type="submit" 
+          className="w-full bg-velomax-blue hover:bg-blue-800 transition-colors"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Autenticando..." : "Entrar"}
+        </Button>
+
+        <div className="mt-6 flex items-center justify-between">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="link" className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                Esqueci minha senha
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Recuperação de Senha</DialogTitle>
+                    <DialogDescription>
+                      Informe seu nome de usuário ou email para receber instruções de redefinição.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleResetPassword} className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="forgot-username">Nome de Usuário ou Email</Label>
+                      <Input
+                        id="forgot-username"
+                        value={forgotUsername}
+                        onChange={(e) => setForgotUsername(e.target.value)}
+                        disabled={isResetting}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit" disabled={isResetting}>
+                        {isResetting ? "Enviando..." : "Enviar Instruções"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+          </Dialog>
+          
+          <Button
+            type="button"
+            variant="link"
+            onClick={() => setIsRegistering(true)}
+            className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          >
+            Criar uma conta
+          </Button>
+        </div>
+      </form>
+
       {isRegistering ? (
         // Registration form
         <form onSubmit={handleRegister}>
@@ -266,90 +355,11 @@ export const LoginForm = () => {
               </AlertDescription>
             </Alert>
 
-            <div className="space-y-2">
-              <Label htmlFor="username">Usuário</Label>
-              <div className="relative">
-                <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="username"
-                  placeholder="Digite seu nome de usuário"
-                  className="pl-10"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <div className="relative">
-                <LockIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Digite sua senha"
-                  className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex-col gap-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-velomax-blue hover:bg-blue-800"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Autenticando..." : "Entrar"}
-            </Button>
             
-            <div className="flex justify-between w-full">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="link" className="text-sm text-muted-foreground hover:text-primary">
-                    Esqueci minha senha
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Recuperação de Senha</DialogTitle>
-                    <DialogDescription>
-                      Informe seu nome de usuário ou email para receber instruções de redefinição.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleResetPassword} className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="forgot-username">Nome de Usuário ou Email</Label>
-                      <Input
-                        id="forgot-username"
-                        value={forgotUsername}
-                        onChange={(e) => setForgotUsername(e.target.value)}
-                        disabled={isResetting}
-                      />
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit" disabled={isResetting}>
-                        {isResetting ? "Enviando..." : "Enviar Instruções"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-              
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => setIsRegistering(true)}
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Criar uma conta
-              </Button>
-            </div>
-          </CardFooter>
+          </CardContent>
+          
         </form>
       )}
-    </Card>
+    </div>
   );
 };
