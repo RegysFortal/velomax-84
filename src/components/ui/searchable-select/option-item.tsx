@@ -11,10 +11,11 @@ interface OptionItemProps {
 }
 
 export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
-  // Add explicit click handler to ensure the selection works
-  const handleClick = (event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
+  // Use both click and onSelect handlers to ensure selection works consistently
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("OptionItem - clicked:", option.value);
     onSelect(option.value);
   };
 
@@ -22,9 +23,12 @@ export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
     <CommandItem
       key={option.value}
       value={option.value}
-      onSelect={() => onSelect(option.value)}
+      onSelect={() => {
+        console.log("OptionItem - onSelect triggered:", option.value);
+        onSelect(option.value);
+      }}
       onClick={handleClick}
-      className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground cursor-pointer py-2"
+      className="flex items-center justify-between gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent hover:text-accent-foreground"
     >
       <div className="flex flex-col">
         <span className="font-medium">
@@ -36,7 +40,7 @@ export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
           </span>
         )}
       </div>
-      {isSelected && <Check className="h-4 w-4" />}
+      {isSelected && <Check className="h-4 w-4 flex-shrink-0" />}
     </CommandItem>
   );
 }

@@ -78,22 +78,31 @@ export function ClientSearchSelect({
   };
   
   const handleValueChange = (newValue: string) => {
-    if (isProcessing) return;
+    if (isProcessing) {
+      console.log("ClientSearchSelect - Processing in progress, ignoring change");
+      return;
+    }
     
     try {
       setIsProcessing(true);
       console.log("ClientSearchSelect - Value changed to:", newValue);
       
-      // Ensure onValueChange is called immediately
-      onValueChange(newValue);
+      if (newValue) {
+        // Find the client to confirm it exists
+        const selectedOption = clientOptions.find(opt => opt.value === newValue);
+        console.log("ClientSearchSelect - Selected client option:", selectedOption?.label);
+        
+        // Ensure onValueChange is called
+        onValueChange(newValue);
+      }
       
+    } catch (error) {
+      console.error("Error changing client value:", error);
+    } finally {
       // Add a small delay to reset processing state
       setTimeout(() => {
         setIsProcessing(false);
-      }, 50);
-    } catch (error) {
-      console.error("Error changing client value:", error);
-      setIsProcessing(false);
+      }, 100);
     }
   };
   

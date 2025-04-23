@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -54,12 +55,18 @@ export function SearchableSelect({
     }
   }, [open]);
   
-  // Handle selection
+  // Handle selection with explicit debug logging
   const handleSelect = (currentValue: string) => {
-    console.log("SearchableSelect - Selected value:", currentValue);
-    onValueChange(currentValue);
-    setSearchValue('');
-    setOpen(false);
+    console.log("SearchableSelect - handleSelect called with:", currentValue);
+    
+    if (currentValue) {
+      console.log("SearchableSelect - Calling onValueChange with:", currentValue);
+      onValueChange(currentValue);
+      
+      // Close the popover after selection
+      setSearchValue('');
+      setOpen(false);
+    }
   };
   
   // Handle create new option
@@ -123,7 +130,7 @@ export function SearchableSelect({
       </PopoverTrigger>
       
       <PopoverContent 
-        className="p-0 max-h-[300px] overflow-hidden w-full min-w-[250px]" 
+        className="p-0 max-h-[300px] overflow-hidden w-[var(--radix-popover-trigger-width)] min-w-[250px]" 
         ref={popoverRef} 
         align="start"
         sideOffset={8}
