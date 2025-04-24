@@ -14,19 +14,43 @@ import { useNavigate } from "react-router-dom";
 export function GlobalSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { deliveries } = useDeliveries();
-  const { shipments } = useShipments();
-  const { clients } = useClients();
+  
+  // Safely get data from contexts with fallbacks
+  let deliveries = [];
+  let shipments = [];
+  let clients = [];
+  
+  try {
+    const deliveriesContext = useDeliveries();
+    deliveries = deliveriesContext?.deliveries || [];
+  } catch (error) {
+    console.warn("DeliveriesProvider not available, using empty deliveries array");
+  }
+  
+  try {
+    const shipmentsContext = useShipments();
+    shipments = shipmentsContext?.shipments || [];
+  } catch (error) {
+    console.warn("ShipmentsProvider not available, using empty shipments array");
+  }
+  
+  try {
+    const clientsContext = useClients();
+    clients = clientsContext?.clients || [];
+  } catch (error) {
+    console.warn("ClientsProvider not available, using empty clients array");
+  }
+  
   const navigate = useNavigate();
 
   // Função para obter o nome do cliente
   const getClientName = (clientId: string) => {
-    const client = clients.find(c => c.id === clientId);
+    const client = clients.find((c: any) => c.id === clientId);
     return client ? (client.tradingName || client.name) : "Cliente não encontrado";
   };
 
   // Filtrar entregas
-  const filteredDeliveries = deliveries.filter(delivery => {
+  const filteredDeliveries = deliveries.filter((delivery: any) => {
     const clientName = getClientName(delivery.clientId).toLowerCase();
     const searchFields = [
       delivery.minuteNumber.toLowerCase(),
@@ -39,11 +63,11 @@ export function GlobalSearch() {
   }).slice(0, 5); // Limitar a 5 resultados
 
   // Filtrar embarques
-  const filteredShipments = shipments.filter(shipment => {
+  const filteredShipments = shipments.filter((shipment: any) => {
     const searchFields = [
-      shipment.companyName.toLowerCase(),
-      shipment.trackingNumber.toLowerCase(),
-      shipment.carrierName.toLowerCase(),
+      shipment.companyName?.toLowerCase() || "",
+      shipment.trackingNumber?.toLowerCase() || "",
+      shipment.carrierName?.toLowerCase() || "",
       shipment.observations?.toLowerCase() || ""
     ].join(" ");
     
@@ -111,7 +135,7 @@ export function GlobalSearch() {
                   
                   {filteredDeliveries.length > 0 ? (
                     <div className="space-y-2">
-                      {filteredDeliveries.map(delivery => (
+                      {filteredDeliveries.map((delivery: any) => (
                         <div
                           key={delivery.id}
                           className="flex justify-between p-2 rounded-md border hover:bg-muted cursor-pointer"
@@ -149,7 +173,7 @@ export function GlobalSearch() {
                   
                   {filteredShipments.length > 0 ? (
                     <div className="space-y-2">
-                      {filteredShipments.map(shipment => (
+                      {filteredShipments.map((shipment: any) => (
                         <div
                           key={shipment.id}
                           className="flex justify-between p-2 rounded-md border hover:bg-muted cursor-pointer"
@@ -159,9 +183,9 @@ export function GlobalSearch() {
                           }}
                         >
                           <div>
-                            <div className="font-medium">{shipment.companyName}</div>
+                            <div className="font-medium">{shipment.companyName || "Sem nome"}</div>
                             <div className="text-sm text-muted-foreground">
-                              Conhecimento: {shipment.trackingNumber} | {shipment.carrierName}
+                              Conhecimento: {shipment.trackingNumber || "N/A"} | {shipment.carrierName || "N/A"}
                             </div>
                           </div>
                           <div className="text-sm text-muted-foreground">
