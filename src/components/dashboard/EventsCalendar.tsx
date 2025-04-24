@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -37,7 +36,6 @@ export const EventsCalendar = ({
   const [eventType, setEventType] = useState<EventType>('other');
   const [eventDescription, setEventDescription] = useState('');
   
-  // Only consider deliveries that have both a delivery date and delivery time
   const actualScheduledDeliveries = useMemo(() => {
     return deliveries.filter(delivery => 
       delivery.deliveryDate && 
@@ -62,7 +60,6 @@ export const EventsCalendar = ({
       }
     });
     
-    // Only mark delivery dates if there are actual scheduled deliveries
     actualScheduledDeliveries.forEach(delivery => {
       try {
         const deliveryDate = parseISO(delivery.deliveryDate);
@@ -198,7 +195,6 @@ export const EventsCalendar = ({
     scheduledDelivery: { backgroundColor: '#10b981', color: 'white', borderRadius: '100%' }
   };
   
-  // Preparar eventos para o componente EventsList
   const eventsForSelectedDate = selectedDate 
     ? events.filter(event => {
         const eventDate = new Date(event.date);
@@ -253,7 +249,7 @@ export const EventsCalendar = ({
                 </div>
                 <div className="flex items-center">
                   <div className="mr-1 h-3 w-3 rounded-full bg-orange-500" />
-                  <span>Outro</span>
+                  <span>Reunião</span>
                 </div>
                 <div className="flex items-center">
                   <div className="mr-1 h-3 w-3 rounded-full bg-yellow-400" />
