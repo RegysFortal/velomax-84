@@ -1,71 +1,74 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { DatePickerField } from '@/components/employee/forms/DatePickerField';
+import { format } from "date-fns";
+import { ptBR } from 'date-fns/locale';
+import { Calendar as CalendarIcon } from "lucide-react";
+import { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Card } from '@/components/ui/card';
 
 interface DateRangeFilterProps {
-  startDate: string;
-  endDate: string;
-  onDateRangeChange?: (start: string, end: string) => void;
-  setStartDate?: (date: string) => void;
-  setEndDate?: (date: string) => void;
+  dateRange: DateRange;
+  onDateRangeChange: (range: DateRange) => void;
 }
 
-export function DateRangeFilter({ 
-  startDate, 
-  endDate, 
-  onDateRangeChange,
-  setStartDate,
-  setEndDate 
-}: DateRangeFilterProps) {
-  const handleStartDateChange = (date: Date | undefined) => {
-    if (date) {
-      const formattedDate = date.toISOString().split('T')[0];
-      if (setStartDate) {
-        setStartDate(formattedDate);
-      }
-      if (onDateRangeChange) {
-        onDateRangeChange(formattedDate, endDate);
-      }
-    }
-  };
-
-  const handleEndDateChange = (date: Date | undefined) => {
-    if (date) {
-      const formattedDate = date.toISOString().split('T')[0];
-      if (setEndDate) {
-        setEndDate(formattedDate);
-      }
-      if (onDateRangeChange) {
-        onDateRangeChange(startDate, formattedDate);
-      }
-    }
-  };
-
+export const DateRangeFilter = ({
+  dateRange,
+  onDateRangeChange
+}: DateRangeFilterProps) => {
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <DatePickerField
-              id="start-date"
-              label="Data Inicial"
-              value={startDate ? new Date(startDate) : undefined}
-              onChange={handleStartDateChange}
-              allowTyping={true}
-            />
-          </div>
-          <div className="flex-1">
-            <DatePickerField
-              id="end-date"
-              label="Data Final"
-              value={endDate ? new Date(endDate) : undefined}
-              onChange={handleEndDateChange}
-              allowTyping={true}
-            />
-          </div>
+    <Card className="p-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between">
+        <div className="mb-4 sm:mb-0">
+          <h3 className="text-lg font-medium">Filtro de Período</h3>
+          <p className="text-sm text-muted-foreground">Filtre os dados por período</p>
         </div>
-      </CardContent>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              id="date"
+              variant={"outline"}
+              className={cn(
+                "w-full sm:w-[300px] justify-start text-left font-normal",
+                !dateRange && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                    {format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
+                  </>
+                ) : (
+                  format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
+                )
+              ) : (
+                <span>Selecione um período</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={onDateRangeChange}
+              numberOfMonths={2}
+              locale={ptBR}
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
     </Card>
   );
-}
+};

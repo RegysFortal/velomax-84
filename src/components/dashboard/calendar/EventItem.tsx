@@ -1,33 +1,11 @@
 
 import React from 'react';
-import { CalendarEvent } from '@/hooks/useCalendarEvents';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { CalendarEvent, EVENT_TYPES } from '@/hooks/useCalendarEvents';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-const eventTypeColors = {
-  birthday: "bg-pink-500 hover:bg-pink-600",
-  delivery: "bg-blue-500 hover:bg-blue-600",
-  holiday: "bg-green-500 hover:bg-green-600",
-  meeting: "bg-purple-500 hover:bg-purple-600",
-  reminder: "bg-orange-500 hover:bg-orange-600",
-  other: "bg-gray-500 hover:bg-gray-600",
-};
-
-const getEventTypeLabel = (type: string) => {
-  switch (type) {
-    case 'birthday': return 'Aniversário';
-    case 'delivery': return 'Entrega';
-    case 'holiday': return 'Feriado';
-    case 'meeting': return 'Reunião';
-    case 'reminder': return 'Lembrete';
-    case 'other': return 'Outro';
-    default: return type;
-  }
-};
 
 interface EventItemProps {
   event: CalendarEvent;
@@ -37,61 +15,39 @@ interface EventItemProps {
 }
 
 export function EventItem({ event, onEdit, onDelete, compact = false }: EventItemProps) {
-  const eventColor = (eventTypeColors as any)[event.type] || eventTypeColors.other;
-  const typeLabel = getEventTypeLabel(event.type);
+  const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.other;
   
-  if (compact) {
-    return (
-      <div className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-        <div className="flex flex-1 items-center space-x-2">
-          <div className={`w-2 h-2 rounded-full ${eventColor.split(' ')[0]}`} />
-          <span className="text-xs font-medium truncate">{event.title}</span>
+  return (
+    <div className={cn(
+      "border rounded-md p-2 relative group hover:border-primary/50 transition-colors",
+      compact ? "text-xs" : "text-sm"
+    )}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <div className={cn("w-3 h-3 rounded-full mr-2", eventType.color)} />
+          <span className="font-medium">{event.title}</span>
         </div>
-        <div className="flex items-center space-x-1">
-          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onEdit}>
-            <Pencil className="h-3 w-3" />
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onEdit}>
+            <Edit2 className="h-3.5 w-3.5" />
           </Button>
-          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onDelete}>
-            <Trash2 className="h-3 w-3" />
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onDelete}>
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
-    );
-  }
-  
-  return (
-    <Card>
-      <CardContent className="p-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <Badge className={eventColor}>{typeLabel}</Badge>
-              {event.recurrence !== 'none' && (
-                <Badge variant="outline">Recorrente</Badge>
-              )}
-            </div>
-            <h4 className="font-semibold">{event.title}</h4>
-            <div className="flex flex-col text-xs text-muted-foreground">
-              <span>
-                {format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR })}
-                {event.time && ` às ${event.time}`}
-              </span>
-              {event.location && <span>Local: {event.location}</span>}
-            </div>
-            {event.description && (
-              <p className="text-sm mt-1">{event.description}</p>
-            )}
-          </div>
-          <div className="flex space-x-1">
-            <Button size="icon" variant="ghost" onClick={onEdit}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="ghost" onClick={onDelete}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+      
+      {!compact && event.description && (
+        <div className="mt-1 text-muted-foreground">
+          {event.description}
         </div>
-      </CardContent>
-    </Card>
+      )}
+      
+      {!compact && (
+        <div className="mt-1 text-xs text-muted-foreground">
+          {format(new Date(event.date), 'PPP', { locale: ptBR })}
+        </div>
+      )}
+    </div>
   );
 }
