@@ -94,6 +94,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     closeDialog: () => onOpenChange(false)
   });
 
+  // Reset form when dialog opens
   useEffect(() => {
     if (open) {
       console.log("ShipmentDialog - Dialog opened, resetting form");

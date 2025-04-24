@@ -39,16 +39,17 @@ export function ClientSelection({
   return (
     <div className="space-y-2 w-full">
       <ClientSearchSelect
-        value={companyId || ''}
+        value={companyId}
         onValueChange={(value) => {
           console.log("ClientSelection - Value selected:", value);
-          onCompanyChange(value);
+          if (value) {
+            onCompanyChange(value);
+          }
         }}
         placeholder="Selecione o cliente"
         disabled={disabled}
         clients={clients}
         showCreateOption={!disabled}
-        key={`client-select-${clients.length}`} // Force re-render when clients change
       />
     </div>
   );

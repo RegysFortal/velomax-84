@@ -68,20 +68,17 @@ export function SearchableSelect({
   const handleSelect = (currentValue: string) => {
     console.log("SearchableSelect - handleSelect called with:", currentValue);
     
-    if (currentValue) {
-      try {
-        console.log("SearchableSelect - About to call onValueChange with:", currentValue);
-        // Call onValueChange with the selected value
-        setTimeout(() => {
-          onValueChange(currentValue);
-        }, 0);
-        
-        // Close the popover after selection
-        setSearchValue('');
-        setOpen(false);
-      } catch (error) {
-        console.error("Error in handleSelect:", error);
-      }
+    try {
+      console.log("SearchableSelect - About to call onValueChange with:", currentValue);
+      
+      // Call onValueChange with the selected value
+      onValueChange(currentValue);
+      
+      // Close the popover after selection
+      setSearchValue('');
+      setOpen(false);
+    } catch (error) {
+      console.error("Error in handleSelect:", error);
     }
   };
   
@@ -97,7 +94,7 @@ export function SearchableSelect({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div onClick={() => !disabled && setOpen(!open)} className="w-full">
+        <div className="w-full">
           <SearchableSelectTrigger
             placeholder={placeholder}
             value={selectedOption?.label || ''}

@@ -76,20 +76,12 @@ export function ClientSearchSelect({
     navigate("/clients");
   };
   
-  const handleValueChange = (newValue: string) => {
-    console.log("ClientSearchSelect - Value changed to:", newValue);
-    
-    if (newValue) {
-      onValueChange(newValue);
-    }
-  };
-  
   return (
     <div className="w-full" data-testid="client-search-select">
       <SearchableSelect
         options={clientOptions}
         value={value}
-        onValueChange={handleValueChange}
+        onValueChange={onValueChange}
         placeholder={placeholder}
         emptyMessage="Nenhum cliente encontrado"
         showCreateOption={showCreateOption}

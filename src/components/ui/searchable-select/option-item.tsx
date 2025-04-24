@@ -11,10 +11,7 @@ interface OptionItemProps {
 }
 
 export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
-  // Create a direct click handler to ensure the selection works
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSelect = () => {
     console.log("OptionItem - Direct click on:", option.value);
     onSelect(option.value);
   };
@@ -23,11 +20,7 @@ export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
     <CommandItem
       key={option.value}
       value={option.value}
-      onSelect={() => {
-        console.log("OptionItem - CommandItem onSelect:", option.value);
-        onSelect(option.value);
-      }}
-      onClick={handleClick}
+      onSelect={() => handleSelect()}
       className="flex items-center justify-between gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent hover:text-accent-foreground data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
       data-selected={isSelected}
     >
