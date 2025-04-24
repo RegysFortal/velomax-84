@@ -2,7 +2,15 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Calculator, BarChart2, FileText, Table, MapPin, CircleDollarSign, Wallet } from "lucide-react";
+import { 
+  FileBarChart2,
+  FileMinus,
+  FileCheck,
+  Table, 
+  MapPin, 
+  CreditCard,
+  FileBarChart
+} from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
@@ -29,7 +37,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
   return (
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
       <NavigationMenuTrigger className={isMobile ? "w-full justify-start" : ""}>
-        <Calculator className="mr-2 h-4 w-4" />
+        <FileBarChart2 className="mr-2 h-4 w-4" />
         Financeiro
       </NavigationMenuTrigger>
       <NavigationMenuContent>
@@ -43,46 +51,11 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                   getActiveClass(location.pathname, "/financial-dashboard")
                 )}
               >
-                <BarChart2 className="mr-2 h-4 w-4" />
+                <FileBarChart2 className="mr-2 h-4 w-4" />
                 Dashboard Financeiro
               </Link>
             )}
-            {hasPermission('financial') && (
-              <Link
-                to="/financial"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/financial")
-                )}
-              >
-                <Calculator className="mr-2 h-4 w-4" />
-                Financeiro
-              </Link>
-            )}
-            {hasPermission('financial') && (
-              <Link
-                to="/accounts/payable"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/accounts/payable")
-                )}
-              >
-                <Wallet className="mr-2 h-4 w-4" />
-                Contas a Pagar
-              </Link>
-            )}
-            {hasPermission('financial') && (
-              <Link
-                to="/accounts/receivable"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/accounts/receivable")
-                )}
-              >
-                <Wallet className="mr-2 h-4 w-4" />
-                Contas a Receber
-              </Link>
-            )}
+            
             {hasPermission('reports') && (
               <Link
                 to="/reports"
@@ -91,22 +64,24 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                   getActiveClass(location.pathname, "/reports")
                 )}
               >
-                <FileText className="mr-2 h-4 w-4" />
+                <FileMinus className="mr-2 h-4 w-4" />
                 Relatórios a Fechar
               </Link>
             )}
-            {hasPermission('financialReports') && (
+
+            {hasPermission('financial') && (
               <Link
-                to="/accounts/reports"
+                to="/financial"
                 className={cn(
                   "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/accounts/reports")
+                  getActiveClass(location.pathname, "/financial")
                 )}
               >
-                <BarChart2 className="mr-2 h-4 w-4" />
-                Relatórios Financeiros
+                <FileCheck className="mr-2 h-4 w-4" />
+                Fechamento
               </Link>
             )}
+
             {hasPermission('priceTables') && (
               <Link
                 to="/price-tables"
@@ -119,6 +94,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                 Tabela de Preços
               </Link>
             )}
+
             {hasPermission('cities') && (
               <Link
                 to="/cities"
@@ -129,6 +105,45 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
               >
                 <MapPin className="mr-2 h-4 w-4" />
                 Cidades
+              </Link>
+            )}
+
+            {hasPermission('financial') && (
+              <Link
+                to="/accounts/payable"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/accounts/payable")
+                )}
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                Contas a Pagar
+              </Link>
+            )}
+
+            {hasPermission('financial') && (
+              <Link
+                to="/accounts/receivable"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/accounts/receivable")
+                )}
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                Contas a Receber
+              </Link>
+            )}
+
+            {hasPermission('financialReports') && (
+              <Link
+                to="/accounts/reports"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/accounts/reports")
+                )}
+              >
+                <FileBarChart className="mr-2 h-4 w-4" />
+                Relatórios Financeiros
               </Link>
             )}
           </div>
