@@ -3,11 +3,10 @@ import { addDays, addWeeks, addMonths, addYears } from 'date-fns';
 
 // Event types with corresponding colors
 export const EVENT_TYPES = {
-  'birthday': { label: 'Aniversário', color: 'bg-pink-500' },
-  'delivery': { label: 'Entrega', color: 'bg-blue-500' },
-  'holiday': { label: 'Feriado', color: 'bg-purple-500' },
-  'meeting': { label: 'Reunião', color: 'bg-amber-500' },
-  'other': { label: 'Outro', color: 'bg-gray-500' }
+  'birthday': { label: 'Aniversário', color: 'bg-red-500' },
+  'holiday': { label: 'Feriado', color: 'bg-blue-500' },
+  'meeting': { label: 'Reunião', color: 'bg-orange-500' },
+  'other': { label: 'Outro', color: 'bg-yellow-400' }
 };
 
 // Recurrence types

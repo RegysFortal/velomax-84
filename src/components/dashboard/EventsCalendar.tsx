@@ -37,6 +37,15 @@ export const EventsCalendar = ({
   const [eventType, setEventType] = useState<EventType>('other');
   const [eventDescription, setEventDescription] = useState('');
   
+  // Only consider deliveries that have both a delivery date and delivery time
+  const actualScheduledDeliveries = useMemo(() => {
+    return deliveries.filter(delivery => 
+      delivery.deliveryDate && 
+      delivery.deliveryTime && 
+      isValid(parseISO(delivery.deliveryDate))
+    );
+  }, [deliveries]);
+  
   const calendarData = useMemo(() => {
     const eventsMap = new Map<string, { events: CalendarEvent[], scheduledDelivery: boolean }>();
     
@@ -54,26 +63,21 @@ export const EventsCalendar = ({
     });
     
     // Only mark delivery dates if there are actual scheduled deliveries
-    deliveries.forEach(delivery => {
+    actualScheduledDeliveries.forEach(delivery => {
       try {
-        if (!delivery.deliveryDate) return;
-        
         const deliveryDate = parseISO(delivery.deliveryDate);
         if (!isValid(deliveryDate)) return;
         
-        // Only mark as scheduled delivery if there's a valid delivery date and time
-        if (delivery.deliveryDate && delivery.deliveryTime) {
-          const dateKey = format(deliveryDate, 'yyyy-MM-dd');
-          const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
-          eventsMap.set(dateKey, { ...existing, scheduledDelivery: true });
-        }
+        const dateKey = format(deliveryDate, 'yyyy-MM-dd');
+        const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
+        eventsMap.set(dateKey, { ...existing, scheduledDelivery: true });
       } catch (error) {
         console.error('Error processing delivery date:', error);
       }
     });
     
     return eventsMap;
-  }, [deliveries, events]);
+  }, [events, actualScheduledDeliveries]);
   
   const modifierDates = useMemo(() => {
     const modifiers = {
@@ -81,8 +85,8 @@ export const EventsCalendar = ({
     };
     
     Array.from(calendarData.entries()).forEach(([dateStr, data]) => {
-      const date = parseISO(dateStr);
       if (data.scheduledDelivery) {
+        const date = parseISO(dateStr);
         modifiers.scheduledDelivery.push(date);
       }
     });
@@ -239,12 +243,22 @@ export const EventsCalendar = ({
                   <div className="mr-1 h-3 w-3 rounded-full bg-green-500" />
                   <span>Entrega Agendada</span>
                 </div>
-                {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                  <div key={key} className="flex items-center">
-                    <div className={`mr-1 h-3 w-3 rounded-full ${value.color}`} />
-                    <span>{value.label}</span>
-                  </div>
-                ))}
+                <div className="flex items-center">
+                  <div className="mr-1 h-3 w-3 rounded-full bg-red-500" />
+                  <span>Aniversário</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="mr-1 h-3 w-3 rounded-full bg-blue-500" />
+                  <span>Feriado</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="mr-1 h-3 w-3 rounded-full bg-orange-500" />
+                  <span>Reunião</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="mr-1 h-3 w-3 rounded-full bg-yellow-400" />
+                  <span>Outro</span>
+                </div>
               </div>
             </div>
             <div className="border rounded-md p-4">
