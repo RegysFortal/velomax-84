@@ -1,26 +1,27 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from './contexts/auth/AuthContext';
-import { PrivateRoute } from './components/PrivateRoute';
-import { AppLayout } from './layout/AppLayout';
-import { Index } from './pages';
-import { Login } from './pages/Login';
-import { NotFound } from './pages/NotFound';
-import { Activities } from './pages/Activities';
-import { Deliveries } from './pages/Deliveries';
-import { Employees } from './pages/Employees';
-import { Vehicles } from './pages/Vehicles';
-import { Logbooks } from './pages/Logbooks';
-import { Maintenance } from './pages/Maintenance';
-import { Financial } from './pages/Financial';
-import { Shipments } from './pages/Shipments';
-import { Budgets } from './pages/Budgets';
-import { Clients } from './pages/Clients';
-import { Cities } from './pages/Cities';
-import { PriceTables } from './pages/PriceTables';
-import { Users } from './pages/Users';
+import PrivateRoute from './components/PrivateRoute';
+import { AppLayout } from './components/AppLayout';
+import Index from './pages/Index';
+import Login from './pages/Login';
+import NotFound from './pages/NotFound';
+import Activities from './pages/Activities';
+import Deliveries from './pages/Deliveries';
+import Employees from './pages/Employees';
+import Vehicles from './pages/Vehicles';
+import Logbooks from './pages/Logbooks';
+import Maintenance from './pages/Maintenance';
+import Financial from './pages/Financial';
+import Shipments from './pages/Shipments';
+import Budgets from './pages/Budgets';
+import Clients from './pages/Clients';
+import Cities from './pages/Cities';
+import PriceTables from './pages/PriceTables';
+import Users from './pages/Users';
 import { ProductsPage, EntriesPage, ExitsPage, DashboardPage } from './pages/inventory';
 
 function App() {
