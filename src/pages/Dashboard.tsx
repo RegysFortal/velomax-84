@@ -11,6 +11,7 @@ import { useDeliveriesStorage } from '@/hooks/useDeliveriesStorage';
 import { useClients } from '@/contexts';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { formatToLocaleDate } from '@/utils/dateUtils';
+import { DateRange } from "react-day-picker";
 import { 
   Package, 
   Truck, 
@@ -27,7 +28,7 @@ import {
 import { sub } from 'date-fns';
 
 const Dashboard = () => {
-  const [dateRange, setDateRange] = useState({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: sub(new Date(), { days: 30 }),
     to: new Date()
   });
@@ -37,18 +38,20 @@ const Dashboard = () => {
   const { clients } = useClients();
   
   // Convert date range to string format for API calls
-  const startDate = formatToLocaleDate(dateRange.from);
-  const endDate = formatToLocaleDate(dateRange.to);
+  const startDate = formatToLocaleDate(dateRange.from || new Date());
+  const endDate = formatToLocaleDate(dateRange.to || new Date());
   
   // Filter data based on date range
   const filteredShipments = shipments.filter(shipment => {
     const createdDate = new Date(shipment.createdAt);
-    return createdDate >= dateRange.from && createdDate <= dateRange.to;
+    return createdDate >= (dateRange.from || new Date()) && 
+           createdDate <= (dateRange.to || new Date());
   });
   
   const filteredDeliveries = deliveries.filter(delivery => {
     const deliveryDate = new Date(delivery.deliveryDate);
-    return deliveryDate >= dateRange.from && deliveryDate <= dateRange.to;
+    return deliveryDate >= (dateRange.from || new Date()) && 
+           deliveryDate <= (dateRange.to || new Date());
   });
   
   // Calculate metrics
@@ -90,6 +93,14 @@ const Dashboard = () => {
   const handleRefresh = () => {
     refreshShipmentsData();
   };
+
+  // Handle date range change with proper type
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange({
+      from: range.from || dateRange.from,
+      to: range.to || dateRange.to
+    });
+  };
   
   return (
     <div className="flex flex-col gap-6">
@@ -102,7 +113,7 @@ const Dashboard = () => {
       
       <DateRangeFilter 
         dateRange={dateRange} 
-        onDateRangeChange={setDateRange} 
+        onDateRangeChange={handleDateRangeChange} 
       />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -258,6 +269,8 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <ChartSection 
           shipments={filteredShipments}
+          deliveries={filteredDeliveries}
+          clients={clients}
           startDate={startDate}
           endDate={endDate}
         />

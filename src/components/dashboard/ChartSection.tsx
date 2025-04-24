@@ -8,19 +8,19 @@ import { ptBR } from 'date-fns/locale';
 import { useStatusLabel } from '@/components/shipment/hooks/useStatusLabel';
 
 interface ChartSectionProps {
-  deliveries: Delivery[];
   shipments: Shipment[];
+  deliveries?: Delivery[];
   startDate: string;
   endDate: string;
-  clients: Client[];
+  clients?: Client[];
 }
 
 export const ChartSection = ({
-  deliveries,
+  deliveries = [],
   shipments,
   startDate,
   endDate,
-  clients
+  clients = []
 }: ChartSectionProps) => {
   const { getStatusLabel } = useStatusLabel();
 
@@ -39,20 +39,22 @@ export const ChartSection = ({
     }
     
     // Count deliveries by date
-    deliveries.forEach(delivery => {
-      try {
-        if (!delivery.deliveryDate) return;
-        
-        const deliveryDate = parseISO(delivery.deliveryDate);
-        if (!isValid(deliveryDate)) return;
-        
-        const dateStr = format(deliveryDate, 'dd/MM');
-        const count = dateMap.get(dateStr) || 0;
-        dateMap.set(dateStr, count + 1);
-      } catch (error) {
-        console.error('Error processing delivery date:', error);
-      }
-    });
+    if (deliveries && deliveries.length > 0) {
+      deliveries.forEach(delivery => {
+        try {
+          if (!delivery.deliveryDate) return;
+          
+          const deliveryDate = parseISO(delivery.deliveryDate);
+          if (!isValid(deliveryDate)) return;
+          
+          const dateStr = format(deliveryDate, 'dd/MM');
+          const count = dateMap.get(dateStr) || 0;
+          dateMap.set(dateStr, count + 1);
+        } catch (error) {
+          console.error('Error processing delivery date:', error);
+        }
+      });
+    }
     
     // Convert map to arrays for chart
     const labels = Array.from(dateMap.keys());
