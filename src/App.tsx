@@ -26,7 +26,8 @@ import Logbooks from './pages/Logbooks';
 import Maintenance from './pages/Maintenance';
 import Financial from './pages/Financial';
 import FinancialDashboard from './pages/FinancialDashboard';
-import Shipments from './pages/Shipments';
+import Shipments from './pages/shipments/ShipmentsPage';
+import ShipmentReports from './pages/ShipmentReports';
 import Budgets from './pages/Budgets';
 import Clients from './pages/Clients';
 import Cities from './pages/Cities';
@@ -36,6 +37,12 @@ import Reports from './pages/Reports';
 import { ProductsPage, EntriesPage, ExitsPage, DashboardPage } from './pages/inventory';
 import Dashboard from './pages/Dashboard';
 import FinancialReportsPage from './pages/accounts/FinancialReportsPage';
+import PayableAccountsPage from './pages/accounts/PayableAccountsPage';
+import ReceivableAccountsPage from './pages/accounts/ReceivableAccountsPage';
+import ActivityLogs from './pages/ActivityLogs';
+import Contractors from './pages/Contractors';
+import Logbook from './pages/Logbook';
+import Settings from './pages/Settings';
 
 function App() {
   const queryClient = new QueryClient();
@@ -57,7 +64,16 @@ function App() {
                               <Routes>
                                 <Route path="/" element={<Index />} />
                                 <Route path="/login" element={<Login />} />
-                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route
+                                  element={
+                                    <PrivateRoute>
+                                      <AppLayout>
+                                        <Dashboard />
+                                      </AppLayout>
+                                    </PrivateRoute>
+                                  }
+                                  path="/dashboard"
+                                />
                                 <Route
                                   element={
                                     <PrivateRoute>
@@ -72,10 +88,12 @@ function App() {
                                   <Route path="employees" element={<Employees />} />
                                   <Route path="vehicles" element={<Vehicles />} />
                                   <Route path="logbooks" element={<Logbooks />} />
+                                  <Route path="logbook" element={<Logbook />} />
                                   <Route path="maintenance" element={<Maintenance />} />
                                   <Route path="financial" element={<Financial />} />
                                   <Route path="financial-dashboard" element={<FinancialDashboard />} />
                                   <Route path="shipments" element={<Shipments />} />
+                                  <Route path="shipment-reports" element={<ShipmentReports />} />
                                   <Route path="budgets" element={<Budgets />} />
                                   <Route path="clients" element={<Clients />} />
                                   <Route path="cities" element={<Cities />} />
@@ -83,6 +101,11 @@ function App() {
                                   <Route path="users" element={<Users />} />
                                   <Route path="reports" element={<Reports />} />
                                   <Route path="accounts/reports" element={<FinancialReportsPage />} />
+                                  <Route path="accounts/payable" element={<PayableAccountsPage />} />
+                                  <Route path="accounts/receivable" element={<ReceivableAccountsPage />} />
+                                  <Route path="activity-logs" element={<ActivityLogs />} />
+                                  <Route path="contractors" element={<Contractors />} />
+                                  <Route path="settings" element={<Settings />} />
                                   
                                   <Route path="inventory/products" element={<ProductsPage />} />
                                   <Route path="inventory/entries" element={<EntriesPage />} />

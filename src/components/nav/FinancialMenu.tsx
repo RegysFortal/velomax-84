@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Calculator, BarChart2, FileText, Table, MapPin, CircleDollarSign } from "lucide-react";
+import { Calculator, BarChart2, FileText, Table, MapPin, CircleDollarSign, Wallet } from "lucide-react";
 import { User } from "@/types";
 import { 
   NavigationMenuItem,
@@ -33,7 +33,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
         Financeiro
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className={`${isMobile ? "h-[300px] w-full" : "h-[400px] w-[400px]"}`}>
+        <ScrollArea className={`${isMobile ? "h-[400px] w-full" : "h-[500px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
             {hasPermission('dashboard') && (
               <Link
@@ -57,6 +57,30 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
               >
                 <Calculator className="mr-2 h-4 w-4" />
                 Financeiro
+              </Link>
+            )}
+            {hasPermission('financial') && (
+              <Link
+                to="/accounts/payable"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/accounts/payable")
+                )}
+              >
+                <Wallet className="mr-2 h-4 w-4" />
+                Contas a Pagar
+              </Link>
+            )}
+            {hasPermission('financial') && (
+              <Link
+                to="/accounts/receivable"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/accounts/receivable")
+                )}
+              >
+                <Wallet className="mr-2 h-4 w-4" />
+                Contas a Receber
               </Link>
             )}
             {hasPermission('reports') && (
