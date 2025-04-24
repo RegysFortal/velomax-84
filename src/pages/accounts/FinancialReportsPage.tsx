@@ -12,6 +12,7 @@ import { PayableAccount, ReceivableAccount } from '@/types';
 import { FileText } from 'lucide-react';
 import { useReportActions } from '../reports/hooks/useReportActions';
 import { ReportFilters } from './components/ReportFilters';
+import { DateRange } from 'react-day-picker';
 
 // Mock data for now
 import { mockPayableAccounts, mockReceivableAccounts } from './data/mockFinancialData';
@@ -26,9 +27,14 @@ export default function FinancialReportsPage() {
   
   const { generatePDF, exportToExcel } = useReportActions([]);
   
-  const handleDateRangeChange = (start: string, end: string) => {
-    setStartDate(start);
-    setEndDate(end);
+  // Update this handler to match the DateRange interface
+  const handleDateRangeChange = (range: DateRange) => {
+    if (range.from) {
+      setStartDate(format(range.from, 'yyyy-MM-dd'));
+    }
+    if (range.to) {
+      setEndDate(format(range.to, 'yyyy-MM-dd'));
+    }
   };
   
   // Filter accounts by date range
@@ -123,8 +129,10 @@ export default function FinancialReportsPage() {
           </div>
           <div className="flex gap-4">
             <DateRangeFilter
-              startDate={startDate}
-              endDate={endDate}
+              dateRange={{
+                from: new Date(startDate),
+                to: new Date(endDate)
+              }}
               onDateRangeChange={handleDateRangeChange}
             />
             <div className="flex space-x-2">

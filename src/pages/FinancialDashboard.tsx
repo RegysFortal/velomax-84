@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -12,6 +11,7 @@ import { TopClientsTable } from '@/components/dashboard/financial/TopClientsTabl
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts/clients';
 import { useFinancial } from '@/contexts/FinancialContext';
+import { DateRange } from "react-day-picker";
 
 const FinancialDashboard = () => {
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
@@ -45,31 +45,25 @@ const FinancialDashboard = () => {
   });
   
   useEffect(() => {
-    // Filter deliveries by date range
     const filteredDeliveries = deliveries.filter(delivery => {
       const deliveryDate = new Date(delivery.deliveryDate);
       return deliveryDate >= new Date(startDate) && deliveryDate <= new Date(endDate);
     });
     
-    // Calculate basic metrics
     const totalDeliveries = filteredDeliveries.length;
     const totalWeight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.weight, 0);
     const totalFreight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.totalFreight, 0);
     
-    // Calculate active clients
     const activeClientIds = [...new Set(filteredDeliveries.map(d => d.clientId))];
     const activeClients = activeClientIds.length;
     
-    // Calculate average ticket
     const averageTicket = totalDeliveries > 0 ? totalFreight / totalDeliveries : 0;
     
-    // Calculate days in period for average deliveries per day
     const periodStart = new Date(startDate);
     const periodEnd = new Date(endDate);
     const daysInPeriod = Math.max(1, (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
     const averageDeliveries = totalDeliveries / daysInPeriod;
     
-    // Calculate late payment rate (reports that are still open after end date)
     const lateReports = financialReports.filter(report => {
       return report.status === 'open' && new Date(report.endDate) < new Date();
     });
@@ -77,19 +71,16 @@ const FinancialDashboard = () => {
       ? (lateReports.length / financialReports.length) * 100 
       : 0;
     
-    // Get top 5 reports by value
     const topReports = [...financialReports]
       .sort((a, b) => b.totalFreight - a.totalFreight)
       .slice(0, 5);
     
-    // Calculate client distribution
     const clientFreightMap = new Map();
     filteredDeliveries.forEach(delivery => {
       const currentFreight = clientFreightMap.get(delivery.clientId) || 0;
       clientFreightMap.set(delivery.clientId, currentFreight + delivery.totalFreight);
     });
     
-    // Create data for client distribution chart
     const clientDistributionLabels = [];
     const clientDistributionData = [];
     const clientDistributionColors = [
@@ -97,7 +88,6 @@ const FinancialDashboard = () => {
       '#ec4899', '#06b6d4', '#84cc16', '#6366f1', '#14b8a6'
     ];
     
-    // Sort clients by freight value and take top 10
     const sortedClients = [...clientFreightMap.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
@@ -108,7 +98,6 @@ const FinancialDashboard = () => {
       clientDistributionData.push(freight);
     });
     
-    // Get top clients by number of deliveries
     const clientDeliveryMap = new Map();
     filteredDeliveries.forEach(delivery => {
       const currentCount = clientDeliveryMap.get(delivery.clientId) || 0;
@@ -130,7 +119,6 @@ const FinancialDashboard = () => {
         };
       });
     
-    // Generate monthly data for comparison chart
     const monthlyLabels = [];
     const monthlyDeliveries = [];
     const monthlyFreight = [];
@@ -173,7 +161,6 @@ const FinancialDashboard = () => {
       ]
     };
     
-    // Generate growth timeline
     const weeklyLabels = [];
     const weeklyDeliveries = [];
     const weeklyWeight = [];
@@ -229,7 +216,6 @@ const FinancialDashboard = () => {
       ]
     };
     
-    // Client distribution chart data
     const clientDistribution = {
       labels: clientDistributionLabels,
       datasets: [
@@ -260,9 +246,13 @@ const FinancialDashboard = () => {
     
   }, [deliveries, clients, financialReports, startDate, endDate]);
   
-  const handleDateRangeChange = (start: string, end: string) => {
-    setStartDate(start);
-    setEndDate(end);
+  const handleDateRangeChange = (range: DateRange) => {
+    if (range.from) {
+      setStartDate(format(range.from, 'yyyy-MM-dd'));
+    }
+    if (range.to) {
+      setEndDate(format(range.to, 'yyyy-MM-dd'));
+    }
   };
   
   return (
@@ -276,8 +266,10 @@ const FinancialDashboard = () => {
             </p>
           </div>
           <DateRangeFilter 
-            startDate={startDate} 
-            endDate={endDate} 
+            dateRange={{
+              from: new Date(startDate),
+              to: new Date(endDate)
+            }} 
             onDateRangeChange={handleDateRangeChange} 
           />
         </div>
