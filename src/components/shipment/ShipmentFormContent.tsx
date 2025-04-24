@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -92,15 +91,23 @@ export function ShipmentFormContent({
   onSubmit,
   onCancel,
 }: ShipmentFormContentProps) {
-  // Handle client selection and set companyName
+  useEffect(() => {
+    console.log("ShipmentFormContent - Clients available:", clients.length);
+    if (clients.length > 0) {
+      console.log("ShipmentFormContent - First client:", clients[0].name);
+    }
+  }, [clients]);
+
   const handleCompanyChange = (newCompanyId: string) => {
+    console.log("ShipmentFormContent - Company changed to:", newCompanyId);
     setCompanyId(newCompanyId);
     
-    // Find the selected client and set the company name
     const selectedClient = clients.find(client => client.id === newCompanyId);
     if (selectedClient) {
-      console.log("Selected client:", selectedClient);
+      console.log("ShipmentFormContent - Selected client:", selectedClient.name);
       setCompanyName(selectedClient.tradingName || selectedClient.name);
+    } else {
+      console.warn("ShipmentFormContent - Client not found with ID:", newCompanyId);
     }
   };
 

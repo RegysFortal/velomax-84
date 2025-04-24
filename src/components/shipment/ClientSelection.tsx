@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ClientSearchSelect } from "@/components/client/ClientSearchSelect";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Client } from "@/types";
@@ -19,6 +19,19 @@ export function ClientSelection({
 }: ClientSelectionProps) {
   const [loading, setLoading] = useState(false);
   
+  // Debug which clients are available
+  useEffect(() => {
+    console.log("ClientSelection - Received clients:", clients.length);
+    if (clients.length > 0) {
+      setLoading(false);
+    }
+  }, [clients]);
+  
+  // Debug when company ID changes
+  useEffect(() => {
+    console.log("ClientSelection - CompanyId changed:", companyId);
+  }, [companyId]);
+  
   if (loading && clients.length === 0) {
     return <Skeleton className="h-10 w-full" />;
   }
@@ -26,12 +39,16 @@ export function ClientSelection({
   return (
     <div className="space-y-2 w-full">
       <ClientSearchSelect
-        value={companyId}
-        onValueChange={onCompanyChange}
+        value={companyId || ''}
+        onValueChange={(value) => {
+          console.log("ClientSelection - Value selected:", value);
+          onCompanyChange(value);
+        }}
         placeholder="Selecione o cliente"
         disabled={disabled}
         clients={clients}
         showCreateOption={!disabled}
+        key={`client-select-${clients.length}`} // Force re-render when clients change
       />
     </div>
   );

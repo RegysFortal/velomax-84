@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -54,14 +55,26 @@ export function SearchableSelect({
     }
   }, [open]);
   
-  // Handle selection with robust approach
+  // Debug options and selection
+  useEffect(() => {
+    console.log("SearchableSelect - Options:", options.length);
+    console.log("SearchableSelect - Current value:", value);
+    if (value) {
+      console.log("SearchableSelect - Selected option:", selectedOption?.label);
+    }
+  }, [options, value, selectedOption]);
+  
+  // Handle selection
   const handleSelect = (currentValue: string) => {
     console.log("SearchableSelect - handleSelect called with:", currentValue);
     
     if (currentValue) {
       try {
-        console.log("SearchableSelect - Calling onValueChange with:", currentValue);
-        onValueChange(currentValue);
+        console.log("SearchableSelect - About to call onValueChange with:", currentValue);
+        // Call onValueChange with the selected value
+        setTimeout(() => {
+          onValueChange(currentValue);
+        }, 0);
         
         // Close the popover after selection
         setSearchValue('');
@@ -81,52 +94,14 @@ export function SearchableSelect({
     setOpen(false);
   };
   
-  // Handle search input change
-  const handleSearchChange = (input: string) => {
-    setSearchValue(input);
-  };
-  
-  // Handle trigger click
-  const handleTriggerClick = () => {
-    if (!disabled) {
-      setOpen(!open);
-      console.log("SearchableSelect - Popover open status changed to:", !open);
-    }
-  };
-  
-  // Handle keyboard events including Enter key for creating new items
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchValue && showCreateOption && onCreateNew) {
-      // Check if we have a direct match in options
-      const exactMatch = options.find(option => 
-        option.label.toLowerCase() === searchValue.toLowerCase()
-      );
-      
-      // If we have an exact match, select it
-      if (exactMatch) {
-        handleSelect(exactMatch.value);
-      } 
-      // Otherwise create a new item if allowed
-      else if (showCreateOption) {
-        e.preventDefault();
-        handleCreateNew();
-      }
-    }
-  };
-  
-  // Show create option only if there's a search value and no exact match
-  const shouldShowCreateOption = showCreateOption && searchValue && 
-    !filteredOptions.some(option => option.label.toLowerCase() === searchValue.toLowerCase());
-  
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div onClick={handleTriggerClick} className="w-full">
+        <div onClick={() => !disabled && setOpen(!open)} className="w-full">
           <SearchableSelectTrigger
             placeholder={placeholder}
             value={selectedOption?.label || ''}
             description={selectedOption?.description || ''}
-            onClick={handleTriggerClick}
             disabled={disabled}
           />
         </div>
@@ -143,17 +118,16 @@ export function SearchableSelect({
             <div className="flex-1">
               <CommandInput
                 ref={inputRef}
-                placeholder="Search..."
+                placeholder="Buscar..."
                 value={searchValue}
-                onValueChange={handleSearchChange}
-                onKeyDown={handleInputKeyDown}
+                onValueChange={setSearchValue}
                 className="h-9 w-full border-0 focus:ring-0 focus:outline-none"
               />
             </div>
           </div>
           
           <CommandList className="max-h-[250px] overflow-y-auto p-1">
-            {filteredOptions.length === 0 && !shouldShowCreateOption ? (
+            {filteredOptions.length === 0 && !showCreateOption ? (
               <CommandEmpty className="py-6 text-center text-sm">{emptyMessage}</CommandEmpty>
             ) : (
               <CommandGroup>
@@ -166,7 +140,7 @@ export function SearchableSelect({
                   />
                 ))}
                 
-                {shouldShowCreateOption && onCreateNew && (
+                {showCreateOption && onCreateNew && searchValue && (
                   <CreateOption 
                     label={`${createOptionLabel}: "${searchValue}"`} 
                     onSelect={handleCreateNew} 

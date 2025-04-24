@@ -1,13 +1,13 @@
 
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ShipmentFormContent } from "./ShipmentFormContent";
 import { DuplicateShipmentAlert } from "./DuplicateShipmentAlert";
 import { useShipmentFormState } from "./hooks/useShipmentFormState";
 import { useShipmentFormSubmit } from "./hooks/useShipmentFormSubmit";
 import { useClients } from "@/contexts/clients";
 import { useShipments } from '@/contexts/shipments';
+import { toast } from "sonner";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -15,8 +15,13 @@ interface ShipmentDialogProps {
 }
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
-  const { clients } = useClients();
+  const { clients, loading: clientsLoading } = useClients();
   const { addShipment } = useShipments();
+  
+  // Debug clients availability
+  useEffect(() => {
+    console.log("ShipmentDialog - Clients loaded:", clients.length);
+  }, [clients]);
   
   const {
     companyId,
@@ -91,10 +96,27 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
 
   useEffect(() => {
     if (open) {
-      console.log("ShipmentDialog - Reset form");
+      console.log("ShipmentDialog - Dialog opened, resetting form");
       resetForm();
     }
   }, [open, resetForm]);
+
+  if (clientsLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh]">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            <span className="ml-3">Carregando clientes...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (clients.length === 0 && !clientsLoading && open) {
+    toast.error("Não foi possível carregar a lista de clientes");
+  }
 
   return (
     <>

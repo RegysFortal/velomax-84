@@ -80,28 +80,9 @@ export function ClientSearchSelect({
     console.log("ClientSearchSelect - Value changed to:", newValue);
     
     if (newValue) {
-      // Find the client to confirm it exists
-      const selectedOption = clientOptions.find(opt => opt.value === newValue);
-      console.log("ClientSearchSelect - Selected client option:", selectedOption?.label);
-      
-      // Call the onValueChange prop with a small delay to ensure state changes are processed
-      setTimeout(() => {
-        console.log("ClientSearchSelect - Executing delayed onValueChange with:", newValue);
-        onValueChange(newValue);
-      }, 10);
+      onValueChange(newValue);
     }
   };
-  
-  // Debug client options and selection
-  useEffect(() => {
-    console.log("ClientSearchSelect - Current value:", value);
-    console.log("ClientSearchSelect - Available options:", clientOptions.length);
-    
-    if (value) {
-      const selectedOption = clientOptions.find(opt => opt.value === value);
-      console.log("ClientSearchSelect - Selected client:", selectedOption?.label);
-    }
-  }, [value, clientOptions]);
   
   return (
     <div className="w-full" data-testid="client-search-select">
