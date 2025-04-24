@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from './contexts/auth/AuthContext';
+import { ActivityLogProvider } from './contexts/ActivityLogContext';
 import PrivateRoute from './components/PrivateRoute';
 import { AppLayout } from './components/AppLayout';
 import Index from './pages/Index';
@@ -31,43 +32,45 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route
-                element={
-                  <PrivateRoute>
-                    <AppLayout>
-                      <Outlet />
-                    </AppLayout>
-                  </PrivateRoute>
-                }
-              >
-                <Route path="activities" element={<Activities />} />
-                <Route path="deliveries" element={<Deliveries />} />
-                <Route path="employees" element={<Employees />} />
-                <Route path="vehicles" element={<Vehicles />} />
-                <Route path="logbooks" element={<Logbooks />} />
-                <Route path="maintenance" element={<Maintenance />} />
-                <Route path="financial" element={<Financial />} />
-                <Route path="shipments" element={<Shipments />} />
-                <Route path="budgets" element={<Budgets />} />
-                <Route path="clients" element={<Clients />} />
-                <Route path="cities" element={<Cities />} />
-                <Route path="price-tables" element={<PriceTables />} />
-                <Route path="users" element={<Users />} />
-                
-                {/* Inventory routes */}
-                <Route path="inventory/products" element={<ProductsPage />} />
-                <Route path="inventory/entries" element={<EntriesPage />} />
-                <Route path="inventory/exits" element={<ExitsPage />} />
-                <Route path="inventory/dashboard" element={<DashboardPage />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
+          <ActivityLogProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route
+                  element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <Outlet />
+                      </AppLayout>
+                    </PrivateRoute>
+                  }
+                >
+                  <Route path="activities" element={<Activities />} />
+                  <Route path="deliveries" element={<Deliveries />} />
+                  <Route path="employees" element={<Employees />} />
+                  <Route path="vehicles" element={<Vehicles />} />
+                  <Route path="logbooks" element={<Logbooks />} />
+                  <Route path="maintenance" element={<Maintenance />} />
+                  <Route path="financial" element={<Financial />} />
+                  <Route path="shipments" element={<Shipments />} />
+                  <Route path="budgets" element={<Budgets />} />
+                  <Route path="clients" element={<Clients />} />
+                  <Route path="cities" element={<Cities />} />
+                  <Route path="price-tables" element={<PriceTables />} />
+                  <Route path="users" element={<Users />} />
+                  
+                  {/* Inventory routes */}
+                  <Route path="inventory/products" element={<ProductsPage />} />
+                  <Route path="inventory/entries" element={<EntriesPage />} />
+                  <Route path="inventory/exits" element={<ExitsPage />} />
+                  <Route path="inventory/dashboard" element={<DashboardPage />} />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </ActivityLogProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

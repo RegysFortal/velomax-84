@@ -38,7 +38,16 @@ export function useIsMobile() {
     };
   });
 
-  const { addLog } = useActivityLog();
+  // Safely get the addLog function if ActivityLogProvider is available
+  let addLog;
+  try {
+    const { addLog: logFunction } = useActivityLog();
+    addLog = logFunction;
+  } catch (error) {
+    // If ActivityLogProvider is not available, create a no-op function
+    addLog = () => {};
+    console.warn("ActivityLogProvider not found, logging is disabled");
+  }
 
   // Efeito para detectar alterações de tamanho da tela
   React.useEffect(() => {
@@ -82,17 +91,19 @@ export function useIsMobile() {
         localStorage.setItem(MOBILE_VIEW_STORAGE_KEY, JSON.stringify(newState));
       }
       
-      // Log the view toggle activity
-      try {
-        addLog({
-          action: 'view_toggle',
-          entityType: 'system',
-          entityId: 'app_view',
-          entityName: `View changed to ${newState.isMobile ? 'Mobile' : 'Desktop'}`,
-          details: `User toggled view to ${newState.isMobile ? 'Mobile' : 'Desktop'} mode`
-        });
-      } catch (error) {
-        console.error('Error logging view toggle:', error);
+      // Log the view toggle activity if logging is available
+      if (addLog) {
+        try {
+          addLog({
+            action: 'view_toggle',
+            entityType: 'system',
+            entityId: 'app_view',
+            entityName: `View changed to ${newState.isMobile ? 'Mobile' : 'Desktop'}`,
+            details: `User toggled view to ${newState.isMobile ? 'Mobile' : 'Desktop'} mode`
+          });
+        } catch (error) {
+          console.error('Error logging view toggle:', error);
+        }
       }
       
       return newState;
