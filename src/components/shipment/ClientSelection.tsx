@@ -21,11 +21,16 @@ export function ClientSelection({
     return <Skeleton className="h-10 w-full" />;
   }
   
+  const handleClientChange = (selectedId: string) => {
+    console.log("ClientSelection - Client selected with ID:", selectedId);
+    onCompanyChange(selectedId);
+  };
+  
   return (
     <div className="space-y-2 w-full">
       <ClientSearchSelect
         value={companyId}
-        onValueChange={onCompanyChange}
+        onValueChange={handleClientChange}
         placeholder="Selecione o cliente"
         disabled={disabled}
         clients={clients}

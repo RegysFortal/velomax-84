@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -57,7 +58,6 @@ export function SearchableSelect({
   const handleSelect = (currentValue: string) => {
     console.log("SearchableSelect - handleSelect called with:", currentValue);
     onValueChange(currentValue);
-    setSearchValue('');
     setOpen(false);
   };
   

@@ -11,16 +11,14 @@ interface OptionItemProps {
 }
 
 export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
-  const handleSelect = () => {
-    console.log("OptionItem - Direct click on:", option.value);
-    onSelect(option.value);
-  };
-
   return (
     <CommandItem
       key={option.value}
       value={option.value}
-      onSelect={() => handleSelect()}
+      onSelect={() => {
+        console.log("OptionItem - Selected:", option.label, "with value:", option.value);
+        onSelect(option.value);
+      }}
       className="flex items-center justify-between gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent hover:text-accent-foreground data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
       data-selected={isSelected}
     >

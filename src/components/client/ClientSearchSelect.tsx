@@ -75,13 +75,19 @@ export function ClientSearchSelect({
     toast.info("Redirecionando para cadastro de novo cliente");
     navigate("/clients");
   };
+
+  const handleValueChange = (newValue: string) => {
+    console.log("ClientSearchSelect - Value changed to:", newValue);
+    // Make sure we're passing the selection up
+    onValueChange(newValue);
+  };
   
   return (
     <div className="w-full" data-testid="client-search-select">
       <SearchableSelect
         options={clientOptions}
         value={value}
-        onValueChange={onValueChange}
+        onValueChange={handleValueChange}
         placeholder={placeholder}
         emptyMessage="Nenhum cliente encontrado"
         showCreateOption={showCreateOption}
