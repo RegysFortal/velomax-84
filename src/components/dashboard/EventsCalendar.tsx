@@ -53,6 +53,7 @@ export const EventsCalendar = ({
       }
     });
     
+    // Only mark delivery dates if there are actual scheduled deliveries
     deliveries.forEach(delivery => {
       try {
         if (!delivery.deliveryDate) return;
@@ -60,9 +61,12 @@ export const EventsCalendar = ({
         const deliveryDate = parseISO(delivery.deliveryDate);
         if (!isValid(deliveryDate)) return;
         
-        const dateKey = format(deliveryDate, 'yyyy-MM-dd');
-        const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
-        eventsMap.set(dateKey, { ...existing, scheduledDelivery: true });
+        // Only mark as scheduled delivery if there's a valid delivery date and time
+        if (delivery.deliveryDate && delivery.deliveryTime) {
+          const dateKey = format(deliveryDate, 'yyyy-MM-dd');
+          const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
+          eventsMap.set(dateKey, { ...existing, scheduledDelivery: true });
+        }
       } catch (error) {
         console.error('Error processing delivery date:', error);
       }
