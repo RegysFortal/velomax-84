@@ -24,7 +24,22 @@ export function PriceTableAndNotes({
   notes,
   setNotes,
 }: PriceTableAndNotesProps) {
-  const { priceTables, loading } = usePriceTables();
+  // Initialize with default values
+  const [availableTables, setAvailableTables] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Safely get price tables
+  useEffect(() => {
+    try {
+      const { priceTables, loading } = usePriceTables();
+      setAvailableTables(priceTables || []);
+      setIsLoading(loading);
+    } catch (error) {
+      console.warn("PriceTablesProvider not available");
+      setAvailableTables([]);
+      setIsLoading(false);
+    }
+  }, []);
   
   return (
     <>
@@ -35,10 +50,10 @@ export function PriceTableAndNotes({
             <SelectValue placeholder="Selecione uma tabela" />
           </SelectTrigger>
           <SelectContent>
-            {loading ? (
+            {isLoading ? (
               <SelectItem value="loading" disabled>Carregando tabelas...</SelectItem>
-            ) : priceTables.length > 0 ? (
-              priceTables.map((table) => (
+            ) : availableTables.length > 0 ? (
+              availableTables.map((table) => (
                 <SelectItem key={table.id} value={table.id}>
                   {table.name}
                 </SelectItem>

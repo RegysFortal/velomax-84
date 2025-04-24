@@ -5,7 +5,15 @@ import { PriceTable } from '@/types/priceTable';
 
 export function useClientPriceTable() {
   const { clients } = useClients();
-  const { priceTables } = usePriceTables();
+  let priceTables = [];
+  
+  // Safely get price tables from context
+  try {
+    const priceTablesContext = usePriceTables();
+    priceTables = priceTablesContext?.priceTables || [];
+  } catch (error) {
+    console.warn("PriceTablesProvider not available, using empty price tables array");
+  }
 
   const getClientPriceTable = (clientId: string): PriceTable | undefined => {
     // Find client by ID
