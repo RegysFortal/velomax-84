@@ -253,7 +253,7 @@ export const EventsCalendar = ({
                 </div>
                 <div className="flex items-center">
                   <div className="mr-1 h-3 w-3 rounded-full bg-orange-500" />
-                  <span>Reunião</span>
+                  <span>Outro</span>
                 </div>
                 <div className="flex items-center">
                   <div className="mr-1 h-3 w-3 rounded-full bg-yellow-400" />
