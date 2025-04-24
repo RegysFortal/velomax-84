@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { usePriceTables } from '@/contexts';
+import { PriceTable } from '@/types/priceTable';
 
 interface PriceTableAndNotesProps {
   priceTableId: string;
@@ -25,20 +26,24 @@ export function PriceTableAndNotes({
   setNotes,
 }: PriceTableAndNotesProps) {
   // Initialize with default values
-  const [availableTables, setAvailableTables] = useState([]);
+  const [availableTables, setAvailableTables] = useState<PriceTable[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Safely get price tables
   useEffect(() => {
-    try {
-      const { priceTables, loading } = usePriceTables();
-      setAvailableTables(priceTables || []);
-      setIsLoading(loading);
-    } catch (error) {
-      console.warn("PriceTablesProvider not available");
-      setAvailableTables([]);
-      setIsLoading(false);
-    }
+    const fetchPriceTables = async () => {
+      try {
+        const priceTablesContext = usePriceTables();
+        setAvailableTables(priceTablesContext?.priceTables || []);
+        setIsLoading(priceTablesContext?.loading ?? false);
+      } catch (error) {
+        console.warn("PriceTablesProvider not available");
+        setAvailableTables([]);
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPriceTables();
   }, []);
   
   return (

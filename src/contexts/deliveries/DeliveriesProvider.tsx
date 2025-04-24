@@ -1,22 +1,60 @@
-
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { DeliveryType, CargoType, doorToDoorDeliveryTypes, DeliveryFormData } from '@/types/delivery';
 import { calculateFreight as utilsCalculateFreight } from '@/utils/delivery';
-import type { Delivery } from '@/types';
+import type { Delivery, City } from '@/types';
 import { DeliveriesContext } from './DeliveriesContext';
 import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
-import { useCities } from '@/contexts/CitiesContext';
-import { usePriceTables } from '@/contexts/priceTables';
+
+// These imports will be handled safely with fallbacks
+let cities: City[] = [];
+let priceTables = [];
 
 export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
-  const { getClientPriceTable } = useClientPriceTable();
-  const { cities } = useCities();
-  const { priceTables } = usePriceTables();
+  
+  // Safely get the required hooks
+  let getClientPriceTable = (clientId: string) => undefined;
+  
+  try {
+    const clientPriceTableHook = useClientPriceTable();
+    getClientPriceTable = clientPriceTableHook.getClientPriceTable;
+  } catch (error) {
+    console.warn("useClientPriceTable not available, using fallback");
+  }
+
+  // Safely get cities
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        // Try to get cities from localStorage as fallback
+        const storedCities = localStorage.getItem('velomax_cities');
+        if (storedCities) {
+          cities = JSON.parse(storedCities);
+        }
+        
+        // Try to fetch from Supabase
+        const { data } = await supabase.from('cities').select('*');
+        if (data && data.length > 0) {
+          cities = data.map((city: any) => ({
+            id: city.id,
+            name: city.name,
+            state: city.state,
+            distance: city.distance,
+            createdAt: city.created_at,
+            updatedAt: city.updated_at
+          }));
+        }
+      } catch (error) {
+        console.warn("Error fetching cities:", error);
+      }
+    };
+    
+    fetchCities();
+  }, []);
 
   const fetchDeliveries = async () => {
     try {

@@ -4,8 +4,17 @@ import { usePriceTables } from '@/contexts/priceTables';
 import { PriceTable } from '@/types/priceTable';
 
 export function useClientPriceTable() {
-  const { clients } = useClients();
+  // Initialize with default empty values
+  let clients = [];
   let priceTables = [];
+  
+  // Safely get clients from context
+  try {
+    const clientsContext = useClients();
+    clients = clientsContext?.clients || [];
+  } catch (error) {
+    console.warn("ClientsProvider not available, using empty clients array");
+  }
   
   // Safely get price tables from context
   try {
