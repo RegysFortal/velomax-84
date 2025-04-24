@@ -103,6 +103,7 @@ export function SearchableSelect({
             value={selectedOption?.label || ''}
             description={selectedOption?.description || ''}
             disabled={disabled}
+            onClick={() => !disabled && setOpen(!open)}
           />
         </div>
       </PopoverTrigger>

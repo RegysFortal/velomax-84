@@ -7,7 +7,7 @@ interface SearchableSelectTriggerProps {
   placeholder: string;
   value: string;
   description?: string;
-  onClick: () => void;
+  onClick?: () => void;
   disabled?: boolean;
 }
 
