@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Command, 
@@ -32,7 +31,7 @@ export function SearchableSelect({
   
   // Find the selected option to display in the trigger
   const selectedOption = options.find(option => option.value === value);
-
+  
   // Filter options based on search value
   const filteredOptions = options.filter(option => {
     const optionText = `${option.label} ${option.description || ''}`.toLowerCase();
@@ -55,38 +54,16 @@ export function SearchableSelect({
     }
   }, [open]);
   
-  // Debug options and selection
-  useEffect(() => {
-    console.log("SearchableSelect - Options:", options.length);
-    console.log("SearchableSelect - Current value:", value);
-    if (value) {
-      console.log("SearchableSelect - Selected option:", selectedOption?.label);
-    }
-  }, [options, value, selectedOption]);
-  
-  // Handle selection
   const handleSelect = (currentValue: string) => {
     console.log("SearchableSelect - handleSelect called with:", currentValue);
-    
-    try {
-      console.log("SearchableSelect - About to call onValueChange with:", currentValue);
-      
-      // Call onValueChange with the selected value
-      onValueChange(currentValue);
-      
-      // Close the popover after selection
-      setSearchValue('');
-      setOpen(false);
-    } catch (error) {
-      console.error("Error in handleSelect:", error);
-    }
+    onValueChange(currentValue);
+    setSearchValue('');
+    setOpen(false);
   };
   
-  // Handle create new option
   const handleCreateNew = () => {
     if (onCreateNew && searchValue) {
       onCreateNew(searchValue);
-      setSearchValue('');
     }
     setOpen(false);
   };

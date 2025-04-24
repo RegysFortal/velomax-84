@@ -16,31 +16,30 @@ export function AppHeader() {
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className={`container flex h-14 items-center`}>
+      <div className="container flex h-14 items-center">
         {isMobile ? (
-          <>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="pr-0 pt-10 w-[85%] overflow-y-auto">
-                <NavMenu />
-              </SheetContent>
-            </Sheet>
-          </>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="pr-0 pt-10 w-[85%] overflow-y-auto">
+              <NavMenu />
+            </SheetContent>
+          </Sheet>
         ) : (
-          <NavMenu />
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" asChild className="mr-2">
+              <Link to="/dashboard">
+                <Home className="h-5 w-5" />
+                <span className="sr-only">Home</span>
+              </Link>
+            </Button>
+            <NavMenu />
+          </div>
         )}
-        
-        <Button variant="ghost" size="icon" asChild className="mr-2">
-          <Link to="/dashboard">
-            <Home className="h-5 w-5" />
-            <span className="sr-only">Home</span>
-          </Link>
-        </Button>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
           <GlobalSearch />
