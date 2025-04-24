@@ -1,4 +1,3 @@
-
 import React from "react"
 import { cn } from "@/lib/utils"
 import {
@@ -71,9 +70,7 @@ export function MainNav({ className }: React.HTMLAttributes<HTMLElement>) {
   
   return (
     <nav className={cn(`flex items-center ${isMobile ? "w-full" : "space-x-6 lg:space-x-6"}`, className)}>
-      <div className={`flex items-center ${isMobile ? "w-full" : "space-x-6"}`}>
-        <NavigationMenuDemo />
-      </div>
+      {/* MainNav is no longer rendering navigation menus */}
     </nav>
   )
 }
