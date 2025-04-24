@@ -17,48 +17,17 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from 'react';
+import { FinancialReport } from '@/types';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
-  
-  // Initialize with empty arrays, then try to get data from context
-  const [financialReports, setFinancialReports] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [clients, setClients] = useState([]);
   const [activeTab, setActiveTab] = useState("open");
   
-  try {
-    const { financialReports: contextReports, loading } = useFinancial();
-    if (contextReports) {
-      setFinancialReports(contextReports);
-      setIsLoading(loading);
-    }
-  } catch (error) {
-    console.warn("FinancialProvider not available");
-  }
+  // Get financial data safely with fallbacks
+  const { financialReports = [], loading: isLoading = false, closeReport } = useFinancial();
   
-  try {
-    const { clients: contextClients } = useClients();
-    if (contextClients) {
-      setClients(contextClients);
-    }
-  } catch (error) {
-    console.warn("ClientsProvider not available");
-  }
-  
-  // Function to close a report - with safe fallback
-  const closeReport = async (reportId) => {
-    try {
-      const { closeReport: contextCloseReport } = useFinancial();
-      if (typeof contextCloseReport === 'function') {
-        await contextCloseReport(reportId);
-      } else {
-        console.warn("closeReport function not available");
-      }
-    } catch (error) {
-      console.warn("Error closing report:", error);
-    }
-  };
+  // Get clients data safely with fallbacks
+  const { clients = [] } = useClients();
   
   // Filtragem dos relatórios por status
   const openReports = financialReports.filter(report => report.status === 'open');

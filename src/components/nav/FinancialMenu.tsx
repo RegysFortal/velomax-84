@@ -71,30 +71,6 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({ user, hasPermissio
                 Relatórios a Fechar
               </Link>
             )}
-            {hasPermission('payable') && (
-              <Link
-                to="/accounts/payable"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/accounts/payable")
-                )}
-              >
-                <CircleDollarSign className="mr-2 h-4 w-4" />
-                Contas a Pagar
-              </Link>
-            )}
-            {hasPermission('receivable') && (
-              <Link
-                to="/accounts/receivable"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/accounts/receivable")
-                )}
-              >
-                <CircleDollarSign className="mr-2 h-4 w-4" />
-                Contas a Receber
-              </Link>
-            )}
             {hasPermission('financialReports') && (
               <Link
                 to="/accounts/reports"
