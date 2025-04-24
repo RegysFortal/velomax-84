@@ -22,9 +22,12 @@ export function useDeliveriesFilters({
   const [endDate, setEndDate] = useState<string | null>(null);
 
   const isDeliveryInClosedReport = (delivery: Delivery) => {
-    const closedReports = financialReports.filter(report => report.status === 'closed');
+    // If no financial reports are available, return false
+    if (!Array.isArray(financialReports)) return false;
+    
+    const closedReports = financialReports.filter(report => report?.status === 'closed');
     return closedReports.some(report => {
-      if (report.clientId !== delivery.clientId) return false;
+      if (report?.clientId !== delivery.clientId) return false;
       const deliveryDate = new Date(delivery.deliveryDate);
       const reportStartDate = new Date(report.startDate);
       const reportEndDate = new Date(report.endDate);

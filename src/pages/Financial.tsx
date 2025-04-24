@@ -20,9 +20,45 @@ import { useState } from 'react';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
-  const { financialReports, closeReport } = useFinancial();
-  const { clients } = useClients();
+  
+  // Initialize with empty arrays, then try to get data from context
+  const [financialReports, setFinancialReports] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [clients, setClients] = useState([]);
   const [activeTab, setActiveTab] = useState("open");
+  
+  try {
+    const { financialReports: contextReports, loading } = useFinancial();
+    if (contextReports) {
+      setFinancialReports(contextReports);
+      setIsLoading(loading);
+    }
+  } catch (error) {
+    console.warn("FinancialProvider not available");
+  }
+  
+  try {
+    const { clients: contextClients } = useClients();
+    if (contextClients) {
+      setClients(contextClients);
+    }
+  } catch (error) {
+    console.warn("ClientsProvider not available");
+  }
+  
+  // Function to close a report - with safe fallback
+  const closeReport = async (reportId) => {
+    try {
+      const { closeReport: contextCloseReport } = useFinancial();
+      if (typeof contextCloseReport === 'function') {
+        await contextCloseReport(reportId);
+      } else {
+        console.warn("closeReport function not available");
+      }
+    } catch (error) {
+      console.warn("Error closing report:", error);
+    }
+  };
   
   // Filtragem dos relatórios por status
   const openReports = financialReports.filter(report => report.status === 'open');
@@ -73,7 +109,13 @@ const FinancialPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {openReports.length === 0 ? (
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center">
+                        Carregando relatórios...
+                      </TableCell>
+                    </TableRow>
+                  ) : openReports.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center">
                         Nenhum relatório em aberto
@@ -133,7 +175,13 @@ const FinancialPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {closedReports.length === 0 ? (
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center">
+                        Carregando relatórios...
+                      </TableCell>
+                    </TableRow>
+                  ) : closedReports.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center">
                         Nenhum relatório fechado

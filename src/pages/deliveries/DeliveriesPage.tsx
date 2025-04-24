@@ -25,7 +25,15 @@ import { useDeliveriesOps } from './hooks/useDeliveriesOps';
 export default function DeliveriesPage() {
   const { deliveries } = useDeliveries();
   const { clients, loading: clientsLoading } = useClients();
-  const { financialReports } = useFinancial();
+  
+  // Safely access financial context with fallback
+  let financialReports = [];
+  try {
+    const financialContext = useFinancial();
+    financialReports = financialContext?.financialReports || [];
+  } catch (error) {
+    console.warn("FinancialProvider not available, using empty reports array");
+  }
 
   // Filtros
   const {
