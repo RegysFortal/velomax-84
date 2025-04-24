@@ -16,6 +16,7 @@ import { OperationalMenu } from "./nav/OperationalMenu"
 import { FinancialMenu } from "./nav/FinancialMenu"
 import { ManagementMenu } from "./nav/ManagementMenu"
 import { FleetMenu } from "./nav/FleetMenu"
+import { InventoryMenu } from "./nav/InventoryMenu"
 
 const NavigationMenuDemo = () => {
   const { isMobile } = useIsMobile();
@@ -27,6 +28,7 @@ const NavigationMenuDemo = () => {
         <OperationalMenu user={user} hasPermission={hasPermission} />
         <FinancialMenu user={user} hasPermission={hasPermission} />
         <FleetMenu user={user} hasPermission={hasPermission} />
+        <InventoryMenu user={user} hasPermission={hasPermission} />
         <ManagementMenu user={user} hasPermission={hasPermission} />
       </NavigationMenuList>
     </NavigationMenu>

@@ -13,3 +13,4 @@ export * from './client';
 export * from './city';
 export * from './priceTable';
 export * from './user';
+export * from './inventory';
