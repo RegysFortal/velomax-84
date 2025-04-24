@@ -1,31 +1,21 @@
 
-import React, { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/AppLayout';
-import { MetricCards } from '@/components/dashboard/MetricCards';
-import { SummaryCards } from '@/components/dashboard/SummaryCards';
-import { ChartSection } from '@/components/dashboard/ChartSection';
-import { EventsCalendar } from '@/components/dashboard/EventsCalendar';
+import React, { useState } from 'react';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
+import { EventsCalendar } from '@/components/dashboard/EventsCalendar';
 import { useShipments } from '@/contexts/shipments';
 import { useDeliveriesStorage } from '@/hooks/useDeliveriesStorage';
-import { useClients } from '@/contexts';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { formatToLocaleDate } from '@/utils/dateUtils';
 import { DateRange } from "react-day-picker";
 import { 
   Package, 
   Truck, 
   PackageX, 
   Timer, 
-  Users, 
-  PackageCheck, 
   Check, 
-  CalendarDays, 
-  Bell, 
-  CalendarClock,
-  Cake
+  Bell
 } from 'lucide-react';
 import { sub } from 'date-fns';
+import { formatToLocaleDate } from '@/utils/dateUtils';
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -33,10 +23,9 @@ const Dashboard = () => {
     to: new Date()
   });
   
-  const { shipments, loading: shipmentsLoading, refreshShipmentsData } = useShipments();
+  const { shipments, loading: shipmentsLoading } = useShipments();
   const { deliveries, loading: deliveriesLoading } = useDeliveriesStorage();
-  const { clients } = useClients();
-  
+
   // Convert date range to string format for API calls
   const startDate = formatToLocaleDate(dateRange.from || new Date());
   const endDate = formatToLocaleDate(dateRange.to || new Date());
@@ -58,7 +47,6 @@ const Dashboard = () => {
   const totalShipments = filteredShipments.length;
   const inTransitShipments = filteredShipments.filter(s => s.status === 'in_transit').length;
   const retainedShipments = filteredShipments.filter(s => s.status === 'retained').length;
-  const deliveredShipments = filteredShipments.filter(s => s.status === 'delivered' || s.status === 'delivered_final').length;
   const totalDeliveries = filteredDeliveries.length;
   const activeDeliveries = filteredDeliveries.filter(d => {
     const deliveryDate = new Date(d.deliveryDate);
@@ -77,24 +65,8 @@ const Dashboard = () => {
   
   // Attention needed shipments (delayed + retained)
   const attentionNeededShipments = delayedShipments + retainedShipments;
-  
-  // Deliveries for current month
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const currentMonthDeliveries = deliveries.filter(d => {
-    const deliveryDate = new Date(d.deliveryDate);
-    return deliveryDate.getMonth() === currentMonth && deliveryDate.getFullYear() === currentYear;
-  }).length;
-  
-  // Calculate total weight moved
-  const totalWeight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.weight, 0);
-  
-  // Handle refresh
-  const handleRefresh = () => {
-    refreshShipmentsData();
-  };
 
-  // Handle date range change with proper type
+  // Handle date range change
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange({
       from: range.from || dateRange.from,
@@ -182,28 +154,13 @@ const Dashboard = () => {
             </p>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Clientes Cadastrados
-            </CardTitle>
-            <Users className="h-4 w-4 text-indigo-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{clients.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Total de clientes
-            </p>
-          </CardContent>
-        </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total de Entregas
             </CardTitle>
-            <PackageCheck className="h-4 w-4 text-green-500" />
+            <Package className="h-4 w-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalDeliveries}</div>
@@ -228,22 +185,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Entregas do Mês
-            </CardTitle>
-            <CalendarDays className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{currentMonthDeliveries}</div>
-            <p className="text-xs text-muted-foreground">
-              No mês atual
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="col-span-1 md:col-span-2 lg:col-span-4">
+        <Card className="col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Embarques que Precisam Atenção
@@ -265,29 +207,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ChartSection 
-          shipments={filteredShipments}
-          deliveries={filteredDeliveries}
-          clients={clients}
-          startDate={startDate}
-          endDate={endDate}
-        />
-      </div>
-      
-      <SummaryCards
-        inTransitShipments={inTransitShipments}
-        retainedShipments={retainedShipments}
-        deliveredShipments={deliveredShipments}
-        partiallyDeliveredShipments={0}
-        finalDeliveredShipments={0}
-        totalWeight={totalWeight}
-        totalDeliveries={totalDeliveries}
-        startDate={startDate}
-        endDate={endDate}
-        onRefresh={handleRefresh}
-      />
       
       <EventsCalendar
         deliveries={filteredDeliveries}
