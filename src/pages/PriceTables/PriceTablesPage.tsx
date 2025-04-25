@@ -5,8 +5,6 @@ import { Plus } from 'lucide-react';
 import { PriceTableList } from '@/components/price-tables/PriceTableList';
 import { PriceTableDialog } from '@/components/price-tables/PriceTableDialog';
 import { CustomServiceDialog } from '@/components/price-tables/CustomServiceDialog';
-import { MetropolitanCitiesSection } from '@/components/price-tables/MetropolitanCitiesSection';
-import { RatesFormSection } from '@/components/price-tables/RatesFormSection';
 import { CustomServiceManagement } from './components/CustomServiceManagement';
 import { usePriceTablesForm } from './hooks/usePriceTablesForm';
 
