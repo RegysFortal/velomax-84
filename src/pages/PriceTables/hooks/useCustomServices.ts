@@ -86,7 +86,7 @@ export function useCustomServices(formData: any, setFormData: React.Dispatch<Rea
       // Add new service
       const newService = {
         id: uuidv4(),
-        name: customServiceFormData.name,
+        name: customServiceFormData.name || '',
         minWeight: customServiceFormData.minWeight || 10,
         baseRate: customServiceFormData.baseRate || 0,
         excessRate: customServiceFormData.excessRate || 0,

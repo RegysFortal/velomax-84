@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +15,7 @@ import {
 import { CustomService } from '@/types/priceTable';
 
 interface CustomServiceFormData {
-  id: string;
+  id?: string; // Make id optional to match Partial<CustomService>
   name: string;
   minWeight: number;
   baseRate: number;
