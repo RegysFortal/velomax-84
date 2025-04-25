@@ -1,47 +1,99 @@
 
+export interface CustomService {
+  id: string;
+  name: string;
+  minWeight: number;
+  baseRate: number;
+  excessRate: number;
+  additionalInfo?: string;
+}
+
 export interface PriceTable {
   id?: string;
   name: string;
+  description?: string;
   multiplier: number;
-  // Fortaleza Normal
+  
+  // Original rates
   fortalezaNormalMinRate: number;
   fortalezaNormalExcessRate: number;
-  // Fortaleza Emergencial
   fortalezaEmergencyMinRate: number;
   fortalezaEmergencyExcessRate: number;
-  // Fortaleza Sábados
   fortalezaSaturdayMinRate: number;
   fortalezaSaturdayExcessRate: number;
-  // Fortaleza Exclusivo
   fortalezaExclusiveMinRate: number;
   fortalezaExclusiveExcessRate: number;
-  // Fortaleza Agendado/Difícil Acesso
   fortalezaScheduledMinRate: number;
   fortalezaScheduledExcessRate: number;
-  // Região Metropolitana
   metropolitanMinRate: number;
   metropolitanExcessRate: number;
-  // Fortaleza Domingos/Feriados
   fortalezaHolidayMinRate: number;
   fortalezaHolidayExcessRate: number;
-  // Material Biológico Normal
   biologicalNormalMinRate: number;
   biologicalNormalExcessRate: number;
-  // Material Biológico Infeccioso
   biologicalInfectiousMinRate: number;
   biologicalInfectiousExcessRate: number;
-  // Veículo Rastreado
   trackedVehicleMinRate: number;
   trackedVehicleExcessRate: number;
-  // Redespacho
   reshipmentMinRate: number;
   reshipmentExcessRate: number;
   reshipmentInvoicePercentage: number;
-  // Exclusivo Interior
   interiorExclusiveMinRate: number;
   interiorExclusiveExcessRate: number;
   interiorExclusiveKmRate: number;
   
+  // New structure also being used in the codebase
+  minimumRate?: {
+    standardDelivery: number;
+    emergencyCollection: number;
+    saturdayCollection: number;
+    exclusiveVehicle: number;
+    scheduledDifficultAccess: number;
+    metropolitanRegion: number;
+    sundayHoliday: number;
+    normalBiological: number;
+    infectiousBiological: number;
+    trackedVehicle: number;
+    doorToDoorInterior: number;
+    reshipment: number;
+    customServices: CustomService[];
+  };
+  
+  excessWeight?: {
+    minPerKg: number;
+    maxPerKg: number;
+    biologicalPerKg: number;
+    reshipmentPerKg: number;
+  };
+  
+  doorToDoor?: {
+    ratePerKm: number;
+    maxWeight: number;
+  };
+  
+  waitingHour?: {
+    standard: number;
+    exclusive: number;
+    fiorino: number;
+    medium: number;
+    large: number;
+  };
+  
+  insurance?: {
+    rate: number;
+    standard: number;
+    perishable?: number;
+  };
+  
+  allowCustomPricing?: boolean;
+  defaultDiscount?: number;
+  metropolitanCities?: string[];
+  
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface PriceTableFormData extends Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'> {
+  metropolitanCityIds?: string[];
+  customServices?: CustomService[];
 }

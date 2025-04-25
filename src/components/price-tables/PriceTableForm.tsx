@@ -8,9 +8,11 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { PriceTableFormData } from '@/types/priceTable';
 
 const priceTableSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
+  description: z.string().optional(),
   multiplier: z.number().min(0, "Multiplicador deve ser maior que zero"),
   // Fortaleza Normal
   fortalezaNormalMinRate: z.number().min(0),
@@ -50,6 +52,9 @@ const priceTableSchema = z.object({
   interiorExclusiveMinRate: z.number().min(0),
   interiorExclusiveExcessRate: z.number().min(0),
   interiorExclusiveKmRate: z.number().min(0),
+  // Additional properties
+  allowCustomPricing: z.boolean().optional().default(false),
+  defaultDiscount: z.number().min(0).optional().default(0),
 });
 
 type FormData = z.infer<typeof priceTableSchema>;
@@ -59,7 +64,10 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
     resolver: zodResolver(priceTableSchema),
     defaultValues: {
       name: '',
+      description: '',
       multiplier: 1,
+      allowCustomPricing: false,
+      defaultDiscount: 0,
       ...initialData
     }
   });
@@ -143,10 +151,60 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
             />
             <FormField
               control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="multiplier"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Multiplicador</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      step="0.01" 
+                      {...field} 
+                      onChange={e => field.onChange(parseFloat(e.target.value))} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="allowCustomPricing"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded"
+                      checked={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Permitir preços customizados</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="defaultDiscount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Desconto padrão (%)</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 

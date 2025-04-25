@@ -1,7 +1,7 @@
 
-import { PriceTable } from '@/types';
+import { PriceTable, PriceTableFormData } from '@/types';
 
-export interface PriceTableInput extends Omit<PriceTable, 'id' | 'createdAt' | 'updatedAt'> {}
+export interface PriceTableInput extends Omit<PriceTableFormData, 'id' | 'createdAt' | 'updatedAt'> {}
 
 export interface PriceTablesContextType {
   priceTables: PriceTable[];
