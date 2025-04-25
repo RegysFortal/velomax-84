@@ -38,7 +38,7 @@ export function usePriceTablesForm() {
     openCustomServiceDialog,
     saveCustomService,
     deleteCustomService
-  } = useCustomServices(setFormData);
+  } = useCustomServices(formData, setFormData);
 
   const { handleSubmit } = usePriceTableSubmit(
     formData, 
@@ -70,7 +70,6 @@ export function usePriceTablesForm() {
     openCustomServiceDialog,
     currentCustomService,
     customServiceFormData,
-    setCustomServiceFormData,
     handleCustomServiceChange,
     saveCustomService,
     deleteCustomService,
