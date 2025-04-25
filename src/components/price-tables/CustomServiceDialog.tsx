@@ -14,13 +14,14 @@ import {
 } from '@/components/ui/dialog';
 import { CustomService } from '@/types/priceTable';
 
+// Make all properties optional to match Partial<CustomService> for creating new services
 interface CustomServiceFormData {
-  id?: string; // Make id optional to match Partial<CustomService>
-  name: string;
-  minWeight: number;
-  baseRate: number;
-  excessRate: number;
-  additionalInfo: string;
+  id?: string;
+  name?: string;
+  minWeight?: number;
+  baseRate?: number;
+  excessRate?: number;
+  additionalInfo?: string;
 }
 
 interface CustomServiceDialogProps {
@@ -55,7 +56,7 @@ export function CustomServiceDialog({
             <Input
               id="name"
               name="name"
-              value={formData.name}
+              value={formData.name || ''}
               onChange={onChange}
               placeholder="Ex: Transporte de Frágeis"
             />
@@ -69,7 +70,7 @@ export function CustomServiceDialog({
                 name="minWeight"
                 type="number"
                 step="0.1"
-                value={formData.minWeight}
+                value={formData.minWeight || 0}
                 onChange={onChange}
               />
             </div>
@@ -81,7 +82,7 @@ export function CustomServiceDialog({
                 name="baseRate"
                 type="number"
                 step="0.01"
-                value={formData.baseRate}
+                value={formData.baseRate || 0}
                 onChange={onChange}
               />
             </div>
@@ -94,7 +95,7 @@ export function CustomServiceDialog({
               name="excessRate"
               type="number"
               step="0.01"
-              value={formData.excessRate}
+              value={formData.excessRate || 0}
               onChange={onChange}
             />
           </div>
@@ -104,7 +105,7 @@ export function CustomServiceDialog({
             <Textarea
               id="additionalInfo"
               name="additionalInfo"
-              value={formData.additionalInfo}
+              value={formData.additionalInfo || ''}
               onChange={onChange}
               placeholder="Informações adicionais sobre este serviço..."
             />
