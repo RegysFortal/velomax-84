@@ -13,47 +13,60 @@ export function RatesFormSection({ formData, onChange }: RatesFormSectionProps) 
   const renderServiceRateRow = (
     label: string,
     minRateField: string,
-    weightField: string = "10", // Valor padrão para o peso mínimo
-    excessRateField: string
-  ) => (
-    <div className="border p-4 rounded-md mb-4">
-      <h4 className="font-medium mb-3 text-base">{label}</h4>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor={minRateField}>Taxa Mínima (R$)</Label>
-          <Input
-            type="number"
-            id={minRateField}
-            name={minRateField}
-            value={getValue(formData, minRateField)}
-            onChange={onChange}
-            step="0.01"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`weight-${minRateField}`}>Peso Mínimo (kg)</Label>
-          <Input
-            type="number"
-            id={`weight-${minRateField}`}
-            value={weightField}
-            disabled
-            className="bg-gray-50"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={excessRateField}>Excedente (R$/kg)</Label>
-          <Input
-            type="number"
-            id={excessRateField}
-            name={excessRateField}
-            value={getValue(formData, excessRateField)}
-            onChange={onChange}
-            step="0.01"
-          />
+    weightLimitField: string,
+    excessRateField: string,
+    defaultWeight: number = 10
+  ) => {
+    // Extract service name from minRateField (e.g., "minimumRate.standardDelivery" -> "standardDelivery")
+    const serviceName = minRateField.split('.')[1];
+    
+    // Get weight limit value from formData.weightLimits if it exists
+    const weightLimitValue = formData.weightLimits && formData.weightLimits[serviceName] 
+      ? formData.weightLimits[serviceName]
+      : defaultWeight;
+
+    return (
+      <div className="border p-4 rounded-md mb-4">
+        <h4 className="font-medium mb-3 text-base">{label}</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor={minRateField}>Taxa Mínima (R$)</Label>
+            <Input
+              type="number"
+              id={minRateField}
+              name={minRateField}
+              value={getValue(formData, minRateField)}
+              onChange={onChange}
+              step="0.01"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={weightLimitField}>Peso Mínimo (kg)</Label>
+            <Input
+              type="number"
+              id={weightLimitField}
+              name={weightLimitField}
+              value={weightLimitValue}
+              onChange={onChange}
+              min="0"
+              step="0.1"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={excessRateField}>Excedente (R$/kg)</Label>
+            <Input
+              type="number"
+              id={excessRateField}
+              name={excessRateField}
+              value={getValue(formData, excessRateField)}
+              onChange={onChange}
+              step="0.01"
+            />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Função para obter valores aninhados usando string path notation
   const getValue = (obj: any, path: string) => {
@@ -66,29 +79,89 @@ export function RatesFormSection({ formData, onChange }: RatesFormSectionProps) 
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-4">Serviços e Taxas</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Configure os valores de taxa mínima e excedente para cada tipo de serviço.
-          O peso mínimo padrão é de 10kg para a maioria dos serviços.
+          Configure os valores de taxa mínima, peso mínimo e excedente para cada tipo de serviço.
         </p>
 
         {/* Serviços Padrão */}
         <div className="space-y-4">
-          {renderServiceRateRow("Entrega Padrão", "minimumRate.standardDelivery", "10", "excessWeight.minPerKg")}
-          {renderServiceRateRow("Coleta Emergencial", "minimumRate.emergencyCollection", "10", "excessWeight.maxPerKg")}
-          {renderServiceRateRow("Coleta Sábado", "minimumRate.saturdayCollection", "10", "excessWeight.maxPerKg")}
-          {renderServiceRateRow("Veículo Exclusivo", "minimumRate.exclusiveVehicle", "10", "excessWeight.maxPerKg")}
-          {renderServiceRateRow("Acesso Difícil Agendado", "minimumRate.scheduledDifficultAccess", "10", "excessWeight.maxPerKg")}
-          {renderServiceRateRow("Região Metropolitana", "minimumRate.metropolitanRegion", "10", "excessWeight.maxPerKg")}
-          {renderServiceRateRow("Domingo/Feriado", "minimumRate.sundayHoliday", "10", "excessWeight.maxPerKg")}
+          {renderServiceRateRow(
+            "Entrega Padrão", 
+            "minimumRate.standardDelivery", 
+            "weightLimits.standardDelivery", 
+            "excessWeight.minPerKg"
+          )}
+          {renderServiceRateRow(
+            "Coleta Emergencial", 
+            "minimumRate.emergencyCollection", 
+            "weightLimits.emergencyCollection", 
+            "excessWeight.maxPerKg"
+          )}
+          {renderServiceRateRow(
+            "Coleta Sábado", 
+            "minimumRate.saturdayCollection", 
+            "weightLimits.saturdayCollection", 
+            "excessWeight.maxPerKg"
+          )}
+          {renderServiceRateRow(
+            "Veículo Exclusivo", 
+            "minimumRate.exclusiveVehicle", 
+            "weightLimits.exclusiveVehicle", 
+            "excessWeight.maxPerKg"
+          )}
+          {renderServiceRateRow(
+            "Acesso Difícil Agendado", 
+            "minimumRate.scheduledDifficultAccess", 
+            "weightLimits.scheduledDifficultAccess", 
+            "excessWeight.maxPerKg"
+          )}
+          {renderServiceRateRow(
+            "Região Metropolitana", 
+            "minimumRate.metropolitanRegion", 
+            "weightLimits.metropolitanRegion", 
+            "excessWeight.maxPerKg"
+          )}
+          {renderServiceRateRow(
+            "Domingo/Feriado", 
+            "minimumRate.sundayHoliday", 
+            "weightLimits.sundayHoliday", 
+            "excessWeight.maxPerKg"
+          )}
         </div>
 
         {/* Serviços Especiais */}
         <h3 className="text-xl font-semibold mb-4 mt-8">Serviços Especiais</h3>
         <div className="space-y-4">
-          {renderServiceRateRow("Biológico Normal", "minimumRate.normalBiological", "10", "excessWeight.biologicalPerKg")}
-          {renderServiceRateRow("Biológico Infeccioso", "minimumRate.infectiousBiological", "10", "excessWeight.biologicalPerKg")}
-          {renderServiceRateRow("Veículo Rastreado", "minimumRate.trackedVehicle", "100", "excessWeight.maxPerKg")}
-          {renderServiceRateRow("Porta a Porta Interior", "minimumRate.doorToDoorInterior", "10", "excessWeight.maxPerKg")}
-          {renderServiceRateRow("Redespacho", "minimumRate.reshipment", "10", "excessWeight.reshipmentPerKg")}
+          {renderServiceRateRow(
+            "Biológico Normal", 
+            "minimumRate.normalBiological", 
+            "weightLimits.normalBiological", 
+            "excessWeight.biologicalPerKg"
+          )}
+          {renderServiceRateRow(
+            "Biológico Infeccioso", 
+            "minimumRate.infectiousBiological", 
+            "weightLimits.infectiousBiological", 
+            "excessWeight.biologicalPerKg"
+          )}
+          {renderServiceRateRow(
+            "Veículo Rastreado", 
+            "minimumRate.trackedVehicle", 
+            "weightLimits.trackedVehicle", 
+            "excessWeight.maxPerKg",
+            100
+          )}
+          {renderServiceRateRow(
+            "Porta a Porta Interior", 
+            "minimumRate.doorToDoorInterior", 
+            "weightLimits.doorToDoorInterior", 
+            "excessWeight.maxPerKg"
+          )}
+          {renderServiceRateRow(
+            "Redespacho", 
+            "minimumRate.reshipment", 
+            "weightLimits.reshipment", 
+            "excessWeight.reshipmentPerKg"
+          )}
         </div>
 
         {/* Configurações Adicionais */}

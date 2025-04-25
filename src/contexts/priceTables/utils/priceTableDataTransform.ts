@@ -54,6 +54,22 @@ export const transformDatabaseResponse = (data: any): PriceTable => {
     rate: 0.01,
     standard: 0.01,
   };
+
+  // Parse weight limits if available
+  const weightLimits = parseJsonField(data.weight_limits) || {
+    standardDelivery: 10,
+    emergencyCollection: 10,
+    saturdayCollection: 10,
+    exclusiveVehicle: 10,
+    scheduledDifficultAccess: 10,
+    metropolitanRegion: 10,
+    sundayHoliday: 10,
+    normalBiological: 10,
+    infectiousBiological: 10,
+    trackedVehicle: 100,
+    doorToDoorInterior: 10,
+    reshipment: 10,
+  };
   
   let parsedMetropolitanCities: string[] = [];
   try {
@@ -91,6 +107,7 @@ export const transformDatabaseResponse = (data: any): PriceTable => {
     doorToDoor,
     waitingHour,
     insurance,
+    weightLimits,
     metropolitanCities: parsedMetropolitanCities,
     allowCustomPricing: data.allow_custom_pricing,
     defaultDiscount: data.default_discount || 0,
@@ -141,6 +158,22 @@ export const preparePriceTableForDatabase = (priceTable: any) => {
     .filter(id => id.startsWith('temp-'))
     .map(id => id.replace('temp-', ''));
 
+  // Prepare weight limits data
+  const weightLimits = priceTable.weightLimits || {
+    standardDelivery: 10,
+    emergencyCollection: 10,
+    saturdayCollection: 10,
+    exclusiveVehicle: 10,
+    scheduledDifficultAccess: 10,
+    metropolitanRegion: 10,
+    sundayHoliday: 10,
+    normalBiological: 10,
+    infectiousBiological: 10,
+    trackedVehicle: 100,
+    doorToDoorInterior: 10,
+    reshipment: 10,
+  };
+
   return {
     name: priceTable.name,
     description: priceTable.description,
@@ -149,6 +182,7 @@ export const preparePriceTableForDatabase = (priceTable: any) => {
     door_to_door: JSON.stringify(priceTable.doorToDoor),
     waiting_hour: JSON.stringify(priceTable.waitingHour),
     insurance: JSON.stringify(priceTable.insurance),
+    weight_limits: JSON.stringify(weightLimits),
     metropolitan_cities: JSON.stringify({
       cityIds: validCityIds,
       customNames: customCityNames

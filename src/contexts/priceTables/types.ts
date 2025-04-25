@@ -45,6 +45,22 @@ export interface PriceTableInput {
     standard: number;
     perishable?: number;
   };
+  
+  // Weight limits
+  weightLimits?: {
+    standardDelivery: number;
+    emergencyCollection: number;
+    saturdayCollection: number;
+    exclusiveVehicle: number;
+    scheduledDifficultAccess: number;
+    metropolitanRegion: number;
+    sundayHoliday: number;
+    normalBiological: number;
+    infectiousBiological: number;
+    trackedVehicle: number;
+    doorToDoorInterior: number;
+    reshipment: number;
+  };
 
   // Additional configurations
   allowCustomPricing?: boolean;

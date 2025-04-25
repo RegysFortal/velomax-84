@@ -72,6 +72,20 @@ export const createEmptyPriceTable = () => ({
     rate: 0.01,
     standard: 0.01,
   },
+  weightLimits: {
+    standardDelivery: 10,
+    emergencyCollection: 10,
+    saturdayCollection: 10,
+    exclusiveVehicle: 10,
+    scheduledDifficultAccess: 10,
+    metropolitanRegion: 10,
+    sundayHoliday: 10,
+    normalBiological: 10,
+    infectiousBiological: 10,
+    trackedVehicle: 100,
+    doorToDoorInterior: 10,
+    reshipment: 10,
+  },
   allowCustomPricing: false,
   defaultDiscount: 0,
   metropolitanCities: [],
@@ -131,6 +145,10 @@ export function usePriceTablesForm() {
           ...createEmptyPriceTable().insurance,
           ...(editingPriceTable.insurance || {}),
         },
+        weightLimits: {
+          ...createEmptyPriceTable().weightLimits,
+          ...(editingPriceTable.weightLimits || {}),
+        },
         allowCustomPricing: editingPriceTable.allowCustomPricing ?? false,
         defaultDiscount: defaultDiscountValue,
       });
@@ -145,6 +163,7 @@ export function usePriceTablesForm() {
     const { name, value, type } = e.target;
     const inputElem = e.target as HTMLInputElement;
     const checked = type === 'checkbox' ? inputElem.checked : undefined;
+    
     if (name.startsWith('minimumRate.')) {
       const minimumRateKey = name.split('.')[1] as keyof typeof formData.minimumRate;
       setFormData(prev => ({
@@ -188,6 +207,15 @@ export function usePriceTablesForm() {
         insurance: {
           ...prev.insurance,
           [insuranceKey]: type === 'number' ? parseFloat(value) : value,
+        },
+      }));
+    } else if (name.startsWith('weightLimits.')) {
+      const weightLimitKey = name.split('.')[1] as keyof typeof formData.weightLimits;
+      setFormData(prev => ({
+        ...prev,
+        weightLimits: {
+          ...prev.weightLimits,
+          [weightLimitKey]: type === 'number' ? parseFloat(value) : parseFloat(value),
         },
       }));
     } else if (name === 'allowCustomPricing') {
@@ -240,9 +268,9 @@ export function usePriceTablesForm() {
       });
       return;
     }
-
+  
     const tempId = `temp-${cityName.trim()}`;
-
+  
     if (selectedCities.some(id => id === tempId || (id.startsWith('temp-') && id.replace('temp-', '') === cityName.trim()))) {
       toast({
         title: "Cidade já adicionada",
@@ -287,6 +315,7 @@ export function usePriceTablesForm() {
           biologicalPerKg: formData.biologicalNormalExcessRate,
           reshipmentPerKg: formData.reshipmentExcessRate,
         },
+        weightLimits: formData.weightLimits,
         allowCustomPricing: formData.allowCustomPricing ?? false,
       };
       

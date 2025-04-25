@@ -85,6 +85,22 @@ export interface PriceTable {
     perishable?: number;
   };
   
+  // Weight limits for each service
+  weightLimits?: {
+    standardDelivery: number;
+    emergencyCollection: number;
+    saturdayCollection: number;
+    exclusiveVehicle: number;
+    scheduledDifficultAccess: number;
+    metropolitanRegion: number;
+    sundayHoliday: number;
+    normalBiological: number;
+    infectiousBiological: number;
+    trackedVehicle: number;
+    doorToDoorInterior: number;
+    reshipment: number;
+  };
+  
   allowCustomPricing?: boolean;
   defaultDiscount?: number;
   metropolitanCities?: string[];
