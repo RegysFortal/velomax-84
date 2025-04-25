@@ -29,18 +29,18 @@ export interface PriceTableInput {
     biologicalPerKg: number;
     reshipmentPerKg: number;
   };
-  doorToDoor: {
+  doorToDoor?: {
     ratePerKm: number;
     maxWeight: number;
   };
-  waitingHour: {
+  waitingHour?: {
     standard: number;
     exclusive: number;
     fiorino: number;
     medium: number;
     large: number;
   };
-  insurance: {
+  insurance?: {
     rate: number;
     standard: number;
     perishable?: number;
