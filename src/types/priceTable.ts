@@ -14,7 +14,7 @@ export interface PriceTable {
   description?: string;
   multiplier: number;
   
-  // Original rates
+  // Original flat rates structure
   fortalezaNormalMinRate: number;
   fortalezaNormalExcessRate: number;
   fortalezaEmergencyMinRate: number;
@@ -42,7 +42,7 @@ export interface PriceTable {
   interiorExclusiveExcessRate: number;
   interiorExclusiveKmRate: number;
   
-  // New structure also being used in the codebase
+  // New nested structure
   minimumRate?: {
     standardDelivery: number;
     emergencyCollection: number;

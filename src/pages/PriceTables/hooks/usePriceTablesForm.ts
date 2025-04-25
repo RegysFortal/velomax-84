@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { usePriceTables } from '@/contexts/priceTables';
@@ -8,6 +7,35 @@ import { PriceTable, CustomService } from '@/types';
 export const createEmptyPriceTable = () => ({
   name: '',
   description: '',
+  multiplier: 1,
+  
+  fortalezaNormalMinRate: 0,
+  fortalezaNormalExcessRate: 0,
+  fortalezaEmergencyMinRate: 0,
+  fortalezaEmergencyExcessRate: 0,
+  fortalezaSaturdayMinRate: 0,
+  fortalezaSaturdayExcessRate: 0,
+  fortalezaExclusiveMinRate: 0,
+  fortalezaExclusiveExcessRate: 0,
+  fortalezaScheduledMinRate: 0,
+  fortalezaScheduledExcessRate: 0,
+  metropolitanMinRate: 0,
+  metropolitanExcessRate: 0,
+  fortalezaHolidayMinRate: 0,
+  fortalezaHolidayExcessRate: 0,
+  biologicalNormalMinRate: 0,
+  biologicalNormalExcessRate: 0,
+  biologicalInfectiousMinRate: 0, 
+  biologicalInfectiousExcessRate: 0,
+  trackedVehicleMinRate: 0,
+  trackedVehicleExcessRate: 0,
+  reshipmentMinRate: 0,
+  reshipmentExcessRate: 0,
+  reshipmentInvoicePercentage: 0,
+  interiorExclusiveMinRate: 0,
+  interiorExclusiveExcessRate: 0,
+  interiorExclusiveKmRate: 0,
+  
   minimumRate: {
     standardDelivery: 0,
     emergencyCollection: 0,
@@ -74,34 +102,34 @@ export function usePriceTablesForm() {
   useEffect(() => {
     if (editingPriceTable) {
       const metropolitanCityIds = editingPriceTable.metropolitanCities || [];
-      const customServices = editingPriceTable.minimumRate.customServices || [];
+      const customServices = editingPriceTable.minimumRate?.customServices || [];
       const defaultDiscountValue = typeof editingPriceTable.defaultDiscount === 'number' 
         ? editingPriceTable.defaultDiscount
         : 0;
 
       setFormData({
+        ...createEmptyPriceTable(),
         ...editingPriceTable,
         description: editingPriceTable.description || '',
         metropolitanCityIds,
         metropolitanCities: metropolitanCityIds,
         customServices,
         minimumRate: {
-          ...editingPriceTable.minimumRate,
+          ...createEmptyPriceTable().minimumRate,
+          ...(editingPriceTable.minimumRate || {}),
           customServices,
         },
         doorToDoor: {
-          ...editingPriceTable.doorToDoor,
-          maxWeight: editingPriceTable.doorToDoor.maxWeight || 0,
+          ...createEmptyPriceTable().doorToDoor,
+          ...(editingPriceTable.doorToDoor || {}),
         },
         waitingHour: {
-          ...editingPriceTable.waitingHour,
-          fiorino: editingPriceTable.waitingHour.fiorino || 0,
-          medium: editingPriceTable.waitingHour.medium || 0,
-          large: editingPriceTable.waitingHour.large || 0,
+          ...createEmptyPriceTable().waitingHour,
+          ...(editingPriceTable.waitingHour || {}),
         },
         insurance: {
-          ...editingPriceTable.insurance,
-          standard: editingPriceTable.insurance.standard || 0.01,
+          ...createEmptyPriceTable().insurance,
+          ...(editingPriceTable.insurance || {}),
         },
         allowCustomPricing: editingPriceTable.allowCustomPricing ?? false,
         defaultDiscount: defaultDiscountValue,
@@ -239,9 +267,29 @@ export function usePriceTablesForm() {
         minimumRate: {
           ...formData.minimumRate,
           customServices: formData.customServices,
+          standardDelivery: formData.fortalezaNormalMinRate,
+          emergencyCollection: formData.fortalezaEmergencyMinRate,
+          saturdayCollection: formData.fortalezaSaturdayMinRate,
+          exclusiveVehicle: formData.fortalezaExclusiveMinRate,
+          scheduledDifficultAccess: formData.fortalezaScheduledMinRate,
+          metropolitanRegion: formData.metropolitanMinRate,
+          sundayHoliday: formData.fortalezaHolidayMinRate,
+          normalBiological: formData.biologicalNormalMinRate,
+          infectiousBiological: formData.biologicalInfectiousMinRate,
+          trackedVehicle: formData.trackedVehicleMinRate,
+          doorToDoorInterior: formData.interiorExclusiveMinRate,
+          reshipment: formData.reshipmentMinRate,
+        },
+        excessWeight: {
+          ...formData.excessWeight,
+          minPerKg: formData.fortalezaNormalExcessRate,
+          maxPerKg: formData.fortalezaEmergencyExcessRate,
+          biologicalPerKg: formData.biologicalNormalExcessRate,
+          reshipmentPerKg: formData.reshipmentExcessRate,
         },
         allowCustomPricing: formData.allowCustomPricing ?? false,
       };
+      
       delete (priceTableData as any).metropolitanCityIds;
       delete (priceTableData as any).customServices;
 
@@ -292,7 +340,6 @@ export function usePriceTablesForm() {
     }
   };
 
-  // Custom services
   const openCustomServiceDialog = (service?: CustomService) => {
     if (service) {
       setCurrentCustomService(service);

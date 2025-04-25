@@ -1,7 +1,10 @@
 
 import { PriceTable, PriceTableFormData } from '@/types';
 
-export interface PriceTableInput extends Omit<PriceTableFormData, 'id' | 'createdAt' | 'updatedAt'> {}
+export interface PriceTableInput extends Omit<PriceTableFormData, 'id' | 'createdAt' | 'updatedAt'> {
+  // The PriceTableInput must include all required fields from PriceTableFormData
+  // except for id, createdAt, and updatedAt which are managed by the backend
+}
 
 export interface PriceTablesContextType {
   priceTables: PriceTable[];

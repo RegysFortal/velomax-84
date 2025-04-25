@@ -66,6 +66,32 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
       name: '',
       description: '',
       multiplier: 1,
+      fortalezaNormalMinRate: 0,
+      fortalezaNormalExcessRate: 0,
+      fortalezaEmergencyMinRate: 0,
+      fortalezaEmergencyExcessRate: 0,
+      fortalezaSaturdayMinRate: 0,
+      fortalezaSaturdayExcessRate: 0,
+      fortalezaExclusiveMinRate: 0,
+      fortalezaExclusiveExcessRate: 0,
+      fortalezaScheduledMinRate: 0,
+      fortalezaScheduledExcessRate: 0,
+      metropolitanMinRate: 0,
+      metropolitanExcessRate: 0,
+      fortalezaHolidayMinRate: 0,
+      fortalezaHolidayExcessRate: 0,
+      biologicalNormalMinRate: 0,
+      biologicalNormalExcessRate: 0,
+      biologicalInfectiousMinRate: 0,
+      biologicalInfectiousExcessRate: 0,
+      trackedVehicleMinRate: 0,
+      trackedVehicleExcessRate: 0,
+      reshipmentMinRate: 0,
+      reshipmentExcessRate: 0,
+      reshipmentInvoicePercentage: 0,
+      interiorExclusiveMinRate: 0,
+      interiorExclusiveExcessRate: 0,
+      interiorExclusiveKmRate: 0,
       allowCustomPricing: false,
       defaultDiscount: 0,
       ...initialData
@@ -89,7 +115,13 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
           <FormItem>
             <FormLabel>Taxa Mínima (até 10kg)</FormLabel>
             <FormControl>
-              <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+              <Input 
+                type="number" 
+                step="0.01" 
+                {...field} 
+                value={field.value.toString()}
+                onChange={e => field.onChange(parseFloat(e.target.value) || 0)} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -102,7 +134,13 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
           <FormItem>
             <FormLabel>Excedente (por kg)</FormLabel>
             <FormControl>
-              <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+              <Input 
+                type="number" 
+                step="0.01" 
+                {...field} 
+                value={field.value.toString()}
+                onChange={e => field.onChange(parseFloat(e.target.value) || 0)} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -117,7 +155,13 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
               <FormItem>
                 <FormLabel>{extraField.label}</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                  <Input 
+                    type="number" 
+                    step="0.01" 
+                    {...field} 
+                    value={field.value.toString()}
+                    onChange={e => field.onChange(parseFloat(e.target.value) || 0)} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,7 +200,7 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
                 <FormItem>
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,7 +217,8 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
                       type="number" 
                       step="0.01" 
                       {...field} 
-                      onChange={e => field.onChange(parseFloat(e.target.value))} 
+                      value={field.value.toString()}
+                      onChange={e => field.onChange(parseFloat(e.target.value) || 0)} 
                     />
                   </FormControl>
                   <FormMessage />
@@ -209,8 +254,9 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
                     <Input 
                       type="number" 
                       step="0.01" 
-                      {...field} 
-                      onChange={e => field.onChange(parseFloat(e.target.value))} 
+                      {...field}
+                      value={field.value.toString()}
+                      onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
                   <FormMessage />

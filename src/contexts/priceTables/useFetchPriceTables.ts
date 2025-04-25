@@ -3,12 +3,41 @@ import { PriceTable } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-// Initial price tables data as fallback
+// Initial price tables data as fallback, updated to have all required fields
 const INITIAL_PRICE_TABLES: PriceTable[] = [
   {
     id: 'table-a',
     name: 'Tabela A',
     description: 'Tabela padrão para clientes convencionais',
+    // Include flat structure fields
+    fortalezaNormalMinRate: 36.00,
+    fortalezaNormalExcessRate: 0.55,
+    fortalezaEmergencyMinRate: 72.00,
+    fortalezaEmergencyExcessRate: 0.65,
+    fortalezaSaturdayMinRate: 72.00,
+    fortalezaSaturdayExcessRate: 0.65,
+    fortalezaExclusiveMinRate: 176.00,
+    fortalezaExclusiveExcessRate: 0.65,
+    fortalezaScheduledMinRate: 154.00,
+    fortalezaScheduledExcessRate: 0.65,
+    metropolitanMinRate: 165.00,
+    metropolitanExcessRate: 0.65,
+    fortalezaHolidayMinRate: 308.00,
+    fortalezaHolidayExcessRate: 0.65,
+    biologicalNormalMinRate: 72.00,
+    biologicalNormalExcessRate: 0.72,
+    biologicalInfectiousMinRate: 99.00,
+    biologicalInfectiousExcessRate: 0.72,
+    trackedVehicleMinRate: 440.00,
+    trackedVehicleExcessRate: 0.65,
+    reshipmentMinRate: 170.00,
+    reshipmentExcessRate: 0.70,
+    reshipmentInvoicePercentage: 0.01,
+    interiorExclusiveMinRate: 200.00,
+    interiorExclusiveExcessRate: 0.65,
+    interiorExclusiveKmRate: 2.40,
+    multiplier: 1.0,
+    // Nested structure
     minimumRate: {
       standardDelivery: 36.00,
       saturdayCollection: 72.00,
@@ -22,7 +51,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 200.00,
-      customServices: [], // Added required property
+      customServices: [],
     },
     excessWeight: {
       minPerKg: 0.55,
@@ -47,7 +76,6 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     },
     allowCustomPricing: true,
     defaultDiscount: 0.00,
-    multiplier: 1.0,
     metropolitanCities: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -69,7 +97,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       trackedVehicle: 460.00,
       reshipment: 180.00,
       doorToDoorInterior: 220.00,
-      customServices: [], // Added required property
+      customServices: [],
     },
     excessWeight: {
       minPerKg: 0.60,
@@ -116,7 +144,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 240.00,
-      customServices: [], // Added required property
+      customServices: [],
     },
     excessWeight: {
       minPerKg: 0.65,
@@ -163,7 +191,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
       trackedVehicle: 440.00,
       reshipment: 170.00,
       doorToDoorInterior: 260.00,
-      customServices: [], // Added required property
+      customServices: [],
     },
     excessWeight: {
       minPerKg: 0.70,
@@ -215,6 +243,7 @@ export const useFetchPriceTables = (userId?: string) => {
         }
         
         const mappedPriceTables = data.map((table: any): PriceTable => {
+          // Parse JSON fields or use empty objects
           const parsedMinimumRate = typeof table.minimum_rate === 'string'
             ? JSON.parse(table.minimum_rate)
             : table.minimum_rate || {};
@@ -250,22 +279,56 @@ export const useFetchPriceTables = (userId?: string) => {
                 ? JSON.parse(table.metropolitan_cities) 
                 : table.metropolitan_cities) 
             : [];
-            
-          return {
+
+          // Create a table with both formats - flat and nested
+          const priceTable: PriceTable = {
             id: table.id,
             name: table.name,
             description: table.description || '',
+            multiplier: table.multiplier || 1,
+            
+            // Flat format fields
+            fortalezaNormalMinRate: parsedMinimumRate.standardDelivery || 0,
+            fortalezaNormalExcessRate: parsedExcessWeight.minPerKg || 0,
+            fortalezaEmergencyMinRate: parsedMinimumRate.emergencyCollection || 0,
+            fortalezaEmergencyExcessRate: parsedExcessWeight.maxPerKg || 0,
+            fortalezaSaturdayMinRate: parsedMinimumRate.saturdayCollection || 0,
+            fortalezaSaturdayExcessRate: parsedExcessWeight.maxPerKg || 0,
+            fortalezaExclusiveMinRate: parsedMinimumRate.exclusiveVehicle || 0,
+            fortalezaExclusiveExcessRate: parsedExcessWeight.maxPerKg || 0,
+            fortalezaScheduledMinRate: parsedMinimumRate.scheduledDifficultAccess || 0,
+            fortalezaScheduledExcessRate: parsedExcessWeight.maxPerKg || 0,
+            metropolitanMinRate: parsedMinimumRate.metropolitanRegion || 0,
+            metropolitanExcessRate: parsedExcessWeight.minPerKg || 0,
+            fortalezaHolidayMinRate: parsedMinimumRate.sundayHoliday || 0,
+            fortalezaHolidayExcessRate: parsedExcessWeight.maxPerKg || 0,
+            biologicalNormalMinRate: parsedMinimumRate.normalBiological || 0,
+            biologicalNormalExcessRate: parsedExcessWeight.biologicalPerKg || 0,
+            biologicalInfectiousMinRate: parsedMinimumRate.infectiousBiological || 0,
+            biologicalInfectiousExcessRate: parsedExcessWeight.biologicalPerKg || 0,
+            trackedVehicleMinRate: parsedMinimumRate.trackedVehicle || 0,
+            trackedVehicleExcessRate: parsedExcessWeight.maxPerKg || 0,
+            reshipmentMinRate: parsedMinimumRate.reshipment || 0,
+            reshipmentExcessRate: parsedExcessWeight.reshipmentPerKg || 0,
+            reshipmentInvoicePercentage: table.reshipment_invoice_percentage || 0.01,
+            interiorExclusiveMinRate: parsedMinimumRate.doorToDoorInterior || 0,
+            interiorExclusiveExcessRate: parsedExcessWeight.maxPerKg || 0,
+            interiorExclusiveKmRate: parsedDoorToDoor.ratePerKm || 0,
+            
+            // Nested format
             minimumRate: parsedMinimumRate,
             excessWeight: parsedExcessWeight,
             doorToDoor: parsedDoorToDoor,
             waitingHour: parsedWaitingHour,
             insurance: parsedInsurance,
-            allowCustomPricing: table.allow_custom_pricing,
+            allowCustomPricing: table.allow_custom_pricing || false,
             defaultDiscount: table.default_discount || 0,
             metropolitanCities: metropolitanCities,
             createdAt: table.created_at || new Date().toISOString(),
             updatedAt: table.updated_at || new Date().toISOString(),
           };
+          
+          return priceTable;
         });
         
         setPriceTables(mappedPriceTables);
@@ -281,8 +344,18 @@ export const useFetchPriceTables = (userId?: string) => {
         if (storedTables) {
           try {
             const parsedTables = JSON.parse(storedTables);
-            const validatedTables = parsedTables.map((table: PriceTable) => {
-              const updatedTable = { ...table };
+            const validatedTables = parsedTables.map((table: any): PriceTable => {
+              // Apply the same mapping for stored tables
+              const updatedTable = { 
+                ...table,
+                // Ensure required fields exist
+                fortalezaNormalMinRate: table.fortalezaNormalMinRate || (table.minimumRate?.standardDelivery || 0),
+                fortalezaNormalExcessRate: table.fortalezaNormalExcessRate || (table.excessWeight?.minPerKg || 0),
+                fortalezaEmergencyMinRate: table.fortalezaEmergencyMinRate || (table.minimumRate?.emergencyCollection || 0),
+                fortalezaEmergencyExcessRate: table.fortalezaEmergencyExcessRate || (table.excessWeight?.maxPerKg || 0),
+                // ... other fields
+                multiplier: table.multiplier || 1,
+              };
               
               if (!updatedTable.waitingHour) {
                 updatedTable.waitingHour = {
@@ -294,8 +367,39 @@ export const useFetchPriceTables = (userId?: string) => {
                 };
               }
               
+              if (!updatedTable.minimumRate) {
+                updatedTable.minimumRate = {
+                  standardDelivery: updatedTable.fortalezaNormalMinRate,
+                  emergencyCollection: updatedTable.fortalezaEmergencyMinRate,
+                  saturdayCollection: updatedTable.fortalezaSaturdayMinRate,
+                  exclusiveVehicle: updatedTable.fortalezaExclusiveMinRate,
+                  scheduledDifficultAccess: updatedTable.fortalezaScheduledMinRate,
+                  metropolitanRegion: updatedTable.metropolitanMinRate,
+                  sundayHoliday: updatedTable.fortalezaHolidayMinRate,
+                  normalBiological: updatedTable.biologicalNormalMinRate,
+                  infectiousBiological: updatedTable.biologicalInfectiousMinRate,
+                  trackedVehicle: updatedTable.trackedVehicleMinRate,
+                  doorToDoorInterior: updatedTable.interiorExclusiveMinRate || 200.00,
+                  reshipment: updatedTable.reshipmentMinRate,
+                  customServices: [],
+                };
+              }
+              
               if (!updatedTable.minimumRate.doorToDoorInterior) {
                 updatedTable.minimumRate.doorToDoorInterior = 200.00;
+              }
+              
+              if (!updatedTable.minimumRate.customServices) {
+                updatedTable.minimumRate.customServices = [];
+              }
+              
+              if (!updatedTable.excessWeight) {
+                updatedTable.excessWeight = {
+                  minPerKg: updatedTable.fortalezaNormalExcessRate,
+                  maxPerKg: updatedTable.fortalezaEmergencyExcessRate,
+                  biologicalPerKg: updatedTable.biologicalNormalExcessRate || 0.72,
+                  reshipmentPerKg: updatedTable.reshipmentExcessRate || 0.70,
+                };
               }
               
               if (!updatedTable.excessWeight.biologicalPerKg) {
@@ -308,6 +412,13 @@ export const useFetchPriceTables = (userId?: string) => {
               
               if (!updatedTable.metropolitanCities) {
                 updatedTable.metropolitanCities = [];
+              }
+              
+              if (!updatedTable.insurance) {
+                updatedTable.insurance = {
+                  rate: 0.01,
+                  standard: 0.01,
+                };
               }
               
               if (!updatedTable.insurance.standard) {
