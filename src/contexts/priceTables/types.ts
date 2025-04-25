@@ -1,12 +1,13 @@
 
 import { PriceTable, PriceTableFormData } from '@/types';
 
-export interface PriceTableInput extends Omit<PriceTableFormData, 'id' | 'createdAt' | 'updatedAt'> {
-  // The PriceTableInput must include all required fields from PriceTableFormData
-  // except for id, createdAt, and updatedAt which are managed by the backend
+export interface PriceTableInput {
+  // Core fields
   name: string;
   description?: string;
   multiplier: number;
+  
+  // Nested structure
   minimumRate: {
     standardDelivery: number;
     emergencyCollection: number;
@@ -28,25 +29,28 @@ export interface PriceTableInput extends Omit<PriceTableFormData, 'id' | 'create
     biologicalPerKg: number;
     reshipmentPerKg: number;
   };
-  doorToDoor?: {
+  doorToDoor: {
     ratePerKm: number;
     maxWeight: number;
   };
-  waitingHour?: {
+  waitingHour: {
     standard: number;
     exclusive: number;
     fiorino: number;
     medium: number;
     large: number;
   };
-  insurance?: {
+  insurance: {
     rate: number;
     standard: number;
     perishable?: number;
   };
+
+  // Additional configurations
   allowCustomPricing?: boolean;
   defaultDiscount?: number;
   metropolitanCities?: string[];
+  
   // Flat structure (optional properties)
   fortalezaNormalMinRate?: number;
   fortalezaNormalExcessRate?: number;

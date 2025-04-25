@@ -66,12 +66,12 @@ export interface PriceTable {
     reshipmentPerKg: number;
   };
   
-  doorToDoor: {
+  doorToDoor?: {
     ratePerKm: number;
     maxWeight: number;
   };
   
-  waitingHour: {
+  waitingHour?: {
     standard: number;
     exclusive: number;
     fiorino: number;
@@ -79,7 +79,7 @@ export interface PriceTable {
     large: number;
   };
   
-  insurance: {
+  insurance?: {
     rate: number;
     standard: number;
     perishable?: number;
