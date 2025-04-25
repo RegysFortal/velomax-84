@@ -14,36 +14,36 @@ export interface PriceTable {
   description?: string;
   multiplier: number;
   
-  // Original flat rates structure
-  fortalezaNormalMinRate: number;
-  fortalezaNormalExcessRate: number;
-  fortalezaEmergencyMinRate: number;
-  fortalezaEmergencyExcessRate: number;
-  fortalezaSaturdayMinRate: number;
-  fortalezaSaturdayExcessRate: number;
-  fortalezaExclusiveMinRate: number;
-  fortalezaExclusiveExcessRate: number;
-  fortalezaScheduledMinRate: number;
-  fortalezaScheduledExcessRate: number;
-  metropolitanMinRate: number;
-  metropolitanExcessRate: number;
-  fortalezaHolidayMinRate: number;
-  fortalezaHolidayExcessRate: number;
-  biologicalNormalMinRate: number;
-  biologicalNormalExcessRate: number;
-  biologicalInfectiousMinRate: number;
-  biologicalInfectiousExcessRate: number;
-  trackedVehicleMinRate: number;
-  trackedVehicleExcessRate: number;
-  reshipmentMinRate: number;
-  reshipmentExcessRate: number;
-  reshipmentInvoicePercentage: number;
-  interiorExclusiveMinRate: number;
-  interiorExclusiveExcessRate: number;
-  interiorExclusiveKmRate: number;
+  // Original flat rates structure - making these optional
+  fortalezaNormalMinRate?: number;
+  fortalezaNormalExcessRate?: number;
+  fortalezaEmergencyMinRate?: number;
+  fortalezaEmergencyExcessRate?: number;
+  fortalezaSaturdayMinRate?: number;
+  fortalezaSaturdayExcessRate?: number;
+  fortalezaExclusiveMinRate?: number;
+  fortalezaExclusiveExcessRate?: number;
+  fortalezaScheduledMinRate?: number;
+  fortalezaScheduledExcessRate?: number;
+  metropolitanMinRate?: number;
+  metropolitanExcessRate?: number;
+  fortalezaHolidayMinRate?: number;
+  fortalezaHolidayExcessRate?: number;
+  biologicalNormalMinRate?: number;
+  biologicalNormalExcessRate?: number;
+  biologicalInfectiousMinRate?: number;
+  biologicalInfectiousExcessRate?: number;
+  trackedVehicleMinRate?: number;
+  trackedVehicleExcessRate?: number;
+  reshipmentMinRate?: number;
+  reshipmentExcessRate?: number;
+  reshipmentInvoicePercentage?: number;
+  interiorExclusiveMinRate?: number;
+  interiorExclusiveExcessRate?: number;
+  interiorExclusiveKmRate?: number;
   
   // New nested structure
-  minimumRate?: {
+  minimumRate: {
     standardDelivery: number;
     emergencyCollection: number;
     saturdayCollection: number;
@@ -59,19 +59,19 @@ export interface PriceTable {
     customServices: CustomService[];
   };
   
-  excessWeight?: {
+  excessWeight: {
     minPerKg: number;
     maxPerKg: number;
     biologicalPerKg: number;
     reshipmentPerKg: number;
   };
   
-  doorToDoor?: {
+  doorToDoor: {
     ratePerKm: number;
     maxWeight: number;
   };
   
-  waitingHour?: {
+  waitingHour: {
     standard: number;
     exclusive: number;
     fiorino: number;
@@ -79,7 +79,7 @@ export interface PriceTable {
     large: number;
   };
   
-  insurance?: {
+  insurance: {
     rate: number;
     standard: number;
     perishable?: number;

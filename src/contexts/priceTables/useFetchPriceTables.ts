@@ -10,6 +10,7 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     name: 'Tabela A',
     description: 'Tabela padrão para clientes convencionais',
     // Include flat structure fields
+    multiplier: 1.0,
     fortalezaNormalMinRate: 36.00,
     fortalezaNormalExcessRate: 0.55,
     fortalezaEmergencyMinRate: 72.00,
@@ -36,7 +37,6 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     interiorExclusiveMinRate: 200.00,
     interiorExclusiveExcessRate: 0.65,
     interiorExclusiveKmRate: 2.40,
-    multiplier: 1.0,
     // Nested structure
     minimumRate: {
       standardDelivery: 36.00,
@@ -84,6 +84,33 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     id: 'table-b',
     name: 'Tabela B',
     description: 'Tabela para clientes preferenciais',
+    multiplier: 1.0,
+    fortalezaNormalMinRate: 40.00,
+    fortalezaNormalExcessRate: 0.60,
+    fortalezaEmergencyMinRate: 80.00,
+    fortalezaEmergencyExcessRate: 0.70,
+    fortalezaSaturdayMinRate: 80.00,
+    fortalezaSaturdayExcessRate: 0.70,
+    fortalezaExclusiveMinRate: 190.00,
+    fortalezaExclusiveExcessRate: 0.70,
+    fortalezaScheduledMinRate: 165.00,
+    fortalezaScheduledExcessRate: 0.70,
+    metropolitanMinRate: 180.00,
+    metropolitanExcessRate: 0.70,
+    fortalezaHolidayMinRate: 330.00,
+    fortalezaHolidayExcessRate: 0.70,
+    biologicalNormalMinRate: 80.00,
+    biologicalNormalExcessRate: 0.75,
+    biologicalInfectiousMinRate: 110.00,
+    biologicalInfectiousExcessRate: 0.75,
+    trackedVehicleMinRate: 460.00,
+    trackedVehicleExcessRate: 0.70,
+    reshipmentMinRate: 180.00,
+    reshipmentExcessRate: 0.75,
+    reshipmentInvoicePercentage: 0.01,
+    interiorExclusiveMinRate: 220.00,
+    interiorExclusiveExcessRate: 0.70,
+    interiorExclusiveKmRate: 2.60,
     minimumRate: {
       standardDelivery: 40.00,
       saturdayCollection: 80.00,
@@ -131,6 +158,33 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     id: 'table-c',
     name: 'Tabela C',
     description: 'Tabela para clientes corporativos',
+    multiplier: 1.0,
+    fortalezaNormalMinRate: 45.00,
+    fortalezaNormalExcessRate: 0.65,
+    fortalezaEmergencyMinRate: 90.00,
+    fortalezaEmergencyExcessRate: 0.85,
+    fortalezaSaturdayMinRate: 90.00,
+    fortalezaSaturdayExcessRate: 0.85,
+    fortalezaExclusiveMinRate: 210.00,
+    fortalezaExclusiveExcessRate: 0.85,
+    fortalezaScheduledMinRate: 180.00,
+    fortalezaScheduledExcessRate: 0.85,
+    metropolitanMinRate: 165.00,
+    metropolitanExcessRate: 0.65,
+    fortalezaHolidayMinRate: 360.00,
+    fortalezaHolidayExcessRate: 0.85,
+    biologicalNormalMinRate: 195.00,
+    biologicalNormalExcessRate: 0.72,
+    biologicalInfectiousMinRate: 200.00,
+    biologicalInfectiousExcessRate: 0.72,
+    trackedVehicleMinRate: 440.00,
+    trackedVehicleExcessRate: 0.85,
+    reshipmentMinRate: 170.00,
+    reshipmentExcessRate: 0.70,
+    reshipmentInvoicePercentage: 0.01,
+    interiorExclusiveMinRate: 240.00,
+    interiorExclusiveExcessRate: 0.85,
+    interiorExclusiveKmRate: 2.80,
     minimumRate: {
       standardDelivery: 45.00,
       saturdayCollection: 90.00,
@@ -178,6 +232,33 @@ const INITIAL_PRICE_TABLES: PriceTable[] = [
     id: 'table-d',
     name: 'Tabela D',
     description: 'Tabela para clientes especiais',
+    multiplier: 1.0,
+    fortalezaNormalMinRate: 50.00,
+    fortalezaNormalExcessRate: 0.70,
+    fortalezaEmergencyMinRate: 100.00,
+    fortalezaEmergencyExcessRate: 0.90,
+    fortalezaSaturdayMinRate: 100.00,
+    fortalezaSaturdayExcessRate: 0.90,
+    fortalezaExclusiveMinRate: 230.00,
+    fortalezaExclusiveExcessRate: 0.90,
+    fortalezaScheduledMinRate: 195.00,
+    fortalezaScheduledExcessRate: 0.90,
+    metropolitanMinRate: 165.00,
+    metropolitanExcessRate: 0.70,
+    fortalezaHolidayMinRate: 390.00,
+    fortalezaHolidayExcessRate: 0.90,
+    biologicalNormalMinRate: 210.00,
+    biologicalNormalExcessRate: 0.72,
+    biologicalInfectiousMinRate: 215.00,
+    biologicalInfectiousExcessRate: 0.72,
+    trackedVehicleMinRate: 440.00,
+    trackedVehicleExcessRate: 0.90,
+    reshipmentMinRate: 170.00,
+    reshipmentExcessRate: 0.70,
+    reshipmentInvoicePercentage: 0.01,
+    interiorExclusiveMinRate: 260.00,
+    interiorExclusiveExcessRate: 0.90,
+    interiorExclusiveKmRate: 3.00,
     minimumRate: {
       standardDelivery: 50.00,
       saturdayCollection: 100.00,
@@ -280,6 +361,26 @@ export const useFetchPriceTables = (userId?: string) => {
                 : table.metropolitan_cities) 
             : [];
 
+          // Fill in default values for minimumRate if not present
+          if (!parsedMinimumRate.standardDelivery) parsedMinimumRate.standardDelivery = table.fortalezaNormalMinRate || 0;
+          if (!parsedMinimumRate.emergencyCollection) parsedMinimumRate.emergencyCollection = table.fortalezaEmergencyMinRate || 0;
+          if (!parsedMinimumRate.saturdayCollection) parsedMinimumRate.saturdayCollection = table.fortalezaSaturdayMinRate || 0;
+          if (!parsedMinimumRate.exclusiveVehicle) parsedMinimumRate.exclusiveVehicle = table.fortalezaExclusiveMinRate || 0;
+          if (!parsedMinimumRate.scheduledDifficultAccess) parsedMinimumRate.scheduledDifficultAccess = table.fortalezaScheduledMinRate || 0;
+          if (!parsedMinimumRate.metropolitanRegion) parsedMinimumRate.metropolitanRegion = table.metropolitanMinRate || 0;
+          if (!parsedMinimumRate.sundayHoliday) parsedMinimumRate.sundayHoliday = table.fortalezaHolidayMinRate || 0;
+          if (!parsedMinimumRate.normalBiological) parsedMinimumRate.normalBiological = table.biologicalNormalMinRate || 0;
+          if (!parsedMinimumRate.infectiousBiological) parsedMinimumRate.infectiousBiological = table.biologicalInfectiousMinRate || 0;
+          if (!parsedMinimumRate.trackedVehicle) parsedMinimumRate.trackedVehicle = table.trackedVehicleMinRate || 0;
+          if (!parsedMinimumRate.doorToDoorInterior) parsedMinimumRate.doorToDoorInterior = table.interiorExclusiveMinRate || 0;
+          if (!parsedMinimumRate.reshipment) parsedMinimumRate.reshipment = table.reshipmentMinRate || 0;
+
+          // Fill in default values for excessWeight if not present
+          if (!parsedExcessWeight.minPerKg) parsedExcessWeight.minPerKg = table.fortalezaNormalExcessRate || 0;
+          if (!parsedExcessWeight.maxPerKg) parsedExcessWeight.maxPerKg = table.fortalezaEmergencyExcessRate || 0;
+          if (!parsedExcessWeight.biologicalPerKg) parsedExcessWeight.biologicalPerKg = table.biologicalNormalExcessRate || 0;
+          if (!parsedExcessWeight.reshipmentPerKg) parsedExcessWeight.reshipmentPerKg = table.reshipmentExcessRate || 0;
+
           // Create a table with both formats - flat and nested
           const priceTable: PriceTable = {
             id: table.id,
@@ -288,32 +389,32 @@ export const useFetchPriceTables = (userId?: string) => {
             multiplier: table.multiplier || 1,
             
             // Flat format fields
-            fortalezaNormalMinRate: parsedMinimumRate.standardDelivery || 0,
-            fortalezaNormalExcessRate: parsedExcessWeight.minPerKg || 0,
-            fortalezaEmergencyMinRate: parsedMinimumRate.emergencyCollection || 0,
-            fortalezaEmergencyExcessRate: parsedExcessWeight.maxPerKg || 0,
-            fortalezaSaturdayMinRate: parsedMinimumRate.saturdayCollection || 0,
-            fortalezaSaturdayExcessRate: parsedExcessWeight.maxPerKg || 0,
-            fortalezaExclusiveMinRate: parsedMinimumRate.exclusiveVehicle || 0,
-            fortalezaExclusiveExcessRate: parsedExcessWeight.maxPerKg || 0,
-            fortalezaScheduledMinRate: parsedMinimumRate.scheduledDifficultAccess || 0,
-            fortalezaScheduledExcessRate: parsedExcessWeight.maxPerKg || 0,
-            metropolitanMinRate: parsedMinimumRate.metropolitanRegion || 0,
-            metropolitanExcessRate: parsedExcessWeight.minPerKg || 0,
-            fortalezaHolidayMinRate: parsedMinimumRate.sundayHoliday || 0,
-            fortalezaHolidayExcessRate: parsedExcessWeight.maxPerKg || 0,
-            biologicalNormalMinRate: parsedMinimumRate.normalBiological || 0,
-            biologicalNormalExcessRate: parsedExcessWeight.biologicalPerKg || 0,
-            biologicalInfectiousMinRate: parsedMinimumRate.infectiousBiological || 0,
-            biologicalInfectiousExcessRate: parsedExcessWeight.biologicalPerKg || 0,
-            trackedVehicleMinRate: parsedMinimumRate.trackedVehicle || 0,
-            trackedVehicleExcessRate: parsedExcessWeight.maxPerKg || 0,
-            reshipmentMinRate: parsedMinimumRate.reshipment || 0,
-            reshipmentExcessRate: parsedExcessWeight.reshipmentPerKg || 0,
+            fortalezaNormalMinRate: table.fortalezaNormalMinRate || parsedMinimumRate.standardDelivery || 0,
+            fortalezaNormalExcessRate: table.fortalezaNormalExcessRate || parsedExcessWeight.minPerKg || 0,
+            fortalezaEmergencyMinRate: table.fortalezaEmergencyMinRate || parsedMinimumRate.emergencyCollection || 0,
+            fortalezaEmergencyExcessRate: table.fortalezaEmergencyExcessRate || parsedExcessWeight.maxPerKg || 0,
+            fortalezaSaturdayMinRate: table.fortalezaSaturdayMinRate || parsedMinimumRate.saturdayCollection || 0,
+            fortalezaSaturdayExcessRate: table.fortalezaSaturdayExcessRate || parsedExcessWeight.maxPerKg || 0,
+            fortalezaExclusiveMinRate: table.fortalezaExclusiveMinRate || parsedMinimumRate.exclusiveVehicle || 0,
+            fortalezaExclusiveExcessRate: table.fortalezaExclusiveExcessRate || parsedExcessWeight.maxPerKg || 0,
+            fortalezaScheduledMinRate: table.fortalezaScheduledMinRate || parsedMinimumRate.scheduledDifficultAccess || 0,
+            fortalezaScheduledExcessRate: table.fortalezaScheduledExcessRate || parsedExcessWeight.maxPerKg || 0,
+            metropolitanMinRate: table.metropolitanMinRate || parsedMinimumRate.metropolitanRegion || 0,
+            metropolitanExcessRate: table.metropolitanExcessRate || parsedExcessWeight.minPerKg || 0,
+            fortalezaHolidayMinRate: table.fortalezaHolidayMinRate || parsedMinimumRate.sundayHoliday || 0,
+            fortalezaHolidayExcessRate: table.fortalezaHolidayExcessRate || parsedExcessWeight.maxPerKg || 0,
+            biologicalNormalMinRate: table.biologicalNormalMinRate || parsedMinimumRate.normalBiological || 0,
+            biologicalNormalExcessRate: table.biologicalNormalExcessRate || parsedExcessWeight.biologicalPerKg || 0,
+            biologicalInfectiousMinRate: table.biologicalInfectiousMinRate || parsedMinimumRate.infectiousBiological || 0,
+            biologicalInfectiousExcessRate: table.biologicalInfectiousExcessRate || parsedExcessWeight.biologicalPerKg || 0,
+            trackedVehicleMinRate: table.trackedVehicleMinRate || parsedMinimumRate.trackedVehicle || 0,
+            trackedVehicleExcessRate: table.trackedVehicleExcessRate || parsedExcessWeight.maxPerKg || 0,
+            reshipmentMinRate: table.reshipmentMinRate || parsedMinimumRate.reshipment || 0,
+            reshipmentExcessRate: table.reshipmentExcessRate || parsedExcessWeight.reshipmentPerKg || 0,
             reshipmentInvoicePercentage: table.reshipment_invoice_percentage || 0.01,
-            interiorExclusiveMinRate: parsedMinimumRate.doorToDoorInterior || 0,
-            interiorExclusiveExcessRate: parsedExcessWeight.maxPerKg || 0,
-            interiorExclusiveKmRate: parsedDoorToDoor.ratePerKm || 0,
+            interiorExclusiveMinRate: table.interiorExclusiveMinRate || parsedMinimumRate.doorToDoorInterior || 0,
+            interiorExclusiveExcessRate: table.interiorExclusiveExcessRate || parsedExcessWeight.maxPerKg || 0,
+            interiorExclusiveKmRate: table.interiorExclusiveKmRate || parsedDoorToDoor.ratePerKm || 0,
             
             // Nested format
             minimumRate: parsedMinimumRate,

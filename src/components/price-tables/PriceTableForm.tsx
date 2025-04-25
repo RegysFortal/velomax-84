@@ -235,7 +235,7 @@ export function PriceTableForm({ onSubmit, initialData }: { onSubmit: (data: For
                       type="checkbox"
                       className="h-4 w-4 rounded"
                       checked={field.value}
-                      onChange={field.onChange}
+                      onChange={(e) => field.onChange(e.target.checked)}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
