@@ -8,7 +8,6 @@ import { BudgetBackupTools } from '@/components/budget/BudgetBackupTools';
 import { SystemBackup } from '@/components/settings/SystemBackup';
 import { UserManagement } from '@/components/settings/UserManagement';
 import { CompanySettings } from '@/components/settings/CompanySettings';
-import { ClientsManagement } from '@/components/settings/ClientsManagement';
 import { toast } from 'sonner';
 import { BudgetProvider } from '@/contexts/budget';
 
@@ -38,7 +37,6 @@ const SettingsPage = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="system">Sistema</TabsTrigger>
             <TabsTrigger value="company">Empresa</TabsTrigger>
-            <TabsTrigger value="clients">Clientes</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="backup">Backup</TabsTrigger>
             <TabsTrigger value="notifications">Notificações</TabsTrigger>
@@ -50,10 +48,6 @@ const SettingsPage = () => {
           
           <TabsContent value="company" className="space-y-6">
             <CompanySettings />
-          </TabsContent>
-          
-          <TabsContent value="clients" className="space-y-6">
-            <ClientsManagement />
           </TabsContent>
           
           <TabsContent value="users" className="space-y-6">

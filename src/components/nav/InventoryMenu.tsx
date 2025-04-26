@@ -11,6 +11,7 @@ import { Package, PackagePlus, PackageMinus, Database } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
@@ -58,51 +59,54 @@ export function InventoryMenu({ user, hasPermission }: InventoryMenuProps) {
   return (
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
       <NavigationMenuTrigger className={isMobile ? "w-full justify-between" : ""}>
+        <Package className="mr-2 h-4 w-4" />
         Estoque
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <NavigationMenuList className={`p-4 md:w-[400px] lg:w-[500px] ${isMobile ? "w-[calc(100vw-2rem)]" : ""} grid gap-3 ${isMobile ? "grid-cols-1" : "grid-cols-2"}`}>
-          <ListItem 
-            href="/inventory/products" 
-            title="Produtos"
-            className="flex gap-2"
-          >
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              <span>Cadastro e gestão de produtos e materiais</span>
-            </div>
-          </ListItem>
-          <ListItem 
-            href="/inventory/entries" 
-            title="Entradas"
-            className="flex gap-2"
-          >
-            <div className="flex items-center gap-2">
-              <PackagePlus className="h-4 w-4" />
-              <span>Registro de entradas de materiais no estoque</span>
-            </div>
-          </ListItem>
-          <ListItem 
-            href="/inventory/exits" 
-            title="Saídas"
-            className="flex gap-2"
-          >
-            <div className="flex items-center gap-2">
-              <PackageMinus className="h-4 w-4" />
-              <span>Registro de saídas de materiais do estoque</span>
-            </div>
-          </ListItem>
-          <ListItem 
-            href="/inventory/dashboard" 
-            title="Dashboard"
-            className="flex gap-2"
-          >
-            <div className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              <span>Consulta e controle geral do estoque</span>
-            </div>
-          </ListItem>
-        </NavigationMenuList>
+        <ScrollArea className={`${isMobile ? "h-[200px]" : "h-[300px]"} w-[200px]`}>
+          <NavigationMenuList className="flex flex-col p-4 gap-2">
+            <ListItem 
+              href="/inventory/products" 
+              title="Produtos"
+              className="flex gap-2"
+            >
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                <span>Cadastro e gestão de produtos e materiais</span>
+              </div>
+            </ListItem>
+            <ListItem 
+              href="/inventory/entries" 
+              title="Entradas"
+              className="flex gap-2"
+            >
+              <div className="flex items-center gap-2">
+                <PackagePlus className="h-4 w-4" />
+                <span>Registro de entradas de materiais no estoque</span>
+              </div>
+            </ListItem>
+            <ListItem 
+              href="/inventory/exits" 
+              title="Saídas"
+              className="flex gap-2"
+            >
+              <div className="flex items-center gap-2">
+                <PackageMinus className="h-4 w-4" />
+                <span>Registro de saídas de materiais do estoque</span>
+              </div>
+            </ListItem>
+            <ListItem 
+              href="/inventory/dashboard" 
+              title="Dashboard"
+              className="flex gap-2"
+            >
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4" />
+                <span>Consulta e controle geral do estoque</span>
+              </div>
+            </ListItem>
+          </NavigationMenuList>
+        </ScrollArea>
       </NavigationMenuContent>
     </NavigationMenuItem>
   );
