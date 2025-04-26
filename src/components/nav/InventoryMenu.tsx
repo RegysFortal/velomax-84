@@ -1,8 +1,11 @@
+
 import React from "react";
 import {
   NavigationMenuItem,
   NavigationMenuTrigger,
   NavigationMenuContent,
+  NavigationMenuList,
+  NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
 import { Package, PackagePlus, PackageMinus, Database } from "lucide-react";
 import { Link } from "react-router-dom";
