@@ -1,9 +1,6 @@
-
 import React from "react";
 import {
   NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
   NavigationMenuTrigger,
   NavigationMenuContent,
 } from "@/components/ui/navigation-menu";
@@ -63,7 +60,7 @@ export function InventoryMenu({ user, hasPermission }: InventoryMenuProps) {
         Estoque
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className={`${isMobile ? "h-[200px]" : "h-[300px]"} w-[200px]`}>
+        <ScrollArea className={`${isMobile ? "h-[250px]" : "h-[300px]"} w-[250px]`}>
           <NavigationMenuList className="flex flex-col p-4 gap-2">
             <ListItem 
               href="/inventory/products" 
