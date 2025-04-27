@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { ClientSelection } from "@/components/shipment/ClientSelection";
 import { TransportSection } from "@/components/shipment/TransportSection";
 import { PackageDetailsSection } from "@/components/shipment/PackageDetailsSection";
 import { ShipmentInfoSection } from "@/components/shipment/ShipmentInfoSection";
 import { StatusSection } from "@/components/shipment/StatusSection";
 import { RetentionFormSection } from "./form-sections/RetentionFormSection";
+import { ObservationsSection } from "./form-sections/ObservationsSection";
 import { FormActions } from "./form-sections/FormActions";
+import { useCompanySelection } from "./hooks/useCompanySelection";
 import { Client } from "@/types";
 import { ShipmentStatus, TransportMode } from "@/types";
 
@@ -95,24 +95,16 @@ export function ShipmentFormContent({
     }
   }, [clients]);
 
-  const handleCompanyChange = (newCompanyId: string) => {
-    console.log("ShipmentFormContent - Company changed to:", newCompanyId);
-    setCompanyId(newCompanyId);
-    
-    const selectedClient = clients.find(client => client.id === newCompanyId);
-    if (selectedClient) {
-      console.log("ShipmentFormContent - Selected client:", selectedClient.name);
-      setCompanyName(selectedClient.tradingName || selectedClient.name);
-    } else {
-      console.warn("ShipmentFormContent - Client not found with ID:", newCompanyId);
-    }
-  };
+  const { handleCompanyChange } = useCompanySelection({
+    clients,
+    setCompanyId,
+    setCompanyName
+  });
 
   return (
     <div className="space-y-8">
       {/* Client Selection */}
       <div className="space-y-2">
-        <Label>Cliente</Label>
         <ClientSelection
           companyId={companyId}
           onCompanyChange={handleCompanyChange}
@@ -177,16 +169,10 @@ export function ShipmentFormContent({
       )}
       
       {/* Observations */}
-      <div className="space-y-2">
-        <Label htmlFor="observations">Observações</Label>
-        <Textarea
-          id="observations"
-          value={observations}
-          onChange={(e) => setObservations(e.target.value)}
-          placeholder="Observações sobre o embarque"
-          rows={4}
-        />
-      </div>
+      <ObservationsSection 
+        observations={observations}
+        setObservations={setObservations}
+      />
       
       {/* Form Actions */}
       <FormActions onSubmit={onSubmit} onCancel={onCancel} />
