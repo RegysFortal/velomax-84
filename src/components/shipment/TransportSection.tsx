@@ -19,7 +19,7 @@ interface TransportSectionProps {
   disabled?: boolean;
 }
 
-// Definindo as opções de transportadoras por tipo
+// Define carrier options by type
 const AIR_CARRIERS = ["Latam", "Gol", "Azul", "outro"];
 const ROAD_CARRIERS = ["Concept", "Jem", "Global", "outro"];
 
@@ -44,9 +44,9 @@ export function TransportSection({
     selectedCarrier === "outro" ? carrierName : ""
   );
 
-  // Atualizar o estado quando o modo de transporte muda
+  // Update state when transport mode changes
   useEffect(() => {
-    // Reset o carrier selecionado quando muda o modo de transporte
+    // Reset the selected carrier when transport mode changes
     const currentCarriers = transportMode === "air" ? AIR_CARRIERS : ROAD_CARRIERS;
     if (carrierName && currentCarriers.includes(carrierName)) {
       setSelectedCarrier(carrierName);
@@ -58,9 +58,9 @@ export function TransportSection({
       setSelectedCarrier(currentCarriers[0]);
       setCarrierName(currentCarriers[0]);
     }
-  }, [transportMode, carrierName]);
+  }, [transportMode, carrierName, setCarrierName]);
 
-  // Atualizar o nome da transportadora quando mudar a seleção
+  // Update carrier name when selection changes
   const handleCarrierChange = (value: string) => {
     setSelectedCarrier(value);
     
@@ -72,7 +72,7 @@ export function TransportSection({
     }
   };
 
-  // Atualizar o nome da transportadora quando o usuário digitar um nome personalizado
+  // Update carrier name when user types a custom carrier name
   const handleCustomCarrierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCustomCarrierName(value);
@@ -110,19 +110,11 @@ export function TransportSection({
               <SelectValue placeholder="Selecione a transportadora" />
             </SelectTrigger>
             <SelectContent>
-              {transportMode === "air" ? (
-                AIR_CARRIERS.map(carrier => (
-                  <SelectItem key={carrier} value={carrier}>
-                    {carrier === "outro" ? "Outro" : carrier}
-                  </SelectItem>
-                ))
-              ) : (
-                ROAD_CARRIERS.map(carrier => (
-                  <SelectItem key={carrier} value={carrier}>
-                    {carrier === "outro" ? "Outro" : carrier}
-                  </SelectItem>
-                ))
-              )}
+              {(transportMode === "air" ? AIR_CARRIERS : ROAD_CARRIERS).map(carrier => (
+                <SelectItem key={carrier} value={carrier}>
+                  {carrier === "outro" ? "Outro" : carrier}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           

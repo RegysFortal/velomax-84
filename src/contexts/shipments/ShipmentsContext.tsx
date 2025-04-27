@@ -29,7 +29,7 @@ interface ShipmentsContextType {
   getRetainedShipments: () => Shipment[];
   getUndeliveredShipments: () => Shipment[];
   refreshShipmentsData: () => void;
-  checkDuplicateTrackingNumber?: (trackingNumber: string) => boolean;
+  checkDuplicateTrackingNumber: (trackingNumber: string) => boolean;
 }
 
 export const ShipmentsContext = createContext<ShipmentsContextType | undefined>(undefined);

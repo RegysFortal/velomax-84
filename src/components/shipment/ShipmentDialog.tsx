@@ -16,7 +16,7 @@ interface ShipmentDialogProps {
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const { clients } = useClients();
-  const { addShipment } = useShipments();
+  const { addShipment, checkDuplicateTrackingNumber } = useShipments();
   
   // Form state
   const [companyId, setCompanyId] = useState("");
@@ -39,12 +39,11 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const [releaseDate, setReleaseDate] = useState("");
   const [fiscalNotes, setFiscalNotes] = useState("");
   
-  // Create a simple function to check for duplicate tracking numbers
-  const checkDuplicateTrackingNumber = (number: string): boolean => {
-    // This is a placeholder. In a real implementation, you would check against
-    // existing shipments in the context
-    return false;
-  };
+  // If checkDuplicateTrackingNumber doesn't exist in the context, provide a fallback
+  const checkDuplicateNumber = checkDuplicateTrackingNumber || ((number: string) => {
+    console.log("Checking for duplicate tracking number:", number);
+    return false; // Default implementation returns false
+  });
   
   const { 
     showDuplicateAlert,
@@ -71,7 +70,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     fiscalNotes,
     clients,
     addShipment,
-    checkDuplicateTrackingNumber,
+    checkDuplicateTrackingNumber: checkDuplicateNumber,
     closeDialog: () => onOpenChange(false)
   });
   
@@ -83,7 +82,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
             <DialogTitle>Novo Embarque</DialogTitle>
           </DialogHeader>
           
-          <ScrollArea className="h-[calc(90vh-120px)]">
+          <ScrollArea className="h-[calc(90vh-120px)] pr-4">
             <div className="px-1 py-2">
               <ShipmentFormContent
                 companyId={companyId}
