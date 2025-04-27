@@ -30,7 +30,7 @@ export function AppHeader() {
             </SheetContent>
           </Sheet>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="mr-4">
             <Button variant="ghost" size="icon" asChild className="mr-2">
               <Link to="/dashboard">
                 <Home className="h-5 w-5" />
