@@ -47,6 +47,14 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     clearFiscalAction,
     updateFiscalActionDetails
   } = useFiscalActions(shipments, setShipments);
+
+  // Function to check for duplicate tracking numbers
+  const checkDuplicateTrackingNumber = useCallback((trackingNumber: string): boolean => {
+    if (!trackingNumber) return false;
+    return shipments.some(shipment => 
+      shipment.trackingNumber.toLowerCase() === trackingNumber.toLowerCase()
+    );
+  }, [shipments]);
   
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -176,7 +184,8 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     getShipmentsByCompany,
     getRetainedShipments,
     getUndeliveredShipments,
-    refreshShipmentsData
+    refreshShipmentsData,
+    checkDuplicateTrackingNumber
   };
   
   return (

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ClientSelection } from "@/components/shipment/ClientSelection";
+import { TransportSection } from "@/components/shipment/TransportSection";
 import { Client } from "@/types";
 import { ShipmentStatus, TransportMode } from "@/types";
 
@@ -128,7 +130,7 @@ export function ShipmentFormContent({
       </div>
       
       {/* Transport Information */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="transportMode">Modalidade</Label>
           <Select
@@ -144,28 +146,19 @@ export function ShipmentFormContent({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="carrierName">Transportadora</Label>
-          <Input
-            id="carrierName"
-            value={carrierName}
-            onChange={(e) => setCarrierName(e.target.value)}
-            placeholder="Nome da transportadora"
-          />
-        </div>
+        
+        <TransportSection 
+          transportMode={transportMode}
+          setTransportMode={setTransportMode}
+          carrierName={carrierName}
+          setCarrierName={setCarrierName}
+          trackingNumber={trackingNumber}
+          setTrackingNumber={setTrackingNumber}
+        />
       </div>
       
-      {/* Tracking & Package Info */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="trackingNumber">Conhecimento</Label>
-          <Input
-            id="trackingNumber"
-            value={trackingNumber}
-            onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="Número do conhecimento"
-          />
-        </div>
+      {/* Package Info */}
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="packages">Volumes</Label>
           <Input
