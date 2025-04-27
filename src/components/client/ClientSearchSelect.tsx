@@ -51,7 +51,7 @@ export function ClientSearchSelect({
           ...clients.map(client => ({
             value: client.id,
             label: client.tradingName || client.name,
-            description: client.tradingName ? client.name : ''
+            description: client.tradingName ? client.name : undefined
           }))
         ];
         

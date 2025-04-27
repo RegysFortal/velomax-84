@@ -1,13 +1,12 @@
 
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useClients } from "@/contexts/clients";
+import { useShipments } from "@/contexts/shipments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ShipmentFormContent } from "./ShipmentFormContent";
-import { DuplicateShipmentAlert } from "./DuplicateShipmentAlert";
-import { useShipmentFormState } from "./hooks/useShipmentFormState";
+import { ShipmentStatus, TransportMode } from "@/types/shipment";
+import { DuplicateTrackingAlert } from "./DuplicateTrackingAlert";
 import { useShipmentFormSubmit } from "./hooks/useShipmentFormSubmit";
-import { useClients } from "@/contexts/clients";
-import { useShipments } from '@/contexts/shipments';
-import { toast } from "sonner";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -15,69 +14,43 @@ interface ShipmentDialogProps {
 }
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
-  const { clients, loading: clientsLoading } = useClients();
-  const { addShipment } = useShipments();
+  const { clients } = useClients();
+  const { addShipment, checkDuplicateTrackingNumber } = useShipments();
   
-  // Debug clients availability
-  useEffect(() => {
-    console.log("ShipmentDialog - Clients loaded:", clients.length);
-  }, [clients]);
+  // Form state
+  const [companyId, setCompanyId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [transportMode, setTransportMode] = useState<TransportMode>("air");
+  const [carrierName, setCarrierName] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [packages, setPackages] = useState("");
+  const [weight, setWeight] = useState("");
+  const [arrivalFlight, setArrivalFlight] = useState("");
+  const [arrivalDate, setArrivalDate] = useState("");
+  const [observations, setObservations] = useState("");
+  const [status, setStatus] = useState<ShipmentStatus>("in_transit");
   
-  const {
-    companyId,
-    setCompanyId,
-    companyName,
-    setCompanyName,
-    transportMode,
-    setTransportMode,
-    carrierName,
-    setCarrierName,
-    trackingNumber,
-    setTrackingNumber,
-    packages,
-    setPackages,
-    weight,
-    setWeight,
-    arrivalFlight,
-    setArrivalFlight,
-    arrivalDate,
-    setArrivalDate,
-    observations,
-    setObservations,
-    status,
-    setStatus,
-    retentionReason,
-    setRetentionReason,
-    retentionAmount,
-    setRetentionAmount,
-    paymentDate,
-    setPaymentDate,
-    actionNumber,
-    setActionNumber,
-    releaseDate,
-    setReleaseDate,
-    fiscalNotes,
-    setFiscalNotes,
-    resetForm
-  } = useShipmentFormState();
-
-  const checkDuplicateTrackingNumber = (trackingNum: string) => {
-    return false; // Simplified for example
-  };
-
-  const {
+  // Retention data
+  const [retentionReason, setRetentionReason] = useState("");
+  const [retentionAmount, setRetentionAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState("");
+  const [actionNumber, setActionNumber] = useState("");
+  const [releaseDate, setReleaseDate] = useState("");
+  const [fiscalNotes, setFiscalNotes] = useState("");
+  
+  const { 
     showDuplicateAlert,
     setShowDuplicateAlert,
     handleSubmit,
-    handleConfirmDuplicate
+    handleConfirmDuplicate 
   } = useShipmentFormSubmit({
     companyId,
     companyName,
+    transportMode,
     carrierName,
     trackingNumber,
     packages,
     weight,
-    transportMode,
     arrivalFlight,
     arrivalDate,
     observations,
@@ -93,36 +66,11 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     checkDuplicateTrackingNumber,
     closeDialog: () => onOpenChange(false)
   });
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (open) {
-      console.log("ShipmentDialog - Dialog opened, resetting form");
-      resetForm();
-    }
-  }, [open, resetForm]);
-
-  if (clientsLoading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh]">
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            <span className="ml-3">Carregando clientes...</span>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (clients.length === 0 && !clientsLoading && open) {
-    toast.error("Não foi possível carregar a lista de clientes");
-  }
-
+  
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Novo Embarque</DialogTitle>
           </DialogHeader>
@@ -168,7 +116,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
         </DialogContent>
       </Dialog>
       
-      <DuplicateShipmentAlert
+      <DuplicateTrackingAlert
         open={showDuplicateAlert}
         onOpenChange={setShowDuplicateAlert}
         onConfirm={handleConfirmDuplicate}
