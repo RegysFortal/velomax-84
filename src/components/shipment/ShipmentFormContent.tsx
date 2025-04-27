@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,22 +130,6 @@ export function ShipmentFormContent({
       
       {/* Transport Information */}
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="transportMode">Modalidade</Label>
-          <Select
-            value={transportMode}
-            onValueChange={(value) => setTransportMode(value as TransportMode)}
-          >
-            <SelectTrigger id="transportMode">
-              <SelectValue placeholder="Selecione a modalidade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="air">Aéreo</SelectItem>
-              <SelectItem value="road">Rodoviário</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
         <TransportSection 
           transportMode={transportMode}
           setTransportMode={setTransportMode}
