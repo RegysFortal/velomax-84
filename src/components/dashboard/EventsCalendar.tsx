@@ -67,7 +67,8 @@ export const EventsCalendar = ({
         
         const dateKey = format(deliveryDate, 'yyyy-MM-dd');
         const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
-        eventsMap.set(dateKey, { ...existing, scheduledDelivery: true });
+        existing.scheduledDelivery = true;
+        eventsMap.set(dateKey, existing);
       } catch (error) {
         console.error('Error processing delivery date:', error);
       }
@@ -81,15 +82,19 @@ export const EventsCalendar = ({
       scheduledDelivery: [] as Date[]
     };
     
-    Array.from(calendarData.entries()).forEach(([dateStr, data]) => {
-      if (data.scheduledDelivery) {
-        const date = parseISO(dateStr);
-        modifiers.scheduledDelivery.push(date);
+    actualScheduledDeliveries.forEach(delivery => {
+      try {
+        const deliveryDate = parseISO(delivery.deliveryDate);
+        if (isValid(deliveryDate)) {
+          modifiers.scheduledDelivery.push(deliveryDate);
+        }
+      } catch (error) {
+        console.error('Error adding modifier date:', error);
       }
     });
     
     return modifiers;
-  }, [calendarData]);
+  }, [actualScheduledDeliveries]);
   
   const handleSelect = (date: Date | undefined) => {
     if (!date) return;

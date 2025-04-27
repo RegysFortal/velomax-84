@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useClients } from "@/contexts/clients";
 import { useShipments } from "@/contexts/shipments";
@@ -6,6 +7,7 @@ import { ShipmentFormContent } from "./ShipmentFormContent";
 import { ShipmentStatus, TransportMode } from "@/types/shipment";
 import { DuplicateTrackingAlert } from "./DuplicateTrackingAlert";
 import { useShipmentFormSubmit } from "./hooks/useShipmentFormSubmit";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -76,49 +78,53 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Novo Embarque</DialogTitle>
           </DialogHeader>
           
-          <ShipmentFormContent
-            companyId={companyId}
-            setCompanyId={setCompanyId}
-            setCompanyName={setCompanyName}
-            transportMode={transportMode}
-            setTransportMode={setTransportMode}
-            carrierName={carrierName}
-            setCarrierName={setCarrierName}
-            trackingNumber={trackingNumber}
-            setTrackingNumber={setTrackingNumber}
-            packages={packages}
-            setPackages={setPackages}
-            weight={weight}
-            setWeight={setWeight}
-            arrivalFlight={arrivalFlight}
-            setArrivalFlight={setArrivalFlight}
-            arrivalDate={arrivalDate}
-            setArrivalDate={setArrivalDate}
-            observations={observations}
-            setObservations={setObservations}
-            status={status}
-            setStatus={setStatus}
-            retentionReason={retentionReason}
-            setRetentionReason={setRetentionReason}
-            retentionAmount={retentionAmount}
-            setRetentionAmount={setRetentionAmount}
-            paymentDate={paymentDate}
-            setPaymentDate={setPaymentDate}
-            actionNumber={actionNumber}
-            setActionNumber={setActionNumber}
-            releaseDate={releaseDate}
-            setReleaseDate={setReleaseDate}
-            fiscalNotes={fiscalNotes}
-            setFiscalNotes={setFiscalNotes}
-            clients={clients}
-            onSubmit={handleSubmit}
-            onCancel={() => onOpenChange(false)}
-          />
+          <ScrollArea className="h-[calc(90vh-120px)]">
+            <div className="px-1 py-2">
+              <ShipmentFormContent
+                companyId={companyId}
+                setCompanyId={setCompanyId}
+                setCompanyName={setCompanyName}
+                transportMode={transportMode}
+                setTransportMode={setTransportMode}
+                carrierName={carrierName}
+                setCarrierName={setCarrierName}
+                trackingNumber={trackingNumber}
+                setTrackingNumber={setTrackingNumber}
+                packages={packages}
+                setPackages={setPackages}
+                weight={weight}
+                setWeight={setWeight}
+                arrivalFlight={arrivalFlight}
+                setArrivalFlight={setArrivalFlight}
+                arrivalDate={arrivalDate}
+                setArrivalDate={setArrivalDate}
+                observations={observations}
+                setObservations={setObservations}
+                status={status}
+                setStatus={setStatus}
+                retentionReason={retentionReason}
+                setRetentionReason={setRetentionReason}
+                retentionAmount={retentionAmount}
+                setRetentionAmount={setRetentionAmount}
+                paymentDate={paymentDate}
+                setPaymentDate={setPaymentDate}
+                actionNumber={actionNumber}
+                setActionNumber={setActionNumber}
+                releaseDate={releaseDate}
+                setReleaseDate={setReleaseDate}
+                fiscalNotes={fiscalNotes}
+                setFiscalNotes={setFiscalNotes}
+                clients={clients}
+                onSubmit={handleSubmit}
+                onCancel={() => onOpenChange(false)}
+              />
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
       

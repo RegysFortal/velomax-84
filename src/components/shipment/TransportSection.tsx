@@ -51,9 +51,12 @@ export function TransportSection({
     if (carrierName && currentCarriers.includes(carrierName)) {
       setSelectedCarrier(carrierName);
       setCustomCarrierName("");
-    } else {
+    } else if (carrierName) {
       setSelectedCarrier("outro");
       setCustomCarrierName(carrierName);
+    } else {
+      setSelectedCarrier(currentCarriers[0]);
+      setCarrierName(currentCarriers[0]);
     }
   }, [transportMode, carrierName]);
 
@@ -66,7 +69,6 @@ export function TransportSection({
       setCustomCarrierName("");
     } else {
       setCustomCarrierName(customCarrierName || "");
-      // Não limpar o carrierName aqui, para preservar o valor existente
     }
   };
 
