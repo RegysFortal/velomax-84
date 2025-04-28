@@ -1,94 +1,93 @@
 
 import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Package, Boxes, ArrowUp, ArrowDown, LayoutDashboard } from "lucide-react";
+import { User } from "@/types";
 import {
   NavigationMenuItem,
   NavigationMenuTrigger,
   NavigationMenuContent,
-  NavigationMenuList,
-  NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
-import { Package, PackagePlus, PackageMinus, Database } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-interface ListItemProps {
-  href: string;
-  title: string;
-  icon: React.ReactNode;
-  className?: string;
-}
-
-const ListItem = ({ href, title, icon, className }: ListItemProps) => {
-  const { isMobile } = useIsMobile();
-  
-  return (
-    <li className={isMobile ? "w-full" : ""}>
-      <Link to={href} className="no-underline">
-        <NavigationMenuLink asChild>
-          <a
-            className={cn(
-              "block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-              isMobile ? "w-full" : "",
-              className
-            )}
-          >
-            <div className="flex items-center gap-2">
-              {icon}
-              <span className="text-sm font-medium">{title}</span>
-            </div>
-          </a>
-        </NavigationMenuLink>
-      </Link>
-    </li>
-  );
-};
+import { getActiveClass } from "./navUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InventoryMenuProps {
-  user: any;
+  user: User | null;
   hasPermission: (permission: string) => boolean;
+  open?: boolean;
+  onOpenChange?: () => void;
 }
 
-export function InventoryMenu({ user, hasPermission }: InventoryMenuProps) {
+export const InventoryMenu: React.FC<InventoryMenuProps> = ({ 
+  user, 
+  hasPermission,
+  open,
+  onOpenChange
+}) => {
+  const location = useLocation();
   const { isMobile } = useIsMobile();
-  
-  if (!user || !hasPermission("inventory:view")) {
+
+  if (!user || !hasPermission('inventory')) {
     return null;
   }
 
   return (
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
-      <NavigationMenuTrigger className={isMobile ? "w-full justify-between" : ""}>
+      <NavigationMenuTrigger 
+        className={isMobile ? "w-full justify-start" : ""}
+        onClick={onOpenChange}
+      >
         <Package className="mr-2 h-4 w-4" />
         Estoque
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className={`${isMobile ? "h-[250px]" : "h-[300px]"} w-[250px]`}>
-          <ul className="flex flex-col p-4 gap-2">
-            <ListItem 
-              href="/inventory/products" 
-              title="Produtos"
-              icon={<Package className="h-4 w-4" />}
-            />
-            <ListItem 
-              href="/inventory/entries" 
-              title="Entradas"
-              icon={<PackagePlus className="h-4 w-4" />}
-            />
-            <ListItem 
-              href="/inventory/exits" 
-              title="Saídas"
-              icon={<PackageMinus className="h-4 w-4" />}
-            />
-            <ListItem 
-              href="/inventory/dashboard" 
-              title="Dashboard"
-              icon={<Database className="h-4 w-4" />}
-            />
-          </ul>
+        <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
+          <div className="grid gap-3 p-4">
+            <Link
+              to="/inventory-dashboard"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/inventory-dashboard")
+              )}
+            >
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              Dashboard
+            </Link>
+            <Link
+              to="/inventory-products"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/inventory-products")
+              )}
+            >
+              <Boxes className="mr-2 h-4 w-4" />
+              Produtos
+            </Link>
+            <Link
+              to="/inventory-entries"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/inventory-entries")
+              )}
+            >
+              <ArrowUp className="mr-2 h-4 w-4" />
+              Entradas
+            </Link>
+            <Link
+              to="/inventory-exits"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/inventory-exits")
+              )}
+            >
+              <ArrowDown className="mr-2 h-4 w-4" />
+              Saídas
+            </Link>
+          </div>
         </ScrollArea>
       </NavigationMenuContent>
     </NavigationMenuItem>
   );
-}
+};
