@@ -36,23 +36,15 @@ export const EventsCalendar = ({
   const [eventType, setEventType] = useState<EventType>('other');
   const [eventDescription, setEventDescription] = useState('');
   
-  const actualScheduledDeliveries = useMemo(() => {
-    return deliveries.filter(delivery => 
-      delivery.deliveryDate && 
-      delivery.deliveryTime && 
-      isValid(parseISO(delivery.deliveryDate))
-    );
-  }, [deliveries]);
-  
   const calendarData = useMemo(() => {
-    const eventsMap = new Map<string, { events: CalendarEvent[], scheduledDelivery: boolean }>();
+    const eventsMap = new Map<string, { events: CalendarEvent[] }>();
     
     events.forEach(event => {
       try {
         if (!event.date) return;
         
         const dateKey = format(event.date, 'yyyy-MM-dd');
-        const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
+        const existing = eventsMap.get(dateKey) || { events: [] };
         existing.events.push(event);
         eventsMap.set(dateKey, existing);
       } catch (error) {
@@ -60,41 +52,12 @@ export const EventsCalendar = ({
       }
     });
     
-    actualScheduledDeliveries.forEach(delivery => {
-      try {
-        const deliveryDate = parseISO(delivery.deliveryDate);
-        if (!isValid(deliveryDate)) return;
-        
-        const dateKey = format(deliveryDate, 'yyyy-MM-dd');
-        const existing = eventsMap.get(dateKey) || { events: [], scheduledDelivery: false };
-        existing.scheduledDelivery = true;
-        eventsMap.set(dateKey, existing);
-      } catch (error) {
-        console.error('Error processing delivery date:', error);
-      }
-    });
-    
     return eventsMap;
-  }, [events, actualScheduledDeliveries]);
+  }, [events]);
   
   const modifierDates = useMemo(() => {
-    const modifiers = {
-      scheduledDelivery: [] as Date[]
-    };
-    
-    actualScheduledDeliveries.forEach(delivery => {
-      try {
-        const deliveryDate = parseISO(delivery.deliveryDate);
-        if (isValid(deliveryDate)) {
-          modifiers.scheduledDelivery.push(deliveryDate);
-        }
-      } catch (error) {
-        console.error('Error adding modifier date:', error);
-      }
-    });
-    
-    return modifiers;
-  }, [actualScheduledDeliveries]);
+    return {};
+  }, []);
   
   const handleSelect = (date: Date | undefined) => {
     if (!date) return;
@@ -196,9 +159,7 @@ export const EventsCalendar = ({
     setEventDescription('');
   };
   
-  const modifierStyles = {
-    scheduledDelivery: { backgroundColor: '#10b981', color: 'white', borderRadius: '100%' }
-  };
+  const modifierStyles = {};
   
   const eventsForSelectedDate = selectedDate 
     ? events.filter(event => {
@@ -234,16 +195,10 @@ export const EventsCalendar = ({
               <Calendar
                 mode="single"
                 onSelect={handleSelect}
-                modifiers={modifierDates}
-                modifiersStyles={modifierStyles}
                 className="w-full rounded-md border p-2"
                 locale={ptBR}
               />
               <div className="mt-4 flex items-center justify-center gap-4 text-sm flex-wrap">
-                <div className="flex items-center">
-                  <div className="mr-1 h-3 w-3 rounded-full bg-green-500" />
-                  <span>Entrega Agendada</span>
-                </div>
                 <div className="flex items-center">
                   <div className="mr-1 h-3 w-3 rounded-full bg-red-500" />
                   <span>Aniversário</span>

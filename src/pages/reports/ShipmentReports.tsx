@@ -13,6 +13,7 @@ import { useShipments } from '@/contexts/shipments';
 import { useReportActions } from './hooks/useReportActions';
 import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
 import { Shipment, ShipmentStatus } from '@/types';
+import { ptBR } from 'date-fns/locale';
 
 export default function ShipmentReports() {
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
@@ -26,11 +27,19 @@ export default function ShipmentReports() {
   const { shipments, loading, refreshShipmentsData } = useShipments();
   
   const filteredShipments = shipments.filter(shipment => {
+    // Validar que as datas são válidas antes de comparar
+    let startDateObj = new Date(startDate);
+    let endDateObj = new Date(endDate);
+    
+    // Configurar endDateObj para o final do dia
+    endDateObj.setHours(23, 59, 59, 999);
+    
     const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
     
+    // Se não há data de chegada, mostrar o embarque de qualquer forma
     const matchesDateRange = !shipmentDate || 
-      (shipmentDate >= new Date(startDate) && 
-       shipmentDate <= new Date(endDate));
+      (shipmentDate >= startDateObj && 
+       shipmentDate <= endDateObj);
     
     const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
     

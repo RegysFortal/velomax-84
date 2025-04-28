@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Client } from '@/types';
 import { ShipmentStatus, TransportMode, Shipment } from '@/types/shipment';
@@ -24,7 +23,7 @@ interface UseShipmentFormSubmitProps {
   actionNumber?: string;
   fiscalNotes?: string;
   clients: Client[];
-  addShipment: (shipment: ShipmentCreateData) => Promise<Shipment>; // Updated return type
+  addShipment: (shipment: ShipmentCreateData) => Promise<Shipment>;
   checkDuplicateTrackingNumber: (trackingNumber: string) => boolean;
   closeDialog: () => void;
 }
@@ -80,22 +79,24 @@ export function useShipmentFormSubmit({
       return false;
     }
     
+    if (!arrivalDate) {
+      toast.error("Por favor, informe a data de chegada");
+      return false;
+    }
+    
     return true;
   };
   
   const submitShipment = async (checkDuplicate = true) => {
     try {
-      // Convert string values to appropriate types
       const packagesNum = parseInt(packages, 10);
       const weightNum = parseFloat(weight);
       
-      // Check if tracking number already exists
       if (checkDuplicate && checkDuplicateTrackingNumber(trackingNumber)) {
         setShowDuplicateAlert(true);
         return;
       }
       
-      // Create shipment object
       const newShipment = {
         companyId,
         companyName,
@@ -121,23 +122,20 @@ export function useShipmentFormSubmit({
         })
       };
       
-      // Add shipment to database and get the Shipment object back
       const shipment = await addShipment(newShipment);
       
-      // Close dialog and show success message
       closeDialog();
       toast.success("Embarque criado com sucesso!");
       
-      return shipment.id; // Return the ID from the Shipment object
+      return shipment.id;
     } catch (error) {
       console.error("Error submitting shipment:", error);
       toast.error("Erro ao criar embarque");
-      throw error; // Re-throw to propagate the error
+      throw error;
     }
   };
   
   const handleSubmit = async () => {
-    // Validate form before submission
     if (!validateForm()) {
       return;
     }
@@ -146,7 +144,6 @@ export function useShipmentFormSubmit({
   };
   
   const handleConfirmDuplicate = async () => {
-    // Submit without checking for duplicates
     await submitShipment(false);
     setShowDuplicateAlert(false);
   };
