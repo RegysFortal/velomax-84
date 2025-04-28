@@ -2,6 +2,7 @@
 import { Shipment, FiscalAction } from "@/types/shipment";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { useFiscalActionCreate } from "./useFiscalActionCreate";
 
 export const useFiscalActionUpdate = (
   shipments: Shipment[],
@@ -45,8 +46,9 @@ export const useFiscalActionUpdate = (
           updatedAt: now
         };
       } else {
-        const { createFiscalAction } = await import('./useFiscalActionCreate');
-        fiscalAction = await createFiscalAction(setShipments)(shipmentId, fiscalActionData);
+        // Use the hook directly since we're already in a hook
+        const { createFiscalAction } = useFiscalActionCreate(setShipments);
+        fiscalAction = await createFiscalAction(shipmentId, fiscalActionData);
       }
       
       // Update state with the new or updated fiscal action
