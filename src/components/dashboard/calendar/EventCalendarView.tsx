@@ -26,7 +26,7 @@ export function EventCalendarView({
           selected: "bg-primary text-primary-foreground",
           today: "bg-secondary text-secondary-foreground"
         }}
-        // Usando apenas isDayWithEvent para marcar dias com eventos
+        // Only mark days that have user-created events
         modifiers={{
           hasEvent: (date) => isDayWithEvent(date)
         }}

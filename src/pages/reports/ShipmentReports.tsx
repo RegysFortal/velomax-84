@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -25,6 +25,11 @@ export default function ShipmentReports() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const { shipments, loading, refreshShipmentsData } = useShipments();
+  
+  // Make sure to refresh shipment data when the component loads
+  useEffect(() => {
+    refreshShipmentsData();
+  }, [refreshShipmentsData]);
   
   const filteredShipments = shipments.filter(shipment => {
     // Validar que as datas são válidas antes de comparar
