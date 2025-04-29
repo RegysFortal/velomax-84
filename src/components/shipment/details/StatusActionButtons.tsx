@@ -6,9 +6,19 @@ import { ShipmentStatus } from "@/types/shipment";
 interface StatusActionButtonsProps {
   status: ShipmentStatus;
   onStatusChangeClick: (status: ShipmentStatus) => void;
+  documentCount?: number;
+  deliveredDocumentCount?: number;
 }
 
-export function StatusActionButtons({ status, onStatusChangeClick }: StatusActionButtonsProps) {
+export function StatusActionButtons({ 
+  status, 
+  onStatusChangeClick,
+  documentCount = 0,
+  deliveredDocumentCount = 0
+}: StatusActionButtonsProps) {
+  // Determine if we show the partial delivery option based on document counts
+  const shouldShowPartialDelivery = documentCount > 1 && deliveredDocumentCount > 0 && deliveredDocumentCount < documentCount;
+  
   return (
     <div className="flex items-center space-x-4 mt-2 flex-wrap gap-2">
       {status !== "in_transit" && (
@@ -47,7 +57,7 @@ export function StatusActionButtons({ status, onStatusChangeClick }: StatusActio
           Marcar como Entregue
         </Button>
       )}
-      {status !== "partially_delivered" && (
+      {status !== "partially_delivered" && !shouldShowPartialDelivery && (
         <Button 
           variant="outline" 
           size="sm"
@@ -55,6 +65,12 @@ export function StatusActionButtons({ status, onStatusChangeClick }: StatusActio
         >
           Marcar como Entregue Parcial
         </Button>
+      )}
+      {/* Mensagem informativa para entregas parciais automáticas */}
+      {shouldShowPartialDelivery && status !== "partially_delivered" && (
+        <span className="text-sm text-amber-600">
+          Status será automaticamente atualizado para Entregue Parcial ao salvar
+        </span>
       )}
     </div>
   );

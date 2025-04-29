@@ -33,6 +33,16 @@ export function StatusMenu({
   const { getShipmentById } = useShipments();
   const shipment = getShipmentById(shipmentId);
   
+  // Count documents and delivered documents if available
+  const documentCount = shipment?.documents?.length || 0;
+  const deliveredDocumentCount = shipment?.documents?.filter(doc => doc.isDelivered)?.length || 0;
+  
+  // Automatically update badge if partial delivery condition is met
+  let displayStatus = status;
+  if (documentCount > 1 && deliveredDocumentCount > 0 && deliveredDocumentCount < documentCount) {
+    displayStatus = "partially_delivered";
+  }
+  
   const {
     // Dialog state
     showDocumentSelection,
@@ -73,7 +83,11 @@ export function StatusMenu({
     handleDeliveryConfirm,
     handleRetentionConfirm,
     getStatusLabel
-  } = useStatusMenu({ shipmentId, status, onStatusChange });
+  } = useStatusMenu({ 
+    shipmentId, 
+    status: displayStatus, // Use the potentially modified status
+    onStatusChange 
+  });
 
   // Handler for document selection confirmation
   const handleDocumentSelectionContinue = (documentIds: string[]) => {
@@ -93,12 +107,12 @@ export function StatusMenu({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <div className="cursor-pointer">
-            <StatusBadge status={status} showLabel={showLabel} className={className} />
+            <StatusBadge status={displayStatus} showLabel={showLabel} className={className} />
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <StatusMenuItems 
-            status={status} 
+            status={displayStatus}
             onStatusChange={handleStatusChange} 
           />
         </DropdownMenuContent>

@@ -51,25 +51,67 @@ export function useShipmentStatusChange(
           details && details.selectedDocumentIds) {
         const { selectedDocumentIds, receiverName, deliveryDate, deliveryTime } = details;
         
-        // Update shipment with delivery details
-        await updateShipment(shipment.id, {
-          ...updateData,
-          receiverName,
-          deliveryDate,
-          deliveryTime
-        });
-        
-        // Update each selected document
-        for (const docId of selectedDocumentIds) {
-          // Fix: The updateDocument function needs to be called with a document object, not just properties
-          const docIndex = shipment.documents.findIndex(doc => doc.id === docId);
-          if (docIndex >= 0) {
-            const updatedDocs = [...shipment.documents];
-            updatedDocs[docIndex] = {
-              ...updatedDocs[docIndex],
-              isDelivered: true
-            };
-            await updateDocument(shipment.id, docId, updatedDocs);
+        // Verificar se é necessário atualizar para "partially_delivered" baseado no estado dos documentos
+        if (shipment.documents && shipment.documents.length > 1) {
+          // Quantos documentos serão marcados como entregues
+          const totalDocuments = shipment.documents.length;
+          const updatedDocuments = [...shipment.documents];
+          
+          // Marcar os documentos selecionados como entregues
+          selectedDocumentIds.forEach(docId => {
+            const docIndex = updatedDocuments.findIndex(doc => doc.id === docId);
+            if (docIndex >= 0) {
+              updatedDocuments[docIndex] = {
+                ...updatedDocuments[docIndex],
+                isDelivered: true
+              };
+            }
+          });
+          
+          // Contar quantos documentos estarão como entregues após atualização
+          const deliveredCount = updatedDocuments.filter(doc => doc.isDelivered).length;
+          
+          // Se alguns (mas não todos) documentos estiverem entregues, definir como entrega parcial
+          if (deliveredCount > 0 && deliveredCount < totalDocuments) {
+            updateData.status = "partially_delivered";
+            newStatus = "partially_delivered";
+            console.log(`Automatically setting status to partially_delivered. Delivered: ${deliveredCount}/${totalDocuments}`);
+          }
+          // Se todos os documentos estiverem entregues, definir como entregue final
+          else if (deliveredCount === totalDocuments) {
+            updateData.status = "delivered_final";
+            newStatus = "delivered_final";
+            console.log(`Automatically setting status to delivered_final. All documents delivered: ${deliveredCount}/${totalDocuments}`);
+          }
+          
+          // Atualizar shipment com detalhes de entrega
+          await updateShipment(shipment.id, {
+            ...updateData,
+            receiverName,
+            deliveryDate,
+            deliveryTime,
+            documents: updatedDocuments
+          });
+        } else {
+          // Caso tenha apenas um documento, seguir com a lógica anterior
+          await updateShipment(shipment.id, {
+            ...updateData,
+            receiverName,
+            deliveryDate,
+            deliveryTime
+          });
+          
+          // Update each selected document
+          for (const docId of selectedDocumentIds) {
+            const docIndex = shipment.documents.findIndex(doc => doc.id === docId);
+            if (docIndex >= 0) {
+              const updatedDocs = [...shipment.documents];
+              updatedDocs[docIndex] = {
+                ...updatedDocs[docIndex],
+                isDelivered: true
+              };
+              await updateDocument(shipment.id, docId, updatedDocs);
+            }
           }
         }
         
@@ -93,7 +135,7 @@ export function useShipmentStatusChange(
           window.dispatchEvent(new Event('deliveries-updated'));
         }, 1000);
         
-        toast.success("Status alterado e entregas criadas");
+        toast.success(`Status alterado para ${getStatusLabel(newStatus)} e entregas criadas`);
         setStatus(newStatus);
         setReceiverName(receiverName);
         setDeliveryDate(deliveryDate);
@@ -138,6 +180,23 @@ export function useShipmentStatusChange(
         setActionNumber(details.actionNumber);
         setFiscalNotes(details.fiscalNotes);
         return;
+      }
+      
+      // Verificação para entregas parciais automáticas quando não está mudando para retenção ou entrega
+      if (newStatus !== "retained" && !["delivered_final", "partially_delivered"].includes(newStatus)) {
+        // Se tiver mais de um documento, verifique se alguns foram entregues
+        if (shipment.documents && shipment.documents.length > 1) {
+          const totalDocuments = shipment.documents.length;
+          const deliveredDocuments = shipment.documents.filter(doc => doc.isDelivered).length;
+          
+          // Se alguns (mas não todos) documentos estiverem entregues, atualizar para entrega parcial
+          if (deliveredDocuments > 0 && deliveredDocuments < totalDocuments) {
+            updateData.status = "partially_delivered";
+            newStatus = "partially_delivered";
+            console.log(`Maintaining partially_delivered status. Delivered: ${deliveredDocuments}/${totalDocuments}`);
+            toast.info("Embarque possui documentos entregues. Status mantido como Entrega Parcial");
+          }
+        }
       }
       
       // Update shipment with new status

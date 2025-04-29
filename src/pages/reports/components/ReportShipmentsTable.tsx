@@ -21,6 +21,20 @@ export function ReportShipmentsTable({
   onStatusChange, 
   onRowClick 
 }: ReportShipmentsTableProps) {
+  
+  // Função para verificar se um embarque tem documentos parcialmente entregues
+  const getEffectiveStatus = (shipment: Shipment) => {
+    if (shipment.documents && shipment.documents.length > 1) {
+      const totalDocs = shipment.documents.length;
+      const deliveredDocs = shipment.documents.filter(doc => doc.isDelivered).length;
+      
+      if (deliveredDocs > 0 && deliveredDocs < totalDocs) {
+        return "partially_delivered";
+      }
+    }
+    return shipment.status;
+  };
+  
   return (
     <Table>
       <TableHeader>
@@ -52,38 +66,43 @@ export function ReportShipmentsTable({
             </TableCell>
           </TableRow>
         ) : (
-          filteredShipments.map((shipment) => (
-            <TableRow key={shipment.id}>
-              <TableCell>{shipment.companyName}</TableCell>
-              <TableCell>{shipment.trackingNumber}</TableCell>
-              <TableCell>{shipment.carrierName}</TableCell>
-              <TableCell>{shipment.transportMode === 'air' ? 'Aéreo' : 'Rodoviário'}</TableCell>
-              <TableCell>{shipment.packages}</TableCell>
-              <TableCell>{shipment.weight}</TableCell>
-              <TableCell>
-                {shipment.arrivalDate
-                  ? format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })
-                  : 'Não definida'}
-              </TableCell>
-              <TableCell>
-                <StatusMenu 
-                  shipmentId={shipment.id} 
-                  status={shipment.status} 
-                  onStatusChange={onStatusChange}
-                />
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRowClick(shipment)}
-                >
-                  <Eye className="h-4 w-4" />
-                  <span className="sr-only">Ver Detalhes</span>
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))
+          filteredShipments.map((shipment) => {
+            // Determine o status efetivo baseado nos documentos
+            const effectiveStatus = getEffectiveStatus(shipment);
+            
+            return (
+              <TableRow key={shipment.id}>
+                <TableCell>{shipment.companyName}</TableCell>
+                <TableCell>{shipment.trackingNumber}</TableCell>
+                <TableCell>{shipment.carrierName}</TableCell>
+                <TableCell>{shipment.transportMode === 'air' ? 'Aéreo' : 'Rodoviário'}</TableCell>
+                <TableCell>{shipment.packages}</TableCell>
+                <TableCell>{shipment.weight}</TableCell>
+                <TableCell>
+                  {shipment.arrivalDate
+                    ? format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })
+                    : 'Não definida'}
+                </TableCell>
+                <TableCell>
+                  <StatusMenu 
+                    shipmentId={shipment.id} 
+                    status={effectiveStatus}
+                    onStatusChange={onStatusChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRowClick(shipment)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span className="sr-only">Ver Detalhes</span>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })
         )}
       </TableBody>
     </Table>
