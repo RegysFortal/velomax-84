@@ -47,6 +47,15 @@ export function StatusActionButtons({ status, onStatusChangeClick }: StatusActio
           Marcar como Entregue
         </Button>
       )}
+      {status !== "partially_delivered" && (
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => onStatusChangeClick("partially_delivered")}
+        >
+          Marcar como Entregue Parcial
+        </Button>
+      )}
     </div>
   );
 }

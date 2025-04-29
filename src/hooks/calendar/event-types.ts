@@ -6,6 +6,7 @@ export const EVENT_TYPES = {
   'birthday': { label: 'Aniversário', color: 'bg-red-500' },
   'holiday': { label: 'Feriado', color: 'bg-blue-500' },
   'meeting': { label: 'Reunião', color: 'bg-orange-500' },
+  'scheduled_delivery': { label: 'Entrega Agendada', color: 'bg-green-500' },
   'other': { label: 'Outro', color: 'bg-yellow-400' }
 };
 
@@ -31,4 +32,6 @@ export interface CalendarEvent {
   recurrenceEndDate?: Date;
   time?: string;
   location?: string;
+  isScheduledDelivery?: boolean;
+  scheduledShipmentId?: string;
 }

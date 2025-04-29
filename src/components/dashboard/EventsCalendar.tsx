@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -13,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarEvents, EVENT_TYPES, CalendarEvent, EventType } from '@/hooks/useCalendarEvents';
-import { Plus, Edit, Trash } from 'lucide-react';
+import { Plus, Edit, Trash, PackageCheck } from 'lucide-react';
 import { EventsList } from './calendar/EventsList';
 
 interface EventsCalendarProps {
@@ -35,6 +36,8 @@ export const EventsCalendar = ({
   const [eventTitle, setEventTitle] = useState('');
   const [eventType, setEventType] = useState<EventType>('other');
   const [eventDescription, setEventDescription] = useState('');
+  const [isScheduledDelivery, setIsScheduledDelivery] = useState(false);
+  const [scheduledShipmentId, setScheduledShipmentId] = useState('');
   
   const calendarData = useMemo(() => {
     const eventsMap = new Map<string, { events: CalendarEvent[] }>();
@@ -73,12 +76,16 @@ export const EventsCalendar = ({
       setEventTitle(event.title);
       setEventType(event.type);
       setEventDescription(event.description || '');
+      setIsScheduledDelivery(event.isScheduledDelivery || false);
+      setScheduledShipmentId(event.scheduledShipmentId || '');
       setShowEventDialog(true);
     } else {
       setSelectedEvent(undefined);
       setEventTitle('');
       setEventType('other');
       setEventDescription('');
+      setIsScheduledDelivery(false);
+      setScheduledShipmentId('');
       setShowEventDialog(true);
     }
   };
@@ -100,7 +107,9 @@ export const EventsCalendar = ({
         updateEvent(selectedEvent.id, {
           title: eventTitle,
           type: eventType,
-          description: eventDescription
+          description: eventDescription,
+          isScheduledDelivery,
+          ...(isScheduledDelivery && { scheduledShipmentId })
         });
         toast({
           title: "Evento atualizado",
@@ -111,7 +120,9 @@ export const EventsCalendar = ({
           date: selectedDate,
           title: eventTitle,
           type: eventType,
-          description: eventDescription || undefined
+          description: eventDescription || undefined,
+          isScheduledDelivery,
+          ...(isScheduledDelivery && { scheduledShipmentId })
         });
         toast({
           title: "Evento criado",
@@ -157,6 +168,8 @@ export const EventsCalendar = ({
     setEventTitle('');
     setEventType('other');
     setEventDescription('');
+    setIsScheduledDelivery(false);
+    setScheduledShipmentId('');
   };
   
   const modifierStyles = {};
@@ -173,6 +186,8 @@ export const EventsCalendar = ({
     setEventTitle(event.title);
     setEventType(event.type);
     setEventDescription(event.description || '');
+    setIsScheduledDelivery(event.isScheduledDelivery || false);
+    setScheduledShipmentId(event.scheduledShipmentId || '');
     setShowEventDialog(true);
   };
   
@@ -210,6 +225,10 @@ export const EventsCalendar = ({
                 <div className="flex items-center">
                   <div className="mr-1 h-3 w-3 rounded-full bg-orange-500" />
                   <span>Reunião</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="mr-1 h-3 w-3 rounded-full bg-green-500" />
+                  <span>Entrega Agendada</span>
                 </div>
                 <div className="flex items-center">
                   <div className="mr-1 h-3 w-3 rounded-full bg-yellow-400" />
@@ -270,6 +289,40 @@ export const EventsCalendar = ({
                 </SelectContent>
               </Select>
             </div>
+            
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="isScheduledDelivery"
+                checked={isScheduledDelivery}
+                onChange={(e) => setIsScheduledDelivery(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <Label htmlFor="isScheduledDelivery" className="text-sm font-normal">
+                É uma entrega agendada
+              </Label>
+            </div>
+            
+            {isScheduledDelivery && shipments.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="shipment">Embarque</Label>
+                <Select 
+                  value={scheduledShipmentId} 
+                  onValueChange={setScheduledShipmentId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o embarque" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {shipments.map((shipment) => (
+                      <SelectItem key={shipment.id} value={shipment.id}>
+                        {shipment.trackingNumber} - {shipment.companyName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="description">Descrição</Label>

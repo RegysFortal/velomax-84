@@ -29,6 +29,11 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
             value: "delivered_final", 
             label: "Entregue",
             icon: <Check className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "partially_delivered", 
+            label: "Entregue Parcial",
+            icon: <PackageCheck className="mr-2 h-4 w-4" />
           }
         ];
         
@@ -48,6 +53,11 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
             value: "delivered_final", 
             label: "Entregue",
             icon: <Check className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "partially_delivered", 
+            label: "Entregue Parcial",
+            icon: <PackageCheck className="mr-2 h-4 w-4" />
           }
         ];
         
@@ -88,6 +98,11 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
             icon: <AlertTriangle className="mr-2 h-4 w-4" />
           },
           { 
+            value: "delivered", 
+            label: "Retirada",
+            icon: <Truck className="mr-2 h-4 w-4" />
+          },
+          { 
             value: "delivered_final", 
             label: "Entregue",
             icon: <Check className="mr-2 h-4 w-4" />
@@ -110,6 +125,11 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
             value: "delivered", 
             label: "Retirada",
             icon: <Truck className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "partially_delivered", 
+            label: "Entregue Parcial",
+            icon: <PackageCheck className="mr-2 h-4 w-4" />
           }
         ];
         
