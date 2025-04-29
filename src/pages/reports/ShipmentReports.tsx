@@ -29,20 +29,29 @@ export default function ShipmentReports() {
   // Make sure to refresh shipment data when the component mounts
   // Use an empty dependency array to run only once
   useEffect(() => {
+    console.log("ShipmentReports - Calling refreshShipmentsData on mount");
     refreshShipmentsData();
   }, []); // Empty dependency array ensures this only runs once on mount
   
+  // For debugging - log the shipments whenever they change
+  useEffect(() => {
+    console.log(`ShipmentReports - Received ${shipments.length} shipments`);
+  }, [shipments]);
+  
   const filteredShipments = shipments.filter(shipment => {
-    // Validar que as datas são válidas antes de comparar
+    // Debug logging to check filters
+    console.log(`Filtering shipment ${shipment.trackingNumber}, status: ${shipment.status}, carrier: ${shipment.carrierName}`);
+    
+    // Validate that dates are valid before comparing
     let startDateObj = new Date(startDate);
     let endDateObj = new Date(endDate);
     
-    // Configurar endDateObj para o final do dia
+    // Configure endDateObj to end of day
     endDateObj.setHours(23, 59, 59, 999);
     
     const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
     
-    // Se não há data de chegada, mostrar o embarque de qualquer forma
+    // If there's no arrival date, include the shipment anyway
     const matchesDateRange = !shipmentDate || 
       (shipmentDate >= startDateObj && 
        shipmentDate <= endDateObj);
@@ -50,14 +59,30 @@ export default function ShipmentReports() {
     const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
     
     const matchesCarrier = filterCarrier === 'all' || 
-      shipment.carrierName.toLowerCase().includes(filterCarrier.toLowerCase());
+      (shipment.carrierName && shipment.carrierName.toLowerCase().includes(filterCarrier.toLowerCase()));
       
     const matchesMode = filterMode === 'all' || shipment.transportMode === filterMode;
     
-    return matchesDateRange && matchesStatus && matchesCarrier && matchesMode;
+    const isMatched = matchesDateRange && matchesStatus && matchesCarrier && matchesMode;
+    
+    // Debug which filters are failing
+    if (!isMatched) {
+      console.log(`Shipment ${shipment.trackingNumber} filtered out: ` +
+        `dateRange: ${matchesDateRange}, ` + 
+        `status: ${matchesStatus}, ` + 
+        `carrier: ${matchesCarrier}, ` + 
+        `mode: ${matchesMode}`);
+    }
+    
+    return isMatched;
   });
+  
+  // For debugging - log the filtered shipments
+  useEffect(() => {
+    console.log(`Filtered shipments count: ${filteredShipments.length}`);
+  }, [filteredShipments.length]);
 
-  const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName)));
+  const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName).filter(Boolean)));
   const { generatePDF, exportToExcel } = useReportActions(filteredShipments);
 
   const handleStatusChange = () => {
