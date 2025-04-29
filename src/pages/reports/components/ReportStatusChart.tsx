@@ -3,12 +3,15 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Shipment } from '@/types';
+import { useStatusLabel } from '@/components/shipment/hooks/useStatusLabel';
 
 interface ReportStatusChartProps {
   filteredShipments: Shipment[];
 }
 
 export function ReportStatusChart({ filteredShipments }: ReportStatusChartProps) {
+  const { getStatusLabel } = useStatusLabel();
+  
   const statusCounts = {
     in_transit: filteredShipments.filter(s => s.status === 'in_transit').length,
     retained: filteredShipments.filter(s => s.status === 'retained').length,
@@ -17,12 +20,13 @@ export function ReportStatusChart({ filteredShipments }: ReportStatusChartProps)
     delivered_final: filteredShipments.filter(s => s.status === 'delivered_final').length,
   };
 
+  // Get status labels using the useStatusLabel hook
   const chartData = [
-    { name: 'Em Trânsito', value: statusCounts.in_transit },
-    { name: 'Retida', value: statusCounts.retained },
-    { name: 'Retirada', value: statusCounts.delivered },
-    { name: 'Entregue Parcial', value: statusCounts.partially_delivered },
-    { name: 'Entregue', value: statusCounts.delivered_final },
+    { name: getStatusLabel('in_transit'), value: statusCounts.in_transit },
+    { name: getStatusLabel('retained'), value: statusCounts.retained },
+    { name: getStatusLabel('delivered'), value: statusCounts.delivered },
+    { name: getStatusLabel('partially_delivered'), value: statusCounts.partially_delivered },
+    { name: getStatusLabel('delivered_final'), value: statusCounts.delivered_final },
   ];
 
   return (
