@@ -3,7 +3,6 @@ import React from 'react';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
 import { useFinancial } from '@/contexts/FinancialContext';
-import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DeliveryFormDialog } from '@/components/delivery/DeliveryFormDialog';
 import { DeliverySearch } from '@/components/delivery/DeliverySearch';
@@ -70,49 +69,47 @@ export default function DeliveriesPage() {
   } = useDeliveriesOps(clients);
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-6">
-        <DeliveriesHeader
-          isDialogOpen={isDialogOpen}
-          setIsDialogOpen={setIsDialogOpen}
-          editingDelivery={editingDelivery}
-          setEditingDelivery={setEditingDelivery}
-          onRefreshDeliveries={handleRefreshDeliveries}
-          onDialogComplete={handleDialogComplete}
-        />
+    <div className="container mx-auto py-6">
+      <DeliveriesHeader
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        editingDelivery={editingDelivery}
+        setEditingDelivery={setEditingDelivery}
+        onRefreshDeliveries={handleRefreshDeliveries}
+        onDialogComplete={handleDialogComplete}
+      />
 
-        <DeliveriesFilter
-          selectedClientId={selectedClientId}
-          setSelectedClientId={setSelectedClientId}
-          startDate={startDate}
-          setStartDate={setStartDate}
-          endDate={endDate}
-          setEndDate={setEndDate}
-          clearFilters={clearFilters}
-          filteredDeliveriesCount={filteredDeliveries.length}
-          clients={clients}
-        />
+      <DeliveriesFilter
+        selectedClientId={selectedClientId}
+        setSelectedClientId={setSelectedClientId}
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+        clearFilters={clearFilters}
+        filteredDeliveriesCount={filteredDeliveries.length}
+        clients={clients}
+      />
 
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Lista de Entregas</h2>
-              <DeliverySearch 
-                searchTerm={searchTerm} 
-                setSearchTerm={setSearchTerm} 
-              />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <DeliveryTable
-              deliveries={filteredDeliveries}
-              onEdit={handleEditDelivery}
-              onDelete={handleDeleteDelivery}
-              onViewDetails={handleViewDetails}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Lista de Entregas</h2>
+            <DeliverySearch 
+              searchTerm={searchTerm} 
+              setSearchTerm={setSearchTerm} 
             />
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DeliveryTable
+            deliveries={filteredDeliveries}
+            onEdit={handleEditDelivery}
+            onDelete={handleDeleteDelivery}
+            onViewDetails={handleViewDetails}
+          />
+        </CardContent>
+      </Card>
       
       <DeliveryDetails
         delivery={selectedDelivery}
@@ -120,6 +117,6 @@ export default function DeliveriesPage() {
         onClose={handleDetailClose}
         onEdit={handleEditDelivery}
       />
-    </AppLayout>
+    </div>
   );
 }
