@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { DollarSign, CreditCard, Receipt, BarChart3 } from "lucide-react";
+import { DollarSign, CreditCard, Receipt, BarChart3, FileText, Clock, Table } from "lucide-react";
 import { User } from "@/types";
 import {
   NavigationMenuItem,
@@ -43,7 +43,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
         Financeiro
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
+        <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[400px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
             <Link
               to="/financial-dashboard"
@@ -54,6 +54,36 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
             >
               <BarChart3 className="mr-2 h-4 w-4" />
               Dashboard Financeiro
+            </Link>
+            <Link
+              to="/financial"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/financial")
+              )}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Fechamento
+            </Link>
+            <Link
+              to="/financial?tab=open"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/financial") && location.search.includes("tab=open")
+              )}
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              Relatórios a Fechar
+            </Link>
+            <Link
+              to="/price-tables"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/price-tables")
+              )}
+            >
+              <Table className="mr-2 h-4 w-4" />
+              Tabela de Preços
             </Link>
             <Link
               to="/receivables"
