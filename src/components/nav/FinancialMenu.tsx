@@ -56,6 +56,26 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
               Dashboard Financeiro
             </Link>
             <Link
+              to="/receivables"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/receivables")
+              )}
+            >
+              <CreditCard className="mr-2 h-4 w-4" />
+              Contas a Receber
+            </Link>
+            <Link
+              to="/payables"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/payables")
+              )}
+            >
+              <Receipt className="mr-2 h-4 w-4" />
+              Contas a Pagar
+            </Link>
+            <Link
               to="/financial"
               className={cn(
                 "flex items-center p-2 rounded-md hover:bg-accent",
@@ -94,26 +114,6 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
             >
               <MapPin className="mr-2 h-4 w-4" />
               Cidades
-            </Link>
-            <Link
-              to="/receivables"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/receivables")
-              )}
-            >
-              <CreditCard className="mr-2 h-4 w-4" />
-              Contas a Receber
-            </Link>
-            <Link
-              to="/payables"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/payables")
-              )}
-            >
-              <Receipt className="mr-2 h-4 w-4" />
-              Contas a Pagar
             </Link>
             <Link
               to="/financial-reports"
