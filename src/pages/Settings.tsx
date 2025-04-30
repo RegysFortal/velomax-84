@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSettings } from '@/components/settings/SystemSettings';
 import { NotificationSettings } from '@/components/settings/NotificationSettings';
@@ -24,49 +23,47 @@ const SettingsPage = () => {
   };
 
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-          <p className="text-muted-foreground">
-            Gerencie as configurações do sistema.
-          </p>
-        </div>
-
-        <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="system">Sistema</TabsTrigger>
-            <TabsTrigger value="company">Empresa</TabsTrigger>
-            <TabsTrigger value="users">Usuários</TabsTrigger>
-            <TabsTrigger value="backup">Backup</TabsTrigger>
-            <TabsTrigger value="notifications">Notificações</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="system" className="space-y-6">
-            <SystemSettings />
-          </TabsContent>
-          
-          <TabsContent value="company" className="space-y-6">
-            <CompanySettings />
-          </TabsContent>
-          
-          <TabsContent value="users" className="space-y-6">
-            <UserManagement />
-          </TabsContent>
-          
-          <TabsContent value="backup" className="space-y-6">
-            <SystemBackup />
-            <BudgetProvider>
-              <BudgetBackupTools />
-            </BudgetProvider>
-          </TabsContent>
-          
-          <TabsContent value="notifications" className="space-y-6">
-            <NotificationSettings />
-          </TabsContent>
-        </Tabs>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
+        <p className="text-muted-foreground">
+          Gerencie as configurações do sistema.
+        </p>
       </div>
-    </AppLayout>
+
+      <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="system">Sistema</TabsTrigger>
+          <TabsTrigger value="company">Empresa</TabsTrigger>
+          <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="backup">Backup</TabsTrigger>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="system" className="space-y-6">
+          <SystemSettings />
+        </TabsContent>
+        
+        <TabsContent value="company" className="space-y-6">
+          <CompanySettings />
+        </TabsContent>
+        
+        <TabsContent value="users" className="space-y-6">
+          <UserManagement />
+        </TabsContent>
+        
+        <TabsContent value="backup" className="space-y-6">
+          <SystemBackup />
+          <BudgetProvider>
+            <BudgetBackupTools />
+          </BudgetProvider>
+        </TabsContent>
+        
+        <TabsContent value="notifications" className="space-y-6">
+          <NotificationSettings />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

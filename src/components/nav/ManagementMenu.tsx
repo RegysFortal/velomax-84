@@ -40,7 +40,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
         onClick={onOpenChange}
       >
         <Settings className="mr-2 h-4 w-4" />
-        Gestão
+        Configurações
       </NavigationMenuTrigger>
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
