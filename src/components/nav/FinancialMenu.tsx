@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { DollarSign, CreditCard, Receipt, BarChart3, FileText, Clock, Table } from "lucide-react";
+import { DollarSign, CreditCard, Receipt, BarChart3, FileText, Clock, Table, MapPin } from "lucide-react";
 import { User } from "@/types";
 import {
   NavigationMenuItem,
@@ -84,6 +84,16 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
             >
               <Table className="mr-2 h-4 w-4" />
               Tabela de Preços
+            </Link>
+            <Link
+              to="/cities"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/cities")
+              )}
+            >
+              <MapPin className="mr-2 h-4 w-4" />
+              Cidades
             </Link>
             <Link
               to="/receivables"
