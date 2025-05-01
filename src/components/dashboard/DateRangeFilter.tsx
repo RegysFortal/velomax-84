@@ -39,6 +39,7 @@ export const DateRangeFilter = ({
     return "";
   });
 
+  // Atualizar inputs quando as datas externas mudarem
   React.useEffect(() => {
     if (dateRange?.from) {
       setInputFrom(format(dateRange.from, "dd/MM/yyyy", { locale: ptBR }));
@@ -48,26 +49,48 @@ export const DateRangeFilter = ({
     }
   }, [dateRange]);
 
+  // Manipulador para a data inicial
   const handleFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputFrom(e.target.value);
-    const date = parseDateString(e.target.value);
-    if (date) {
-      onDateRangeChange({
-        from: date,
-        to: dateRange?.to
-      });
+    const value = e.target.value;
+    setInputFrom(value);
+    
+    // Só tenta converter para data se o valor tiver pelo menos 8 caracteres (DD/MM/AA)
+    if (value && value.length >= 8) {
+      const date = parseDateString(value);
+      if (date) {
+        onDateRangeChange({
+          from: date,
+          to: dateRange?.to
+        });
+      }
     }
   };
 
+  // Manipulador para a data final
   const handleToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputTo(e.target.value);
-    const date = parseDateString(e.target.value);
-    if (date) {
-      onDateRangeChange({
-        from: dateRange?.from,
-        to: date
-      });
+    const value = e.target.value;
+    setInputTo(value);
+    
+    // Só tenta converter para data se o valor tiver pelo menos 8 caracteres (DD/MM/AA)
+    if (value && value.length >= 8) {
+      const date = parseDateString(value);
+      if (date) {
+        onDateRangeChange({
+          from: dateRange?.from,
+          to: date
+        });
+      }
     }
+  };
+
+  // Garante que o calendário seja interativo
+  const [open, setOpen] = React.useState(false);
+  
+  const handleCalendarSelect = (range: DateRange | undefined) => {
+    if (range) {
+      onDateRangeChange(range);
+    }
+    // Não feche o calendário automaticamente para permitir seleção completa do intervalo
   };
 
   return (
@@ -84,6 +107,7 @@ export const DateRangeFilter = ({
               onChange={handleFromChange}
               placeholder="DD/MM/AAAA"
               className="w-[120px]"
+              maxLength={10}
             />
             <span>até</span>
             <Input
@@ -91,9 +115,10 @@ export const DateRangeFilter = ({
               onChange={handleToChange}
               placeholder="DD/MM/AAAA"
               className="w-[120px]"
+              maxLength={10}
             />
           </div>
-          <Popover>
+          <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
@@ -109,10 +134,10 @@ export const DateRangeFilter = ({
                 mode="range"
                 defaultMonth={dateRange?.from}
                 selected={dateRange}
-                onSelect={onDateRangeChange}
+                onSelect={handleCalendarSelect}
                 numberOfMonths={2}
                 locale={ptBR}
-                className={cn("p-3 pointer-events-auto")}
+                className="p-3 pointer-events-auto z-50"
               />
             </PopoverContent>
           </Popover>
