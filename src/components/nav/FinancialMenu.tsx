@@ -2,7 +2,17 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { DollarSign, CreditCard, Receipt, BarChart3, FileText, Clock, Table, MapPin } from "lucide-react";
+import {
+  BanknoteIcon,
+  BadgeDollarSign,
+  ClipboardList,
+  FileText,
+  FileBarChart,
+  MapPin,
+  Receipt,
+  BarChart3,
+  ArrowUpDown,
+} from "lucide-react";
 import { User } from "@/types";
 import {
   NavigationMenuItem,
@@ -20,30 +30,30 @@ interface FinancialMenuProps {
   onOpenChange?: () => void;
 }
 
-export const FinancialMenu: React.FC<FinancialMenuProps> = ({ 
-  user, 
+export const FinancialMenu: React.FC<FinancialMenuProps> = ({
+  user,
   hasPermission,
   open,
-  onOpenChange
+  onOpenChange,
 }) => {
   const location = useLocation();
   const { isMobile } = useIsMobile();
 
-  if (!user || !hasPermission('financial')) {
+  if (!user || !hasPermission("financial")) {
     return null;
   }
 
   return (
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
-      <NavigationMenuTrigger 
+      <NavigationMenuTrigger
         className={isMobile ? "w-full justify-start" : ""}
         onClick={onOpenChange}
       >
-        <DollarSign className="mr-2 h-4 w-4" />
+        <BanknoteIcon className="mr-2 h-4 w-4" />
         Financeiro
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[400px] w-[400px]"}`}>
+        <ScrollArea className={`${isMobile ? "h-[300px] w-full" : "h-[400px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
             <Link
               to="/financial-dashboard"
@@ -55,26 +65,7 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
               <BarChart3 className="mr-2 h-4 w-4" />
               Dashboard Financeiro
             </Link>
-            <Link
-              to="/receivables"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/receivables")
-              )}
-            >
-              <CreditCard className="mr-2 h-4 w-4" />
-              Contas a Receber
-            </Link>
-            <Link
-              to="/payables"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/payables")
-              )}
-            >
-              <Receipt className="mr-2 h-4 w-4" />
-              Contas a Pagar
-            </Link>
+
             <Link
               to="/financial"
               className={cn(
@@ -82,29 +73,21 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
                 getActiveClass(location.pathname, "/financial")
               )}
             >
-              <FileText className="mr-2 h-4 w-4" />
-              Fechamento
-            </Link>
-            <Link
-              to="/financial?tab=open"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/financial") && location.search.includes("tab=open")
-              )}
-            >
-              <Clock className="mr-2 h-4 w-4" />
+              <FileBarChart className="mr-2 h-4 w-4" />
               Relatórios a Fechar
             </Link>
+
             <Link
-              to="/price-tables"
+              to="/reports"
               className={cn(
                 "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/price-tables")
+                getActiveClass(location.pathname, "/reports")
               )}
             >
-              <Table className="mr-2 h-4 w-4" />
-              Tabela de Preços
+              <ClipboardList className="mr-2 h-4 w-4" />
+              Fechamento
             </Link>
+
             <Link
               to="/cities"
               className={cn(
@@ -115,15 +98,49 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
               <MapPin className="mr-2 h-4 w-4" />
               Cidades
             </Link>
+
             <Link
-              to="/financial-reports"
+              to="/price-tables"
               className={cn(
                 "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/financial-reports")
+                getActiveClass(location.pathname, "/price-tables")
               )}
             >
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Relatórios
+              <ArrowUpDown className="mr-2 h-4 w-4" />
+              Tabela de Preços
+            </Link>
+
+            <Link
+              to="/accounts/receivable"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/accounts/receivable")
+              )}
+            >
+              <Receipt className="mr-2 h-4 w-4" />
+              Contas a Receber
+            </Link>
+
+            <Link
+              to="/accounts/payable"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/accounts/payable")
+              )}
+            >
+              <BadgeDollarSign className="mr-2 h-4 w-4" />
+              Contas a Pagar
+            </Link>
+
+            <Link
+              to="/accounts/reports"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/accounts/reports")
+              )}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Relatórios Financeiros
             </Link>
           </div>
         </ScrollArea>

@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Users, Building2, Settings, User } from "lucide-react";
+import { Settings, Users, Building2, User } from "lucide-react";
 import { User as UserType } from "@/types";
 import {
   NavigationMenuItem,
@@ -54,7 +54,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
                 )}
               >
                 <Settings className="mr-2 h-4 w-4" />
-                Configurações
+                Configuração de Sistema
               </Link>
             )}
             {hasPermission('management') && (
@@ -77,7 +77,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
                   )}
                 >
                   <User className="mr-2 h-4 w-4" />
-                  Prestadores
+                  Terceiros
                 </Link>
                 <Link
                   to="/clients"
@@ -90,18 +90,6 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
                   Clientes
                 </Link>
               </>
-            )}
-            {hasPermission('admin') && (
-              <Link
-                to="/users"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/users")
-                )}
-              >
-                <Users className="mr-2 h-4 w-4" />
-                Usuários
-              </Link>
             )}
           </div>
         </ScrollArea>
