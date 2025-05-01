@@ -83,24 +83,74 @@ export const parseDateString = (dateString: string): Date | null => {
   // If empty, return null
   if (!dateString) return null;
   
+  // Clean up the input - remove any character that is not a number or slash
+  const cleanDateString = dateString.replace(/[^\d\/]/g, '');
+  
   // Check if it's already in ISO format (YYYY-MM-DD)
-  if (dateString.includes('-') && dateString.split('-')[0].length === 4) {
-    const date = new Date(`${dateString}T12:00:00`);
+  if (cleanDateString.includes('-') && cleanDateString.split('-')[0].length === 4) {
+    const date = new Date(`${cleanDateString}T12:00:00`);
     if (!isNaN(date.getTime())) {
       return date;
     }
   }
   
   // Check if it's in DD/MM/YYYY format
-  if (dateString.includes('/')) {
-    const [day, month, year] = dateString.split('/').map(Number);
-    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-      // Month is 0-indexed in JS Date
-      const date = new Date(year, month - 1, day, 12, 0, 0);
-      if (date.getDate() === day) { // This checks if it's a valid date
-        return date;
+  if (cleanDateString.includes('/')) {
+    const parts = cleanDateString.split('/');
+    if (parts.length >= 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      let year = parseInt(parts[2], 10);
+      
+      // Handle 2-digit years
+      if (year < 100) {
+        year += year < 50 ? 2000 : 1900;
+      }
+      
+      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+        // Month is 0-indexed in JS Date
+        const date = new Date(year, month - 1, day, 12, 0, 0);
+        if (date.getDate() === day) { // This checks if it's a valid date
+          return date;
+        }
       }
     }
+  }
+  
+  // Try to parse directly if the format is ambiguous
+  try {
+    const parts = cleanDateString.split(/[-\/]/);
+    if (parts.length >= 3) {
+      // Try to guess the format based on the values
+      let day, month, year;
+      
+      // Determine if first part is day or year
+      if (parseInt(parts[0]) > 31) {
+        // Likely YYYY-MM-DD format
+        year = parseInt(parts[0]);
+        month = parseInt(parts[1]);
+        day = parseInt(parts[2]);
+      } else {
+        // Likely DD/MM/YYYY format
+        day = parseInt(parts[0]);
+        month = parseInt(parts[1]);
+        year = parseInt(parts[2]);
+        
+        // Handle 2-digit years
+        if (year < 100) {
+          year += year < 50 ? 2000 : 1900;
+        }
+      }
+      
+      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+        const date = new Date(year, month - 1, day, 12, 0, 0);
+        if (date.getDate() === day) { // Valid date check
+          return date;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error parsing ambiguous date string:', cleanDateString, e);
   }
   
   console.error('Could not parse date string:', dateString);

@@ -39,24 +39,39 @@ export const DateRangeFilter = ({
     return "";
   });
 
-  // Atualizar inputs quando as datas externas mudarem
+  // Update inputs when external dates change
   React.useEffect(() => {
     if (dateRange?.from) {
       setInputFrom(format(dateRange.from, "dd/MM/yyyy", { locale: ptBR }));
+    } else {
+      setInputFrom("");
     }
+    
     if (dateRange?.to) {
       setInputTo(format(dateRange.to, "dd/MM/yyyy", { locale: ptBR }));
+    } else {
+      setInputTo("");
     }
   }, [dateRange]);
 
-  // Manipulador para a data inicial
+  // Handler for start date input
   const handleFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setInputFrom(value);
     
-    // Só tenta converter para data se o valor tiver pelo menos 8 caracteres (DD/MM/AA)
-    if (value && value.length >= 8) {
-      const date = parseDateString(value);
+    // Only allow numbers and slashes
+    const sanitized = value.replace(/[^\d/]/g, '');
+    setInputFrom(sanitized);
+    
+    // Auto-format with slashes
+    if (sanitized.length === 2 && !sanitized.includes('/') && !inputFrom.includes('/')) {
+      setInputFrom(sanitized + '/');
+    } else if (sanitized.length === 5 && sanitized.indexOf('/', 3) === -1) {
+      setInputFrom(sanitized + '/');
+    }
+    
+    // Attempt to parse date if we have enough characters
+    if (sanitized.length >= 8) {
+      const date = parseDateString(sanitized);
       if (date) {
         onDateRangeChange({
           from: date,
@@ -66,14 +81,24 @@ export const DateRangeFilter = ({
     }
   };
 
-  // Manipulador para a data final
+  // Handler for end date input
   const handleToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setInputTo(value);
     
-    // Só tenta converter para data se o valor tiver pelo menos 8 caracteres (DD/MM/AA)
-    if (value && value.length >= 8) {
-      const date = parseDateString(value);
+    // Only allow numbers and slashes
+    const sanitized = value.replace(/[^\d/]/g, '');
+    setInputTo(sanitized);
+    
+    // Auto-format with slashes
+    if (sanitized.length === 2 && !sanitized.includes('/') && !inputTo.includes('/')) {
+      setInputTo(sanitized + '/');
+    } else if (sanitized.length === 5 && sanitized.indexOf('/', 3) === -1) {
+      setInputTo(sanitized + '/');
+    }
+    
+    // Attempt to parse date if we have enough characters
+    if (sanitized.length >= 8) {
+      const date = parseDateString(sanitized);
       if (date) {
         onDateRangeChange({
           from: dateRange?.from,
@@ -83,14 +108,19 @@ export const DateRangeFilter = ({
     }
   };
 
-  // Garante que o calendário seja interativo
+  // Calendar popover state
   const [open, setOpen] = React.useState(false);
   
+  // Calendar selection handler
   const handleCalendarSelect = (range: DateRange | undefined) => {
     if (range) {
       onDateRangeChange(range);
+      
+      // Only close the popover when a complete range is selected
+      if (range.from && range.to) {
+        setOpen(false);
+      }
     }
-    // Não feche o calendário automaticamente para permitir seleção completa do intervalo
   };
 
   return (
@@ -128,7 +158,7 @@ export const DateRangeFilter = ({
                 Calendário
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
+            <PopoverContent className="w-auto p-0 z-50" align="end">
               <Calendar
                 initialFocus
                 mode="range"
@@ -137,7 +167,7 @@ export const DateRangeFilter = ({
                 onSelect={handleCalendarSelect}
                 numberOfMonths={2}
                 locale={ptBR}
-                className="p-3 pointer-events-auto z-50"
+                className="p-3 pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
