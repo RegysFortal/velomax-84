@@ -278,6 +278,7 @@ export type Database = {
           phone: string | null
           position: string
           rg: string | null
+          role: string | null
           state: string | null
           updated_at: string | null
           user_id: string | null
@@ -303,6 +304,7 @@ export type Database = {
           phone?: string | null
           position: string
           rg?: string | null
+          role?: string | null
           state?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -328,6 +330,7 @@ export type Database = {
           phone?: string | null
           position?: string
           rg?: string | null
+          role?: string | null
           state?: string | null
           updated_at?: string | null
           user_id?: string | null
