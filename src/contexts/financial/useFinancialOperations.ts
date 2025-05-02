@@ -1,92 +1,16 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+
+import { useState } from 'react';
 import { FinancialReport } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth/AuthContext';
 
-type FinancialContextType = {
-  financialReports: FinancialReport[];
-  addFinancialReport: (report: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>;
-  updateFinancialReport: (id: string, report: Partial<FinancialReport>) => Promise<void>;
-  deleteFinancialReport: (id: string) => Promise<void>;
-  getFinancialReport: (id: string) => FinancialReport | undefined;
-  getReportsByStatus: (status: FinancialReport['status']) => FinancialReport[];
-  closeReport: (id: string) => Promise<void>;
-  reopenReport: (id: string) => Promise<void>;
-  createReport: (report: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FinancialReport | null>;
-  loading: boolean;
-};
-
-const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
-
-export const FinancialProvider = ({ children }: { children: ReactNode }) => {
+export const useFinancialOperations = () => {
   const [financialReports, setFinancialReports] = useState<FinancialReport[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
-  
-  useEffect(() => {
-    const fetchFinancialReports = async () => {
-      try {
-        setLoading(true);
-        
-        const { data, error } = await supabase
-          .from('financial_reports')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          throw error;
-        }
-        
-        const mappedReports = data.map((report: any): FinancialReport => ({
-          id: report.id,
-          clientId: report.client_id,
-          startDate: report.start_date,
-          endDate: report.end_date,
-          totalDeliveries: report.total_deliveries,
-          totalFreight: report.total_freight,
-          status: report.status as FinancialReport['status'],
-          createdAt: report.created_at || new Date().toISOString(),
-          updatedAt: report.updated_at || new Date().toISOString(),
-        }));
-        
-        setFinancialReports(mappedReports);
-      } catch (error) {
-        console.error('Error fetching financial reports:', error);
-        toast({
-          title: "Erro ao carregar relatórios financeiros",
-          description: "Usando dados locais como fallback.",
-          variant: "destructive"
-        });
-        
-        const storedReports = localStorage.getItem('velomax_financial_reports');
-        if (storedReports) {
-          try {
-            setFinancialReports(JSON.parse(storedReports));
-          } catch (error) {
-            console.error('Failed to parse stored reports', error);
-            setFinancialReports([]);
-          }
-        } else {
-          setFinancialReports([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (user) {
-      fetchFinancialReports();
-    }
-  }, [toast, user]);
-  
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem('velomax_financial_reports', JSON.stringify(financialReports));
-    }
-  }, [financialReports, loading]);
-  
+
   const addFinancialReport = async (
     report: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<string> => {
@@ -310,89 +234,15 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
       });
     }
   };
-  
-  const getFinancialReport = (id: string) => {
-    return financialReports.find((report) => report.id === id);
-  };
-  
-  const getReportsByStatus = (status: FinancialReport['status']) => {
-    return financialReports.filter((report) => report.status === status);
-  };
-  
-  const closeReport = async (id: string) => {
-    console.log(`Fechando relatório com ID: ${id}`);
-    const reportToClose = financialReports.find(report => report.id === id);
-    
-    if (!reportToClose) {
-      console.error(`Relatório com ID ${id} não encontrado.`);
-      toast({
-        title: "Erro ao fechar relatório",
-        description: "Relatório não encontrado.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    await updateFinancialReport(id, { status: 'closed' });
-    
-    console.log("Relatórios após fechamento:", 
-      financialReports.map(r => ({id: r.id, status: r.status}))
-    );
-    
-    toast({
-      title: "Relatório fechado",
-      description: `O relatório financeiro foi fechado com sucesso.`,
-    });
-  };
-  
-  const reopenReport = async (id: string) => {
-    console.log(`Reabrindo relatório com ID: ${id}`);
-    const reportToReopen = financialReports.find(report => report.id === id);
-    
-    if (!reportToReopen) {
-      console.error(`Relatório com ID ${id} não encontrado.`);
-      toast({
-        title: "Erro ao reabrir relatório",
-        description: "Relatório não encontrado.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    await updateFinancialReport(id, { status: 'open' });
-    
-    console.log("Relatórios após reabertura:", 
-      financialReports.map(r => ({id: r.id, status: r.status}))
-    );
-    
-    toast({
-      title: "Relatório reaberto",
-      description: `O relatório financeiro foi reaberto com sucesso.`,
-    });
-  };
-  
-  return (
-    <FinancialContext.Provider value={{
-      financialReports,
-      addFinancialReport,
-      updateFinancialReport,
-      deleteFinancialReport,
-      getFinancialReport,
-      getReportsByStatus,
-      closeReport,
-      reopenReport,
-      createReport,
-      loading,
-    }}>
-      {children}
-    </FinancialContext.Provider>
-  );
-};
 
-export const useFinancial = () => {
-  const context = useContext(FinancialContext);
-  if (context === undefined) {
-    throw new Error('useFinancial must be used within a FinancialProvider');
-  }
-  return context;
+  return {
+    financialReports,
+    setFinancialReports,
+    loading,
+    setLoading,
+    addFinancialReport,
+    createReport,
+    updateFinancialReport,
+    deleteFinancialReport,
+  };
 };
