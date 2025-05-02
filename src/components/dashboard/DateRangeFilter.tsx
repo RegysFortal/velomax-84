@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { format } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/popover";
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { parseDateString } from "@/utils/dateUtils";
+import { parseDateString, formatPartialDateString } from "@/utils/dateUtils";
 
 interface DateRangeFilterProps {
   dateRange: DateRange;
@@ -40,7 +40,7 @@ export const DateRangeFilter = ({
   });
 
   // Update inputs when external dates change
-  React.useEffect(() => {
+  useEffect(() => {
     if (dateRange?.from) {
       setInputFrom(format(dateRange.from, "dd/MM/yyyy", { locale: ptBR }));
     } else {
@@ -57,21 +57,12 @@ export const DateRangeFilter = ({
   // Handler for start date input
   const handleFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    const formatted = formatPartialDateString(value);
+    setInputFrom(formatted);
     
-    // Only allow numbers and slashes
-    const sanitized = value.replace(/[^\d/]/g, '');
-    setInputFrom(sanitized);
-    
-    // Auto-format with slashes
-    if (sanitized.length === 2 && !sanitized.includes('/') && !inputFrom.includes('/')) {
-      setInputFrom(sanitized + '/');
-    } else if (sanitized.length === 5 && sanitized.indexOf('/', 3) === -1) {
-      setInputFrom(sanitized + '/');
-    }
-    
-    // Attempt to parse date if we have enough characters
-    if (sanitized.length >= 8) {
-      const date = parseDateString(sanitized);
+    // Only attempt to parse if we have enough characters for a complete date
+    if (formatted.length === 10) {
+      const date = parseDateString(formatted);
       if (date) {
         onDateRangeChange({
           from: date,
@@ -84,21 +75,12 @@ export const DateRangeFilter = ({
   // Handler for end date input
   const handleToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    const formatted = formatPartialDateString(value);
+    setInputTo(formatted);
     
-    // Only allow numbers and slashes
-    const sanitized = value.replace(/[^\d/]/g, '');
-    setInputTo(sanitized);
-    
-    // Auto-format with slashes
-    if (sanitized.length === 2 && !sanitized.includes('/') && !inputTo.includes('/')) {
-      setInputTo(sanitized + '/');
-    } else if (sanitized.length === 5 && sanitized.indexOf('/', 3) === -1) {
-      setInputTo(sanitized + '/');
-    }
-    
-    // Attempt to parse date if we have enough characters
-    if (sanitized.length >= 8) {
-      const date = parseDateString(sanitized);
+    // Only attempt to parse if we have enough characters for a complete date
+    if (formatted.length === 10) {
+      const date = parseDateString(formatted);
       if (date) {
         onDateRangeChange({
           from: dateRange?.from,

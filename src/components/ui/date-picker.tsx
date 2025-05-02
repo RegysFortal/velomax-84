@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
-import { parseDateString } from "@/utils/dateUtils"
+import { parseDateString, formatPartialDateString } from "@/utils/dateUtils"
 
 interface DatePickerProps {
   date?: Date
@@ -40,17 +40,14 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
     if (!allowTyping) return
     
     const value = e.target.value
-    setInputValue(value)
+    const formatted = formatPartialDateString(value)
+    setInputValue(formatted)
     
-    // Try to parse the date from the input
-    if (value && value.length >= 8) {
-      try {
-        const parsedDate = parseDateString(value)
-        if (parsedDate && !isNaN(parsedDate.getTime())) {
-          onSelect?.(parsedDate)
-        }
-      } catch (error) {
-        // Invalid date format, do nothing
+    // Only attempt to parse if we have a complete date format
+    if (formatted.length === 10) {
+      const parsedDate = parseDateString(formatted)
+      if (parsedDate && !isNaN(parsedDate.getTime())) {
+        onSelect?.(parsedDate)
       }
     }
   }
@@ -63,6 +60,15 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
       setInputValue(format(date, "dd/MM/yyyy", { locale: ptBR }))
     }
   }
+  
+  // Handler for input click to open calendar
+  const handleInputClick = () => {
+    if (allowTyping) {
+      // Only open calendar on icon click if typing is allowed
+      return
+    }
+    setOpen(true)
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -71,6 +77,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
           <Input
             value={inputValue}
             onChange={handleInputChange}
+            onClick={handleInputClick}
             placeholder={placeholder}
             className="pr-10" // Make room for the calendar icon
             readOnly={!allowTyping}
@@ -81,7 +88,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
           />
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 z-50" align="start">
         <Calendar
           mode="single"
           selected={date}

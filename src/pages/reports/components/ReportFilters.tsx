@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from 'lucide-react';
 import { ShipmentStatus } from '@/types';
+import { DatePicker } from '@/components/ui/date-picker';
+import { format } from 'date-fns';
 
 interface ReportFiltersProps {
   startDate: string;
@@ -33,6 +35,39 @@ export function ReportFilters({
   onCarrierChange,
   uniqueCarriers
 }: ReportFiltersProps) {
+  // Convert string dates to Date objects for the DatePicker
+  const [startDateObj, setStartDateObj] = useState<Date | undefined>(
+    startDate ? new Date(startDate) : undefined
+  );
+  const [endDateObj, setEndDateObj] = useState<Date | undefined>(
+    endDate ? new Date(endDate) : undefined
+  );
+  
+  // Update local date objects when props change
+  useEffect(() => {
+    if (startDate) {
+      setStartDateObj(new Date(startDate));
+    }
+    if (endDate) {
+      setEndDateObj(new Date(endDate));
+    }
+  }, [startDate, endDate]);
+  
+  // Handle date selection from DatePicker
+  const handleStartDateSelect = (date: Date | undefined) => {
+    setStartDateObj(date);
+    if (date) {
+      onStartDateChange(format(date, 'yyyy-MM-dd'));
+    }
+  };
+  
+  const handleEndDateSelect = (date: Date | undefined) => {
+    setEndDateObj(date);
+    if (date) {
+      onEndDateChange(format(date, 'yyyy-MM-dd'));
+    }
+  };
+  
   return (
     <Card className="col-span-1">
       <CardHeader>
@@ -45,10 +80,10 @@ export function ReportFilters({
               <label className="text-sm font-medium">Data Inicial</label>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="date" 
-                  value={startDate}
-                  onChange={(e) => onStartDateChange(e.target.value)}
+                <DatePicker
+                  date={startDateObj}
+                  onSelect={handleStartDateSelect}
+                  placeholder="Selecione a data inicial"
                 />
               </div>
             </div>
@@ -56,10 +91,10 @@ export function ReportFilters({
               <label className="text-sm font-medium">Data Final</label>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="date" 
-                  value={endDate}
-                  onChange={(e) => onEndDateChange(e.target.value)}
+                <DatePicker
+                  date={endDateObj}
+                  onSelect={handleEndDateSelect}
+                  placeholder="Selecione a data final"
                 />
               </div>
             </div>
@@ -74,7 +109,7 @@ export function ReportFilters({
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50">
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="in_transit">Em Trânsito</SelectItem>
                   <SelectItem value="retained">Retida</SelectItem>
@@ -93,7 +128,7 @@ export function ReportFilters({
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o modo" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50">
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="air">Aéreo</SelectItem>
                   <SelectItem value="road">Rodoviário</SelectItem>
@@ -110,7 +145,7 @@ export function ReportFilters({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a transportadora" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50">
                 <SelectItem value="all">Todas</SelectItem>
                 {uniqueCarriers.map((carrier) => (
                   <SelectItem 

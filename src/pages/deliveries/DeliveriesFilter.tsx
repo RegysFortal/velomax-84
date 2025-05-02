@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { DatePicker } from '@/components/ui/date-picker';
 import { X } from 'lucide-react';
 import { Client } from '@/types';
+import { format } from 'date-fns';
 
 interface DeliveriesFilterProps {
   selectedClientId: string;
@@ -31,6 +32,40 @@ export const DeliveriesFilter: React.FC<DeliveriesFilterProps> = ({
   filteredDeliveriesCount,
   clients
 }) => {
+  const [startDateObj, setStartDateObj] = useState<Date | undefined>(
+    startDate ? new Date(startDate) : undefined
+  );
+  
+  const [endDateObj, setEndDateObj] = useState<Date | undefined>(
+    endDate ? new Date(endDate) : undefined
+  );
+  
+  // Update local date objects when props change
+  useEffect(() => {
+    if (startDate) {
+      setStartDateObj(new Date(startDate));
+    } else {
+      setStartDateObj(undefined);
+    }
+    
+    if (endDate) {
+      setEndDateObj(new Date(endDate));
+    } else {
+      setEndDateObj(undefined);
+    }
+  }, [startDate, endDate]);
+  
+  // Handle date selection
+  const handleStartDateChange = (date: Date | undefined) => {
+    setStartDateObj(date);
+    setStartDate(date ? format(date, 'yyyy-MM-dd') : null);
+  };
+  
+  const handleEndDateChange = (date: Date | undefined) => {
+    setEndDateObj(date);
+    setEndDate(date ? format(date, 'yyyy-MM-dd') : null);
+  };
+  
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -50,16 +85,16 @@ export const DeliveriesFilter: React.FC<DeliveriesFilterProps> = ({
           <div>
             <Label htmlFor="start-date">Data Inicial</Label>
             <DatePicker
-              date={startDate ? new Date(startDate) : undefined}
-              onSelect={(date) => setStartDate(date ? date.toISOString().split('T')[0] : null)}
+              date={startDateObj}
+              onSelect={handleStartDateChange}
               placeholder="Selecione a data inicial"
             />
           </div>
           <div>
             <Label htmlFor="end-date">Data Final</Label>
             <DatePicker
-              date={endDate ? new Date(endDate) : undefined}
-              onSelect={(date) => setEndDate(date ? date.toISOString().split('T')[0] : null)}
+              date={endDateObj}
+              onSelect={handleEndDateChange}
               placeholder="Selecione a data final"
             />
           </div>
