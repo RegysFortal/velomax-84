@@ -96,10 +96,16 @@ export const DateRangeFilter = ({
   // Calendar selection handler
   const handleCalendarSelect = (range: DateRange | undefined) => {
     if (range) {
-      onDateRangeChange(range);
+      // Fix timezone issues by setting time to noon
+      const adjustedRange: DateRange = {
+        from: range.from ? new Date(range.from.setHours(12, 0, 0, 0)) : undefined,
+        to: range.to ? new Date(range.to.setHours(12, 0, 0, 0)) : undefined
+      };
+      
+      onDateRangeChange(adjustedRange);
       
       // Only close the popover when a complete range is selected
-      if (range.from && range.to) {
+      if (adjustedRange.from && adjustedRange.to) {
         setOpen(false);
       }
     }

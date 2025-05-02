@@ -29,7 +29,8 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
   // Update input value when date changes externally
   React.useEffect(() => {
     if (date) {
-      setInputValue(format(date, "dd/MM/yyyy", { locale: ptBR }))
+      const formattedDate = format(date, "dd/MM/yyyy", { locale: ptBR });
+      setInputValue(formattedDate)
     } else {
       setInputValue("")
     }
@@ -52,12 +53,19 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
     }
   }
   
-  const handleSelect = (date: Date | undefined) => {
+  const handleSelect = (newDate: Date | undefined) => {
     setOpen(false)
-    onSelect?.(date)
     
-    if (date) {
-      setInputValue(format(date, "dd/MM/yyyy", { locale: ptBR }))
+    if (newDate) {
+      // Ensure we use local time by setting the time to noon
+      const localDate = new Date(newDate)
+      localDate.setHours(12, 0, 0, 0)
+      onSelect?.(localDate)
+      
+      setInputValue(format(localDate, "dd/MM/yyyy", { locale: ptBR }))
+    } else {
+      onSelect?.(undefined)
+      setInputValue("")
     }
   }
   

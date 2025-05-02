@@ -107,9 +107,9 @@ export const parseDateString = (dateString: string): Date | null => {
       }
       
       if (!isNaN(day) && !isNaN(month) && !isNaN(year) && day >= 1 && day <= 31 && month >= 1 && month <= 12) {
-        // Month is 0-indexed in JS Date
+        // Month is 0-indexed in JS Date, create date at noon to avoid timezone issues
         const date = new Date(year, month - 1, day, 12, 0, 0);
-        if (date.getDate() === day) { // This checks if it's a valid date
+        if (!isNaN(date.getTime()) && date.getDate() === day) { // This checks if it's a valid date
           return date;
         }
       }
@@ -151,7 +151,7 @@ export const parseDateString = (dateString: string): Date | null => {
       
       if (!isNaN(day) && !isNaN(month) && !isNaN(year) && day >= 1 && day <= 31 && month >= 1 && month <= 12) {
         const date = new Date(year, month - 1, day, 12, 0, 0);
-        if (date.getDate() === day) { // Valid date check
+        if (!isNaN(date.getTime()) && date.getDate() === day) { // Valid date check
           return date;
         }
       }

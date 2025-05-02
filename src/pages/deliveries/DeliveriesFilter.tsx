@@ -43,13 +43,15 @@ export const DeliveriesFilter: React.FC<DeliveriesFilterProps> = ({
   // Update local date objects when props change
   useEffect(() => {
     if (startDate) {
-      setStartDateObj(new Date(startDate));
+      const date = new Date(`${startDate}T12:00:00`);
+      setStartDateObj(date);
     } else {
       setStartDateObj(undefined);
     }
     
     if (endDate) {
-      setEndDateObj(new Date(endDate));
+      const date = new Date(`${endDate}T12:00:00`);
+      setEndDateObj(date);
     } else {
       setEndDateObj(undefined);
     }
@@ -58,12 +60,24 @@ export const DeliveriesFilter: React.FC<DeliveriesFilterProps> = ({
   // Handle date selection
   const handleStartDateChange = (date: Date | undefined) => {
     setStartDateObj(date);
-    setStartDate(date ? format(date, 'yyyy-MM-dd') : null);
+    if (date) {
+      // Ensure noon to avoid timezone issues
+      date.setHours(12, 0, 0, 0);
+      setStartDate(format(date, 'yyyy-MM-dd'));
+    } else {
+      setStartDate(null);
+    }
   };
   
   const handleEndDateChange = (date: Date | undefined) => {
     setEndDateObj(date);
-    setEndDate(date ? format(date, 'yyyy-MM-dd') : null);
+    if (date) {
+      // Ensure noon to avoid timezone issues
+      date.setHours(12, 0, 0, 0);
+      setEndDate(format(date, 'yyyy-MM-dd'));
+    } else {
+      setEndDate(null);
+    }
   };
   
   return (

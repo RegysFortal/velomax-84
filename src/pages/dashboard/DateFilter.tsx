@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ export const DateFilter = ({
   
   useEffect(() => {
     const today = new Date();
+    today.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
     
     switch (dateFilter) {
       case 'day':
