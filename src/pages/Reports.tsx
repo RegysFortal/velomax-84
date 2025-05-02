@@ -36,6 +36,33 @@ const Reports = () => {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [reportId, setReportId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [filteredClients, setFilteredClients] = useState(clients);
+  
+  // Filter clients with deliveries in the selected period
+  useEffect(() => {
+    if (startDate && endDate) {
+      const startDateObj = new Date(startDate);
+      const endDateObj = new Date(endDate);
+      
+      // Set hours to ensure proper date comparison
+      startDateObj.setHours(0, 0, 0, 0);
+      endDateObj.setHours(23, 59, 59, 999);
+      
+      // Get unique client IDs with deliveries in the selected period
+      const clientsWithDeliveries = deliveries
+        .filter(delivery => {
+          const deliveryDate = new Date(delivery.deliveryDate);
+          return deliveryDate >= startDateObj && deliveryDate <= endDateObj;
+        })
+        .map(delivery => delivery.clientId);
+      
+      // Filter clients list to only include those with deliveries
+      const uniqueClientIds = [...new Set(clientsWithDeliveries)];
+      setFilteredClients(clients.filter(client => uniqueClientIds.includes(client.id)));
+    } else {
+      setFilteredClients(clients);
+    }
+  }, [startDate, endDate, deliveries, clients]);
   
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -133,7 +160,7 @@ const Reports = () => {
                     onValueChange={setSelectedClient}
                     placeholder="Selecione um cliente"
                     disabled={isGenerating}
-                    clients={clients}
+                    clients={filteredClients}
                   />
                 )}
               </div>

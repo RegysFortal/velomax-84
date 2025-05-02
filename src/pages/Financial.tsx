@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { FileText } from 'lucide-react';
+import { FileText, Edit } from 'lucide-react';
 import { useFinancial } from '@/contexts/FinancialContext';
 import { useClients } from '@/contexts';
 import { format } from 'date-fns';
@@ -24,7 +24,7 @@ const FinancialPage = () => {
   const [activeTab, setActiveTab] = useState("open");
   
   // Get financial data safely with fallbacks
-  const { financialReports = [], loading: isLoading = false, closeReport } = useFinancial();
+  const { financialReports = [], loading: isLoading = false, closeReport, reopenReport } = useFinancial();
   
   // Get clients data safely with fallbacks
   const { clients = [] } = useClients();
@@ -42,6 +42,10 @@ const FinancialPage = () => {
   
   const handleCloseReport = (reportId: string) => {
     closeReport(reportId);
+  };
+
+  const handleReopenReport = (reportId: string) => {
+    reopenReport(reportId);
   };
 
   const handleViewReport = (reportId: string) => {
@@ -169,14 +173,24 @@ const FinancialPage = () => {
                           <TableCell>{report.totalDeliveries}</TableCell>
                           <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleViewReport(report.id)}
-                            >
-                              <FileText className="mr-2 h-4 w-4" />
-                              Ver Relatório
-                            </Button>
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleReopenReport(report.id)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Reabrir
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleViewReport(report.id)}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Ver Relatório
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

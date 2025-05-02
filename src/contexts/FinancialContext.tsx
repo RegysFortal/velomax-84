@@ -12,6 +12,7 @@ type FinancialContextType = {
   getFinancialReport: (id: string) => FinancialReport | undefined;
   getReportsByStatus: (status: FinancialReport['status']) => FinancialReport[];
   closeReport: (id: string) => Promise<void>;
+  reopenReport: (id: string) => Promise<void>;
   createReport: (report: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FinancialReport | null>;
   loading: boolean;
 };
@@ -344,6 +345,32 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     });
   };
   
+  const reopenReport = async (id: string) => {
+    console.log(`Reabrindo relatório com ID: ${id}`);
+    const reportToReopen = financialReports.find(report => report.id === id);
+    
+    if (!reportToReopen) {
+      console.error(`Relatório com ID ${id} não encontrado.`);
+      toast({
+        title: "Erro ao reabrir relatório",
+        description: "Relatório não encontrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    await updateFinancialReport(id, { status: 'open' });
+    
+    console.log("Relatórios após reabertura:", 
+      financialReports.map(r => ({id: r.id, status: r.status}))
+    );
+    
+    toast({
+      title: "Relatório reaberto",
+      description: `O relatório financeiro foi reaberto com sucesso.`,
+    });
+  };
+  
   return (
     <FinancialContext.Provider value={{
       financialReports,
@@ -353,6 +380,7 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
       getFinancialReport,
       getReportsByStatus,
       closeReport,
+      reopenReport,
       createReport,
       loading,
     }}>
