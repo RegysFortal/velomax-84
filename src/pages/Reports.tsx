@@ -31,6 +31,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/ui/logo';
+import { getCompanyInfo, formatClientNameForFileName } from '@/utils/printUtils';
 
 const Reports = () => {
   const location = useLocation();
@@ -45,37 +46,22 @@ const Reports = () => {
   const [reportId, setReportId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [availableClients, setAvailableClients] = useState(clients);
-  const [companyData, setCompanyData] = useState(() => {
-    const storedData = localStorage.getItem('company_settings');
-    return storedData ? JSON.parse(storedData) : {
-      name: 'VeloMax Transportes',
-      cnpj: '12.345.678/0001-90',
-      address: 'Av. Principal, 1000',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01000-000',
-      phone: '(11) 1234-5678',
-      email: 'contato@velomax.com',
-      website: 'www.velomax.com',
-      description: 'Empresa especializada em transporte de cargas.'
-    };
-  });
+  const companyData = getCompanyInfo();
   
-  // Defina a função para obter entregas não fechadas
-  const getUnreportedDeliveriesByClient = () => {
-    // Encontre todos os relatórios fechados
+  // Function to find clients with unreported deliveries
+  const getClientsWithUnreportedDeliveries = () => {
+    // Find all reportable deliveries that aren't in closed reports
     const closedReports = financialReports.filter(report => report.status === 'closed');
     
-    // Criar um Set para rastrear quais entregas já estão em relatórios fechados
+    // Create a Set to track which deliveries are already in closed reports
     const deliveriesInClosedReports = new Set();
     
-    // Preencher o Set com entregas em relatórios fechados
+    // Fill the Set with deliveries in closed reports
     closedReports.forEach(report => {
-      // Filtrar entregas para este cliente dentro do período do relatório
       const reportStartDate = new Date(report.startDate);
       const reportEndDate = new Date(report.endDate);
       
-      // Configure as horas para garantir comparações corretas
+      // Configure hours for correct comparisons
       reportStartDate.setHours(0, 0, 0, 0);
       reportEndDate.setHours(23, 59, 59, 999);
       
@@ -88,21 +74,21 @@ const Reports = () => {
         .forEach(delivery => deliveriesInClosedReports.add(delivery.id));
     });
     
-    // Filtrar entregas que não estão em relatórios fechados
+    // Filter deliveries that aren't in closed reports
     const unreportedDeliveries = deliveries.filter(
       delivery => !deliveriesInClosedReports.has(delivery.id)
     );
     
-    // Retornar IDs de clientes com entregas não reportadas
-    const clientIds = new Set(unreportedDeliveries.map(d => d.clientId));
-    return Array.from(clientIds);
+    // Return client IDs with unreported deliveries
+    const clientIds = [...new Set(unreportedDeliveries.map(d => d.clientId))];
+    return clientIds;
   };
   
-  // Filtrar clientes com entregas não fechadas quando o componente carrega
-  // ou quando deliveries/financialReports mudam
+  // Filter clients with unreported deliveries when the component loads
+  // or when deliveries/financialReports change
   useEffect(() => {
     if (clients.length > 0 && deliveries.length > 0) {
-      const clientsWithUnreportedDeliveries = getUnreportedDeliveriesByClient();
+      const clientsWithUnreportedDeliveries = getClientsWithUnreportedDeliveries();
       const filteredClients = clients.filter(client => 
         clientsWithUnreportedDeliveries.includes(client.id)
       );
@@ -132,7 +118,7 @@ const Reports = () => {
       const uniqueClientIds = [...new Set(clientsWithDeliveries)];
       setAvailableClients(clients.filter(client => uniqueClientIds.includes(client.id)));
     } else {
-      const clientsWithUnreportedDeliveries = getUnreportedDeliveriesByClient();
+      const clientsWithUnreportedDeliveries = getClientsWithUnreportedDeliveries();
       setAvailableClients(clients.filter(client => 
         clientsWithUnreportedDeliveries.includes(client.id)
       ));
@@ -274,7 +260,7 @@ const Reports = () => {
     doc.text(`Período: ${format(new Date(currentReport.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(currentReport.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 67);
     doc.text(`Valor Total: ${formatCurrency(currentReport.totalFreight)}`, 14, 74);
     
-    // Create table with all required fields
+    // Create table with all required fields and vertical borders
     autoTable(doc, {
       startY: 85,
       head: [['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']],
@@ -287,11 +273,39 @@ const Reports = () => {
         formatCurrency(delivery.totalFreight),
         delivery.notes || '-'
       ]),
+      // Add the total row
+      foot: [['', '', '', '', '', 'Total:', formatCurrency(currentReport.totalFreight)]],
+      // Add table styling with borders
+      styles: { 
+        fontSize: 10,
+        cellPadding: 3,
+      },
+      headStyles: { 
+        fillColor: [80, 80, 80],
+        textColor: [255, 255, 255],
+        halign: 'center', 
+        valign: 'middle',
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      bodyStyles: { 
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      footStyles: {
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      theme: 'grid' // Use 'grid' theme to add all borders
     });
     
-    // Nome do arquivo: Relatorio + nome do cliente + mês
+    // Format filename: Relatorio_PrimeiroNome_mes
+    const clientFirstName = formatClientNameForFileName(client?.name || '');
     const reportMonth = format(new Date(currentReport.startDate), 'MMMM_yyyy', { locale: ptBR });
-    const fileName = `Relatorio_${client?.name.replace(/\s+/g, '_') || 'cliente'}_${reportMonth}.pdf`;
+    const fileName = `Relatorio_${clientFirstName}_${reportMonth}.pdf`;
     doc.save(fileName);
   };
   
@@ -327,12 +341,23 @@ const Reports = () => {
       delivery.notes || '-'
     ]);
     
+    // Add the data rows
     XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 13 });
     
+    // Add total row
+    XLSX.utils.sheet_add_aoa(worksheet, [
+      ['', '', '', '', '', 'Total:', currentReport.totalFreight]
+    ], { origin: 13 + data.length });
+    
+    // Add style to the Excel worksheet (borders, etc.)
+    // Note: Complex styling for Excel requires additional libraries or manual configuration
+    
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
-    // Nome do arquivo: Relatorio + nome do cliente + mês 
+    
+    // Format filename: Relatorio_PrimeiroNome_mes
+    const clientFirstName = formatClientNameForFileName(client?.name || '');
     const reportMonth = format(new Date(currentReport.startDate), 'MMMM_yyyy', { locale: ptBR });
-    const fileName = `Relatorio_${client?.name.replace(/\s+/g, '_') || 'cliente'}_${reportMonth}.xlsx`;
+    const fileName = `Relatorio_${clientFirstName}_${reportMonth}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
 

@@ -34,7 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Logo } from '@/components/ui/logo';
-import { getCompanyInfo } from '@/utils/printUtils';
+import { getCompanyInfo, formatClientNameForFileName } from '@/utils/printUtils';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
@@ -130,7 +130,7 @@ const FinancialPage = () => {
     // Get filtered deliveries for this report
     const filteredDeliveries = deliveriesForReport(report);
     
-    // Create table with all required fields
+    // Create table with all required fields and borders
     autoTable(doc, {
       startY: 85,
       head: [['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']],
@@ -143,11 +143,39 @@ const FinancialPage = () => {
         formatCurrency(delivery.totalFreight),
         delivery.notes || '-'
       ]),
+      // Add the total row
+      foot: [['', '', '', '', '', 'Total:', formatCurrency(report.totalFreight)]],
+      // Add table styling with borders
+      styles: { 
+        fontSize: 10,
+        cellPadding: 3,
+      },
+      headStyles: { 
+        fillColor: [80, 80, 80],
+        textColor: [255, 255, 255],
+        halign: 'center', 
+        valign: 'middle',
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      bodyStyles: { 
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      footStyles: {
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      theme: 'grid' // Use 'grid' theme to add all borders
     });
     
-    // Nome do arquivo: Relatorio + nome do cliente + mês
+    // Format filename: Relatorio_PrimeiroNome_mes
+    const clientFirstName = formatClientNameForFileName(client?.name || '');
     const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-    const fileName = `Relatorio_${client?.name.replace(/\s+/g, '_') || 'cliente'}_${reportMonth}.pdf`;
+    const fileName = `Relatorio_${clientFirstName}_${reportMonth}.pdf`;
     doc.save(fileName);
   };
   
@@ -182,12 +210,40 @@ const FinancialPage = () => {
       delivery.notes || '-'
     ]);
     
+    // Add the data rows
     XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 13 });
     
+    // Add total row
+    XLSX.utils.sheet_add_aoa(worksheet, [
+      ['', '', '', '', '', 'Total:', report.totalFreight]
+    ], { origin: 13 + data.length });
+    
+    // Try to add some basic styling
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:G100');
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell_address = {r: R, c: C};
+        const cell_ref = XLSX.utils.encode_cell(cell_address);
+        if (!worksheet[cell_ref]) continue;
+        
+        // Add borders to cells (Excel requires explicit styling for each cell)
+        worksheet[cell_ref].s = { 
+          border: {
+            top: { style: 'thin' },
+            bottom: { style: 'thin' },
+            left: { style: 'thin' },
+            right: { style: 'thin' }
+          }
+        };
+      }
+    }
+    
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
-    // Nome do arquivo: Relatorio + nome do cliente + mês
+    
+    // Format filename: Relatorio_PrimeiroNome_mes
+    const clientFirstName = formatClientNameForFileName(client?.name || '');
     const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-    const fileName = `Relatorio_${client?.name.replace(/\s+/g, '_') || 'cliente'}_${reportMonth}.xlsx`;
+    const fileName = `Relatorio_${clientFirstName}_${reportMonth}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
   

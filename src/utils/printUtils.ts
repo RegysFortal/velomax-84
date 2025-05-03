@@ -208,3 +208,18 @@ export function getCompanyInfo() {
     description: 'Empresa especializada em transporte de cargas.'
   };
 }
+
+/**
+ * Formats a client's name for report file names
+ * Takes the first name and capitalizes only the first letter
+ */
+export function formatClientNameForFileName(clientName: string): string {
+  if (!clientName) return 'cliente';
+  
+  // Get the first name only
+  const firstName = clientName.split(' ')[0];
+  
+  // Capitalize only first letter, make rest lowercase
+  return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+}
+
