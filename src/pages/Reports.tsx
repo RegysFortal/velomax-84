@@ -160,37 +160,34 @@ const Reports = () => {
     const client = clients.find(c => c.id === currentReport.clientId);
     const doc = new jsPDF();
     
-    // Add logo - would need to be included in the project
-    const logoWidth = 40;
-    doc.setFontSize(12);
-    
-    // Add title
+    // Add title centered
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text("RELATÓRIO", 105, 20, { align: 'center' });
+    doc.text("RELATÓRIO DE FECHAMENTO", 105, 20, { align: 'center' });
     
     // Add client name and period
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
     doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 35);
     doc.text(`Período: ${format(new Date(currentReport.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(currentReport.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 42);
-    doc.text(`Total de Entregas: ${currentReport.totalDeliveries}`, 14, 49);
-    doc.text(`Valor Total: ${formatCurrency(currentReport.totalFreight)}`, 14, 56);
+    doc.text(`Valor Total: ${formatCurrency(currentReport.totalFreight)}`, 14, 49);
     
-    // Create table
+    // Create table with all required fields
     autoTable(doc, {
-      startY: 70,
-      head: [['Minuta', 'Data de Entrega', 'Destinatário', 'Tipo', 'Peso (kg)', 'Valor do Frete']],
+      startY: 60,
+      head: [['Minuta', 'Data de Entrega', 'Hora', 'Peso (kg)', 'Valor do Frete', 'Observações']],
       body: filteredDeliveries.map(delivery => [
         delivery.minuteNumber,
         format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
-        delivery.receiver,
-        delivery.deliveryType,
-        delivery.weight,
-        formatCurrency(delivery.totalFreight)
+        delivery.deliveryTime || '-',
+        delivery.weight.toString(),
+        formatCurrency(delivery.totalFreight),
+        delivery.notes || '-'
       ]),
     });
     
     const reportMonth = format(new Date(currentReport.startDate), 'MMMM_yyyy', { locale: ptBR });
-    doc.save(`relatorio_financeiro_${client?.name || 'cliente'}_${reportMonth}.pdf`);
+    doc.save(`relatorio_fechamento_${client?.name || 'cliente'}_${reportMonth}.pdf`);
   };
   
   const handleExportExcel = () => {
@@ -200,29 +197,29 @@ const Reports = () => {
     
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([
-      ['RELATÓRIO FINANCEIRO'],
+      ['RELATÓRIO DE FECHAMENTO'],
+      [],
       [`Cliente: ${client?.name || 'N/A'}`],
       [`Período: ${format(new Date(currentReport.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(currentReport.endDate), 'dd/MM/yyyy', { locale: ptBR })}`],
-      [`Total de Entregas: ${currentReport.totalDeliveries}`],
       [`Valor Total: ${formatCurrency(currentReport.totalFreight)}`],
       [],
-      ['Minuta', 'Data de Entrega', 'Destinatário', 'Tipo', 'Peso (kg)', 'Valor do Frete']
+      ['Minuta', 'Data de Entrega', 'Hora', 'Peso (kg)', 'Valor do Frete', 'Observações']
     ]);
     
     const data = filteredDeliveries.map(delivery => [
       delivery.minuteNumber,
       format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
-      delivery.receiver,
-      delivery.deliveryType,
+      delivery.deliveryTime || '-',
       delivery.weight,
-      delivery.totalFreight
+      delivery.totalFreight,
+      delivery.notes || '-'
     ]);
     
     XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 7 });
     
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
     const reportMonth = format(new Date(currentReport.startDate), 'MMMM_yyyy', { locale: ptBR });
-    XLSX.writeFile(workbook, `relatorio_financeiro_${client?.name || 'cliente'}_${reportMonth}.xlsx`);
+    XLSX.writeFile(workbook, `relatorio_fechamento_${client?.name || 'cliente'}_${reportMonth}.xlsx`);
   };
 
   return (

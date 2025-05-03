@@ -13,9 +13,9 @@ interface DeliveriesFilterProps {
   selectedClientId: string;
   setSelectedClientId: (id: string) => void;
   startDate: Date | null;
-  setStartDate: (date: Date | string | null) => void;
+  setStartDate: (date: Date | null) => void;
   endDate: Date | null;
-  setEndDate: (date: Date | string | null) => void;
+  setEndDate: (date: Date | null) => void;
   clearFilters: () => void;
   filteredDeliveriesCount: number;
   clients: Client[];

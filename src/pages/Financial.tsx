@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -12,13 +13,13 @@ import {
 import { FileText, Edit, FileDown, FileUp, Trash2 } from 'lucide-react';
 import { useFinancial } from '@/contexts/financial';
 import { useClients } from '@/contexts';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from 'react';
 import { FinancialReport } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Logo } from '@/components/ui/logo';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -43,6 +44,9 @@ const FinancialPage = () => {
   
   // Get clients data safely with fallbacks
   const { clients = [] } = useClients();
+  
+  // Get deliveries data
+  const { deliveries = [] } = useDeliveries();
   
   // Filtragem dos relatórios por status
   const openReports = financialReports.filter(report => report.status === 'open');
@@ -72,40 +76,37 @@ const FinancialPage = () => {
     const client = clients.find(c => c.id === report.clientId);
     const doc = new jsPDF();
     
-    // Add logo
-    const logoWidth = 40;
-    doc.setFontSize(12);
-    
-    // Add title
+    // Add title centered
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text("RELATÓRIO", 105, 20, { align: 'center' });
+    doc.text("RELATÓRIO DE FECHAMENTO", 105, 20, { align: 'center' });
     
     // Add client name and period
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
     doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 35);
     doc.text(`Período: ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 42);
-    doc.text(`Total de Entregas: ${report.totalDeliveries}`, 14, 49);
-    doc.text(`Valor Total: ${formatCurrency(report.totalFreight)}`, 14, 56);
+    doc.text(`Valor Total: ${formatCurrency(report.totalFreight)}`, 14, 49);
     
     // Get filtered deliveries for this report
     const filteredDeliveries = deliveriesForReport(report);
     
-    // Create table
+    // Create table with all required fields
     autoTable(doc, {
-      startY: 70,
-      head: [['Minuta', 'Data de Entrega', 'Destinatário', 'Tipo', 'Peso (kg)', 'Valor do Frete']],
+      startY: 60,
+      head: [['Minuta', 'Data de Entrega', 'Hora', 'Peso (kg)', 'Valor do Frete', 'Observações']],
       body: filteredDeliveries.map(delivery => [
         delivery.minuteNumber,
         format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
-        delivery.receiver,
-        delivery.deliveryType,
-        delivery.weight,
-        formatCurrency(delivery.totalFreight)
+        delivery.deliveryTime || '-',
+        delivery.weight.toString(),
+        formatCurrency(delivery.totalFreight),
+        delivery.notes || '-'
       ]),
     });
     
     const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-    doc.save(`relatorio_financeiro_${client?.name || 'cliente'}_${reportMonth}.pdf`);
+    doc.save(`relatorio_fechamento_${client?.name || 'cliente'}_${reportMonth}.pdf`);
   };
   
   const handleExportExcel = (report: FinancialReport) => {
@@ -114,29 +115,29 @@ const FinancialPage = () => {
     
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([
-      ['RELATÓRIO FINANCEIRO'],
+      ['RELATÓRIO DE FECHAMENTO'],
+      [],
       [`Cliente: ${client?.name || 'N/A'}`],
       [`Período: ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`],
-      [`Total de Entregas: ${report.totalDeliveries}`],
       [`Valor Total: ${formatCurrency(report.totalFreight)}`],
       [],
-      ['Minuta', 'Data de Entrega', 'Destinatário', 'Tipo', 'Peso (kg)', 'Valor do Frete']
+      ['Minuta', 'Data de Entrega', 'Hora', 'Peso (kg)', 'Valor do Frete', 'Observações']
     ]);
     
     const data = filteredDeliveries.map(delivery => [
       delivery.minuteNumber,
       format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
-      delivery.receiver,
-      delivery.deliveryType,
+      delivery.deliveryTime || '-',
       delivery.weight,
-      delivery.totalFreight
+      delivery.totalFreight,
+      delivery.notes || '-'
     ]);
     
     XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 7 });
     
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
     const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-    XLSX.writeFile(workbook, `relatorio_financeiro_${client?.name || 'cliente'}_${reportMonth}.xlsx`);
+    XLSX.writeFile(workbook, `relatorio_fechamento_${client?.name || 'cliente'}_${reportMonth}.xlsx`);
   };
   
   const handleDeleteReport = async () => {
@@ -148,8 +149,19 @@ const FinancialPage = () => {
   
   // Helper function to get deliveries for a specific report
   const deliveriesForReport = (report: FinancialReport) => {
-    // This is a stub - should be implemented in DeliveriesContext
-    return [];
+    return deliveries.filter(delivery => {
+      if (delivery.clientId !== report.clientId) return false;
+      
+      const deliveryDate = new Date(delivery.deliveryDate);
+      const startDate = new Date(report.startDate);
+      const endDate = new Date(report.endDate);
+      
+      // Set hours to ensure correct comparison
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+      
+      return deliveryDate >= startDate && deliveryDate <= endDate;
+    });
   };
   
   return (
