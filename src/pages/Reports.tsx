@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
-import { useFinancial } from '@/contexts/financial'; // Updated import path
+import { useFinancial } from '@/contexts/financial';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
 import { ReportTable } from '@/components/report/ReportTable';
@@ -23,6 +23,13 @@ import { Delivery as TypedDelivery } from '@/types/delivery';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { FilePdf, FileExcel } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const Reports = () => {
   const location = useLocation();
@@ -123,8 +130,14 @@ const Reports = () => {
   
   const currentReport = financialReports.find(report => report.id === reportId);
   
+  // Only show deliveries for open reports or if viewing a specific report
   const filteredDeliveries = deliveries.filter(delivery => {
     if (!currentReport) return false;
+    
+    // Check if the report is closed and not specifically being viewed
+    const isClosedReport = currentReport.status === 'closed' && !reportId;
+    if (isClosedReport) return false;
+    
     if (delivery.clientId !== currentReport.clientId) return false;
     
     const deliveryDate = new Date(delivery.deliveryDate);
@@ -133,88 +146,182 @@ const Reports = () => {
     
     return deliveryDate >= startDate && deliveryDate <= endDate;
   }) as unknown as TypedDelivery[];
+  
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
+  
+  const handleExportPDF = () => {
+    if (!currentReport) return;
+    
+    const client = clients.find(c => c.id === currentReport.clientId);
+    const doc = new jsPDF();
+    
+    // Add logo - would need to be included in the project
+    const logoWidth = 40;
+    doc.setFontSize(12);
+    
+    // Add title
+    doc.setFont('helvetica', 'bold');
+    doc.text("RELATÓRIO", 105, 20, { align: 'center' });
+    
+    // Add client name and period
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 35);
+    doc.text(`Período: ${format(new Date(currentReport.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(currentReport.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 42);
+    doc.text(`Total de Entregas: ${currentReport.totalDeliveries}`, 14, 49);
+    doc.text(`Valor Total: ${formatCurrency(currentReport.totalFreight)}`, 14, 56);
+    
+    // Create table
+    autoTable(doc, {
+      startY: 70,
+      head: [['Minuta', 'Data de Entrega', 'Destinatário', 'Tipo', 'Peso (kg)', 'Valor do Frete']],
+      body: filteredDeliveries.map(delivery => [
+        delivery.minuteNumber,
+        format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
+        delivery.receiver,
+        delivery.deliveryType,
+        delivery.weight,
+        formatCurrency(delivery.totalFreight)
+      ]),
+    });
+    
+    const reportMonth = format(new Date(currentReport.startDate), 'MMMM_yyyy', { locale: ptBR });
+    doc.save(`relatorio_financeiro_${client?.name || 'cliente'}_${reportMonth}.pdf`);
+  };
+  
+  const handleExportExcel = () => {
+    if (!currentReport) return;
+    
+    const client = clients.find(c => c.id === currentReport.clientId);
+    
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      ['RELATÓRIO FINANCEIRO'],
+      [`Cliente: ${client?.name || 'N/A'}`],
+      [`Período: ${format(new Date(currentReport.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(currentReport.endDate), 'dd/MM/yyyy', { locale: ptBR })}`],
+      [`Total de Entregas: ${currentReport.totalDeliveries}`],
+      [`Valor Total: ${formatCurrency(currentReport.totalFreight)}`],
+      [],
+      ['Minuta', 'Data de Entrega', 'Destinatário', 'Tipo', 'Peso (kg)', 'Valor do Frete']
+    ]);
+    
+    const data = filteredDeliveries.map(delivery => [
+      delivery.minuteNumber,
+      format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
+      delivery.receiver,
+      delivery.deliveryType,
+      delivery.weight,
+      delivery.totalFreight
+    ]);
+    
+    XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 7 });
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
+    const reportMonth = format(new Date(currentReport.startDate), 'MMMM_yyyy', { locale: ptBR });
+    XLSX.writeFile(workbook, `relatorio_financeiro_${client?.name || 'cliente'}_${reportMonth}.xlsx`);
+  };
 
   return (
     <AppLayout>
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Relatórios</h1>
-          <p className="text-muted-foreground">
-            Gere relatórios financeiros detalhados.
-          </p>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Gerar Novo Relatório</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="client">Cliente</Label>
-                {clientsLoading ? (
-                  <Skeleton className="h-10 w-full" />
-                ) : (
-                  <ClientSearchSelect
-                    value={selectedClient}
-                    onValueChange={setSelectedClient}
-                    placeholder="Selecione um cliente"
-                    disabled={isGenerating}
-                    clients={filteredClients}
-                  />
-                )}
-              </div>
-              <div>
-                <Label>Período</Label>
-                <div className="flex gap-2">
-                  <DatePicker 
-                    date={startDate} 
-                    onSelect={setStartDate} 
-                    placeholder={isGenerating ? "Carregando..." : "Data inicial"} 
-                  />
-                  <DatePicker 
-                    date={endDate} 
-                    onSelect={setEndDate} 
-                    placeholder={isGenerating ? "Carregando..." : "Data final"} 
-                  />
+      <ScrollArea className="h-[calc(100vh-148px)] w-full">
+        <div className="flex flex-col gap-6 px-8 py-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Relatórios</h1>
+            <p className="text-muted-foreground">
+              Gere relatórios financeiros detalhados.
+            </p>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Gerar Novo Relatório</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="client">Cliente</Label>
+                  {clientsLoading ? (
+                    <Skeleton className="h-10 w-full" />
+                  ) : (
+                    <ClientSearchSelect
+                      value={selectedClient}
+                      onValueChange={setSelectedClient}
+                      placeholder="Selecione um cliente"
+                      disabled={isGenerating}
+                      clients={filteredClients}
+                    />
+                  )}
+                </div>
+                <div>
+                  <Label>Período</Label>
+                  <div className="flex gap-2">
+                    <DatePicker 
+                      date={startDate} 
+                      onSelect={setStartDate} 
+                      placeholder={isGenerating ? "Carregando..." : "Data inicial"} 
+                    />
+                    <DatePicker 
+                      date={endDate} 
+                      onSelect={setEndDate} 
+                      placeholder={isGenerating ? "Carregando..." : "Data final"} 
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-            <Button 
-              onClick={handleGenerateReport} 
-              disabled={isGenerating || reportLoading || !selectedClient || !startDate || !endDate}
-            >
-              {isGenerating ? "Gerando..." : "Gerar Relatório"}
-            </Button>
-          </CardContent>
-        </Card>
-        
-        {reportLoading ? (
-          <Card>
-            <CardContent className="py-6">
-              <Skeleton className="h-40 w-full" />
+              <Button 
+                onClick={handleGenerateReport} 
+                disabled={isGenerating || reportLoading || !selectedClient || !startDate || !endDate}
+              >
+                {isGenerating ? "Gerando..." : "Gerar Relatório"}
+              </Button>
             </CardContent>
           </Card>
-        ) : currentReport ? (
-          <>
-            <ReportSummary report={currentReport} />
+          
+          {reportLoading ? (
             <Card>
-              <CardHeader>
-                <CardTitle>Detalhes do Relatório</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ReportTable deliveries={filteredDeliveries} />
+              <CardContent className="py-6">
+                <Skeleton className="h-40 w-full" />
               </CardContent>
             </Card>
-          </>
-        ) : reportId && (
-          <Card>
-            <CardContent className="py-6 text-center">
-              <p className="text-muted-foreground">Relatório não encontrado</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          ) : currentReport ? (
+            <>
+              <div className="flex justify-between items-center">
+                <ReportSummary report={currentReport} />
+                {currentReport.status === 'closed' && (
+                  <div className="flex space-x-2">
+                    <Button variant="outline" onClick={handleExportPDF}>
+                      <FilePdf className="mr-2 h-4 w-4" />
+                      Exportar PDF
+                    </Button>
+                    <Button variant="outline" onClick={handleExportExcel}>
+                      <FileExcel className="mr-2 h-4 w-4" />
+                      Exportar Excel
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Detalhes do Relatório</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ReportTable deliveries={filteredDeliveries} />
+                </CardContent>
+              </Card>
+            </>
+          ) : reportId && (
+            <Card>
+              <CardContent className="py-6 text-center">
+                <p className="text-muted-foreground">Relatório não encontrado</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </ScrollArea>
     </AppLayout>
   );
 };

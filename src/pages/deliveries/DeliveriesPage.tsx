@@ -16,6 +16,7 @@ import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { DatePicker } from '@/components/ui/date-picker';
 import { DeliveriesFilter } from './DeliveriesFilter';
 import { DeliveriesHeader } from './DeliveriesHeader';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Hooks extraídos
 import { useDeliveriesFilters } from './hooks/useDeliveriesFilters';
@@ -69,54 +70,56 @@ export default function DeliveriesPage() {
   } = useDeliveriesOps(clients);
 
   return (
-    <div className="container mx-auto py-6">
-      <DeliveriesHeader
-        isDialogOpen={isDialogOpen}
-        setIsDialogOpen={setIsDialogOpen}
-        editingDelivery={editingDelivery}
-        setEditingDelivery={setEditingDelivery}
-        onRefreshDeliveries={handleRefreshDeliveries}
-        onDialogComplete={handleDialogComplete}
-      />
+    <ScrollArea className="h-[calc(100vh-148px)] w-full">
+      <div className="container mx-auto py-6">
+        <DeliveriesHeader
+          isDialogOpen={isDialogOpen}
+          setIsDialogOpen={setIsDialogOpen}
+          editingDelivery={editingDelivery}
+          setEditingDelivery={setEditingDelivery}
+          onRefreshDeliveries={handleRefreshDeliveries}
+          onDialogComplete={handleDialogComplete}
+        />
 
-      <DeliveriesFilter
-        selectedClientId={selectedClientId}
-        setSelectedClientId={setSelectedClientId}
-        startDate={startDate}
-        setStartDate={setStartDate}
-        endDate={endDate}
-        setEndDate={setEndDate}
-        clearFilters={clearFilters}
-        filteredDeliveriesCount={filteredDeliveries.length}
-        clients={clients}
-      />
+        <DeliveriesFilter
+          selectedClientId={selectedClientId}
+          setSelectedClientId={setSelectedClientId}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          clearFilters={clearFilters}
+          filteredDeliveriesCount={filteredDeliveries.length}
+          clients={clients}
+        />
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Lista de Entregas</h2>
-            <DeliverySearch 
-              searchTerm={searchTerm} 
-              setSearchTerm={setSearchTerm} 
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Lista de Entregas</h2>
+              <DeliverySearch 
+                searchTerm={searchTerm} 
+                setSearchTerm={setSearchTerm} 
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <DeliveryTable
+              deliveries={filteredDeliveries}
+              onEdit={handleEditDelivery}
+              onDelete={handleDeleteDelivery}
+              onViewDetails={handleViewDetails}
             />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <DeliveryTable
-            deliveries={filteredDeliveries}
-            onEdit={handleEditDelivery}
-            onDelete={handleDeleteDelivery}
-            onViewDetails={handleViewDetails}
-          />
-        </CardContent>
-      </Card>
-      
-      <DeliveryDetails
-        delivery={selectedDelivery}
-        open={!!selectedDelivery}
-        onClose={handleDetailClose}
-        onEdit={handleEditDelivery}
-      />
-    </div>
+          </CardContent>
+        </Card>
+        
+        <DeliveryDetails
+          delivery={selectedDelivery}
+          open={!!selectedDelivery}
+          onClose={handleDetailClose}
+          onEdit={handleEditDelivery}
+        />
+      </div>
+    </ScrollArea>
   );
 }
