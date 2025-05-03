@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
@@ -83,20 +84,20 @@ export default function DeliveriesPage() {
         <DeliveriesFilter
           selectedClientId={selectedClientId}
           setSelectedClientId={setSelectedClientId}
-          startDate={startDate as unknown as Date | null}
+          startDate={startDate ? new Date(startDate) : null}
           setStartDate={(date) => {
             if (date instanceof Date) {
               setStartDate(date.toISOString().split('T')[0]);
             } else {
-              setStartDate(date);
+              setStartDate(null);
             }
           }}
-          endDate={endDate as unknown as Date | null}
+          endDate={endDate ? new Date(endDate) : null}
           setEndDate={(date) => {
             if (date instanceof Date) {
               setEndDate(date.toISOString().split('T')[0]);
             } else {
-              setEndDate(date);
+              setEndDate(null);
             }
           }}
           clearFilters={clearFilters}

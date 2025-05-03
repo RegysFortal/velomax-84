@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -32,51 +33,28 @@ export const DeliveriesFilter: React.FC<DeliveriesFilterProps> = ({
   clients
 }) => {
   const [startDateObj, setStartDateObj] = useState<Date | undefined>(
-    startDate ? new Date(startDate) : undefined
+    startDate || undefined
   );
   
   const [endDateObj, setEndDateObj] = useState<Date | undefined>(
-    endDate ? new Date(endDate) : undefined
+    endDate || undefined
   );
   
   // Update local date objects when props change
   useEffect(() => {
-    if (startDate) {
-      const date = new Date(`${startDate}T12:00:00`);
-      setStartDateObj(date);
-    } else {
-      setStartDateObj(undefined);
-    }
-    
-    if (endDate) {
-      const date = new Date(`${endDate}T12:00:00`);
-      setEndDateObj(date);
-    } else {
-      setEndDateObj(undefined);
-    }
+    setStartDateObj(startDate || undefined);
+    setEndDateObj(endDate || undefined);
   }, [startDate, endDate]);
   
   // Handle date selection
   const handleStartDateChange = (date: Date | undefined) => {
     setStartDateObj(date);
-    if (date) {
-      // Ensure noon to avoid timezone issues
-      date.setHours(12, 0, 0, 0);
-      setStartDate(format(date, 'yyyy-MM-dd'));
-    } else {
-      setStartDate(null);
-    }
+    setStartDate(date || null);
   };
   
   const handleEndDateChange = (date: Date | undefined) => {
     setEndDateObj(date);
-    if (date) {
-      // Ensure noon to avoid timezone issues
-      date.setHours(12, 0, 0, 0);
-      setEndDate(format(date, 'yyyy-MM-dd'));
-    } else {
-      setEndDate(null);
-    }
+    setEndDate(date || null);
   };
   
   return (

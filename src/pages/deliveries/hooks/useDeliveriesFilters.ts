@@ -10,6 +10,12 @@ interface UseDeliveriesFiltersProps {
   financialReports: FinancialReport[];
 }
 
+// Adding extended delivery interface to handle optional properties
+interface ExtendedDelivery extends Delivery {
+  origin?: string;
+  destination?: string;
+}
+
 export const useDeliveriesFilters = ({ 
   deliveries, 
   clients, 
@@ -17,8 +23,8 @@ export const useDeliveriesFilters = ({
 }: UseDeliveriesFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClientId, setSelectedClientId] = useState("");
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
   const [filteredDeliveries, setFilteredDeliveries] = useState(deliveries);
 
   const clearFilters = () => {
@@ -56,6 +62,9 @@ export const useDeliveriesFilters = ({
     const deliveryIdsInClosedReports = deliveriesInClosedReports();
     
     const filtered = deliveries.filter((delivery) => {
+      // Cast delivery to ExtendedDelivery to handle optional properties
+      const extendedDelivery = delivery as ExtendedDelivery;
+      
       // Filter out deliveries that are in closed reports
       if (deliveryIdsInClosedReports.has(delivery.id)) return false;
       
@@ -70,8 +79,8 @@ export const useDeliveriesFilters = ({
           clientName.toLowerCase().includes(searchTermLower) ||
           delivery.receiver.toLowerCase().includes(searchTermLower) ||
           delivery.notes?.toLowerCase().includes(searchTermLower) ||
-          delivery.origin?.toLowerCase().includes(searchTermLower) ||
-          delivery.destination?.toLowerCase().includes(searchTermLower);
+          extendedDelivery.origin?.toLowerCase().includes(searchTermLower) ||
+          extendedDelivery.destination?.toLowerCase().includes(searchTermLower);
 
         if (!matchesSearch) return false;
       }
