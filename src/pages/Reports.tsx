@@ -30,6 +30,7 @@ import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Logo } from '@/components/ui/logo';
 
 const Reports = () => {
   const location = useLocation();
@@ -44,6 +45,21 @@ const Reports = () => {
   const [reportId, setReportId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [availableClients, setAvailableClients] = useState(clients);
+  const [companyData, setCompanyData] = useState(() => {
+    const storedData = localStorage.getItem('company_settings');
+    return storedData ? JSON.parse(storedData) : {
+      name: 'VeloMax Transportes',
+      cnpj: '12.345.678/0001-90',
+      address: 'Av. Principal, 1000',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01000-000',
+      phone: '(11) 1234-5678',
+      email: 'contato@velomax.com',
+      website: 'www.velomax.com',
+      description: 'Empresa especializada em transporte de cargas.'
+    };
+  });
   
   // Defina a função para obter entregas não fechadas
   const getUnreportedDeliveriesByClient = () => {
@@ -212,26 +228,61 @@ const Reports = () => {
     const client = clients.find(c => c.id === currentReport.clientId);
     const doc = new jsPDF();
     
+    // Add logo at the top
+    const logoImg = document.querySelector('.company-logo') as HTMLImageElement;
+    if (logoImg) {
+      // Convert SVG to data URL for PDF
+      const canvas = document.createElement('canvas');
+      canvas.width = 200;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const svgString = new XMLSerializer().serializeToString(logoImg);
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 50, 10, 100, 80);
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
+      }
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 30, 30);
+    }
+    
+    // Add company information
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${companyData.name}`, 50, 15);
+    doc.text(`CNPJ: ${companyData.cnpj}`, 50, 20);
+    doc.text(`${companyData.address}, ${companyData.city} - ${companyData.state}, ${companyData.zipCode}`, 50, 25);
+    doc.text(`Tel: ${companyData.phone} | Email: ${companyData.email}`, 50, 30);
+    doc.text(`${companyData.website}`, 50, 35);
+    
+    // Add horizontal line
+    doc.setLineWidth(0.5);
+    doc.line(10, 40, 200, 40);
+    
     // Add title centered
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text("RELATÓRIO DE FECHAMENTO", 105, 20, { align: 'center' });
+    doc.text("RELATÓRIO DE FECHAMENTO", 105, 50, { align: 'center' });
     
     // Add client name and period
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 35);
-    doc.text(`Período: ${format(new Date(currentReport.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(currentReport.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 42);
-    doc.text(`Valor Total: ${formatCurrency(currentReport.totalFreight)}`, 14, 49);
+    doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 60);
+    doc.text(`Período: ${format(new Date(currentReport.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(currentReport.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 67);
+    doc.text(`Valor Total: ${formatCurrency(currentReport.totalFreight)}`, 14, 74);
     
     // Create table with all required fields
     autoTable(doc, {
-      startY: 60,
-      head: [['Minuta', 'Data de Entrega', 'Hora', 'Peso (kg)', 'Valor do Frete', 'Observações']],
+      startY: 85,
+      head: [['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']],
       body: filteredDeliveries.map(delivery => [
         delivery.minuteNumber,
         format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
         delivery.deliveryTime || '-',
+        delivery.receiver || '-',
         delivery.weight.toString(),
         formatCurrency(delivery.totalFreight),
         delivery.notes || '-'
@@ -251,25 +302,32 @@ const Reports = () => {
     
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([
+      [`${companyData.name}`],
+      [`CNPJ: ${companyData.cnpj}`],
+      [`${companyData.address}, ${companyData.city} - ${companyData.state}, ${companyData.zipCode}`],
+      [`Tel: ${companyData.phone} | Email: ${companyData.email}`],
+      [`${companyData.website}`],
+      [],
       ['RELATÓRIO DE FECHAMENTO'],
       [],
       [`Cliente: ${client?.name || 'N/A'}`],
       [`Período: ${format(new Date(currentReport.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(currentReport.endDate), 'dd/MM/yyyy', { locale: ptBR })}`],
       [`Valor Total: ${formatCurrency(currentReport.totalFreight)}`],
       [],
-      ['Minuta', 'Data de Entrega', 'Hora', 'Peso (kg)', 'Valor do Frete', 'Observações']
+      ['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']
     ]);
     
     const data = filteredDeliveries.map(delivery => [
       delivery.minuteNumber,
       format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
       delivery.deliveryTime || '-',
+      delivery.receiver || '-',
       delivery.weight,
       delivery.totalFreight,
       delivery.notes || '-'
     ]);
     
-    XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 7 });
+    XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 13 });
     
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
     // Nome do arquivo: Relatorio + nome do cliente + mês 
@@ -333,6 +391,11 @@ const Reports = () => {
               </Button>
             </CardContent>
           </Card>
+          
+          {/* Hidden logo for PDF generation */}
+          <div className="hidden">
+            <Logo className="company-logo" />
+          </div>
           
           {reportLoading ? (
             <Card>

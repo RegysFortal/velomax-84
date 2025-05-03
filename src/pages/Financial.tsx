@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Logo } from '@/components/ui/logo';
+import { getCompanyInfo } from '@/utils/printUtils';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
@@ -46,6 +49,9 @@ const FinancialPage = () => {
   
   // Get deliveries data
   const { deliveries = [] } = useDeliveries();
+  
+  // Get company information
+  const companyData = getCompanyInfo();
   
   // Filtragem dos relatórios por status
   const openReports = financialReports.filter(report => report.status === 'open');
@@ -75,29 +81,64 @@ const FinancialPage = () => {
     const client = clients.find(c => c.id === report.clientId);
     const doc = new jsPDF();
     
+    // Add logo at the top
+    const logoImg = document.querySelector('.company-logo') as HTMLImageElement;
+    if (logoImg) {
+      // Convert SVG to data URL for PDF
+      const canvas = document.createElement('canvas');
+      canvas.width = 200;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const svgString = new XMLSerializer().serializeToString(logoImg);
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 50, 10, 100, 80);
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
+      }
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 30, 30);
+    }
+    
+    // Add company information
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${companyData.name}`, 50, 15);
+    doc.text(`CNPJ: ${companyData.cnpj}`, 50, 20);
+    doc.text(`${companyData.address}, ${companyData.city} - ${companyData.state}, ${companyData.zipCode}`, 50, 25);
+    doc.text(`Tel: ${companyData.phone} | Email: ${companyData.email}`, 50, 30);
+    doc.text(`${companyData.website}`, 50, 35);
+    
+    // Add horizontal line
+    doc.setLineWidth(0.5);
+    doc.line(10, 40, 200, 40);
+    
     // Add title centered
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text("RELATÓRIO DE FECHAMENTO", 105, 20, { align: 'center' });
+    doc.text("RELATÓRIO DE FECHAMENTO", 105, 50, { align: 'center' });
     
     // Add client name and period
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 35);
-    doc.text(`Período: ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 42);
-    doc.text(`Valor Total: ${formatCurrency(report.totalFreight)}`, 14, 49);
+    doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 60);
+    doc.text(`Período: ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 67);
+    doc.text(`Valor Total: ${formatCurrency(report.totalFreight)}`, 14, 74);
     
     // Get filtered deliveries for this report
     const filteredDeliveries = deliveriesForReport(report);
     
     // Create table with all required fields
     autoTable(doc, {
-      startY: 60,
-      head: [['Minuta', 'Data de Entrega', 'Hora', 'Peso (kg)', 'Valor do Frete', 'Observações']],
+      startY: 85,
+      head: [['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']],
       body: filteredDeliveries.map(delivery => [
         delivery.minuteNumber,
         format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
         delivery.deliveryTime || '-',
+        delivery.receiver || '-',
         delivery.weight.toString(),
         formatCurrency(delivery.totalFreight),
         delivery.notes || '-'
@@ -116,25 +157,32 @@ const FinancialPage = () => {
     
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([
+      [`${companyData.name}`],
+      [`CNPJ: ${companyData.cnpj}`],
+      [`${companyData.address}, ${companyData.city} - ${companyData.state}, ${companyData.zipCode}`],
+      [`Tel: ${companyData.phone} | Email: ${companyData.email}`],
+      [`${companyData.website}`],
+      [],
       ['RELATÓRIO DE FECHAMENTO'],
       [],
       [`Cliente: ${client?.name || 'N/A'}`],
       [`Período: ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`],
       [`Valor Total: ${formatCurrency(report.totalFreight)}`],
       [],
-      ['Minuta', 'Data de Entrega', 'Hora', 'Peso (kg)', 'Valor do Frete', 'Observações']
+      ['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']
     ]);
     
     const data = filteredDeliveries.map(delivery => [
       delivery.minuteNumber,
       format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
       delivery.deliveryTime || '-',
+      delivery.receiver || '-',
       delivery.weight,
       delivery.totalFreight,
       delivery.notes || '-'
     ]);
     
-    XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 7 });
+    XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 13 });
     
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
     // Nome do arquivo: Relatorio + nome do cliente + mês
@@ -176,6 +224,11 @@ const FinancialPage = () => {
             <p className="text-muted-foreground">
               Gerenciamento dos relatórios financeiros de clientes.
             </p>
+          </div>
+          
+          {/* Hidden logo for PDF generation */}
+          <div className="hidden">
+            <Logo className="company-logo" />
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
