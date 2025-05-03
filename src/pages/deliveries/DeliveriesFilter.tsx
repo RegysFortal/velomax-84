@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -12,10 +11,10 @@ import { format } from 'date-fns';
 interface DeliveriesFilterProps {
   selectedClientId: string;
   setSelectedClientId: (id: string) => void;
-  startDate: string | null;
-  setStartDate: (date: string | null) => void;
-  endDate: string | null;
-  setEndDate: (date: string | null) => void;
+  startDate: Date | null;
+  setStartDate: (date: Date | string | null) => void;
+  endDate: Date | null;
+  setEndDate: (date: Date | string | null) => void;
   clearFilters: () => void;
   filteredDeliveriesCount: number;
   clients: Client[];

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -23,7 +22,7 @@ import { Delivery as TypedDelivery } from '@/types/delivery';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { FilePdf, FileExcel } from 'lucide-react';
+import { FilePdf, FileExcel, FileDown, FileUp } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -294,11 +293,11 @@ const Reports = () => {
                 {currentReport.status === 'closed' && (
                   <div className="flex space-x-2">
                     <Button variant="outline" onClick={handleExportPDF}>
-                      <FilePdf className="mr-2 h-4 w-4" />
+                      <FileDown className="mr-2 h-4 w-4" />
                       Exportar PDF
                     </Button>
                     <Button variant="outline" onClick={handleExportExcel}>
-                      <FileExcel className="mr-2 h-4 w-4" />
+                      <FileUp className="mr-2 h-4 w-4" />
                       Exportar Excel
                     </Button>
                   </div>

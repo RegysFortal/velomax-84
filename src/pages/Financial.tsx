@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { FileText, Edit, FileExcel, FilePdf, Trash2 } from 'lucide-react';
+import { FileText, Edit, FileDown, FileUp, Trash2 } from 'lucide-react';
 import { useFinancial } from '@/contexts/financial';
 import { useClients } from '@/contexts';
 import { format } from 'date-fns';
@@ -304,7 +303,7 @@ const FinancialPage = () => {
                                   variant="outline"
                                   onClick={() => handleExportPDF(report)}
                                 >
-                                  <FilePdf className="mr-2 h-4 w-4" />
+                                  <FileDown className="mr-2 h-4 w-4" />
                                   PDF
                                 </Button>
                                 <Button
@@ -312,7 +311,7 @@ const FinancialPage = () => {
                                   variant="outline"
                                   onClick={() => handleExportExcel(report)}
                                 >
-                                  <FileExcel className="mr-2 h-4 w-4" />
+                                  <FileUp className="mr-2 h-4 w-4" />
                                   Excel
                                 </Button>
                                 <Button 
