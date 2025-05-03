@@ -2,7 +2,7 @@
 import React from 'react';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
-import { useFinancial } from '@/contexts/FinancialContext';
+import { useFinancial } from '@/contexts/financial'; // Updated import path
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DeliveryFormDialog } from '@/components/delivery/DeliveryFormDialog';
 import { DeliverySearch } from '@/components/delivery/DeliverySearch';

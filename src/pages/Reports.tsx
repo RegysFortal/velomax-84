@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
-import { useFinancial } from '@/contexts/FinancialContext';
+import { useFinancial } from '@/contexts/financial'; // Updated import path
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
 import { ReportTable } from '@/components/report/ReportTable';

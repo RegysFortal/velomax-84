@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -10,7 +11,7 @@ import { RecentReportsTable } from '@/components/dashboard/financial/RecentRepor
 import { TopClientsTable } from '@/components/dashboard/financial/TopClientsTable';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts/clients';
-import { useFinancial } from '@/contexts/FinancialContext';
+import { useFinancial } from '@/contexts/financial'; // Updated import path
 import { DateRange } from "react-day-picker";
 
 const FinancialDashboard = () => {

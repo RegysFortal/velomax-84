@@ -10,7 +10,7 @@ import { ShipmentsProvider } from './contexts/shipments';
 import { ClientsProvider } from './contexts';
 import { PriceTablesProvider } from './contexts/priceTables';
 import { CitiesProvider } from './contexts/CitiesContext';
-import { FinancialProvider } from './contexts/FinancialContext';
+import { FinancialProvider } from './contexts/financial'; // Updated import path
 import { BudgetProvider } from './contexts/budget';
 import { LogbookProvider } from './contexts/LogbookContext';
 import PrivateRoute from './components/PrivateRoute';

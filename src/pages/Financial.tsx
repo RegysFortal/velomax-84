@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { FileText, Edit } from 'lucide-react';
-import { useFinancial } from '@/contexts/FinancialContext';
+import { useFinancial } from '@/contexts/financial'; // Updated import path
 import { useClients } from '@/contexts';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
