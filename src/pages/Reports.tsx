@@ -43,7 +43,56 @@ const Reports = () => {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [reportId, setReportId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [filteredClients, setFilteredClients] = useState(clients);
+  const [availableClients, setAvailableClients] = useState(clients);
+  
+  // Defina a função para obter entregas não fechadas
+  const getUnreportedDeliveriesByClient = () => {
+    // Encontre todos os relatórios fechados
+    const closedReports = financialReports.filter(report => report.status === 'closed');
+    
+    // Criar um Set para rastrear quais entregas já estão em relatórios fechados
+    const deliveriesInClosedReports = new Set();
+    
+    // Preencher o Set com entregas em relatórios fechados
+    closedReports.forEach(report => {
+      // Filtrar entregas para este cliente dentro do período do relatório
+      const reportStartDate = new Date(report.startDate);
+      const reportEndDate = new Date(report.endDate);
+      
+      // Configure as horas para garantir comparações corretas
+      reportStartDate.setHours(0, 0, 0, 0);
+      reportEndDate.setHours(23, 59, 59, 999);
+      
+      deliveries
+        .filter(delivery => 
+          delivery.clientId === report.clientId &&
+          new Date(delivery.deliveryDate) >= reportStartDate &&
+          new Date(delivery.deliveryDate) <= reportEndDate
+        )
+        .forEach(delivery => deliveriesInClosedReports.add(delivery.id));
+    });
+    
+    // Filtrar entregas que não estão em relatórios fechados
+    const unreportedDeliveries = deliveries.filter(
+      delivery => !deliveriesInClosedReports.has(delivery.id)
+    );
+    
+    // Retornar IDs de clientes com entregas não reportadas
+    const clientIds = new Set(unreportedDeliveries.map(d => d.clientId));
+    return Array.from(clientIds);
+  };
+  
+  // Filtrar clientes com entregas não fechadas quando o componente carrega
+  // ou quando deliveries/financialReports mudam
+  useEffect(() => {
+    if (clients.length > 0 && deliveries.length > 0) {
+      const clientsWithUnreportedDeliveries = getUnreportedDeliveriesByClient();
+      const filteredClients = clients.filter(client => 
+        clientsWithUnreportedDeliveries.includes(client.id)
+      );
+      setAvailableClients(filteredClients);
+    }
+  }, [clients, deliveries, financialReports]);
   
   // Filter clients with deliveries in the selected period
   useEffect(() => {
@@ -65,9 +114,12 @@ const Reports = () => {
       
       // Filter clients list to only include those with deliveries
       const uniqueClientIds = [...new Set(clientsWithDeliveries)];
-      setFilteredClients(clients.filter(client => uniqueClientIds.includes(client.id)));
+      setAvailableClients(clients.filter(client => uniqueClientIds.includes(client.id)));
     } else {
-      setFilteredClients(clients);
+      const clientsWithUnreportedDeliveries = getUnreportedDeliveriesByClient();
+      setAvailableClients(clients.filter(client => 
+        clientsWithUnreportedDeliveries.includes(client.id)
+      ));
     }
   }, [startDate, endDate, deliveries, clients]);
   
@@ -186,8 +238,10 @@ const Reports = () => {
       ]),
     });
     
+    // Nome do arquivo: Relatorio + nome do cliente + mês
     const reportMonth = format(new Date(currentReport.startDate), 'MMMM_yyyy', { locale: ptBR });
-    doc.save(`relatorio_fechamento_${client?.name || 'cliente'}_${reportMonth}.pdf`);
+    const fileName = `Relatorio_${client?.name.replace(/\s+/g, '_') || 'cliente'}_${reportMonth}.pdf`;
+    doc.save(fileName);
   };
   
   const handleExportExcel = () => {
@@ -218,8 +272,10 @@ const Reports = () => {
     XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 7 });
     
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
+    // Nome do arquivo: Relatorio + nome do cliente + mês 
     const reportMonth = format(new Date(currentReport.startDate), 'MMMM_yyyy', { locale: ptBR });
-    XLSX.writeFile(workbook, `relatorio_fechamento_${client?.name || 'cliente'}_${reportMonth}.xlsx`);
+    const fileName = `Relatorio_${client?.name.replace(/\s+/g, '_') || 'cliente'}_${reportMonth}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
 
   return (
@@ -249,7 +305,7 @@ const Reports = () => {
                       onValueChange={setSelectedClient}
                       placeholder="Selecione um cliente"
                       disabled={isGenerating}
-                      clients={filteredClients}
+                      clients={availableClients}
                     />
                   )}
                 </div>

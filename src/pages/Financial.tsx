@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -105,8 +104,10 @@ const FinancialPage = () => {
       ]),
     });
     
+    // Nome do arquivo: Relatorio + nome do cliente + mês
     const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-    doc.save(`relatorio_fechamento_${client?.name || 'cliente'}_${reportMonth}.pdf`);
+    const fileName = `Relatorio_${client?.name.replace(/\s+/g, '_') || 'cliente'}_${reportMonth}.pdf`;
+    doc.save(fileName);
   };
   
   const handleExportExcel = (report: FinancialReport) => {
@@ -136,8 +137,10 @@ const FinancialPage = () => {
     XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 7 });
     
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
+    // Nome do arquivo: Relatorio + nome do cliente + mês
     const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-    XLSX.writeFile(workbook, `relatorio_fechamento_${client?.name || 'cliente'}_${reportMonth}.xlsx`);
+    const fileName = `Relatorio_${client?.name.replace(/\s+/g, '_') || 'cliente'}_${reportMonth}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
   
   const handleDeleteReport = async () => {

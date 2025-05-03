@@ -79,8 +79,9 @@ export const useDeliveriesFilters = ({
           clientName.toLowerCase().includes(searchTermLower) ||
           delivery.receiver.toLowerCase().includes(searchTermLower) ||
           delivery.notes?.toLowerCase().includes(searchTermLower) ||
-          extendedDelivery.origin?.toLowerCase().includes(searchTermLower) ||
-          extendedDelivery.destination?.toLowerCase().includes(searchTermLower);
+          // Using type assertion to avoid TypeScript errors
+          (extendedDelivery.origin && extendedDelivery.origin.toLowerCase().includes(searchTermLower)) ||
+          (extendedDelivery.destination && extendedDelivery.destination.toLowerCase().includes(searchTermLower));
 
         if (!matchesSearch) return false;
       }
