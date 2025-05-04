@@ -1,3 +1,4 @@
+
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -99,19 +100,22 @@ export function createPDFReport(data: {
       lineWidth: 0.5,
       lineColor: [0, 0, 0]
     },
-    // This will return the final Y position after the table is drawn
+    // Only add the total on the last page
     didDrawPage: (data) => {
-      // Add total row at the bottom right
-      const finalY = data.cursor.y + 10;
-      
-      // Draw total row
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      
-      // Calculate position for right alignment
-      const pageWidth = doc.internal.pageSize.width;
-      doc.text("Total geral dos serviços:", pageWidth - 60, finalY);
-      doc.text(formatCurrency(report.totalFreight), pageWidth - 15, finalY, { align: 'right' });
+      // Only show the total if this is the last page (or the only page)
+      if (data.pageCount === data.pageNumber) {
+        // Add total row at the bottom right
+        const finalY = data.cursor.y + 10;
+        
+        // Draw total row
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        
+        // Calculate position for right alignment
+        const pageWidth = doc.internal.pageSize.width;
+        doc.text("Total geral dos serviços:", pageWidth - 60, finalY);
+        doc.text(formatCurrency(report.totalFreight), pageWidth - 15, finalY, { align: 'right' });
+      }
     }
   });
   
