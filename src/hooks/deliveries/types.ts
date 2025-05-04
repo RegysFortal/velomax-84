@@ -12,6 +12,7 @@ export interface DeliveryResponse {
   delivery_date: string;
   delivery_time: string;
   receiver: string;
+  receiver_id?: string; // Adicionado: ID do recebedor
   weight: number;
   packages: number;
   delivery_type: string;
@@ -24,4 +25,5 @@ export interface DeliveryResponse {
   created_at: string;
   updated_at: string;
   user_id: string | null;
+  arrival_knowledge_number?: string; // Adicionado: Número do conhecimento
 }

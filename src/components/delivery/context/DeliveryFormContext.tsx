@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +26,7 @@ export interface DeliveryFormValues {
   notes: string;
   occurrence: string;
   totalFreight: string;
+  arrivalKnowledgeNumber: string; // Adicionado: Número do conhecimento
 }
 
 interface DeliveryFormContextType {
@@ -78,6 +78,7 @@ export const DeliveryFormProvider: React.FC<{
       notes: delivery?.notes || '',
       occurrence: delivery?.occurrence || '',
       totalFreight: delivery?.totalFreight?.toString() || '',
+      arrivalKnowledgeNumber: delivery?.arrivalKnowledgeNumber || '', // Adicionado: Número do conhecimento
     },
   });
   

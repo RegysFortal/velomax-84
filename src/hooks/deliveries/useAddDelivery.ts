@@ -35,6 +35,7 @@ export const useAddDelivery = (
         delivery_date: delivery.deliveryDate,
         delivery_time: delivery.deliveryTime || '',
         receiver: delivery.receiver || '',
+        receiver_id: delivery.receiverId || '', // Adicionado: ID do recebedor
         weight: parseFloat(delivery.weight.toString()), // Ensure weight is a number
         packages: parseInt(delivery.packages.toString()), // Ensure packages is a number
         delivery_type: delivery.deliveryType,
@@ -45,6 +46,7 @@ export const useAddDelivery = (
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
         user_id: user?.id,
+        arrival_knowledge_number: delivery.arrivalKnowledgeNumber || '', // Adicionado: Número de conhecimento
       };
       
       // Handle invoice numbers
@@ -77,7 +79,7 @@ export const useAddDelivery = (
         deliveryDate: responseData.delivery_date,
         deliveryTime: responseData.delivery_time || '',
         receiver: responseData.receiver || '',
-        receiverId: undefined, // Field removed from table
+        receiverId: responseData.receiver_id, // Adicionado: ID do recebedor
         weight: responseData.weight,
         packages: responseData.packages,
         deliveryType: responseData.delivery_type as Delivery['deliveryType'],
@@ -93,6 +95,7 @@ export const useAddDelivery = (
         pickupName: '',
         pickupDate: '',
         pickupTime: '',
+        arrivalKnowledgeNumber: responseData.arrival_knowledge_number || '', // Adicionado: Número de conhecimento
       };
       
       setDeliveries(prev => [...prev, newDelivery]);

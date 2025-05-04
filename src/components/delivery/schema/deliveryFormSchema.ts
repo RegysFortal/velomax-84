@@ -24,4 +24,5 @@ export const deliveryFormSchema = z.object({
   pickupName: z.string().optional(),
   pickupDate: z.string().optional(),
   pickupTime: z.string().optional(),
+  arrivalKnowledgeNumber: z.string().optional(), // Adicionado: Número do conhecimento de chegada
 });

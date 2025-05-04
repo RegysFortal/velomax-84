@@ -47,6 +47,7 @@ export interface Delivery {
   pickupDate?: string;
   pickupTime?: string;
   invoiceNumbers?: string[]; // Add this property to support invoice numbers in delivery objects
+  arrivalKnowledgeNumber?: string; // Adicionado: Número do conhecimento de chegada
 }
 
 // Adding DeliveryFormData interface which was missing
@@ -70,4 +71,5 @@ export interface DeliveryFormData {
   pickupDate?: string;
   pickupTime?: string;
   invoiceNumbers?: string[];
+  arrivalKnowledgeNumber?: string; // Adicionado: Número do conhecimento de chegada
 }
