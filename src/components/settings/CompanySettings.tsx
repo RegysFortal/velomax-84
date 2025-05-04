@@ -5,36 +5,42 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Building, Map, Phone, Mail, Globe } from 'lucide-react';
 
 export function CompanySettings() {
   const [companyData, setCompanyData] = useState(() => {
-    const storedData = localStorage.getItem('company_settings');
-    return storedData ? JSON.parse(storedData) : {
-      name: 'VeloMax Transportes',
-      cnpj: '12.345.678/0001-90',
-      address: 'Av. Principal, 1000',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01000-000',
-      phone: '(11) 1234-5678',
-      email: 'contato@velomax.com',
-      website: 'www.velomax.com',
-      description: 'Empresa especializada em transporte de cargas.'
-    };
+    try {
+      const storedData = localStorage.getItem('company_settings');
+      return storedData ? JSON.parse(storedData) : {
+        name: 'VeloMax Transportes',
+        cnpj: '12.345.678/0001-90',
+        address: 'Av. Principal, 1000',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '01000-000',
+        phone: '(11) 1234-5678',
+        email: 'contato@velomax.com',
+        website: 'www.velomax.com',
+        description: 'Empresa especializada em transporte de cargas.'
+      };
+    } catch (error) {
+      console.error("Error loading company settings:", error);
+      return {
+        name: 'VeloMax Transportes',
+        cnpj: '12.345.678/0001-90',
+        address: 'Av. Principal, 1000',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '01000-000',
+        phone: '(11) 1234-5678',
+        email: 'contato@velomax.com',
+        website: 'www.velomax.com',
+        description: 'Empresa especializada em transporte de cargas.'
+      };
+    }
   });
   
-  const [saveStatus, setSaveStatus] = useState('');
-
-  useEffect(() => {
-    // Check if we should clear the save status message after 3 seconds
-    if (saveStatus) {
-      const timer = setTimeout(() => setSaveStatus(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [saveStatus]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setCompanyData(prev => ({
@@ -46,22 +52,13 @@ export function CompanySettings() {
   const handleSave = () => {
     try {
       localStorage.setItem('company_settings', JSON.stringify(companyData));
-      setSaveStatus('saved');
-      toast({
-        title: "Configurações salvas",
-        description: "Os dados da empresa foram atualizados com sucesso.",
-      });
+      toast.success("Configurações salvas com sucesso!");
       
       // Dispatch an event to notify other components that company settings were updated
       window.dispatchEvent(new Event('company_settings_updated'));
     } catch (error) {
       console.error("Error saving company settings:", error);
-      setSaveStatus('error');
-      toast({
-        title: "Erro ao salvar",
-        description: "Não foi possível salvar as configurações da empresa.",
-        variant: "destructive"
-      });
+      toast.error("Não foi possível salvar as configurações da empresa.");
     }
   };
 
@@ -225,8 +222,6 @@ export function CompanySettings() {
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button onClick={handleSave}>Salvar Alterações</Button>
-          {saveStatus === 'saved' && <p className="text-green-500">Configurações salvas com sucesso!</p>}
-          {saveStatus === 'error' && <p className="text-red-500">Erro ao salvar configurações.</p>}
         </CardFooter>
       </Card>
     </div>

@@ -2,6 +2,11 @@
 import { Budget } from '@/types/budget';
 import { Client } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 /**
  * Prints a budget to a new window
@@ -234,12 +239,6 @@ export function createPDFReport(data: {
   companyData: any,
   formatCurrency: (val: number) => string
 }) {
-  // Import required modules only when function is called
-  const jsPDF = require('jspdf');
-  const autoTable = require('jspdf-autotable');
-  const { format } = require('date-fns');
-  const { ptBR } = require('date-fns/locale');
-  
   const { report, client, deliveries, companyData, formatCurrency } = data;
   
   // Create PDF in landscape orientation
@@ -355,11 +354,6 @@ export function createExcelReport(data: {
   companyData: any,
   formatCurrency: (val: number) => string
 }) {
-  // Import required modules only when function is called
-  const XLSX = require('xlsx');
-  const { format } = require('date-fns');
-  const { ptBR } = require('date-fns/locale');
-  
   const { report, client, deliveries, companyData, formatCurrency } = data;
   
   const workbook = XLSX.utils.book_new();
