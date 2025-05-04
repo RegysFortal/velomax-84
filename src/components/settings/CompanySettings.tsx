@@ -13,6 +13,7 @@ export function CompanySettings() {
   const { user } = useAuth();
   const [isEditable, setIsEditable] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [companyData, setCompanyData] = useState(() => {
     try {
       return getCompanyInfo();
@@ -109,12 +110,16 @@ export function CompanySettings() {
     }
     
     try {
+      setIsSaving(true);
+      
       // First save to localStorage for backward compatibility
       localStorage.setItem('company_settings', JSON.stringify(companyData));
       
       // Then try to save to Supabase if we're connected
       if (user) {
         try {
+          console.log("Saving company data to Supabase:", companyData);
+          
           // Check if we already have a company settings record
           const { data: existingSettings, error: fetchError } = await supabase
             .from('company_settings')
@@ -122,6 +127,7 @@ export function CompanySettings() {
             .limit(1);
           
           if (fetchError) {
+            console.error("Error fetching company settings:", fetchError);
             throw fetchError;
           }
           
@@ -141,39 +147,58 @@ export function CompanySettings() {
             updated_at: new Date().toISOString()
           };
           
+          console.log("Prepared data for Supabase:", supabaseData);
+          console.log("Existing settings:", existingSettings);
+          
           let saveError;
           if (existingSettings && existingSettings.length > 0) {
+            console.log("Updating existing company settings record");
             // Update existing record
             const { error } = await supabase
               .from('company_settings')
               .update(supabaseData)
               .eq('id', existingSettings[0].id);
             saveError = error;
+            
+            if (error) {
+              console.error("Error updating company settings in Supabase:", error);
+            } else {
+              console.log("Company settings updated successfully in Supabase");
+            }
           } else {
+            console.log("Creating new company settings record");
             // Insert new record
             const { error } = await supabase
               .from('company_settings')
               .insert([supabaseData]);
             saveError = error;
+            
+            if (error) {
+              console.error("Error inserting company settings in Supabase:", error);
+            } else {
+              console.log("Company settings created successfully in Supabase");
+            }
           }
           
           if (saveError) {
             console.error("Error saving to Supabase:", saveError);
-            // Continue with success message as we already saved to localStorage
+            toast.error("Dados salvos localmente, mas houve um erro ao salvar no servidor.");
           }
         } catch (error) {
           console.error("Error saving company settings to Supabase:", error);
-          // Continue as we already saved to localStorage
+          toast.error("Dados salvos localmente, mas houve um erro ao salvar no servidor.");
         }
       }
       
-      toast.success("Configurações salvas com sucesso!");
-      
       // Dispatch an event to notify other components that company settings were updated
       window.dispatchEvent(new Event('company_settings_updated'));
+      
+      toast.success("Configurações salvas com sucesso!");
     } catch (error) {
       console.error("Error saving company settings:", error);
       toast.error("Não foi possível salvar as configurações da empresa.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -199,7 +224,11 @@ export function CompanySettings() {
           handleInputChange={handleInputChange}
           disabled={!isEditable}
         />
-        <CompanyActions onSave={handleSave} disabled={!isEditable} />
+        <CompanyActions 
+          onSave={handleSave} 
+          disabled={!isEditable}
+          loading={isSaving}
+        />
       </Card>
     </div>
   );
