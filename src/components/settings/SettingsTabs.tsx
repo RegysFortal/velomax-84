@@ -27,8 +27,8 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   permissions,
 }) => {
   return (
-    <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="mb-6">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+      <TabsList className="mb-6 flex flex-wrap">
         {permissions.system && <TabsTrigger value="system">Sistema</TabsTrigger>}
         {permissions.company && <TabsTrigger value="company">Empresa</TabsTrigger>}
         {permissions.users && <TabsTrigger value="users">Usuários</TabsTrigger>}

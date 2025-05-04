@@ -71,8 +71,9 @@ export function EditPaymentDetailsDialog({
     }
   };
   
-  // Ensure we don't lose state when rendering the Select component
+  // Função para manipular alterações no método de pagamento
   const handlePaymentMethodChange = (value: string) => {
+    console.log("Payment method selected:", value);
     setPaymentMethod(value);
   };
   
@@ -100,7 +101,7 @@ export function EditPaymentDetailsDialog({
                 <SelectTrigger id="payment-method" className="w-full">
                   <SelectValue placeholder="Escolha o método de pagamento" />
                 </SelectTrigger>
-                <SelectContent position="popper" className="w-full bg-background">
+                <SelectContent position="popper" className="w-full bg-background z-50">
                   <SelectItem value="boleto">Boleto</SelectItem>
                   <SelectItem value="pix">PIX</SelectItem>
                   <SelectItem value="cartao">Cartão</SelectItem>
