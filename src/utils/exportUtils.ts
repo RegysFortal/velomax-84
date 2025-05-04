@@ -71,7 +71,6 @@ export function createPDFReport(data: {
   doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 60);
   
   // Create table with all required fields and borders
-  // Use didDrawPage to show total only on the last page
   autoTable(doc, {
     startY: 70,
     head: [['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']],
@@ -84,9 +83,7 @@ export function createPDFReport(data: {
       formatCurrency(delivery.totalFreight),
       delivery.notes || '-'
     ]),
-    // Remove foot from here as we'll add it only on the last page
-    
-    // Add table styling with borders
+    // Remove foot as we'll add the total manually only on the last page
     styles: { 
       fontSize: 10,
       cellPadding: 3,
@@ -103,16 +100,11 @@ export function createPDFReport(data: {
       lineWidth: 0.5,
       lineColor: [0, 0, 0]
     },
-    footStyles: {
-      fillColor: [240, 240, 240],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold',
-      lineWidth: 0.5,
-      lineColor: [0, 0, 0]
-    },
     theme: 'grid', // Use 'grid' theme to add all borders
+    
+    // This is the critical part - only add the total on the last page
     didDrawPage: function(data) {
-      // Check if this is the last page
+      // Only add the total if this is the last page
       if (data.pageNumber === doc.getNumberOfPages()) {
         // Add total row only on the last page
         const finalY = data.cursor.y + 10;
