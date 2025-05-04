@@ -70,6 +70,9 @@ export function createPDFReport(data: {
   doc.setFont('helvetica', 'normal');
   doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 60);
   
+  // Track if total has been added already
+  let totalAdded = false;
+  
   // Create table with all required fields and borders
   autoTable(doc, {
     startY: 70,
@@ -102,24 +105,25 @@ export function createPDFReport(data: {
     },
     // Only add the total on the last page
     didDrawPage: (data) => {
-      // Only show the total if this is the last page (or the only page)
-      if (data.lastCellPos && data.finalY) {
-        // Check if this is the last page based on cell positions
-        const isLastPage = data.pageNumber >= Math.ceil(data.finalY / doc.internal.pageSize.height);
+      // Get total number of pages safely
+      const totalPagesAny = (doc as any).internal.getNumberOfPages();
+      
+      // Check if this is the last page
+      if (totalPagesAny === data.pageNumber && !totalAdded) {
+        // Add total row at the bottom right
+        const finalY = data.cursor.y + 10;
         
-        if (isLastPage) {
-          // Add total row at the bottom right
-          const finalY = data.cursor.y + 10;
-          
-          // Draw total row
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'bold');
-          
-          // Calculate position for right alignment
-          const pageWidth = doc.internal.pageSize.width;
-          doc.text("Total geral dos serviços:", pageWidth - 60, finalY);
-          doc.text(formatCurrency(report.totalFreight), pageWidth - 15, finalY, { align: 'right' });
-        }
+        // Draw total row
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        
+        // Calculate position for right alignment
+        const pageWidth = doc.internal.pageSize.width;
+        doc.text("Total geral dos serviços:", pageWidth - 60, finalY);
+        doc.text(formatCurrency(report.totalFreight), pageWidth - 15, finalY, { align: 'right' });
+        
+        // Mark that we've added the total
+        totalAdded = true;
       }
     }
   });
@@ -127,7 +131,7 @@ export function createPDFReport(data: {
   // Format filename: Relatório_PrimeiroNome_mes
   const clientFirstName = formatClientNameForFileName(client?.name || '');
   const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-  const fileName = `Relatorio_${clientFirstName}_${reportMonth}.pdf`;
+  const fileName = `Relatório_${clientFirstName}_${reportMonth}.pdf`;
   
   doc.save(fileName);
   return fileName;
