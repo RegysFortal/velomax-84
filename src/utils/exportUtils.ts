@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -132,6 +131,8 @@ export function createPDFReport(data: {
   // Get client name and ensure it follows the rule: first name with first letter capitalized only
   const clientName = client?.name || '';
   const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
+  
+  // Use the correct format: Relatório_ClientName_Month
   const fileName = `Relatório_${formatClientNameForFileName(clientName)}_${reportMonth}.pdf`;
   
   doc.save(fileName);
