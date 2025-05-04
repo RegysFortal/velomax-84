@@ -17,7 +17,7 @@ export function DeliveryFormNotes({ control }: DeliveryFormNotesProps) {
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Observações</FormLabel>
+              <FormLabel>Observações <span className="text-sm text-muted-foreground">(Informação aparece no relatório)</span></FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
