@@ -3,7 +3,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Download, Clock, Tool } from 'lucide-react';
+import { Plus, Download, Wrench } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Maintenance, Vehicle } from '@/types';
@@ -35,7 +35,7 @@ export const MaintenanceList: React.FC<MaintenanceListProps> = ({
       <CardContent>
         {maintenanceRecords.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <Tool className="h-10 w-10 text-muted-foreground mb-3" />
+            <Wrench className="h-10 w-10 text-muted-foreground mb-3" />
             <p className="text-muted-foreground">Nenhuma manutenção encontrada para esta data.</p>
             <Button variant="outline" className="mt-4" onClick={onNewMaintenance}>
               <Plus className="h-4 w-4 mr-2" />
