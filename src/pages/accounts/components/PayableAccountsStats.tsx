@@ -1,104 +1,76 @@
 
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { isPast } from 'date-fns';
-import { PayableAccount } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BadgeDollarSign, Clock, Calendar } from "lucide-react";
+import { PayableAccount } from "@/types/financial";
 
 interface PayableAccountsStatsProps {
   accounts: PayableAccount[];
 }
 
-export function PayableAccountsStats({ accounts }: PayableAccountsStatsProps) {
-  const stats = useMemo(() => {
-    const totalAmount = accounts.reduce((sum, account) => sum + account.amount, 0);
-    
-    const pendingAccounts = accounts.filter(account => account.status === 'pending');
-    const pendingAmount = pendingAccounts.reduce((sum, account) => sum + account.amount, 0);
-    
-    const overdueAccounts = accounts.filter(account => account.status === 'overdue');
-    const overdueAmount = overdueAccounts.reduce((sum, account) => sum + account.amount, 0);
-    
-    const paidAccounts = accounts.filter(account => account.status === 'paid');
-    const paidAmount = paidAccounts.reduce((sum, account) => sum + account.amount, 0);
-    
-    const upcomingAccounts = accounts.filter(account => 
-      account.status === 'pending' && 
-      !isPast(new Date(account.dueDate))
-    );
-    
-    const fixedExpensesAccounts = accounts.filter(account => account.isFixedExpense);
-    const fixedExpensesAmount = fixedExpensesAccounts.reduce((sum, account) => sum + account.amount, 0);
-    
-    return {
-      totalAmount,
-      pendingAmount,
-      overdueAmount,
-      paidAmount,
-      pendingCount: pendingAccounts.length,
-      overdueCount: overdueAccounts.length,
-      paidCount: paidAccounts.length,
-      upcomingCount: upcomingAccounts.length,
-      fixedExpensesCount: fixedExpensesAccounts.length,
-      fixedExpensesAmount
-    };
-  }, [accounts]);
+export const PayableAccountsStats = ({ accounts }: PayableAccountsStatsProps) => {
+  // Calculate statistics
+  const totalAmount = accounts.reduce((sum, account) => sum + account.amount, 0);
+  const pendingAmount = accounts
+    .filter(account => account.status === "pending" || account.status === "overdue")
+    .reduce((sum, account) => sum + account.amount, 0);
+  const overdueAmount = accounts
+    .filter(account => account.status === "overdue")
+    .reduce((sum, account) => sum + account.amount, 0);
   
+  // Calculate counts
+  const pendingCount = accounts.filter(account => 
+    account.status === "pending" || account.status === "overdue"
+  ).length;
+  const overdueCount = accounts.filter(account => account.status === "overdue").length;
+  
+  // Format currency
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
-  
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid gap-4 md:grid-cols-3">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total de Despesas</CardTitle>
+          <CardTitle className="text-sm font-medium">Total a Pagar</CardTitle>
+          <BadgeDollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(stats.totalAmount)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
           <p className="text-xs text-muted-foreground">
-            Total {accounts.length} despesas
+            {accounts.length} contas registradas
           </p>
         </CardContent>
       </Card>
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Despesas Pendentes</CardTitle>
+          <CardTitle className="text-sm font-medium">Contas Pendentes</CardTitle>
+          <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-yellow-600">{formatCurrency(stats.pendingAmount)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(pendingAmount)}</div>
           <p className="text-xs text-muted-foreground">
-            {stats.pendingCount} despesas a vencer
+            {pendingCount} contas a serem pagas
           </p>
         </CardContent>
       </Card>
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Despesas Atrasadas</CardTitle>
+          <CardTitle className="text-sm font-medium">Contas Atrasadas</CardTitle>
+          <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-red-600">{formatCurrency(stats.overdueAmount)}</div>
+          <div className="text-2xl font-bold text-red-500">{formatCurrency(overdueAmount)}</div>
           <p className="text-xs text-muted-foreground">
-            {stats.overdueCount} despesas vencidas
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Despesas Pagas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.paidAmount)}</div>
-          <p className="text-xs text-muted-foreground">
-            {stats.paidCount} despesas quitadas
+            {overdueCount} contas em atraso
           </p>
         </CardContent>
       </Card>
     </div>
   );
-}
+};

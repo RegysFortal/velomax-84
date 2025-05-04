@@ -1,107 +1,82 @@
 
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { isPast } from 'date-fns';
-import { ReceivableAccount } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BadgeDollarSign, Clock, Calendar } from "lucide-react";
+import { ReceivableAccount } from "@/types/financial";
 
 interface ReceivableAccountsStatsProps {
   accounts: ReceivableAccount[];
 }
 
-export function ReceivableAccountsStats({ accounts }: ReceivableAccountsStatsProps) {
-  const stats = useMemo(() => {
-    const totalAmount = accounts.reduce((sum, account) => sum + account.amount, 0);
+export const ReceivableAccountsStats = ({ accounts }: ReceivableAccountsStatsProps) => {
+  // Calculate statistics
+  const totalAmount = accounts.reduce((sum, account) => sum + account.amount, 0);
+  const pendingAmount = accounts
+    .filter(account => account.status === "pending" || account.status === "overdue" || account.status === "partially_received")
+    .reduce((sum, account) => {
+      if (account.status === "partially_received" && account.remainingAmount) {
+        return sum + account.remainingAmount;
+      }
+      return sum + account.amount;
+    }, 0);
     
-    const pendingAccounts = accounts.filter(account => account.status === 'pending');
-    const pendingAmount = pendingAccounts.reduce((sum, account) => sum + account.amount, 0);
-    
-    const overdueAccounts = accounts.filter(account => account.status === 'overdue');
-    const overdueAmount = overdueAccounts.reduce((sum, account) => sum + account.amount, 0);
-    
-    const receivedAccounts = accounts.filter(account => account.status === 'received');
-    const receivedAmount = receivedAccounts.reduce((sum, account) => sum + account.amount, 0);
-    
-    const partialAccounts = accounts.filter(account => account.status === 'partially_received');
-    const partialReceivedAmount = partialAccounts.reduce((sum, account) => sum + (account.receivedAmount || 0), 0);
-    const partialPendingAmount = partialAccounts.reduce((sum, account) => sum + (account.remainingAmount || 0), 0);
-    
-    const totalReceived = receivedAmount + partialReceivedAmount;
-    const totalPending = pendingAmount + overdueAmount + partialPendingAmount;
-    
-    return {
-      totalAmount,
-      pendingAmount,
-      overdueAmount,
-      receivedAmount: totalReceived,
-      pendingCount: pendingAccounts.length,
-      overdueCount: overdueAccounts.length,
-      receivedCount: receivedAccounts.length,
-      partialCount: partialAccounts.length,
-      totalPending
-    };
-  }, [accounts]);
+  const overdueAmount = accounts
+    .filter(account => account.status === "overdue")
+    .reduce((sum, account) => sum + account.amount, 0);
   
+  // Calculate counts
+  const pendingCount = accounts.filter(account => 
+    account.status === "pending" || account.status === "overdue" || account.status === "partially_received"
+  ).length;
+  const overdueCount = accounts.filter(account => account.status === "overdue").length;
+  
+  // Format currency
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
-  
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid gap-4 md:grid-cols-3">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total a Receber</CardTitle>
+          <BadgeDollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(stats.totalAmount)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
           <p className="text-xs text-muted-foreground">
-            Total {accounts.length} contas
+            {accounts.length} contas registradas
           </p>
         </CardContent>
       </Card>
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Pendente de Recebimento</CardTitle>
+          <CardTitle className="text-sm font-medium">Contas Pendentes</CardTitle>
+          <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-yellow-600">{formatCurrency(stats.totalPending)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(pendingAmount)}</div>
           <p className="text-xs text-muted-foreground">
-            {stats.pendingCount} pendentes, {stats.overdueCount} atrasadas, {stats.partialCount} parciais
+            {pendingCount} contas a serem recebidas
           </p>
         </CardContent>
       </Card>
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Recebido</CardTitle>
+          <CardTitle className="text-sm font-medium">Contas Atrasadas</CardTitle>
+          <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.receivedAmount)}</div>
+          <div className="text-2xl font-bold text-red-500">{formatCurrency(overdueAmount)}</div>
           <p className="text-xs text-muted-foreground">
-            {stats.receivedCount} contas recebidas totalmente
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Taxa de Recebimento</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.totalAmount > 0 ? 
-              `${((stats.receivedAmount / stats.totalAmount) * 100).toFixed(1)}%` : 
-              '0%'
-            }
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Valores recebidos / Total a receber
+            {overdueCount} contas em atraso
           </p>
         </CardContent>
       </Card>
     </div>
   );
-}
+};

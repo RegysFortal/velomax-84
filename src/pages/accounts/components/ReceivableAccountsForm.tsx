@@ -1,103 +1,95 @@
 
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { ReceivableAccount } from '@/types/financial';
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { ReceivableAccount } from "@/types/financial";
 
-export interface ReceivableAccountsFormProps {
+interface ReceivableAccountsFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (account: Omit<ReceivableAccount, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  account: ReceivableAccount | null;
+  onSubmit: (account: Omit<ReceivableAccount, "id" | "createdAt" | "updatedAt">) => void;
+  account?: ReceivableAccount | null;
 }
 
 export function ReceivableAccountsForm({ open, onOpenChange, onSubmit, account }: ReceivableAccountsFormProps) {
-  const [formData, setFormData] = React.useState({
-    clientId: '',
-    clientName: '',
-    description: '',
-    amount: '',
-    dueDate: '',
-    receivedDate: '',
-    receivedAmount: '',
-    remainingAmount: '',
-    receivedMethod: 'pix',
-    categoryId: '1',
-    categoryName: 'Fretes',
-    notes: '',
+  const [formData, setFormData] = useState({
+    clientId: "client-1",
+    clientName: "",
+    description: "",
+    amount: "",
+    dueDate: "",
+    receivedDate: "",
+    receivedAmount: "",
+    receivedMethod: "pix",
+    notes: "",
+    categoryId: "cat-1",
+    categoryName: "Fretes",
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (account) {
       setFormData({
-        clientId: account.clientId,
-        clientName: account.clientName,
-        description: account.description,
-        amount: account.amount.toString(),
-        dueDate: account.dueDate,
-        receivedDate: account.receivedDate || '',
-        receivedAmount: account.receivedAmount ? account.receivedAmount.toString() : '',
-        remainingAmount: account.remainingAmount ? account.remainingAmount.toString() : '',
-        receivedMethod: account.receivedMethod || 'pix',
-        categoryId: account.categoryId,
-        categoryName: account.categoryName || '',
-        notes: account.notes || '',
+        clientId: account.clientId || "client-1",
+        clientName: account.clientName || "",
+        description: account.description || "",
+        amount: account.amount?.toString() || "",
+        dueDate: account.dueDate || "",
+        receivedDate: account.receivedDate || "",
+        receivedAmount: account.receivedAmount?.toString() || "",
+        receivedMethod: account.receivedMethod || "pix",
+        notes: account.notes || "",
+        categoryId: account.categoryId || "cat-1",
+        categoryName: account.categoryName || "Fretes",
       });
     } else {
       // Reset form for new account
       setFormData({
-        clientId: '',
-        clientName: '',
-        description: '',
-        amount: '',
-        dueDate: '',
-        receivedDate: '',
-        receivedAmount: '',
-        remainingAmount: '',
-        receivedMethod: 'pix',
-        categoryId: '1',
-        categoryName: 'Fretes',
-        notes: '',
+        clientId: "client-1",
+        clientName: "",
+        description: "",
+        amount: "",
+        dueDate: "",
+        receivedDate: "",
+        receivedAmount: "",
+        receivedMethod: "pix",
+        notes: "",
+        categoryId: "cat-1",
+        categoryName: "Fretes",
       });
     }
-  }, [account]);
+  }, [account, open]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const currentDate = new Date().toISOString().split('T')[0];
-    const today = new Date();
-    const dueDate = new Date(formData.dueDate);
-    
-    // Determine the status based on received date, received amount, and due date
-    let status: 'pending' | 'received' | 'overdue' | 'partially_received' = 'pending';
+    // Determine status based on dates and amounts
+    let status = "pending";
+    let remainingAmount: number | undefined = undefined;
     
     if (formData.receivedDate) {
-      const receivedAmount = formData.receivedAmount ? parseFloat(formData.receivedAmount) : 0;
       const totalAmount = parseFloat(formData.amount);
+      const receivedAmount = formData.receivedAmount ? parseFloat(formData.receivedAmount) : totalAmount;
       
       if (receivedAmount >= totalAmount) {
-        status = 'received';
-      } else if (receivedAmount > 0) {
-        status = 'partially_received';
+        status = "received";
+        remainingAmount = 0;
+      } else {
+        status = "partially_received";
+        remainingAmount = totalAmount - receivedAmount;
       }
-    } else if (dueDate < today) {
-      status = 'overdue';
+    } else if (new Date(formData.dueDate) < new Date()) {
+      status = "overdue";
     }
     
-    const submittedData = {
+    onSubmit({
       clientId: formData.clientId,
       clientName: formData.clientName,
       description: formData.description,
@@ -105,227 +97,144 @@ export function ReceivableAccountsForm({ open, onOpenChange, onSubmit, account }
       dueDate: formData.dueDate,
       receivedDate: formData.receivedDate || undefined,
       receivedAmount: formData.receivedAmount ? parseFloat(formData.receivedAmount) : undefined,
-      remainingAmount: formData.remainingAmount ? parseFloat(formData.remainingAmount) : undefined,
-      receivedMethod: formData.receivedDate ? formData.receivedMethod : undefined,
-      status,
+      remainingAmount,
+      receivedMethod: formData.receivedMethod as any,
+      status: status as any,
       categoryId: formData.categoryId,
       categoryName: formData.categoryName,
-      notes: formData.notes || undefined,
-    };
-    
-    onSubmit(submittedData);
+      notes: formData.notes,
+    });
   };
-  
-  const incomeCategories = [
-    { id: '1', name: 'Fretes' },
-    { id: '2', name: 'Serviços' },
-    { id: '3', name: 'Vendas' },
-    { id: '4', name: 'Reembolsos' },
-    { id: '5', name: 'Outros' },
-  ];
-  
-  // Mock clients for demonstration
-  const clients = [
-    { id: '1', name: 'Indústrias ABC' },
-    { id: '2', name: 'Farmácia Saúde Total' },
-    { id: '3', name: 'Supermercado Econômico' },
-    { id: '4', name: 'Construtora Horizonte' },
-    { id: '5', name: 'Restaurante Sabor & Arte' },
-  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{account ? 'Editar Conta a Receber' : 'Nova Conta a Receber'}</DialogTitle>
+          <DialogTitle>{account ? "Editar Conta a Receber" : "Nova Conta a Receber"}</DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="clientId">Cliente</Label>
-            <Select 
-              value={formData.clientId} 
-              onValueChange={(value) => {
-                const selectedClient = clients.find(client => client.id === value);
-                setFormData(prev => ({ 
-                  ...prev, 
-                  clientId: value,
-                  clientName: selectedClient ? selectedClient.name : ''
-                }));
-              }}
-            >
-              <SelectTrigger id="clientId">
-                <SelectValue placeholder="Selecione um cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Input
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Descrição da receita"
-              required
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Valor (R$)</Label>
+              <Label htmlFor="client-name">Cliente</Label>
               <Input
-                id="amount"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0,00"
+                id="client-name"
+                value={formData.clientName}
+                onChange={(e) => handleChange("clientName", e.target.value)}
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="dueDate">Data de Vencimento</Label>
-              <Input
-                id="dueDate"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-                type="date"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="receivedMethod">Forma de Recebimento</Label>
-              <Select 
-                value={formData.receivedMethod} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, receivedMethod: value }))}
+              <Label htmlFor="category">Categoria</Label>
+              <Select
+                value={formData.categoryId}
+                onValueChange={(value) => handleChange("categoryId", value)}
               >
-                <SelectTrigger id="receivedMethod">
-                  <SelectValue placeholder="Selecione" />
+                <SelectTrigger id="category">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pix">PIX</SelectItem>
-                  <SelectItem value="cash">Dinheiro</SelectItem>
-                  <SelectItem value="bank_slip">Boleto</SelectItem>
-                  <SelectItem value="transfer">Transferência</SelectItem>
+                  <SelectItem value="cat-1">Fretes</SelectItem>
+                  <SelectItem value="cat-2">Serviços</SelectItem>
+                  <SelectItem value="cat-3">Produtos</SelectItem>
+                  <SelectItem value="cat-4">Outros</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="receivedDate">Data de Recebimento</Label>
+              <Label htmlFor="description">Descrição</Label>
               <Input
-                id="receivedDate"
-                name="receivedDate"
-                value={formData.receivedDate}
-                onChange={handleChange}
-                type="date"
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleChange("description", e.target.value)}
+                required
               />
             </div>
-          </div>
-          
-          {formData.receivedDate && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="receivedAmount">Valor Recebido (R$)</Label>
-                <Input
-                  id="receivedAmount"
-                  name="receivedAmount"
-                  value={formData.receivedAmount}
-                  onChange={(e) => {
-                    const receivedAmount = parseFloat(e.target.value) || 0;
-                    const totalAmount = parseFloat(formData.amount) || 0;
-                    const remainingAmount = totalAmount > receivedAmount ? totalAmount - receivedAmount : 0;
-                    
-                    setFormData(prev => ({
-                      ...prev,
-                      receivedAmount: e.target.value,
-                      remainingAmount: remainingAmount.toString()
-                    }));
-                  }}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0,00"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="remainingAmount">Valor Restante (R$)</Label>
-                <Input
-                  id="remainingAmount"
-                  name="remainingAmount"
-                  value={formData.remainingAmount}
-                  readOnly
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="bg-gray-50"
-                />
-              </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="amount">Valor (R$)</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={formData.amount}
+                onChange={(e) => handleChange("amount", e.target.value)}
+                required
+              />
             </div>
-          )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="categoryId">Categoria</Label>
-            <Select 
-              value={formData.categoryId} 
-              onValueChange={(value) => {
-                const selectedCategory = incomeCategories.find(cat => cat.id === value);
-                setFormData(prev => ({ 
-                  ...prev, 
-                  categoryId: value,
-                  categoryName: selectedCategory ? selectedCategory.name : ''
-                }));
-              }}
-            >
-              <SelectTrigger id="categoryId">
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {incomeCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            
+            <div className="space-y-2">
+              <Label htmlFor="due-date">Data de Vencimento</Label>
+              <Input
+                id="due-date"
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => handleChange("dueDate", e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="received-date">Data de Recebimento</Label>
+              <Input
+                id="received-date"
+                type="date"
+                value={formData.receivedDate}
+                onChange={(e) => handleChange("receivedDate", e.target.value)}
+              />
+            </div>
+            
+            {formData.receivedDate && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="received-amount">Valor Recebido (R$)</Label>
+                  <Input
+                    id="received-amount"
+                    type="number"
+                    step="0.01"
+                    value={formData.receivedAmount || formData.amount}
+                    onChange={(e) => handleChange("receivedAmount", e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="received-method">Forma de Recebimento</Label>
+                  <Select
+                    value={formData.receivedMethod}
+                    onValueChange={(value) => handleChange("receivedMethod", value)}
+                  >
+                    <SelectTrigger id="received-method">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pix">PIX</SelectItem>
+                      <SelectItem value="bank_slip">Boleto</SelectItem>
+                      <SelectItem value="transfer">Transferência</SelectItem>
+                      <SelectItem value="cash">Dinheiro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="notes">Observações</Label>
             <Textarea
               id="notes"
-              name="notes"
               value={formData.notes}
-              onChange={handleChange}
-              placeholder="Observações adicionais..."
+              onChange={(e) => handleChange("notes", e.target.value)}
+              rows={3}
             />
           </div>
           
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">
-              {account ? 'Atualizar' : 'Salvar'}
-            </Button>
-          </div>
+            <Button type="submit">{account ? "Salvar Alterações" : "Cadastrar Conta"}</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

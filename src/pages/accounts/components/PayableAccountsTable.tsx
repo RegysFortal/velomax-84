@@ -1,109 +1,174 @@
 
-import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Edit2, Trash2, CheckCircle } from 'lucide-react';
-import { PayableAccount } from '@/types/financial';
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { PayableAccount } from "@/types/financial";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Edit, Trash2, CheckCircle } from "lucide-react";
+import { useState } from "react";
 
-export interface PayableAccountsTableProps {
+interface PayableAccountsTableProps {
   accounts: PayableAccount[];
   onEdit: (account: PayableAccount) => void;
   onDelete: (id: string) => void;
   onMarkAsPaid: (id: string) => void;
 }
 
-export function PayableAccountsTable({ accounts, onEdit, onDelete, onMarkAsPaid }: PayableAccountsTableProps) {
-  // Format currency
+export const PayableAccountsTable = ({
+  accounts,
+  onEdit,
+  onDelete,
+  onMarkAsPaid,
+}: PayableAccountsTableProps) => {
+  const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
+  
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
-
-  // Format date
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pt-BR');
+  
+  const handleDelete = () => {
+    if (accountToDelete) {
+      onDelete(accountToDelete);
+      setAccountToDelete(null);
+    }
   };
-
-  const getStatusBadge = (status: PayableAccount['status']) => {
+  
+  const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'paid':
-        return <Badge className="bg-green-500">Pago</Badge>;
-      case 'overdue':
-        return <Badge className="bg-red-500">Atrasado</Badge>;
+      case "pending":
+        return <span className="text-yellow-500 font-medium">Pendente</span>;
+      case "paid":
+        return <span className="text-green-500 font-medium">Pago</span>;
+      case "overdue":
+        return <span className="text-red-500 font-medium">Atrasado</span>;
       default:
-        return <Badge className="bg-yellow-500">Pendente</Badge>;
+        return <span className="text-gray-500 font-medium">Desconhecido</span>;
+    }
+  };
+  
+  const getPaymentMethodLabel = (method: string) => {
+    switch (method) {
+      case "pix":
+        return "PIX";
+      case "card":
+        return "Cartão";
+      case "transfer":
+        return "Transferência";
+      case "cash":
+        return "Dinheiro";
+      case "bank_slip":
+        return "Boleto";
+      default:
+        return "Outro";
     }
   };
 
   return (
-    <div className="border rounded-md">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Fornecedor</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Vencimento</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {accounts.length === 0 ? (
+    <>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                Nenhuma conta a pagar registrada
-              </TableCell>
+              <TableHead>Fornecedor</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Categoria</TableHead>
+              <TableHead>Vencimento</TableHead>
+              <TableHead>Valor</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Pagamento</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
-          ) : (
-            accounts.map((account) => (
-              <TableRow key={account.id}>
-                <TableCell className="font-medium">{account.supplierName}</TableCell>
-                <TableCell>{account.description}</TableCell>
-                <TableCell>{formatCurrency(account.amount)}</TableCell>
-                <TableCell>{formatDate(account.dueDate)}</TableCell>
-                <TableCell>{getStatusBadge(account.status)}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => onEdit(account)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    
-                    {account.status !== 'paid' && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="text-green-600"
-                        onClick={() => onMarkAsPaid(account.id)}
-                        title="Marcar como pago"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="text-red-600"
-                      onClick={() => onDelete(account.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+          </TableHeader>
+          <TableBody>
+            {accounts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="h-24 text-center">
+                  Nenhuma conta a pagar encontrada.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            ) : (
+              accounts.map((account) => (
+                <TableRow key={account.id}>
+                  <TableCell className="font-medium">
+                    {account.supplierName}
+                  </TableCell>
+                  <TableCell>{account.description}</TableCell>
+                  <TableCell>{account.categoryName}</TableCell>
+                  <TableCell>
+                    {format(new Date(account.dueDate), "dd/MM/yyyy", { locale: ptBR })}
+                  </TableCell>
+                  <TableCell>{formatCurrency(account.amount)}</TableCell>
+                  <TableCell>{getStatusLabel(account.status)}</TableCell>
+                  <TableCell>{getPaymentMethodLabel(account.paymentMethod)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      {account.status !== "paid" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onMarkAsPaid(account.id)}
+                        >
+                          <CheckCircle className="mr-1 h-4 w-4" />
+                          Pagar
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(account)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setAccountToDelete(account.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      <AlertDialog open={!!accountToDelete} onOpenChange={(open) => !open && setAccountToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta conta a pagar? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
-}
+};

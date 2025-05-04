@@ -1,87 +1,122 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { Shipment } from '@/types';
+import { createPDFReport, createExcelReport } from '@/utils/exportUtils';
 
-export function useReportActions(filteredShipments: Shipment[]) {
-  const generatePDF = useCallback(() => {
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
-    });
-    
-    doc.setFontSize(16);
-    doc.text("Relatório de Embarques", 14, 20);
-    
-    const tableColumn = [
-      "Empresa", 
-      "Conhecimento", 
-      "Transportadora", 
-      "Modo", 
-      "Volumes", 
-      "Peso (kg)", 
-      "Chegada", 
-      "Status"
-    ];
-    
-    const tableRows = filteredShipments.map((shipment) => [
-      shipment.companyName,
-      shipment.trackingNumber,
-      shipment.carrierName,
-      shipment.transportMode === 'air' ? 'Aéreo' : 'Rodoviário',
-      shipment.packages,
-      shipment.weight.toFixed(2),
-      shipment.arrivalDate ? format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não definida',
-      shipment.status === 'in_transit' ? 'Em Trânsito' : 
-        shipment.status === 'retained' ? 'Retida' : 
-        shipment.status === 'delivered' ? 'Retirada' : 'Entregue'
-    ]);
-    
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 80,
-      theme: 'striped',
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [41, 128, 185] }
-    });
-    
-    doc.save(`relatorio-embarques-${format(new Date(), 'yyyyMMdd')}.pdf`);
-    toast.success("Relatório PDF gerado e baixado com sucesso!");
-  }, [filteredShipments]);
+export const useReportActions = (data: any[]) => {
+  const [loading, setLoading] = useState(false);
+  
+  const getCompanyInfo = () => {
+    return {
+      name: 'VeloMax Transportes Ltda',
+      cnpj: '12.345.678/0001-90',
+      address: 'Av. Paulista, 1000',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01310-100',
+      phone: '(11) 3000-1000',
+      email: 'contato@velomax.com.br',
+      website: 'www.velomax.com.br',
+    };
+  };
 
-  const exportToExcel = useCallback(() => {
-    const excelData = filteredShipments.map((shipment) => ({
-      'Empresa': shipment.companyName,
-      'Conhecimento': shipment.trackingNumber,
-      'Transportadora': shipment.carrierName,
-      'Modo': shipment.transportMode === 'air' ? 'Aéreo' : 'Rodoviário',
-      'Volumes': shipment.packages,
-      'Peso (kg)': shipment.weight.toFixed(2),
-      'Data de Chegada': shipment.arrivalDate ? format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Não definida',
-      'Status': shipment.status === 'in_transit' ? 'Em Trânsito' : 
-               shipment.status === 'retained' ? 'Retida' : 
-               shipment.status === 'delivered' ? 'Retirada' : 
-               shipment.status === 'delivered_final' ? 'Entregue' : 'Desconhecido',
-      'Observações': shipment.observations || ''
-    }));
-    
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Embarques");
-    
-    XLSX.writeFile(workbook, `relatorio-embarques-${format(new Date(), 'yyyyMMdd')}.xlsx`);
-    toast.success("Dados exportados para Excel com sucesso!");
-  }, [filteredShipments]);
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
+
+  const generatePDF = async () => {
+    try {
+      setLoading(true);
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(18);
+      doc.text("Relatório Financeiro", 105, 20, { align: 'center' });
+      
+      // Add date
+      doc.setFontSize(12);
+      doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 105, 30, { align: 'center' });
+      
+      // Add table headers
+      const headers = ["Cliente", "Valor", "Status"];
+      
+      // Add table data
+      const tableData = data.map(item => [
+        item.name || 'N/A',
+        formatCurrency(item.amount || 0),
+        item.status || 'N/A'
+      ]);
+      
+      // Add table to PDF
+      doc.autoTable({
+        head: [headers],
+        body: tableData,
+        startY: 40,
+        theme: 'grid'
+      });
+      
+      // Save PDF
+      doc.save("relatorio_financeiro.pdf");
+      
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast.error("Erro ao gerar PDF. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const exportToExcel = async () => {
+    try {
+      setLoading(true);
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Convert data to worksheet format
+      const wsData = [
+        ["Relatório Financeiro"],
+        [`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`],
+        [],
+        ["Cliente", "Valor", "Status"]
+      ];
+      
+      // Add data rows
+      data.forEach(item => {
+        wsData.push([
+          item.name || 'N/A',
+          item.amount || 0,
+          item.status || 'N/A'
+        ]);
+      });
+      
+      // Create worksheet from data
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+      
+      // Save workbook
+      XLSX.writeFile(wb, "relatorio_financeiro.xlsx");
+      
+      toast.success("Excel gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar Excel:", error);
+      toast.error("Erro ao gerar Excel. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
+    loading,
     generatePDF,
     exportToExcel
   };
-}
+};
