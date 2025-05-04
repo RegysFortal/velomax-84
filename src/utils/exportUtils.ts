@@ -1,3 +1,4 @@
+
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -105,11 +106,11 @@ export function createPDFReport(data: {
     // Add the total on the last page only
     didDrawPage: (data) => {
       // Check if this is the last page
-      const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
-      const totalPages = doc.internal.getNumberOfPages();
+      const currentPage = doc.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       
       // Only add total on the last page
-      if (currentPage === totalPages && !totalAdded) {
+      if (currentPage === pageCount && !totalAdded) {
         const finalY = data.cursor.y + 10;
         
         // Draw total row - aligned to the right
