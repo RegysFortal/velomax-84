@@ -38,45 +38,55 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
   
   // Fetch settings permissions from Supabase
   useEffect(() => {
-    if (user) {
-      const fetchSettingsPermissions = async () => {
-        try {
-          const { data: systemAccess, error: systemError } = await supabase.rpc('user_has_system_settings_access');
-          const { data: companyAccess, error: companyError } = await supabase.rpc('user_has_company_settings_access');
-          const { data: userAccess, error: userError } = await supabase.rpc('user_has_user_management_access');
-          const { data: backupAccess, error: backupError } = await supabase.rpc('user_has_backup_access');
-          
-          if (systemError || companyError || userError || backupError) {
-            console.error("Error fetching settings permissions:", { systemError, companyError, userError, backupError });
-            // Fall back to client-side permissions
-            setSettingsPermissions({
-              system: user.role === 'admin',
-              company: user.role === 'admin',
-              users: user.role === 'admin',
-              backup: user.role === 'admin' || user.role === 'manager'
-            });
-          } else {
-            setSettingsPermissions({
-              system: !!systemAccess,
-              company: !!companyAccess,
-              users: !!userAccess,
-              backup: !!backupAccess
-            });
-          }
-        } catch (error) {
-          console.error("Error checking settings permissions:", error);
-          // Fall back to client-side permissions
+    if (!user) return;
+
+    // First set permissions based on role for reliability
+    if (user.role === 'admin') {
+      setSettingsPermissions({
+        system: true,
+        company: true,
+        users: true,
+        backup: true
+      });
+      return;
+    } else if (user.role === 'manager') {
+      setSettingsPermissions({
+        system: false,
+        company: false,
+        users: false,
+        backup: true
+      });
+      return;
+    }
+    
+    // Only try Supabase RPCs if we didn't set permissions by role
+    const fetchSettingsPermissions = async () => {
+      try {
+        const { data: systemAccess, error: systemError } = await supabase.rpc('user_has_system_settings_access');
+        const { data: companyAccess, error: companyError } = await supabase.rpc('user_has_company_settings_access');
+        const { data: userAccess, error: userError } = await supabase.rpc('user_has_user_management_access');
+        const { data: backupAccess, error: backupError } = await supabase.rpc('user_has_backup_access');
+        
+        const hasErrors = systemError || companyError || userError || backupError;
+        
+        if (hasErrors) {
+          console.error("Error fetching settings permissions:", { systemError, companyError, userError, backupError });
+          // Already set by role or defaults to false
+        } else {
           setSettingsPermissions({
-            system: user.role === 'admin',
-            company: user.role === 'admin',
-            users: user.role === 'admin',
-            backup: user.role === 'admin' || user.role === 'manager'
+            system: !!systemAccess,
+            company: !!companyAccess,
+            users: !!userAccess,
+            backup: !!backupAccess
           });
         }
-      };
-      
-      fetchSettingsPermissions();
-    }
+      } catch (error) {
+        console.error("Error checking settings permissions:", error);
+        // Already set by role or defaults to false
+      }
+    };
+    
+    fetchSettingsPermissions();
   }, [user]);
 
   // If no user or no permissions, don't render the menu

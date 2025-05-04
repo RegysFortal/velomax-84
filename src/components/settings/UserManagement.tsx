@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserManagementTable } from '@/components/user/UserManagementTable';
@@ -18,22 +17,35 @@ export function UserManagement() {
   useEffect(() => {
     const checkPermissions = async () => {
       try {
-        if (user) {
+        if (!user) {
+          setHasAccess(false);
+          return;
+        }
+        
+        // Fallback to role check first
+        if (user.role === 'admin') {
+          setHasAccess(true);
+          return;
+        }
+        
+        // Try Supabase RPC only if role check didn't grant access
+        try {
           const { data: accessAllowed, error } = await supabase.rpc('user_has_user_management_access');
           
           if (error) {
             console.error("Error checking user management permissions:", error);
-            // Fallback to client-side role check
-            setHasAccess(user.role === 'admin');
+            // Already checked role above, so keep as false if we get here
+            setHasAccess(false);
           } else {
             setHasAccess(!!accessAllowed);
           }
-        } else {
+        } catch (error) {
+          console.error("Exception checking user management access:", error);
+          // Already checked role above, so keep as false if we get here
           setHasAccess(false);
         }
       } catch (error) {
-        console.error("Error checking user management access:", error);
-        // Fallback to client-side role check
+        console.error("Error in permission check flow:", error);
         setHasAccess(user?.role === 'admin');
       }
     };

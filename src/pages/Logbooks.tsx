@@ -26,6 +26,7 @@ const Logbooks = () => {
   const [activeTab, setActiveTab] = useState('entries');
   const [isNewEntryOpen, setIsNewEntryOpen] = useState(false);
   const [isNewFuelOpen, setIsNewFuelOpen] = useState(false);
+  const [isNewMaintenanceOpen, setIsNewMaintenanceOpen] = useState(false);
   
   // Filter entries by date
   const filteredEntries = entries.filter(entry => 
@@ -50,6 +51,11 @@ const Logbooks = () => {
   // Handle new fuel button click
   const handleNewFuel = () => {
     setIsNewFuelOpen(true);
+  };
+  
+  // Handle new maintenance button click
+  const handleNewMaintenance = () => {
+    setIsNewMaintenanceOpen(true);
   };
   
   if (isLoading) {
@@ -144,6 +150,7 @@ const Logbooks = () => {
                   maintenanceRecords={filteredMaintenanceRecords}
                   vehicles={vehicles}
                   selectedDate={selectedDate}
+                  onNewMaintenance={handleNewMaintenance}
                 />
               </CardContent>
             </Card>

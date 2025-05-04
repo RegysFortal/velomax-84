@@ -36,24 +36,34 @@ export function CompanySettings() {
   useEffect(() => {
     const checkPermissions = async () => {
       try {
-        // Check if the user is admin via Supabase RPC
-        if (user) {
+        if (!user) {
+          setIsEditable(false);
+          return;
+        }
+        
+        // First check based on role for reliability
+        if (user.role === 'admin') {
+          setIsEditable(true);
+          return;
+        }
+        
+        // Try Supabase RPC only if role check didn't grant access
+        try {
           const { data: hasAccess, error } = await supabase.rpc('user_has_company_settings_access');
           
           if (error) {
             console.error("Error checking permissions:", error);
-            // Fallback to client-side role check
-            setIsEditable(user.role === 'admin');
+            setIsEditable(false);
           } else {
             setIsEditable(!!hasAccess);
           }
-        } else {
+        } catch (error) {
+          console.error("Exception checking company edit permissions:", error);
           setIsEditable(false);
         }
       } catch (error) {
-        console.error("Error checking company edit permissions:", error);
-        // Fallback to client-side role check if there's an error
-        setIsEditable(user?.role === 'admin');
+        console.error("Error in permission check flow:", error);
+        setIsEditable(false);
       }
     };
     
