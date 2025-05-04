@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSettings } from '@/components/settings/SystemSettings';
@@ -25,8 +24,9 @@ const SettingsPage = () => {
     notifications: true // Default to true as all users can manage their own notifications
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch user permissions from Supabase
+  // Fetch user permissions from Supabase or use role-based fallback
   useEffect(() => {
     const fetchPermissions = async () => {
       if (!user) {
@@ -35,7 +35,7 @@ const SettingsPage = () => {
       }
 
       try {
-        // Fallback to role-based permissions
+        // Fallback to role-based permissions first for reliability
         if (user.role === 'admin') {
           setPermissions({
             system: true,
@@ -58,46 +58,57 @@ const SettingsPage = () => {
           return;
         }
         
-        // Try to fetch from Supabase if role-based didn't set permissions
-        try {
-          const { data: systemAccess, error: systemError } = await supabase.rpc('user_has_system_settings_access');
-          const { data: companyAccess, error: companyError } = await supabase.rpc('user_has_company_settings_access');
-          const { data: userAccess, error: userError } = await supabase.rpc('user_has_user_management_access');
-          const { data: backupAccess, error: backupError } = await supabase.rpc('user_has_backup_access');
-          const { data: notifAccess, error: notifError } = await supabase.rpc('user_has_notification_settings_access');
+        // Only try Supabase RPC if role check didn't set full permissions
+        const permissionPromises = [
+          supabase.rpc('user_has_system_settings_access').then(({ data, error }) => {
+            if (error) throw new Error(`System settings access check failed: ${error.message}`);
+            return { key: 'system', value: !!data };
+          }),
+          supabase.rpc('user_has_company_settings_access').then(({ data, error }) => {
+            if (error) throw new Error(`Company settings access check failed: ${error.message}`);
+            return { key: 'company', value: !!data };
+          }),
+          supabase.rpc('user_has_user_management_access').then(({ data, error }) => {
+            if (error) throw new Error(`User management access check failed: ${error.message}`);
+            return { key: 'users', value: !!data };
+          }),
+          supabase.rpc('user_has_backup_access').then(({ data, error }) => {
+            if (error) throw new Error(`Backup access check failed: ${error.message}`);
+            return { key: 'backup', value: !!data };
+          }),
+          // Notifications are assumed to be available to all users
+          Promise.resolve({ key: 'notifications', value: true })
+        ];
 
-          if (systemError || companyError || userError || backupError || notifError) {
-            console.error("Error fetching permissions:", { systemError, companyError, userError, backupError, notifError });
-            toast.error("Erro ao verificar permissões, usando padrões");
-            
-            // Default permissions if errors occurred
-            setPermissions({
-              system: false,
-              company: false,
-              users: false,
-              backup: false,
-              notifications: true
-            });
+        const results = await Promise.allSettled(permissionPromises);
+        
+        const newPermissions = { ...permissions };
+        let hasErrors = false;
+        
+        results.forEach(result => {
+          if (result.status === 'fulfilled') {
+            const { key, value } = result.value;
+            newPermissions[key as keyof typeof permissions] = value;
           } else {
-            setPermissions({
-              system: !!systemAccess,
-              company: !!companyAccess,
-              users: !!userAccess,
-              backup: !!backupAccess,
-              notifications: notifAccess !== false // Default to true unless explicitly false
-            });
+            console.error("Permission check failed:", result.reason);
+            hasErrors = true;
           }
-        } catch (error) {
-          console.error("Error checking permissions:", error);
-          // Default permissions on exception
-          setPermissions({
-            system: false,
-            company: false,
-            users: false,
-            backup: false,
-            notifications: true
-          });
+        });
+        
+        if (hasErrors) {
+          setError("Alguns serviços de permissão não estão disponíveis. Usando permissões baseadas em função.");
         }
+        
+        setPermissions(newPermissions);
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        setError("Erro ao carregar permissões. Usando configurações padrão.");
+        
+        // Keep notifications available by default
+        setPermissions(prev => ({
+          ...prev,
+          notifications: true
+        }));
       } finally {
         setLoading(false);
       }
@@ -158,6 +169,13 @@ const SettingsPage = () => {
           Gerencie as configurações do sistema.
         </p>
       </div>
+
+      {error && (
+        <Alert variant="warning" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="mb-6">

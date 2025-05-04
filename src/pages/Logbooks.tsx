@@ -10,7 +10,7 @@ import { LogbookPageHeader } from '@/components/logbook/LogbookPageHeader';
 import { EntryList } from '@/components/logbook/tabs/EntryList';
 import { FuelList } from '@/components/logbook/tabs/FuelList';
 import { MaintenanceList } from '@/components/logbook/tabs/MaintenanceList';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 
 const Logbooks = () => {
   const { 
@@ -80,6 +80,8 @@ const Logbooks = () => {
           setIsNewEntryOpen={setIsNewEntryOpen}
           isNewFuelOpen={isNewFuelOpen}
           setIsNewFuelOpen={setIsNewFuelOpen}
+          isNewMaintenanceOpen={isNewMaintenanceOpen}
+          setIsNewMaintenanceOpen={setIsNewMaintenanceOpen}
         />
         
         <LogbookDashboard 
