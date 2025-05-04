@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -83,7 +82,7 @@ export function createPDFReport(data: {
       formatCurrency(delivery.totalFreight),
       delivery.notes || '-'
     ]),
-    // Remove foot as we'll add the total manually only on the last page
+    theme: 'grid', // Use 'grid' theme to add all borders
     styles: { 
       fontSize: 10,
       cellPadding: 3,
@@ -100,61 +99,19 @@ export function createPDFReport(data: {
       lineWidth: 0.5,
       lineColor: [0, 0, 0]
     },
-    theme: 'grid', // Use 'grid' theme to add all borders
-    
-    // This is the critical part - only add the total on the last page
-    didDrawPage: function(data) {
-      // Only add the total if this is the last page
-      if (data.pageNumber === doc.getNumberOfPages()) {
-        // Add total row only on the last page
-        const finalY = data.cursor.y + 10;
-        
-        // Add total row
-        doc.setFillColor(240, 240, 240);
-        doc.setDrawColor(0, 0, 0);
-        doc.setLineWidth(0.5);
-        
-        // Draw total row
-        const tableWidth = data.settings.margin.right - data.settings.margin.left;
-        const cellWidth = tableWidth / 7;
-        const totalCellY = finalY;
-        
-        // Draw total label cell
-        doc.rect(
-          data.settings.margin.left + (cellWidth * 5), 
-          totalCellY, 
-          cellWidth, 
-          10, 
-          'FD'
-        );
-        
-        // Draw total value cell
-        doc.rect(
-          data.settings.margin.left + (cellWidth * 6), 
-          totalCellY, 
-          cellWidth, 
-          10, 
-          'FD'
-        );
-        
-        // Add text for total
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(
-          'Total:', 
-          data.settings.margin.left + (cellWidth * 5) + (cellWidth / 2), 
-          totalCellY + 6, 
-          { align: 'center' }
-        );
-        
-        // Add value for total
-        doc.text(
-          formatCurrency(report.totalFreight), 
-          data.settings.margin.left + (cellWidth * 6) + (cellWidth / 2), 
-          totalCellY + 6, 
-          { align: 'center' }
-        );
-      }
+    // This will return the final Y position after the table is drawn
+    didDrawPage: (data) => {
+      // Add total row at the bottom right
+      const finalY = data.cursor.y + 10;
+      
+      // Draw total row
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      
+      // Calculate position for right alignment
+      const pageWidth = doc.internal.pageSize.width;
+      doc.text("Total geral dos serviços:", pageWidth - 60, finalY);
+      doc.text(formatCurrency(report.totalFreight), pageWidth - 15, finalY, { align: 'right' });
     }
   });
   

@@ -23,7 +23,7 @@ export function getCompanyInfo() {
  * Takes the first name and capitalizes only the first letter
  */
 export function formatClientNameForFileName(clientName: string): string {
-  if (!clientName) return 'cliente';
+  if (!clientName) return 'Cliente';
   
   // Get the first name only
   const firstName = clientName.split(' ')[0];
