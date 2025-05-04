@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,16 @@ export function CompanySettings() {
       description: 'Empresa especializada em transporte de cargas.'
     };
   });
+  
+  const [saveStatus, setSaveStatus] = useState('');
+
+  useEffect(() => {
+    // Check if we should clear the save status message after 3 seconds
+    if (saveStatus) {
+      const timer = setTimeout(() => setSaveStatus(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -33,11 +44,25 @@ export function CompanySettings() {
   };
 
   const handleSave = () => {
-    localStorage.setItem('company_settings', JSON.stringify(companyData));
-    toast({
-      title: "Configurações salvas",
-      description: "Os dados da empresa foram atualizados com sucesso.",
-    });
+    try {
+      localStorage.setItem('company_settings', JSON.stringify(companyData));
+      setSaveStatus('saved');
+      toast({
+        title: "Configurações salvas",
+        description: "Os dados da empresa foram atualizados com sucesso.",
+      });
+      
+      // Dispatch an event to notify other components that company settings were updated
+      window.dispatchEvent(new Event('company_settings_updated'));
+    } catch (error) {
+      console.error("Error saving company settings:", error);
+      setSaveStatus('error');
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as configurações da empresa.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -198,8 +223,10 @@ export function CompanySettings() {
             />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-between">
           <Button onClick={handleSave}>Salvar Alterações</Button>
+          {saveStatus === 'saved' && <p className="text-green-500">Configurações salvas com sucesso!</p>}
+          {saveStatus === 'error' && <p className="text-red-500">Erro ao salvar configurações.</p>}
         </CardFooter>
       </Card>
     </div>

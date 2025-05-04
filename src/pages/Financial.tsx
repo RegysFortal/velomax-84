@@ -20,9 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from 'react';
 import { FinancialReport } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Logo } from '@/components/ui/logo';
-import { getCompanyInfo, formatClientNameForFileName } from '@/utils/printUtils';
+import { getCompanyInfo, createPDFReport, createExcelReport } from '@/utils/printUtils';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
@@ -79,172 +76,30 @@ const FinancialPage = () => {
   
   const handleExportPDF = (report: FinancialReport) => {
     const client = clients.find(c => c.id === report.clientId);
-    const doc = new jsPDF();
-    
-    // Add logo at the top
-    const logoImg = document.querySelector('.company-logo') as HTMLImageElement;
-    if (logoImg) {
-      // Convert SVG to data URL for PDF
-      const canvas = document.createElement('canvas');
-      canvas.width = 200;
-      canvas.height = 100;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const svgString = new XMLSerializer().serializeToString(logoImg);
-        const img = new Image();
-        img.onload = () => {
-          ctx.drawImage(img, 50, 10, 100, 80);
-        };
-        img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
-      }
-      doc.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 30, 30);
-    }
-    
-    // Add company information
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${companyData.name}`, 50, 15);
-    doc.text(`CNPJ: ${companyData.cnpj}`, 50, 20);
-    doc.text(`${companyData.address}, ${companyData.city} - ${companyData.state}, ${companyData.zipCode}`, 50, 25);
-    doc.text(`Tel: ${companyData.phone} | Email: ${companyData.email}`, 50, 30);
-    doc.text(`${companyData.website}`, 50, 35);
-    
-    // Add horizontal line
-    doc.setLineWidth(0.5);
-    doc.line(10, 40, 200, 40);
-    
-    // Add title centered
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text("RELATÓRIO DE FECHAMENTO", 105, 50, { align: 'center' });
-    
-    // Add client name and period
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 60);
-    doc.text(`Período: ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`, 14, 67);
-    doc.text(`Valor Total: ${formatCurrency(report.totalFreight)}`, 14, 74);
     
     // Get filtered deliveries for this report
     const filteredDeliveries = deliveriesForReport(report);
     
-    // Create table with all required fields and borders
-    autoTable(doc, {
-      startY: 85,
-      head: [['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']],
-      body: filteredDeliveries.map(delivery => [
-        delivery.minuteNumber,
-        format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
-        delivery.deliveryTime || '-',
-        delivery.receiver || '-',
-        delivery.weight.toString(),
-        formatCurrency(delivery.totalFreight),
-        delivery.notes || '-'
-      ]),
-      // Add the total row
-      foot: [['', '', '', '', '', 'Total:', formatCurrency(report.totalFreight)]],
-      // Add table styling with borders
-      styles: { 
-        fontSize: 10,
-        cellPadding: 3,
-      },
-      headStyles: { 
-        fillColor: [80, 80, 80],
-        textColor: [255, 255, 255],
-        halign: 'center', 
-        valign: 'middle',
-        lineWidth: 0.5,
-        lineColor: [0, 0, 0]
-      },
-      bodyStyles: { 
-        lineWidth: 0.5,
-        lineColor: [0, 0, 0]
-      },
-      footStyles: {
-        fillColor: [240, 240, 240],
-        textColor: [0, 0, 0],
-        fontStyle: 'bold',
-        lineWidth: 0.5,
-        lineColor: [0, 0, 0]
-      },
-      theme: 'grid' // Use 'grid' theme to add all borders
+    createPDFReport({
+      report,
+      client,
+      deliveries: filteredDeliveries,
+      companyData,
+      formatCurrency
     });
-    
-    // Format filename: Relatorio_PrimeiroNome_mes
-    const clientFirstName = formatClientNameForFileName(client?.name || '');
-    const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-    const fileName = `Relatorio_${clientFirstName}_${reportMonth}.pdf`;
-    doc.save(fileName);
   };
   
   const handleExportExcel = (report: FinancialReport) => {
     const client = clients.find(c => c.id === report.clientId);
     const filteredDeliveries = deliveriesForReport(report);
     
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.aoa_to_sheet([
-      [`${companyData.name}`],
-      [`CNPJ: ${companyData.cnpj}`],
-      [`${companyData.address}, ${companyData.city} - ${companyData.state}, ${companyData.zipCode}`],
-      [`Tel: ${companyData.phone} | Email: ${companyData.email}`],
-      [`${companyData.website}`],
-      [],
-      ['RELATÓRIO DE FECHAMENTO'],
-      [],
-      [`Cliente: ${client?.name || 'N/A'}`],
-      [`Período: ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`],
-      [`Valor Total: ${formatCurrency(report.totalFreight)}`],
-      [],
-      ['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']
-    ]);
-    
-    const data = filteredDeliveries.map(delivery => [
-      delivery.minuteNumber,
-      format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
-      delivery.deliveryTime || '-',
-      delivery.receiver || '-',
-      delivery.weight,
-      delivery.totalFreight,
-      delivery.notes || '-'
-    ]);
-    
-    // Add the data rows
-    XLSX.utils.sheet_add_aoa(worksheet, data, { origin: 13 });
-    
-    // Add total row
-    XLSX.utils.sheet_add_aoa(worksheet, [
-      ['', '', '', '', '', 'Total:', report.totalFreight]
-    ], { origin: 13 + data.length });
-    
-    // Try to add some basic styling
-    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:G100');
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      for (let C = range.s.c; C <= range.e.c; ++C) {
-        const cell_address = {r: R, c: C};
-        const cell_ref = XLSX.utils.encode_cell(cell_address);
-        if (!worksheet[cell_ref]) continue;
-        
-        // Add borders to cells (Excel requires explicit styling for each cell)
-        worksheet[cell_ref].s = { 
-          border: {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' },
-            left: { style: 'thin' },
-            right: { style: 'thin' }
-          }
-        };
-      }
-    }
-    
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
-    
-    // Format filename: Relatorio_PrimeiroNome_mes
-    const clientFirstName = formatClientNameForFileName(client?.name || '');
-    const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-    const fileName = `Relatorio_${clientFirstName}_${reportMonth}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
+    createExcelReport({
+      report,
+      client,
+      deliveries: filteredDeliveries,
+      companyData,
+      formatCurrency
+    });
   };
   
   const handleDeleteReport = async () => {
