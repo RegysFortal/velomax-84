@@ -95,7 +95,7 @@ export function EditPaymentDetailsDialog({
                 <SelectTrigger id="payment-method" className="w-full">
                   <SelectValue placeholder="Escolha o método de pagamento" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="z-50 w-full bg-popover">
                   <SelectItem value="boleto">Boleto</SelectItem>
                   <SelectItem value="pix">PIX</SelectItem>
                   <SelectItem value="cartao">Cartão</SelectItem>

@@ -13,9 +13,17 @@ const SettingsPage = () => {
   const { permissions, loading, error, setError, setPermissions } = useSettingsPermissions(user);
 
   useEffect(() => {
-    // If current tab is not accessible, switch to the first accessible tab
+    console.log("Settings page rendered with activeTab:", activeTab);
+    console.log("Current permissions:", permissions);
+    
+    // If current tab is not accessible and permissions are loaded, switch to the first accessible tab
     if (!loading && !permissions[activeTab as keyof typeof permissions]) {
-      const firstAccessibleTab = Object.keys(permissions).find(tab => permissions[tab as keyof typeof permissions]);
+      console.log("Current tab not accessible, finding first accessible tab...");
+      const firstAccessibleTab = Object.keys(permissions).find(
+        tab => permissions[tab as keyof typeof permissions]
+      );
+      
+      console.log("First accessible tab found:", firstAccessibleTab);
       if (firstAccessibleTab) {
         setActiveTab(firstAccessibleTab);
       }
@@ -24,9 +32,12 @@ const SettingsPage = () => {
 
   const handleTabChange = (value: string) => {
     try {
+      console.log("Tab change requested to:", value);
       if (permissions[value as keyof typeof permissions]) {
+        console.log("Permission granted, changing tab to:", value);
         setActiveTab(value);
       } else {
+        console.log("Permission denied for tab:", value);
         toast.error("Você não tem permissão para acessar esta seção");
       }
     } catch (error) {
