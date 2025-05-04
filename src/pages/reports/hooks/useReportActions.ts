@@ -68,13 +68,8 @@ export const useReportActions = (data: any[]) => {
         theme: 'grid'
       });
       
-      // Generate a proper filename with current date
-      const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleDateString('pt-BR', { 
-        month: 'long', 
-        year: 'numeric' 
-      });
-      const fileName = `Relatório_Financeiro_${formattedDate}.pdf`;
+      // Generate simplified filename
+      const fileName = `Relatório_Financeiro.pdf`;
       
       // Save PDF
       doc.save(fileName);
@@ -118,13 +113,8 @@ export const useReportActions = (data: any[]) => {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Relatório");
       
-      // Generate a proper filename with current date
-      const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleDateString('pt-BR', { 
-        month: 'long', 
-        year: 'numeric' 
-      });
-      const fileName = `Relatório_Financeiro_${formattedDate}.xlsx`;
+      // Generate simplified filename
+      const fileName = `Relatório_Financeiro.xlsx`;
       
       // Save workbook
       XLSX.writeFile(wb, fileName);
