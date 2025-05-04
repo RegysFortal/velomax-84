@@ -71,6 +71,11 @@ export function EditPaymentDetailsDialog({
     }
   };
   
+  // Ensure we don't lose state when rendering the Select component
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value);
+  };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -89,13 +94,13 @@ export function EditPaymentDetailsDialog({
             <div className="col-span-3 space-y-2">
               <Select 
                 value={paymentMethod || ""}
-                onValueChange={setPaymentMethod}
+                onValueChange={handlePaymentMethodChange}
                 disabled={removePaymentMethod}
               >
                 <SelectTrigger id="payment-method" className="w-full">
                   <SelectValue placeholder="Escolha o método de pagamento" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="w-full bg-background">
                   <SelectItem value="boleto">Boleto</SelectItem>
                   <SelectItem value="pix">PIX</SelectItem>
                   <SelectItem value="cartao">Cartão</SelectItem>
