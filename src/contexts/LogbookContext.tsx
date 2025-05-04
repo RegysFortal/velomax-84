@@ -1,19 +1,48 @@
 
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { LogbookEntry, FuelRecord } from '@/types/logbook';
+import { LogbookEntry, FuelRecord, Vehicle, Employee, Maintenance, TireMaintenance } from '@/types';
 import { useAuth } from './auth/AuthContext';
 
 interface LogbookContextType {
+  // Logbook entries
   entries: LogbookEntry[];
-  fuelRecords: FuelRecord[];
-  isLoading: boolean;
   addEntry: (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<void>;
   updateEntry: (id: string, entry: Partial<LogbookEntry>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
+  
+  // Fuel records
+  fuelRecords: FuelRecord[];
   addFuelRecord: (record: Omit<FuelRecord, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<void>;
   updateFuelRecord: (id: string, record: Partial<FuelRecord>) => Promise<void>;
   deleteFuelRecord: (id: string) => Promise<void>;
+  getFuelRecordById: (id: string) => FuelRecord | undefined;
+  
+  // Logbook entries with new naming
+  addLogbookEntry: (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
+  updateLogbookEntry: (id: string, entry: Partial<LogbookEntry>) => void;
+  getLogbookEntryById: (id: string) => LogbookEntry | undefined;
+  
+  // Vehicles
+  vehicles: Vehicle[];
+  addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<void>;
+  updateVehicle: (id: string, vehicle: Partial<Vehicle>) => Promise<void>;
+  deleteVehicle: (id: string) => Promise<void>;
+  
+  // Employees
+  employees: Employee[];
+  
+  // Maintenance records
+  maintenanceRecords: Maintenance[];
+  addMaintenance: (maintenance: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
+  updateMaintenance: (id: string, maintenance: Partial<Maintenance>) => void;
+  deleteMaintenance: (id: string) => void;
+  
+  // Tire maintenance records
+  tireMaintenanceRecords: TireMaintenance[];
+  deleteTireMaintenance: (id: string) => Promise<void>;
+  
+  isLoading: boolean;
 }
 
 const LogbookContext = createContext<LogbookContextType | undefined>(undefined);
@@ -22,6 +51,10 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
   const [entries, setEntries] = useState<LogbookEntry[]>([]);
   const [fuelRecords, setFuelRecords] = useState<FuelRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>([]);
+  const [tireMaintenanceRecords, setTireMaintenanceRecords] = useState<TireMaintenance[]>([]);
   const { user } = useAuth();
   
   useEffect(() => {
@@ -105,6 +138,139 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
         updatedAt: "2025-04-02T16:45:00Z",
       }
     ]);
+
+    // Set mock vehicles data
+    setVehicles([
+      {
+        id: "vehicle-1",
+        plate: "ABC1234",
+        make: "Volkswagen",
+        model: "Constellation 24.280",
+        year: "2020",
+        brand: "Volkswagen",
+        type: "truck",
+        capacity: 24000,
+        fuelType: "diesel",
+        currentOdometer: 15000,
+        lastOilChange: 10000,
+        nextOilChangeKm: 20000,
+        status: "active"
+      },
+      {
+        id: "vehicle-2",
+        plate: "DEF5678",
+        make: "Mercedes-Benz",
+        model: "Sprinter 415",
+        year: "2021",
+        brand: "Mercedes-Benz",
+        type: "van",
+        capacity: 3500,
+        fuelType: "diesel",
+        currentOdometer: 12000,
+        lastOilChange: 9000,
+        nextOilChangeKm: 15000,
+        status: "active"
+      }
+    ]);
+
+    // Set mock employees data
+    setEmployees([
+      {
+        id: "driver-1",
+        name: "João Silva",
+        position: "driver",
+        email: "joao.silva@example.com",
+        phone: "11999991111",
+        isActive: true,
+        hireDate: "2020-01-15",
+        driverLicense: "12345678900",
+        driverLicenseCategory: "E"
+      },
+      {
+        id: "driver-2",
+        name: "Carlos Pereira",
+        position: "driver",
+        email: "carlos.pereira@example.com",
+        phone: "11999992222",
+        isActive: true,
+        hireDate: "2019-05-20",
+        driverLicense: "98765432100",
+        driverLicenseCategory: "D"
+      },
+      {
+        id: "assistant-1",
+        name: "Pedro Santos",
+        position: "assistant",
+        email: "pedro.santos@example.com",
+        phone: "11999993333",
+        isActive: true,
+        hireDate: "2021-03-10"
+      }
+    ]);
+
+    // Set mock maintenance records
+    setMaintenanceRecords([
+      {
+        id: "maintenance-1",
+        date: "2025-03-15",
+        vehicleId: "vehicle-1",
+        maintenanceType: "oil_change",
+        description: "Troca de óleo e filtros",
+        cost: 850.00,
+        odometer: 10000,
+        provider: "Oficina Mecânica Brasil",
+        notes: "Próxima troca em 5.000 km",
+        createdAt: "2025-03-15T14:30:00Z",
+        updatedAt: "2025-03-15T14:30:00Z"
+      },
+      {
+        id: "maintenance-2",
+        date: "2025-03-25",
+        vehicleId: "vehicle-2",
+        maintenanceType: "brakes",
+        description: "Troca de pastilhas de freio",
+        cost: 650.00,
+        odometer: 11500,
+        provider: "Auto Center Express",
+        notes: "Rotores em bom estado",
+        createdAt: "2025-03-25T10:15:00Z",
+        updatedAt: "2025-03-25T10:15:00Z"
+      }
+    ]);
+
+    // Set mock tire maintenance records
+    setTireMaintenanceRecords([
+      {
+        id: "tire-1",
+        date: "2025-03-20",
+        vehicleId: "vehicle-1",
+        maintenanceType: "replacement",
+        tirePosition: "frontLeft",
+        tireSize: "295/80 R22.5",
+        brand: "Michelin",
+        mileage: 80000,
+        cost: 1800.00,
+        description: "Substituição preventiva",
+        provider: "Pneus Brasil",
+        createdAt: "2025-03-20T09:45:00Z",
+        updatedAt: "2025-03-20T09:45:00Z"
+      },
+      {
+        id: "tire-2",
+        date: "2025-03-22",
+        vehicleId: "vehicle-2",
+        maintenanceType: "puncture",
+        tirePosition: "rearRight",
+        tireSize: "225/75 R16C",
+        brand: "Pirelli",
+        mileage: 35000,
+        cost: 120.00,
+        description: "Reparo de furo",
+        provider: "Borracharia Rápida",
+        createdAt: "2025-03-22T16:30:00Z",
+        updatedAt: "2025-03-22T16:30:00Z"
+      }
+    ]);
     
     setIsLoading(false);
   }, []);
@@ -156,6 +322,76 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
   const deleteFuelRecord = async (id: string) => {
     setFuelRecords(fuelRecords.filter(r => r.id !== id));
   };
+
+  const getFuelRecordById = (id: string) => {
+    return fuelRecords.find(record => record.id === id);
+  };
+
+  // Logbook entries with new naming
+  const addLogbookEntry = (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
+    addEntry(entry);
+  };
+
+  const updateLogbookEntry = (id: string, entry: Partial<LogbookEntry>) => {
+    updateEntry(id, entry);
+  };
+
+  const getLogbookEntryById = (id: string) => {
+    return entries.find(entry => entry.id === id);
+  };
+
+  // Vehicle CRUD operations
+  const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
+    const now = new Date().toISOString();
+    const newVehicle: Vehicle = {
+      ...vehicle,
+      id: uuidv4(),
+      createdAt: now,
+      updatedAt: now,
+      userId: user?.id,
+    };
+    
+    setVehicles([...vehicles, newVehicle]);
+  };
+
+  const updateVehicle = async (id: string, vehicle: Partial<Vehicle>) => {
+    setVehicles(vehicles.map(v => 
+      v.id === id ? { ...v, ...vehicle, updatedAt: new Date().toISOString() } : v
+    ));
+  };
+
+  const deleteVehicle = async (id: string) => {
+    setVehicles(vehicles.filter(v => v.id !== id));
+  };
+
+  // Maintenance CRUD operations
+  const addMaintenance = (maintenance: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
+    const now = new Date().toISOString();
+    const newMaintenance: Maintenance = {
+      ...maintenance,
+      id: uuidv4(),
+      createdAt: now,
+      updatedAt: now,
+      userId: user?.id,
+    };
+    
+    setMaintenanceRecords([...maintenanceRecords, newMaintenance]);
+  };
+
+  const updateMaintenance = (id: string, maintenance: Partial<Maintenance>) => {
+    setMaintenanceRecords(maintenanceRecords.map(m => 
+      m.id === id ? { ...m, ...maintenance, updatedAt: new Date().toISOString() } : m
+    ));
+  };
+
+  const deleteMaintenance = (id: string) => {
+    setMaintenanceRecords(maintenanceRecords.filter(m => m.id !== id));
+  };
+
+  // Tire maintenance CRUD operations
+  const deleteTireMaintenance = async (id: string) => {
+    setTireMaintenanceRecords(tireMaintenanceRecords.filter(t => t.id !== id));
+  };
   
   return (
     <LogbookContext.Provider value={{
@@ -168,6 +404,21 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       addFuelRecord,
       updateFuelRecord,
       deleteFuelRecord,
+      getFuelRecordById,
+      addLogbookEntry,
+      updateLogbookEntry,
+      getLogbookEntryById,
+      vehicles,
+      addVehicle,
+      updateVehicle,
+      deleteVehicle,
+      employees,
+      maintenanceRecords,
+      addMaintenance,
+      updateMaintenance,
+      deleteMaintenance,
+      tireMaintenanceRecords,
+      deleteTireMaintenance,
     }}>
       {children}
     </LogbookContext.Provider>

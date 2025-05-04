@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
+import 'jspdf-autotable'; // Import jspdf-autotable to extend jsPDF with autoTable
 import { createPDFReport, createExcelReport } from '@/utils/exportUtils';
 
 export const useReportActions = (data: any[]) => {
@@ -52,7 +53,7 @@ export const useReportActions = (data: any[]) => {
         item.status || 'N/A'
       ]);
       
-      // Add table to PDF
+      // Add table to PDF using autoTable (imported via jspdf-autotable)
       doc.autoTable({
         head: [headers],
         body: tableData,
