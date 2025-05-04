@@ -6,6 +6,13 @@ import * as XLSX from 'xlsx';
 import 'jspdf-autotable'; // Import jspdf-autotable to extend jsPDF with autoTable
 import { createPDFReport, createExcelReport } from '@/utils/exportUtils';
 
+// Add type augmentation for jsPDF to recognize autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
+
 export const useReportActions = (data: any[]) => {
   const [loading, setLoading] = useState(false);
   
