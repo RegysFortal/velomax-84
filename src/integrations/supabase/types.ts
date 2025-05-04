@@ -48,6 +48,36 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_logs: {
+        Row: {
+          backup_type: string
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          backup_type: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          backup_type?: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           created_at: string | null
@@ -183,6 +213,60 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      company_settings: {
+        Row: {
+          address: string | null
+          city: string | null
+          cnpj: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          logo: string | null
+          name: string
+          phone: string | null
+          state: string | null
+          updated_at: string
+          user_id: string | null
+          website: string | null
+          zipcode: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          cnpj?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo?: string | null
+          name: string
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string | null
+          website?: string | null
+          zipcode?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          cnpj?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo?: string | null
+          name?: string
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string | null
+          website?: string | null
+          zipcode?: string | null
         }
         Relationships: []
       }
@@ -629,6 +713,42 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          client_messages: boolean | null
+          created_at: string
+          delivery_status: boolean | null
+          email_summary: boolean | null
+          id: string
+          new_deliveries: boolean | null
+          system_alerts: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_messages?: boolean | null
+          created_at?: string
+          delivery_status?: boolean | null
+          email_summary?: boolean | null
+          id?: string
+          new_deliveries?: boolean | null
+          system_alerts?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_messages?: boolean | null
+          created_at?: string
+          delivery_status?: boolean | null
+          email_summary?: boolean | null
+          id?: string
+          new_deliveries?: boolean | null
+          system_alerts?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       price_tables: {
         Row: {
           allow_custom_pricing: boolean | null
@@ -813,6 +933,33 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          user_id: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          user_id?: string | null
+          value: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          user_id?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       tire_maintenance_records: {
         Row: {
           brand: string | null
@@ -977,6 +1124,26 @@ export type Database = {
       }
       user_can_access: {
         Args: { permission: string }
+        Returns: boolean
+      }
+      user_has_backup_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_has_company_settings_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_has_notification_settings_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_has_system_settings_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_has_user_management_access: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }

@@ -5,12 +5,15 @@ import { CardFooter } from '@/components/ui/card';
 
 interface CompanyActionsProps {
   onSave: () => void;
+  disabled?: boolean;
 }
 
-export function CompanyActions({ onSave }: CompanyActionsProps) {
+export function CompanyActions({ onSave, disabled = false }: CompanyActionsProps) {
   return (
     <CardFooter className="flex justify-between">
-      <Button onClick={onSave}>Salvar Alterações</Button>
+      <Button onClick={onSave} disabled={disabled}>
+        {disabled ? "Sem permissão para salvar" : "Salvar Alterações"}
+      </Button>
     </CardFooter>
   );
 }

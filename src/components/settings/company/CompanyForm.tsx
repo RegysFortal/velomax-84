@@ -18,9 +18,10 @@ interface CompanyFormProps {
     description: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  disabled?: boolean;
 }
 
-export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps) {
+export function CompanyForm({ companyData, handleInputChange, disabled = false }: CompanyFormProps) {
   return (
     <CardContent className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -32,6 +33,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Building}
           iconColor="text-blue-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
         
         <CompanyFormField
@@ -42,6 +44,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Building}
           iconColor="text-indigo-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
         
         <CompanyFormField
@@ -52,6 +55,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Map}
           iconColor="text-green-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
         
         <CompanyFormField
@@ -62,6 +66,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Map}
           iconColor="text-green-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
         
         <CompanyFormField
@@ -72,6 +77,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Map}
           iconColor="text-green-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
         
         <CompanyFormField
@@ -82,6 +88,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Map}
           iconColor="text-green-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
         
         <CompanyFormField
@@ -92,6 +99,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Phone}
           iconColor="text-purple-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
         
         <CompanyFormField
@@ -102,6 +110,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Mail}
           iconColor="text-red-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
         
         <CompanyFormField
@@ -112,6 +121,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
           icon={Globe}
           iconColor="text-blue-500"
           onChange={handleInputChange}
+          disabled={disabled}
         />
       </div>
       
@@ -124,6 +134,7 @@ export function CompanyForm({ companyData, handleInputChange }: CompanyFormProps
         iconColor="text-gray-500"
         onChange={handleInputChange}
         isTextarea={true}
+        disabled={disabled}
       />
     </CardContent>
   );

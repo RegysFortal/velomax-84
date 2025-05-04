@@ -1,9 +1,8 @@
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
+import React, { LucideIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { LucideIcon } from 'lucide-react';
 
 interface CompanyFormFieldProps {
   id: string;
@@ -14,7 +13,7 @@ interface CompanyFormFieldProps {
   iconColor: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   isTextarea?: boolean;
-  rows?: number;
+  disabled?: boolean;
 }
 
 export function CompanyFormField({
@@ -26,32 +25,36 @@ export function CompanyFormField({
   iconColor,
   onChange,
   isTextarea = false,
-  rows = 3
+  disabled = false
 }: CompanyFormFieldProps) {
   return (
     <div className="space-y-2">
-      <div className="flex items-start space-x-4">
-        <Icon className={`h-5 w-5 ${iconColor} mt-1`} />
-        <div className="space-y-1 flex-1">
-          <Label htmlFor={id}>{label}</Label>
-          {isTextarea ? (
-            <Textarea
-              id={id}
-              name={name}
-              value={value}
-              onChange={onChange}
-              rows={rows}
-            />
-          ) : (
-            <Input
-              id={id}
-              name={name}
-              value={value}
-              onChange={onChange}
-            />
-          )}
-        </div>
+      <div className="flex items-center gap-2">
+        <Icon className={`h-5 w-5 ${iconColor}`} />
+        <Label htmlFor={id}>{label}</Label>
       </div>
+      
+      {isTextarea ? (
+        <Textarea
+          id={id}
+          name={name}
+          value={value}
+          onChange={onChange}
+          rows={4}
+          className={disabled ? "bg-gray-50" : ""}
+          disabled={disabled}
+        />
+      ) : (
+        <Input
+          type="text"
+          id={id}
+          name={name}
+          value={value}
+          onChange={onChange}
+          className={disabled ? "bg-gray-50" : ""}
+          disabled={disabled}
+        />
+      )}
     </div>
   );
 }

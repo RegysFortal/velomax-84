@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
   Card, 
@@ -10,15 +10,56 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Archive, ArchiveRestore, FileDown, FileUp, SaveAll } from "lucide-react";
+import { Archive, ArchiveRestore, FileDown, FileUp, SaveAll, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/auth/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function SystemBackup() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
+  
+  // Check if current user has backup access permissions
+  useEffect(() => {
+    const checkBackupPermissions = async () => {
+      try {
+        if (user) {
+          const { data: accessAllowed, error } = await supabase.rpc('user_has_backup_access');
+          
+          if (error) {
+            console.error("Error checking backup permissions:", error);
+            // Fallback to client-side role check
+            setHasAccess(user.role === 'admin' || user.role === 'manager');
+          } else {
+            setHasAccess(!!accessAllowed);
+          }
+        } else {
+          setHasAccess(false);
+        }
+      } catch (error) {
+        console.error("Error checking backup access:", error);
+        // Fallback to client-side role check
+        setHasAccess(user?.role === 'admin' || user?.role === 'manager');
+      }
+    };
+    
+    checkBackupPermissions();
+  }, [user]);
   
   // Function to create a full system backup
-  const handleCreateBackup = () => {
+  const handleCreateBackup = async () => {
+    if (!hasAccess) {
+      toast({
+        title: "Acesso negado",
+        description: "Você não tem permissão para criar backups do sistema.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
       setIsExporting(true);
       
@@ -62,11 +103,27 @@ export function SystemBackup() {
       
       // Set filename with date
       const date = new Date().toISOString().split('T')[0];
-      link.download = `velomax_backup_completo_${date}.json`;
+      const fileName = `velomax_backup_completo_${date}.json`;
+      link.download = fileName;
       
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // Log backup action in Supabase if connected
+      if (user) {
+        try {
+          await supabase.from('backup_logs').insert([{
+            user_id: user.id,
+            backup_type: 'full',
+            file_name: fileName,
+            file_size: backupJson.length,
+            notes: 'Backup completo do sistema'
+          }]);
+        } catch (logError) {
+          console.error("Error logging backup:", logError);
+        }
+      }
       
       toast({
         title: "Backup criado com sucesso",
@@ -86,6 +143,16 @@ export function SystemBackup() {
   
   // Function to restore from backup
   const handleRestoreBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!hasAccess) {
+      toast({
+        title: "Acesso negado",
+        description: "Você não tem permissão para restaurar backups.",
+        variant: "destructive"
+      });
+      e.target.value = '';
+      return;
+    }
+    
     try {
       setIsImporting(true);
       
@@ -94,7 +161,7 @@ export function SystemBackup() {
       
       const reader = new FileReader();
       
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const content = event.target?.result as string;
           const backupData = JSON.parse(content);
@@ -110,6 +177,21 @@ export function SystemBackup() {
               localStorage.setItem(key, JSON.stringify(backupData[key]));
             }
           });
+          
+          // Log restore action in Supabase if connected
+          if (user) {
+            try {
+              await supabase.from('backup_logs').insert([{
+                user_id: user.id,
+                backup_type: 'restore',
+                file_name: file.name,
+                file_size: file.size,
+                notes: 'Restauração completa do sistema'
+              }]);
+            } catch (logError) {
+              console.error("Error logging restore:", logError);
+            }
+          }
           
           toast({
             title: "Backup restaurado com sucesso",
@@ -157,6 +239,28 @@ export function SystemBackup() {
       e.target.value = '';
     }
   };
+
+  // Show restricted access message if user doesn't have permission
+  if (!hasAccess) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Backup e Restauração do Sistema</CardTitle>
+          <CardDescription>
+            Exporte todos os dados do sistema para um arquivo ou restaure a partir de um backup anterior.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="warning">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Você não tem permissão para acessar as funcionalidades de backup e restauração do sistema.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card>
