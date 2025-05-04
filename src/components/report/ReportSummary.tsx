@@ -56,7 +56,7 @@ export function ReportSummary({ report }: ReportSummaryProps) {
               {format(startDate, 'dd/MM/yyyy', { locale: ptBR })} até {format(endDate, 'dd/MM/yyyy', { locale: ptBR })}
             </p>
           </div>
-          {report.status === 'closed' && report.paymentMethod && (
+          {report.status === 'closed' && (
             <div>
               <h3 className="text-sm font-medium">Método de Pagamento</h3>
               <p className="text-lg">{getPaymentMethodLabel(report.paymentMethod)}</p>

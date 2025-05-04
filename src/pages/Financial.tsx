@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { FileText, Edit, FileDown, FileUp, Trash2 } from 'lucide-react';
+import { FileText, Edit, FileDown, FileUp, Trash2, CreditCard } from 'lucide-react';
 import { useFinancial } from '@/contexts/financial';
 import { useClients } from '@/contexts';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
@@ -33,6 +33,7 @@ import {
 import { Logo } from '@/components/ui/logo';
 import { getCompanyInfo, createPDFReport, createExcelReport } from '@/utils/printUtils';
 import { CloseReportDialog } from '@/components/financial/CloseReportDialog';
+import { EditPaymentDetailsDialog } from '@/components/financial/EditPaymentDetailsDialog';
 import { v4 as uuidv4 } from 'uuid';
 
 const FinancialPage = () => {
@@ -40,9 +41,17 @@ const FinancialPage = () => {
   const [activeTab, setActiveTab] = useState("open");
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
   const [reportToClose, setReportToClose] = useState<FinancialReport | null>(null);
+  const [reportToEdit, setReportToEdit] = useState<FinancialReport | null>(null);
   
   // Get financial data safely with fallbacks
-  const { financialReports = [], loading: isLoading = false, closeReport, reopenReport, deleteFinancialReport } = useFinancial();
+  const { 
+    financialReports = [], 
+    loading: isLoading = false, 
+    closeReport, 
+    reopenReport, 
+    deleteFinancialReport,
+    updatePaymentDetails 
+  } = useFinancial();
   
   // Get clients data safely with fallbacks
   const { clients = [] } = useClients();
@@ -89,6 +98,19 @@ const FinancialPage = () => {
       }
     } catch (error) {
       console.error("Erro ao fechar relatório:", error);
+    }
+  };
+
+  // Função para editar as informações de pagamento
+  const handleEditPaymentDetails = async (reportId: string, paymentMethod: string | null, dueDate: string | null) => {
+    try {
+      await updatePaymentDetails(reportId, paymentMethod, dueDate);
+      
+      // Atualizar a conta a receber correspondente se necessário
+      // Isso seria implementado em um contexto real
+      console.log("Informações de pagamento atualizadas:", { reportId, paymentMethod, dueDate });
+    } catch (error) {
+      console.error("Erro ao atualizar detalhes de pagamento:", error);
     }
   };
 
@@ -348,6 +370,14 @@ const FinancialPage = () => {
                                 <Button
                                   size="sm"
                                   variant="outline"
+                                  onClick={() => setReportToEdit(report)}
+                                >
+                                  <CreditCard className="mr-2 h-4 w-4" />
+                                  Editar Pagamento
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   onClick={() => handleReopenReport(report.id)}
                                 >
                                   <Edit className="mr-2 h-4 w-4" />
@@ -406,6 +436,16 @@ const FinancialPage = () => {
           open={Boolean(reportToClose)}
           onOpenChange={(open) => !open && setReportToClose(null)}
           onClose={handleCloseReportWithDetails}
+        />
+      )}
+      
+      {/* Diálogo para editar detalhes de pagamento */}
+      {reportToEdit && (
+        <EditPaymentDetailsDialog
+          report={reportToEdit}
+          open={Boolean(reportToEdit)}
+          onOpenChange={(open) => !open && setReportToEdit(null)}
+          onSave={handleEditPaymentDetails}
         />
       )}
       

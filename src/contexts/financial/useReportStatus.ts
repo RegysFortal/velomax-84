@@ -73,11 +73,40 @@ export const useReportStatus = (
       description: `O relatório financeiro foi reaberto com sucesso.`,
     });
   };
+  
+  const updatePaymentDetails = async (id: string, paymentMethod: string | null, dueDate: string | null) => {
+    console.log(`Atualizando detalhes de pagamento do relatório com ID: ${id}`);
+    const reportToUpdate = financialReports.find(report => report.id === id);
+    
+    if (!reportToUpdate) {
+      console.error(`Relatório com ID ${id} não encontrado.`);
+      toast({
+        title: "Erro ao atualizar detalhes",
+        description: "Relatório não encontrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const updateData: Partial<FinancialReport> = {};
+    
+    // Only include properties that are being updated
+    if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
+    if (dueDate !== undefined) updateData.dueDate = dueDate;
+    
+    await updateFinancialReport(id, updateData);
+    
+    toast({
+      title: "Detalhes atualizados",
+      description: `Os detalhes de pagamento foram atualizados com sucesso.`,
+    });
+  };
 
   return {
     getFinancialReport,
     getReportsByStatus,
     closeReport,
-    reopenReport
+    reopenReport,
+    updatePaymentDetails
   };
 };
