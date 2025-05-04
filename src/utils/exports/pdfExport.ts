@@ -127,11 +127,11 @@ export function createPDFReport(data: {
     }
   });
   
-  // Format filename correctly: Relatório_PrimeiroNome_mes
-  const clientName = client?.name || '';
+  // Format filename correctly with client name: Relatório_ClientName_Month
+  const clientName = client?.name || 'Cliente';
   const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
   
-  // Use the correct format: Relatório_ClientName_Month
+  // Use the correct format with client name
   const fileName = `Relatório_${formatClientNameForFileName(clientName)}_${reportMonth}.pdf`;
   
   doc.save(fileName);

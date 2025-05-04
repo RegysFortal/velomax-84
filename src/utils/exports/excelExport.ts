@@ -72,9 +72,11 @@ export function createExcelReport(data: {
   
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
   
-  // Format filename correctly: Relatório_PrimeiroNome_mes
+  // Format filename correctly with client name: Relatório_ClientName_Month
   const clientName = client?.name || '';
   const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
+  
+  // Use the correct format with client name
   const fileName = `Relatório_${formatClientNameForFileName(clientName)}_${reportMonth}.xlsx`;
   
   XLSX.writeFile(workbook, fileName);

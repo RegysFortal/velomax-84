@@ -68,8 +68,16 @@ export const useReportActions = (data: any[]) => {
         theme: 'grid'
       });
       
+      // Generate a proper filename with current date
+      const currentDate = new Date();
+      const formattedDate = currentDate.toLocaleDateString('pt-BR', { 
+        month: 'long', 
+        year: 'numeric' 
+      });
+      const fileName = `Relatório_Financeiro_${formattedDate}.pdf`;
+      
       // Save PDF
-      doc.save("relatorio_financeiro.pdf");
+      doc.save(fileName);
       
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
@@ -110,8 +118,16 @@ export const useReportActions = (data: any[]) => {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Relatório");
       
+      // Generate a proper filename with current date
+      const currentDate = new Date();
+      const formattedDate = currentDate.toLocaleDateString('pt-BR', { 
+        month: 'long', 
+        year: 'numeric' 
+      });
+      const fileName = `Relatório_Financeiro_${formattedDate}.xlsx`;
+      
       // Save workbook
-      XLSX.writeFile(wb, "relatorio_financeiro.xlsx");
+      XLSX.writeFile(wb, fileName);
       
       toast.success("Excel gerado com sucesso!");
     } catch (error) {
