@@ -71,12 +71,6 @@ export function EditPaymentDetailsDialog({
     }
   };
   
-  // Função para manipular alterações no método de pagamento
-  const handlePaymentMethodChange = (value: string) => {
-    console.log("Payment method selected:", value);
-    setPaymentMethod(value);
-  };
-  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -95,13 +89,13 @@ export function EditPaymentDetailsDialog({
             <div className="col-span-3 space-y-2">
               <Select 
                 value={paymentMethod || ""}
-                onValueChange={handlePaymentMethodChange}
+                onValueChange={setPaymentMethod}
                 disabled={removePaymentMethod}
               >
                 <SelectTrigger id="payment-method" className="w-full">
                   <SelectValue placeholder="Escolha o método de pagamento" />
                 </SelectTrigger>
-                <SelectContent position="popper" className="w-full bg-background z-50">
+                <SelectContent>
                   <SelectItem value="boleto">Boleto</SelectItem>
                   <SelectItem value="pix">PIX</SelectItem>
                   <SelectItem value="cartao">Cartão</SelectItem>

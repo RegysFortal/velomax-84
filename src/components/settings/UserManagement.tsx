@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserManagementTable } from '@/components/user/UserManagementTable';
@@ -114,7 +115,7 @@ export function UserManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-6">
               <TabsTrigger value="userList">Lista de Usuários</TabsTrigger>
               {user && <TabsTrigger value="password">Alterar Senha</TabsTrigger>}

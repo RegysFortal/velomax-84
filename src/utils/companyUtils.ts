@@ -3,39 +3,19 @@
  * Formats company information for reports
  */
 export function getCompanyInfo() {
-  try {
-    const storedData = localStorage.getItem('company_settings');
-    if (!storedData) {
-      return {
-        name: 'VeloMax Transportes',
-        cnpj: '12.345.678/0001-90',
-        address: 'Av. Principal, 1000',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '01000-000',
-        phone: '(11) 1234-5678',
-        email: 'contato@velomax.com',
-        website: 'www.velomax.com',
-        description: 'Empresa especializada em transporte de cargas.'
-      };
-    }
-    
-    return JSON.parse(storedData);
-  } catch (error) {
-    console.error("Error reading company settings from localStorage:", error);
-    return {
-      name: 'VeloMax Transportes',
-      cnpj: '12.345.678/0001-90',
-      address: 'Av. Principal, 1000',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01000-000',
-      phone: '(11) 1234-5678',
-      email: 'contato@velomax.com',
-      website: 'www.velomax.com',
-      description: 'Empresa especializada em transporte de cargas.'
-    };
-  }
+  const storedData = localStorage.getItem('company_settings');
+  return storedData ? JSON.parse(storedData) : {
+    name: 'VeloMax Transportes',
+    cnpj: '12.345.678/0001-90',
+    address: 'Av. Principal, 1000',
+    city: 'São Paulo',
+    state: 'SP',
+    zipCode: '01000-000',
+    phone: '(11) 1234-5678',
+    email: 'contato@velomax.com',
+    website: 'www.velomax.com',
+    description: 'Empresa especializada em transporte de cargas.'
+  };
 }
 
 /**

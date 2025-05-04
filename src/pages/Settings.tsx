@@ -26,7 +26,6 @@ const SettingsPage = () => {
     try {
       if (permissions[value as keyof typeof permissions]) {
         setActiveTab(value);
-        console.log("Tab changed to:", value);
       } else {
         toast.error("Você não tem permissão para acessar esta seção");
       }
