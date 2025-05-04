@@ -6,7 +6,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, FilePlus, Fuel } from 'lucide-react';
+import { CalendarIcon, FilePlus, Fuel, Wrench } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import LogbookEntryForm from './LogbookEntryForm';
 import FuelRecordForm from './FuelRecordForm';
@@ -19,6 +19,8 @@ interface LogbookPageHeaderProps {
   setIsNewEntryOpen: (isOpen: boolean) => void;
   isNewFuelOpen: boolean;
   setIsNewFuelOpen: (isOpen: boolean) => void;
+  isNewMaintenanceOpen: boolean;
+  setIsNewMaintenanceOpen: (isOpen: boolean) => void;
 }
 
 export const LogbookPageHeader: React.FC<LogbookPageHeaderProps> = ({
@@ -27,7 +29,9 @@ export const LogbookPageHeader: React.FC<LogbookPageHeaderProps> = ({
   isNewEntryOpen,
   setIsNewEntryOpen,
   isNewFuelOpen,
-  setIsNewFuelOpen
+  setIsNewFuelOpen,
+  isNewMaintenanceOpen,
+  setIsNewMaintenanceOpen
 }) => {
   const { toast } = useToast();
 
@@ -120,6 +124,11 @@ export const LogbookPageHeader: React.FC<LogbookPageHeaderProps> = ({
             />
           </DialogContent>
         </Dialog>
+        
+        <Button className="gap-2" variant="outline" onClick={() => setIsNewMaintenanceOpen(true)}>
+          <Wrench className="h-4 w-4" />
+          Manutenção
+        </Button>
       </div>
     </div>
   );
