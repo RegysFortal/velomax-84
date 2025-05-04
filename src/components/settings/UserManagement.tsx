@@ -53,7 +53,7 @@ export function UserManagement() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Alert variant="warning">
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 Apenas administradores podem acessar o gerenciamento de usuários.

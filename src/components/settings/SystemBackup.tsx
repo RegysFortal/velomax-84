@@ -251,7 +251,7 @@ export function SystemBackup() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert variant="warning">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Você não tem permissão para acessar as funcionalidades de backup e restauração do sistema.

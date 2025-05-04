@@ -41,7 +41,7 @@ export function SystemSettings() {
         }
       } catch (error) {
         console.error("Error checking system permissions:", error);
-        // Fallback to client-side role check if there's an error
+        // Fallback to client-side role check
         setIsEditable(user?.role === 'admin');
       }
     };
@@ -177,7 +177,7 @@ export function SystemSettings() {
   if (!isEditable) {
     return (
       <div className="space-y-6">
-        <Alert variant="warning">
+        <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             Você está visualizando as configurações do sistema em modo somente leitura. Você não tem permissão para modificá-las.
