@@ -2,6 +2,7 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { createPDFReport, createExcelReport } from './exportUtils';
+import { formatClientNameForFileName } from './companyUtils';
 
 // Company info for reports
 export const getCompanyInfo = () => {
@@ -19,15 +20,4 @@ export const getCompanyInfo = () => {
 };
 
 // Export functions
-export { createPDFReport, createExcelReport };
-
-// Format client name for file name
-export const formatClientNameForFileName = (clientName: string) => {
-  if (!clientName) return 'SemCliente';
-  
-  // Get first name only
-  const firstName = clientName.split(' ')[0];
-  
-  // Capitalize first letter only
-  return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
-};
+export { createPDFReport, createExcelReport, formatClientNameForFileName };
