@@ -54,6 +54,11 @@ export function EditPaymentDetailsDialog({
       
       await onSave(report.id, methodToSave, dateToSave);
       onOpenChange(false);
+      
+      toast({
+        title: "Sucesso",
+        description: "Detalhes de pagamento atualizados com sucesso.",
+      });
     } catch (error) {
       console.error("Erro ao salvar detalhes de pagamento:", error);
       toast({

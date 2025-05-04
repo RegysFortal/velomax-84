@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FinancialReport } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -171,6 +170,8 @@ export const useFinancialOperations = () => {
       if (report.totalDeliveries !== undefined) supabaseReport.total_deliveries = report.totalDeliveries;
       if (report.totalFreight !== undefined) supabaseReport.total_freight = report.totalFreight;
       if (report.status !== undefined) supabaseReport.status = report.status;
+      if (report.paymentMethod !== undefined) supabaseReport.payment_method = report.paymentMethod;
+      if (report.dueDate !== undefined) supabaseReport.due_date = report.dueDate;
 
       const { error } = await supabase
         .from('financial_reports')

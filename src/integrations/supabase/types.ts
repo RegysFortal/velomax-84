@@ -426,8 +426,10 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string | null
+          due_date: string | null
           end_date: string
           id: string
+          payment_method: string | null
           start_date: string
           status: string
           total_deliveries: number
@@ -438,8 +440,10 @@ export type Database = {
         Insert: {
           client_id: string
           created_at?: string | null
+          due_date?: string | null
           end_date: string
           id?: string
+          payment_method?: string | null
           start_date: string
           status: string
           total_deliveries: number
@@ -450,8 +454,10 @@ export type Database = {
         Update: {
           client_id?: string
           created_at?: string | null
+          due_date?: string | null
           end_date?: string
           id?: string
+          payment_method?: string | null
           start_date?: string
           status?: string
           total_deliveries?: number
