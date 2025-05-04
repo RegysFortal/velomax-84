@@ -20,9 +20,16 @@ interface DatePickerProps {
   onSelect?: (date: Date | undefined) => void
   placeholder?: string
   allowTyping?: boolean
+  disabled?: boolean
 }
 
-export function DatePicker({ date, onSelect, placeholder = "Selecionar data", allowTyping = true }: DatePickerProps) {
+export function DatePicker({ 
+  date, 
+  onSelect, 
+  placeholder = "Selecionar data", 
+  allowTyping = true,
+  disabled = false 
+}: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState<string>("")
   
@@ -38,7 +45,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
   
   // Handle manual input when allowTyping is true
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!allowTyping) return
+    if (!allowTyping || disabled) return
     
     const value = e.target.value
     const formatted = formatPartialDateString(value)
@@ -71,6 +78,8 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
   
   // Handler for input click to open calendar
   const handleInputClick = () => {
+    if (disabled) return;
+    
     if (allowTyping) {
       // Only open calendar on icon click if typing is allowed
       return
@@ -79,7 +88,7 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={disabled ? false : open} onOpenChange={disabled ? undefined : setOpen}>
       <PopoverTrigger asChild>
         <div className="relative">
           <Input
@@ -87,13 +96,16 @@ export function DatePicker({ date, onSelect, placeholder = "Selecionar data", al
             onChange={handleInputChange}
             onClick={handleInputClick}
             placeholder={placeholder}
-            className="pr-10" // Make room for the calendar icon
-            readOnly={!allowTyping}
+            className={cn("pr-10", disabled && "opacity-50 cursor-not-allowed")}
+            readOnly={!allowTyping || disabled}
+            disabled={disabled}
           />
-          <CalendarIcon 
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 opacity-70 cursor-pointer"
-            onClick={() => setOpen(true)}
-          />
+          {!disabled && (
+            <CalendarIcon 
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 opacity-70 cursor-pointer"
+              onClick={() => !disabled && setOpen(true)}
+            />
+          )}
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 z-50" align="start">

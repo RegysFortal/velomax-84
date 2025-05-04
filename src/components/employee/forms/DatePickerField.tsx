@@ -13,6 +13,7 @@ interface DatePickerFieldProps {
   onDateChange?: (date: Date) => void;
   placeholder?: string;
   allowTyping?: boolean;
+  disabled?: boolean;
 }
 
 export function DatePickerField({
@@ -23,7 +24,8 @@ export function DatePickerField({
   date,
   onDateChange,
   placeholder = "Selecione uma data",
-  allowTyping = true
+  allowTyping = true,
+  disabled = false
 }: DatePickerFieldProps) {
   // When value changes externally, ensure the component reflects it
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(value || date);
@@ -55,6 +57,7 @@ export function DatePickerField({
         onSelect={handleDateSelect} 
         placeholder={placeholder}
         allowTyping={allowTyping}
+        disabled={disabled}
       />
     </div>
   );
