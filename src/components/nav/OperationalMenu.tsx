@@ -2,15 +2,15 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Truck, ClipboardList } from "lucide-react";
+import { Truck, FileText, Box } from "lucide-react";
 import { User } from "@/types";
-import { 
+import {
   NavigationMenuItem,
   NavigationMenuTrigger,
-  NavigationMenuContent
+  NavigationMenuContent,
 } from "@/components/ui/navigation-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getActiveClass, hasOperationalAccess } from "./navUtils";
+import { getActiveClass } from "./navUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface OperationalMenuProps {
@@ -20,22 +20,22 @@ interface OperationalMenuProps {
   onOpenChange?: () => void;
 }
 
-export const OperationalMenu: React.FC<OperationalMenuProps> = ({ 
-  user, 
+export const OperationalMenu: React.FC<OperationalMenuProps> = ({
+  user,
   hasPermission,
   open,
   onOpenChange
 }) => {
   const location = useLocation();
   const { isMobile } = useIsMobile();
-  
-  if (!hasOperationalAccess(user, hasPermission)) {
+
+  if (!user) {
     return null;
   }
 
   return (
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
-      <NavigationMenuTrigger 
+      <NavigationMenuTrigger
         className={isMobile ? "w-full justify-start" : ""}
         onClick={onOpenChange}
       >
@@ -45,7 +45,7 @@ export const OperationalMenu: React.FC<OperationalMenuProps> = ({
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
-            {hasPermission('deliveries') && (
+            {hasPermission("deliveries") && (
               <Link
                 to="/deliveries"
                 className={cn(
@@ -57,7 +57,7 @@ export const OperationalMenu: React.FC<OperationalMenuProps> = ({
                 Entregas
               </Link>
             )}
-            {hasPermission('shipments') && (
+            {hasPermission("shipments") && (
               <Link
                 to="/shipments"
                 className={cn(
@@ -65,23 +65,11 @@ export const OperationalMenu: React.FC<OperationalMenuProps> = ({
                   getActiveClass(location.pathname, "/shipments")
                 )}
               >
-                <Truck className="mr-2 h-4 w-4" />
-                Embarques
+                <Box className="mr-2 h-4 w-4" />
+                Remessas
               </Link>
             )}
-            {hasPermission('reports') && (
-              <Link
-                to="/shipment-reports"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/shipment-reports")
-                )}
-              >
-                <ClipboardList className="mr-2 h-4 w-4" />
-                Relatório de Embarques
-              </Link>
-            )}
-            {hasPermission('financial') && (
+            {hasPermission("budgets") && (
               <Link
                 to="/budgets"
                 className={cn(
@@ -89,7 +77,7 @@ export const OperationalMenu: React.FC<OperationalMenuProps> = ({
                   getActiveClass(location.pathname, "/budgets")
                 )}
               >
-                <ClipboardList className="mr-2 h-4 w-4" />
+                <FileText className="mr-2 h-4 w-4" />
                 Orçamentos
               </Link>
             )}
