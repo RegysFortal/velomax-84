@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
@@ -72,11 +71,8 @@ export function createExcelReport(data: {
   
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
   
-  // Simplify filename to just contain "Relatório_ClientName"
-  const clientName = client?.name || '';
-  
-  // Create simple filename with just report and client name
-  const fileName = `Relatório_${formatClientNameForFileName(clientName)}.xlsx`;
+  // Use the actual client name for the filename, not a formatted version
+  const fileName = `Relatório_${client?.name || 'Cliente'}.xlsx`;
   
   XLSX.writeFile(workbook, fileName);
   return fileName;

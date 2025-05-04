@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
@@ -68,8 +67,10 @@ export const useReportActions = (data: any[]) => {
         theme: 'grid'
       });
       
-      // Generate simplified filename
-      const fileName = `Relatório_Financeiro.pdf`;
+      // Generate filename that includes client name if available
+      // If this is a general report without client specific data, use "Financeiro"
+      const reportName = data[0]?.name ? `Relatório_${data[0].name}` : `Relatório_Financeiro`;
+      const fileName = `${reportName}.pdf`;
       
       // Save PDF
       doc.save(fileName);
@@ -113,8 +114,10 @@ export const useReportActions = (data: any[]) => {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Relatório");
       
-      // Generate simplified filename
-      const fileName = `Relatório_Financeiro.xlsx`;
+      // Generate filename that includes client name if available
+      // If this is a general report without client specific data, use "Financeiro"
+      const reportName = data[0]?.name ? `Relatório_${data[0].name}` : `Relatório_Financeiro`;
+      const fileName = `${reportName}.xlsx`;
       
       // Save workbook
       XLSX.writeFile(wb, fileName);

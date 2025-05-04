@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -127,11 +126,9 @@ export function createPDFReport(data: {
     }
   });
   
-  // Simplify filename to just contain "Relatório_ClientName"
-  const clientName = client?.name || 'Cliente';
-  
-  // Create simple filename with just report and client name
-  const fileName = `Relatório_${formatClientNameForFileName(clientName)}.pdf`;
+  // Make sure client name is properly used - fallback to "Cliente" if undefined
+  // Make sure to use the actual name, not a formatted version
+  const fileName = `Relatório_${client?.name || 'Cliente'}.pdf`;
   
   doc.save(fileName);
   return fileName;
