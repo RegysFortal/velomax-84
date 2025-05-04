@@ -42,6 +42,16 @@ const Logbooks = () => {
     record.date === format(selectedDate, 'yyyy-MM-dd')
   );
   
+  // Handle new entry button click
+  const handleNewEntry = () => {
+    setIsNewEntryOpen(true);
+  };
+  
+  // Handle new fuel button click
+  const handleNewFuel = () => {
+    setIsNewFuelOpen(true);
+  };
+  
   if (isLoading) {
     return (
       <AppLayout>
@@ -108,6 +118,7 @@ const Logbooks = () => {
                   vehicles={vehicles}
                   employees={employees}
                   selectedDate={selectedDate}
+                  onNewEntry={handleNewEntry}
                 />
               </CardContent>
             </Card>
@@ -120,6 +131,7 @@ const Logbooks = () => {
                   fuelRecords={filteredFuelRecords} 
                   vehicles={vehicles}
                   selectedDate={selectedDate}
+                  onNewFuel={handleNewFuel}
                 />
               </CardContent>
             </Card>
