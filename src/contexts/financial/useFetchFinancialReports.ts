@@ -2,10 +2,10 @@
 import { useEffect } from 'react';
 import { FinancialReport } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export const useFetchFinancialReports = (
-  user: User | null,
+  user: SupabaseUser | null,
   setFinancialReports: React.Dispatch<React.SetStateAction<FinancialReport[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {

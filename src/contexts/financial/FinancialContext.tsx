@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
 
 export const FinancialProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { supabaseUser: user } = useAuth();
   const {
     financialReports,
     setFinancialReports,
