@@ -146,6 +146,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateUserPassword,
     loading,
     hasPermission,
+    supabaseUser,  // Add missing property
+    session        // Add missing property
   };
 
   return (
