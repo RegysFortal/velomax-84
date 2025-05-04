@@ -16,4 +16,6 @@ export interface AuthContextType {
   resetUserPassword: (userId: string, newPassword: string) => boolean;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   hasPermission: (feature: keyof User['permissions']) => boolean;
+  supabaseUser: SupabaseUser | null;
+  session: Session | null;
 }
