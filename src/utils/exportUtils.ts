@@ -128,10 +128,11 @@ export function createPDFReport(data: {
     }
   });
   
-  // Format filename: Relatório_PrimeiroNome_mes
-  const clientFirstName = formatClientNameForFileName(client?.name || '');
+  // Format filename correctly: Relatório_PrimeiroNome_mes
+  // Get client name and ensure it follows the rule: first name with first letter capitalized only
+  const clientName = client?.name || '';
   const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-  const fileName = `Relatório_${clientFirstName}_${reportMonth}.pdf`;
+  const fileName = `Relatório_${formatClientNameForFileName(clientName)}_${reportMonth}.pdf`;
   
   doc.save(fileName);
   return fileName;
@@ -205,10 +206,11 @@ export function createExcelReport(data: {
   
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
   
-  // Format filename: Relatorio_PrimeiroNome_mes
-  const clientFirstName = formatClientNameForFileName(client?.name || '');
+  // Format filename correctly: Relatório_PrimeiroNome_mes
+  // Get client name and ensure it follows the rule: first name with first letter capitalized only
+  const clientName = client?.name || '';
   const reportMonth = format(new Date(report.startDate), 'MMMM_yyyy', { locale: ptBR });
-  const fileName = `Relatorio_${clientFirstName}_${reportMonth}.xlsx`;
+  const fileName = `Relatório_${formatClientNameForFileName(clientName)}_${reportMonth}.xlsx`;
   
   XLSX.writeFile(workbook, fileName);
   return fileName;
