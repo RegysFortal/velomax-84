@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -103,23 +102,23 @@ export function createPDFReport(data: {
       lineWidth: 0.5,
       lineColor: [0, 0, 0]
     },
-    // Only add the total on the last page
+    // Add the total on the last page only
     didDrawPage: (data) => {
-      // Get total number of pages safely
-      const totalPagesAny = (doc as any).internal.getNumberOfPages();
-      
       // Check if this is the last page
-      if (totalPagesAny === data.pageNumber && !totalAdded) {
-        // Add total row at the bottom right
+      const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+      const totalPages = doc.internal.getNumberOfPages();
+      
+      // Only add total on the last page
+      if (currentPage === totalPages && !totalAdded) {
         const finalY = data.cursor.y + 10;
         
-        // Draw total row
-        doc.setFontSize(10);
+        // Draw total row - aligned to the right
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         
         // Calculate position for right alignment
         const pageWidth = doc.internal.pageSize.width;
-        doc.text("Total geral dos serviços:", pageWidth - 60, finalY);
+        doc.text("Total geral dos serviços:", pageWidth - 90, finalY);
         doc.text(formatCurrency(report.totalFreight), pageWidth - 15, finalY, { align: 'right' });
         
         // Mark that we've added the total
