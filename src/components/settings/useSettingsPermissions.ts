@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
@@ -112,5 +113,5 @@ export const useSettingsPermissions = (user: User | null) => {
     fetchPermissions();
   }, [user]);
 
-  return { permissions, loading, error, setError };
+  return { permissions, loading, error, setError, setPermissions };
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
@@ -9,7 +10,7 @@ import { toast } from 'sonner';
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('system');
   const { user } = useAuth();
-  const { permissions, loading, error, setError } = useSettingsPermissions(user);
+  const { permissions, loading, error, setError, setPermissions } = useSettingsPermissions(user);
 
   useEffect(() => {
     // If current tab is not accessible, switch to the first accessible tab
