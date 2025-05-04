@@ -21,6 +21,21 @@ export function ReportSummary({ report }: ReportSummaryProps) {
     }).format(value);
   };
   
+  // Método de pagamento formatado
+  const getPaymentMethodLabel = (method?: string) => {
+    if (!method) return "N/A";
+    
+    const methods = {
+      boleto: "Boleto",
+      pix: "PIX",
+      cartao: "Cartão",
+      especie: "Espécie",
+      transferencia: "Transferência"
+    };
+    
+    return methods[method as keyof typeof methods] || method;
+  };
+  
   const startDate = new Date(report.startDate);
   const endDate = new Date(report.endDate);
   
@@ -41,6 +56,12 @@ export function ReportSummary({ report }: ReportSummaryProps) {
               {format(startDate, 'dd/MM/yyyy', { locale: ptBR })} até {format(endDate, 'dd/MM/yyyy', { locale: ptBR })}
             </p>
           </div>
+          {report.status === 'closed' && report.paymentMethod && (
+            <div>
+              <h3 className="text-sm font-medium">Método de Pagamento</h3>
+              <p className="text-lg">{getPaymentMethodLabel(report.paymentMethod)}</p>
+            </div>
+          )}
         </div>
         <div className="space-y-3">
           <div>
@@ -55,6 +76,12 @@ export function ReportSummary({ report }: ReportSummaryProps) {
             <h3 className="text-sm font-medium">Status</h3>
             <p className="text-lg capitalize">{report.status === 'open' ? 'Em aberto' : 'Fechado'}</p>
           </div>
+          {report.status === 'closed' && report.dueDate && (
+            <div>
+              <h3 className="text-sm font-medium">Vencimento</h3>
+              <p className="text-lg">{format(new Date(report.dueDate), 'dd/MM/yyyy', { locale: ptBR })}</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1,3 +1,4 @@
+
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -68,12 +69,34 @@ export function createPDFReport(data: {
   doc.setFont('helvetica', 'normal');
   doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 60);
   
+  // Add payment information if available
+  if (report.status === 'closed') {
+    const paymentMethods = {
+      boleto: "Boleto",
+      pix: "PIX",
+      cartao: "Cartão",
+      especie: "Espécie",
+      transferencia: "Transferência"
+    };
+    
+    const paymentMethod = report.paymentMethod 
+      ? paymentMethods[report.paymentMethod as keyof typeof paymentMethods] || report.paymentMethod 
+      : "N/A";
+    
+    const dueDate = report.dueDate 
+      ? format(new Date(report.dueDate), 'dd/MM/yyyy', { locale: ptBR })
+      : "N/A";
+    
+    doc.text(`Forma de Pagamento: ${paymentMethod}`, 14, 67);
+    doc.text(`Vencimento: ${dueDate}`, 90, 67);
+  }
+  
   // Track if total has been added already
   let totalAdded = false;
   
   // Create table with all required fields and borders
   autoTable(doc, {
-    startY: 70,
+    startY: report.status === 'closed' ? 75 : 70,
     head: [['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']],
     body: deliveries.map(delivery => [
       delivery.minuteNumber,

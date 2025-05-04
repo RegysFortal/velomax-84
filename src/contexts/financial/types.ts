@@ -10,6 +10,8 @@ export interface FinancialReport {
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
+  paymentMethod?: string;
+  dueDate?: string;
 }
 
 export interface FinancialContextType {

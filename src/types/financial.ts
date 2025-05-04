@@ -10,6 +10,8 @@ export interface FinancialReport {
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
+  paymentMethod?: string;  // Método de pagamento: pix, boleto, cartao, especie, transferencia
+  dueDate?: string;        // Data de vencimento
 }
 
 export interface PaymentMethod {

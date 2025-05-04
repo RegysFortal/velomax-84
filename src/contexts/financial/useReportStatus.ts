@@ -16,7 +16,7 @@ export const useReportStatus = (
     return financialReports.filter((report) => report.status === status);
   };
 
-  const closeReport = async (id: string) => {
+  const closeReport = async (id: string, paymentMethod?: string, dueDate?: string) => {
     console.log(`Fechando relatório com ID: ${id}`);
     const reportToClose = financialReports.find(report => report.id === id);
     
@@ -30,7 +30,13 @@ export const useReportStatus = (
       return;
     }
     
-    await updateFinancialReport(id, { status: 'closed' });
+    const updateData: Partial<FinancialReport> = {
+      status: 'closed',
+      paymentMethod,
+      dueDate
+    };
+    
+    await updateFinancialReport(id, updateData);
     
     console.log("Relatórios após fechamento:", 
       financialReports.map(r => ({id: r.id, status: r.status}))

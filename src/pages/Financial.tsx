@@ -32,11 +32,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Logo } from '@/components/ui/logo';
 import { getCompanyInfo, createPDFReport, createExcelReport } from '@/utils/printUtils';
+import { CloseReportDialog } from '@/components/financial/CloseReportDialog';
+import { v4 as uuidv4 } from 'uuid';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("open");
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
+  const [reportToClose, setReportToClose] = useState<FinancialReport | null>(null);
   
   // Get financial data safely with fallbacks
   const { financialReports = [], loading: isLoading = false, closeReport, reopenReport, deleteFinancialReport } = useFinancial();
@@ -61,8 +64,66 @@ const FinancialPage = () => {
     }).format(value);
   };
   
-  const handleCloseReport = (reportId: string) => {
-    closeReport(reportId);
+  const handleCloseReportWithDetails = async (reportId: string, paymentMethod: string, dueDate: string) => {
+    try {
+      // Primeiro atualiza os dados adicionais do relatório
+      await closeReport(reportId);
+      
+      // Depois cria a conta a receber automaticamente
+      const report = financialReports.find(r => r.id === reportId);
+      const client = report ? clients.find(c => c.id === report.clientId) : null;
+      
+      if (report && client) {
+        // Criar dados para a conta a receber
+        createReceivableAccount({
+          clientId: report.clientId,
+          clientName: client.name,
+          description: `Relatório ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
+          amount: report.totalFreight,
+          dueDate: dueDate,
+          status: 'pending',
+          categoryId: 'fretes', // Categoria de fretes
+          categoryName: 'Fretes',
+          notes: `Referente ao relatório de ${client.name} no período de ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao fechar relatório:", error);
+    }
+  };
+
+  // Função para criar uma conta a receber (simulando um contexto)
+  const createReceivableAccount = (data: {
+    clientId: string;
+    clientName: string;
+    description: string;
+    amount: number;
+    dueDate: string;
+    status: 'pending' | 'received' | 'overdue' | 'partially_received';
+    categoryId: string;
+    categoryName: string;
+    notes?: string;
+  }) => {
+    // Em uma implementação real, isto seria integrado ao contexto de contas a receber
+    console.log("Conta a receber criada:", data);
+    
+    // Simulando a criação da conta
+    const receivableAccount = {
+      id: uuidv4(),
+      ...data,
+      receivedDate: undefined,
+      receivedAmount: undefined,
+      remainingAmount: undefined,
+      receivedMethod: undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    // Aqui seria o lugar para salvar no estado global ou no banco de dados
+    console.log("Conta a receber gerada:", receivableAccount);
+    
+    // Feedback para o usuário em um ambiente real
+    return receivableAccount;
   };
 
   const handleReopenReport = (reportId: string) => {
@@ -124,6 +185,21 @@ const FinancialPage = () => {
       
       return deliveryDate >= startDate && deliveryDate <= endDate;
     });
+  };
+  
+  // Formatar método de pagamento para exibição
+  const getPaymentMethodLabel = (method?: string) => {
+    if (!method) return "N/A";
+    
+    const methods = {
+      boleto: "Boleto",
+      pix: "PIX",
+      cartao: "Cartão",
+      especie: "Espécie",
+      transferencia: "Transferência"
+    };
+    
+    return methods[method as keyof typeof methods] || method;
   };
   
   return (
@@ -190,7 +266,7 @@ const FinancialPage = () => {
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => handleCloseReport(report.id)}
+                                  onClick={() => setReportToClose(report)}
                                 >
                                   <FileText className="mr-2 h-4 w-4" />
                                   Fechar Relatório
@@ -230,6 +306,8 @@ const FinancialPage = () => {
                       <TableHead>Cliente</TableHead>
                       <TableHead>Período</TableHead>
                       <TableHead>Entregas</TableHead>
+                      <TableHead>Método de Pagamento</TableHead>
+                      <TableHead>Vencimento</TableHead>
                       <TableHead className="text-right">Valor Total</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
@@ -237,13 +315,13 @@ const FinancialPage = () => {
                   <TableBody>
                     {isLoading ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center">
+                        <TableCell colSpan={7} className="text-center">
                           Carregando relatórios...
                         </TableCell>
                       </TableRow>
                     ) : closedReports.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center">
+                        <TableCell colSpan={7} className="text-center">
                           Nenhum relatório fechado
                         </TableCell>
                       </TableRow>
@@ -258,6 +336,12 @@ const FinancialPage = () => {
                               {format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </TableCell>
                             <TableCell>{report.totalDeliveries}</TableCell>
+                            <TableCell>{getPaymentMethodLabel(report.paymentMethod)}</TableCell>
+                            <TableCell>
+                              {report.dueDate 
+                                ? format(new Date(report.dueDate), 'dd/MM/yyyy', { locale: ptBR }) 
+                                : 'N/A'}
+                            </TableCell>
                             <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
@@ -315,6 +399,17 @@ const FinancialPage = () => {
         </div>
       </ScrollArea>
       
+      {/* Diálogo para fechar relatório com informações de pagamento */}
+      {reportToClose && (
+        <CloseReportDialog
+          report={reportToClose}
+          open={Boolean(reportToClose)}
+          onOpenChange={(open) => !open && setReportToClose(null)}
+          onClose={handleCloseReportWithDetails}
+        />
+      )}
+      
+      {/* Diálogo de confirmação de exclusão */}
       <AlertDialog open={!!reportToDelete} onOpenChange={(open) => !open && setReportToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

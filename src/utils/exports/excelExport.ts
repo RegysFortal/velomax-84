@@ -1,3 +1,4 @@
+
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
@@ -17,7 +18,9 @@ export function createExcelReport(data: {
   const { report, client, deliveries, companyData, formatCurrency } = data;
   
   const workbook = XLSX.utils.book_new();
-  const worksheet = XLSX.utils.aoa_to_sheet([
+  
+  // Preparar cabeçalhos base
+  const headerRows = [
     [`${companyData.name}`],
     [`CNPJ: ${companyData.cnpj}`],
     [`${companyData.address}, ${companyData.city} - ${companyData.state}, ${companyData.zipCode}`],
@@ -27,9 +30,34 @@ export function createExcelReport(data: {
     ['RELATÓRIO DE FECHAMENTO'],
     [],
     [`Cliente: ${client?.name || 'N/A'}`],
-    [],
-    ['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']
-  ]);
+  ];
+  
+  // Adicionar informações de pagamento se o relatório estiver fechado
+  if (report.status === 'closed') {
+    const paymentMethods = {
+      boleto: "Boleto",
+      pix: "PIX",
+      cartao: "Cartão",
+      especie: "Espécie",
+      transferencia: "Transferência"
+    };
+    
+    const paymentMethod = report.paymentMethod 
+      ? paymentMethods[report.paymentMethod as keyof typeof paymentMethods] || report.paymentMethod 
+      : "N/A";
+    
+    const dueDate = report.dueDate 
+      ? format(new Date(report.dueDate), 'dd/MM/yyyy', { locale: ptBR })
+      : "N/A";
+    
+    headerRows.push([`Forma de Pagamento: ${paymentMethod} | Vencimento: ${dueDate}`]);
+  }
+  
+  // Adicionar linha em branco e cabeçalhos da tabela
+  headerRows.push([]);
+  headerRows.push(['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']);
+  
+  const worksheet = XLSX.utils.aoa_to_sheet(headerRows);
   
   // Add the data rows
   const data_rows = deliveries.map(delivery => [
@@ -42,12 +70,12 @@ export function createExcelReport(data: {
     delivery.notes || '-'
   ]);
   
-  XLSX.utils.sheet_add_aoa(worksheet, data_rows, { origin: 11 });
+  XLSX.utils.sheet_add_aoa(worksheet, data_rows, { origin: headerRows.length });
   
   // Add total row
   XLSX.utils.sheet_add_aoa(worksheet, [
     ['', '', '', '', '', 'Total:', report.totalFreight]
-  ], { origin: 11 + data_rows.length });
+  ], { origin: headerRows.length + data_rows.length });
   
   // Try to add some basic styling and borders
   const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:G100');
