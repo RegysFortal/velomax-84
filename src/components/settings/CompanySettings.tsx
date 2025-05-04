@@ -5,23 +5,12 @@ import { toast } from 'sonner';
 import { CompanyHeader } from './company/CompanyHeader';
 import { CompanyForm } from './company/CompanyForm';
 import { CompanyActions } from './company/CompanyActions';
+import { getCompanyInfo } from '@/utils/companyUtils';
 
 export function CompanySettings() {
   const [companyData, setCompanyData] = useState(() => {
     try {
-      const storedData = localStorage.getItem('company_settings');
-      return storedData ? JSON.parse(storedData) : {
-        name: 'VeloMax Transportes',
-        cnpj: '12.345.678/0001-90',
-        address: 'Av. Principal, 1000',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '01000-000',
-        phone: '(11) 1234-5678',
-        email: 'contato@velomax.com',
-        website: 'www.velomax.com',
-        description: 'Empresa especializada em transporte de cargas.'
-      };
+      return getCompanyInfo();
     } catch (error) {
       console.error("Error loading company settings:", error);
       return {
@@ -40,15 +29,19 @@ export function CompanySettings() {
   });
   
   useEffect(() => {
-    // This will ensure localStorage is synchronized with state on component mount
-    const storedData = localStorage.getItem('company_settings');
-    if (storedData) {
+    // This will ensure the component re-renders if settings are updated elsewhere
+    const handleSettingsUpdate = () => {
       try {
-        setCompanyData(JSON.parse(storedData));
+        setCompanyData(getCompanyInfo());
       } catch (error) {
-        console.error("Error parsing stored company settings:", error);
+        console.error("Error updating company settings:", error);
       }
-    }
+    };
+
+    window.addEventListener('company_settings_updated', handleSettingsUpdate);
+    return () => {
+      window.removeEventListener('company_settings_updated', handleSettingsUpdate);
+    };
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
