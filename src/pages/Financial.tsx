@@ -283,32 +283,37 @@ const FinancialPage = () => {
                             <TableCell>{report.totalDeliveries}</TableCell>
                             <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => setReportToClose(report)}
-                                >
-                                  <FileText className="mr-2 h-4 w-4" />
-                                  Fechar Relatório
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleViewReport(report.id)}
-                                >
-                                  <FileText className="mr-2 h-4 w-4" />
-                                  Ver Relatório
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => setReportToDelete(report.id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Excluir
-                                </Button>
-                              </div>
+                              <ScrollArea className="max-w-[300px] whitespace-nowrap" orientation="horizontal">
+                                <div className="flex justify-end gap-1">
+                                  <Button 
+                                    size="xs" 
+                                    variant="outline"
+                                    onClick={() => setReportToClose(report)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <FileText className="h-3.5 w-3.5 mr-1" />
+                                    Fechar
+                                  </Button>
+                                  <Button
+                                    size="xs"
+                                    variant="outline"
+                                    onClick={() => handleViewReport(report.id)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <FileText className="h-3.5 w-3.5 mr-1" />
+                                    Ver
+                                  </Button>
+                                  <Button 
+                                    size="xs" 
+                                    variant="outline"
+                                    onClick={() => setReportToDelete(report.id)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                    Excluir
+                                  </Button>
+                                </div>
+                              </ScrollArea>
                             </TableCell>
                           </TableRow>
                         );
@@ -365,56 +370,64 @@ const FinancialPage = () => {
                             </TableCell>
                             <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setReportToEdit(report)}
-                                >
-                                  <CreditCard className="mr-2 h-4 w-4" />
-                                  Editar Pagamento
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleReopenReport(report.id)}
-                                >
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Reabrir
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleViewReport(report.id)}
-                                >
-                                  <FileText className="mr-2 h-4 w-4" />
-                                  Ver Relatório
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleExportPDF(report)}
-                                >
-                                  <FileDown className="mr-2 h-4 w-4" />
-                                  PDF
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleExportExcel(report)}
-                                >
-                                  <FileUp className="mr-2 h-4 w-4" />
-                                  Excel
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => setReportToDelete(report.id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Excluir
-                                </Button>
-                              </div>
+                              <ScrollArea className="max-w-[300px] whitespace-nowrap" orientation="horizontal">
+                                <div className="flex justify-end gap-1">
+                                  <Button
+                                    size="xs"
+                                    variant="outline"
+                                    onClick={() => setReportToEdit(report)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <CreditCard className="h-3.5 w-3.5 mr-1" />
+                                    Editar
+                                  </Button>
+                                  <Button
+                                    size="xs"
+                                    variant="outline"
+                                    onClick={() => handleReopenReport(report.id)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <Edit className="h-3.5 w-3.5 mr-1" />
+                                    Reabrir
+                                  </Button>
+                                  <Button
+                                    size="xs"
+                                    variant="outline"
+                                    onClick={() => handleViewReport(report.id)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <FileText className="h-3.5 w-3.5 mr-1" />
+                                    Ver
+                                  </Button>
+                                  <Button
+                                    size="xs"
+                                    variant="outline"
+                                    onClick={() => handleExportPDF(report)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <FileDown className="h-3.5 w-3.5 mr-1" />
+                                    PDF
+                                  </Button>
+                                  <Button
+                                    size="xs"
+                                    variant="outline"
+                                    onClick={() => handleExportExcel(report)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <FileUp className="h-3.5 w-3.5 mr-1" />
+                                    Excel
+                                  </Button>
+                                  <Button 
+                                    size="xs" 
+                                    variant="outline"
+                                    onClick={() => setReportToDelete(report.id)}
+                                    className="px-1.5 h-8"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                    Excluir
+                                  </Button>
+                                </div>
+                              </ScrollArea>
                             </TableCell>
                           </TableRow>
                         );
