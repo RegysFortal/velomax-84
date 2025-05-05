@@ -283,7 +283,7 @@ const FinancialPage = () => {
                             <TableCell>{report.totalDeliveries}</TableCell>
                             <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                             <TableCell className="text-right">
-                              <ScrollArea className="max-w-[300px] whitespace-nowrap" orientation="horizontal">
+                              <ScrollArea className="max-w-[300px] whitespace-nowrap">
                                 <div className="flex justify-end gap-1">
                                   <Button 
                                     size="xs" 
@@ -370,7 +370,7 @@ const FinancialPage = () => {
                             </TableCell>
                             <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                             <TableCell className="text-right">
-                              <ScrollArea className="max-w-[300px] whitespace-nowrap" orientation="horizontal">
+                              <ScrollArea className="max-w-[300px] whitespace-nowrap">
                                 <div className="flex justify-end gap-1">
                                   <Button
                                     size="xs"
