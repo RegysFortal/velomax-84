@@ -5,10 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { FinancialProvider } from '@/contexts/financial/FinancialContext';
 
-// Components for each tab
-import { FinancialReportsPage } from './accounts/FinancialReportsPage';
-import { ReceivableAccountsPage } from './accounts/ReceivableAccountsPage';
-import { PayableAccountsPage } from './accounts/PayableAccountsPage';
+// Components for each tab - using default imports instead of named imports
+import FinancialReportsPage from './accounts/FinancialReportsPage';
+import ReceivableAccountsPage from './accounts/ReceivableAccountsPage';
+import PayableAccountsPage from './accounts/PayableAccountsPage';
 
 const financialTabs = [
   { id: 'reports', label: 'Relatórios' },

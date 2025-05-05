@@ -136,9 +136,11 @@ export const useReportStatus = (
       const clientName = clientData?.name || "Cliente não encontrado";
       const reportPeriod = `${report.startDate} a ${report.endDate}`;
       
-      // Check if a receivable account for this report already exists using direct SQL query
-      const { data: existingAccount, error: searchError } = await supabase
-        .rpc('check_receivable_account_exists', { report_id: report.id });
+      // Check if a receivable account for this report already exists using direct query
+      const { data: existingAccounts, error: searchError } = await supabase
+        .from('receivable_accounts')
+        .select('id')
+        .eq('report_id', report.id);
       
       if (searchError) {
         console.error("Erro ao verificar conta existente:", searchError);
@@ -146,14 +148,17 @@ export const useReportStatus = (
       }
       
       // If account already exists, update it
-      if (existingAccount && existingAccount.exists) {
-        console.log("Conta a receber já existe, atualizando via RPC");
+      if (existingAccounts && existingAccounts.length > 0) {
+        console.log("Conta a receber já existe, atualizando");
+        
         const { error: updateError } = await supabase
-          .rpc('update_receivable_account', {
-            p_report_id: report.id,
-            p_payment_method: paymentMethod || null,
-            p_due_date: dueDate || null
-          });
+          .from('receivable_accounts')
+          .update({
+            payment_method: paymentMethod || null,
+            due_date: dueDate || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('report_id', report.id);
         
         if (updateError) {
           console.error("Erro ao atualizar conta a receber:", updateError);
@@ -161,18 +166,24 @@ export const useReportStatus = (
         return;
       }
       
-      // Create new receivable account via RPC function
+      // Create new receivable account 
       const { error: insertError } = await supabase
-        .rpc('create_receivable_account', {
-          p_id: uuidv4(),
-          p_client_id: report.clientId,
-          p_client_name: clientName,
-          p_description: `Relatório de ${reportPeriod}`,
-          p_amount: report.totalFreight,
-          p_due_date: dueDate || null,
-          p_payment_method: paymentMethod || null,
-          p_notes: `Referente ao relatório financeiro do período ${reportPeriod}`,
-          p_report_id: report.id
+        .from('receivable_accounts')
+        .insert({
+          id: uuidv4(),
+          client_id: report.clientId,
+          client_name: clientName,
+          description: `Relatório de ${reportPeriod}`,
+          amount: report.totalFreight,
+          due_date: dueDate || null,
+          payment_method: paymentMethod || null,
+          notes: `Referente ao relatório financeiro do período ${reportPeriod}`,
+          report_id: report.id,
+          status: 'pending',
+          category_id: '00000000-0000-0000-0000-000000000000', // Default category
+          category_name: 'Frete',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
       
       if (insertError) {
@@ -199,9 +210,11 @@ export const useReportStatus = (
     try {
       console.log("Atualizando/Criando conta a receber para relatório:", report.id);
       
-      // Check if a receivable account for this report already exists using RPC
-      const { data: existingAccount, error: searchError } = await supabase
-        .rpc('check_receivable_account_exists', { report_id: report.id });
+      // Check if a receivable account for this report already exists
+      const { data: existingAccounts, error: searchError } = await supabase
+        .from('receivable_accounts')
+        .select('id')
+        .eq('report_id', report.id);
       
       if (searchError) {
         console.error("Erro ao verificar conta existente:", searchError);
@@ -209,15 +222,17 @@ export const useReportStatus = (
       }
       
       // If account already exists, update it
-      if (existingAccount && existingAccount.exists) {
-        console.log("Conta a receber já existe, atualizando via RPC");
+      if (existingAccounts && existingAccounts.length > 0) {
+        console.log("Conta a receber já existe, atualizando");
         
         const { error: updateError } = await supabase
-          .rpc('update_receivable_account', {
-            p_report_id: report.id,
-            p_payment_method: paymentMethod,
-            p_due_date: dueDate
-          });
+          .from('receivable_accounts')
+          .update({
+            payment_method: paymentMethod,
+            due_date: dueDate,
+            updated_at: new Date().toISOString()
+          })
+          .eq('report_id', report.id);
         
         if (updateError) {
           console.error("Erro ao atualizar conta a receber:", updateError);
