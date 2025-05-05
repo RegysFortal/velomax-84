@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSettings } from './SystemSettings';
 import { NotificationSettings } from './NotificationSettings';
@@ -33,7 +33,7 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   }, [activeTab, permissions]);
 
   return (
-    <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="mb-6">
         {permissions.system && <TabsTrigger value="system">Sistema</TabsTrigger>}
         {permissions.company && <TabsTrigger value="company">Empresa</TabsTrigger>}

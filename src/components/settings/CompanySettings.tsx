@@ -13,7 +13,6 @@ export function CompanySettings() {
   const { user } = useAuth();
   const [isEditable, setIsEditable] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [companyData, setCompanyData] = useState(() => {
     try {
       return getCompanyInfo();
@@ -110,8 +109,6 @@ export function CompanySettings() {
     }
     
     try {
-      setIsSaving(true);
-      
       // First save to localStorage for backward compatibility
       localStorage.setItem('company_settings', JSON.stringify(companyData));
       
@@ -177,8 +174,6 @@ export function CompanySettings() {
     } catch (error) {
       console.error("Error saving company settings:", error);
       toast.error("Não foi possível salvar as configurações da empresa.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -204,11 +199,7 @@ export function CompanySettings() {
           handleInputChange={handleInputChange}
           disabled={!isEditable}
         />
-        <CompanyActions 
-          onSave={handleSave} 
-          disabled={!isEditable}
-          isSaving={isSaving}
-        />
+        <CompanyActions onSave={handleSave} disabled={!isEditable} />
       </Card>
     </div>
   );
