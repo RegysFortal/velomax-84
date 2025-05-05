@@ -584,6 +584,122 @@ export type Database = {
           },
         ]
       }
+      inventory_entries: {
+        Row: {
+          created_at: string | null
+          date: string | null
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          product_id: string
+          quantity: number
+          supplier: string | null
+          total_cost: number | null
+          unit_cost: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          product_id: string
+          quantity: number
+          supplier?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          product_id?: string
+          quantity?: number
+          supplier?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_entries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_exits: {
+        Row: {
+          created_at: string | null
+          date: string | null
+          destination: string | null
+          id: string
+          notes: string | null
+          product_id: string
+          quantity: number
+          reason: string
+          total_cost: number | null
+          unit_cost: number | null
+          updated_at: string | null
+          user_id: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string | null
+          destination?: string | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          quantity: number
+          reason: string
+          total_cost?: number | null
+          unit_cost?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string | null
+          destination?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          quantity?: number
+          reason?: string
+          total_cost?: number | null
+          unit_cost?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_exits_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_exits_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logbook_entries: {
         Row: {
           assistant_id: string | null
@@ -755,6 +871,69 @@ export type Database = {
         }
         Relationships: []
       }
+      payable_accounts: {
+        Row: {
+          amount: number
+          category_id: string
+          category_name: string | null
+          created_at: string
+          current_installment: number | null
+          description: string
+          due_date: string
+          id: string
+          installments: number | null
+          is_fixed_expense: boolean
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
+          recurrence_frequency: string | null
+          recurring: boolean | null
+          status: string
+          supplier_name: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category_id: string
+          category_name?: string | null
+          created_at?: string
+          current_installment?: number | null
+          description: string
+          due_date: string
+          id?: string
+          installments?: number | null
+          is_fixed_expense?: boolean
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          recurrence_frequency?: string | null
+          recurring?: boolean | null
+          status?: string
+          supplier_name: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string
+          category_name?: string | null
+          created_at?: string
+          current_installment?: number | null
+          description?: string
+          due_date?: string
+          id?: string
+          installments?: number | null
+          is_fixed_expense?: boolean
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          recurrence_frequency?: string | null
+          recurring?: boolean | null
+          status?: string
+          supplier_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       price_tables: {
         Row: {
           allow_custom_pricing: boolean | null
@@ -802,6 +981,135 @@ export type Database = {
           waiting_hour?: Json
         }
         Relationships: []
+      }
+      products: {
+        Row: {
+          barcode: string | null
+          category: string | null
+          cost_price: number | null
+          created_at: string | null
+          current_quantity: number
+          description: string | null
+          id: string
+          min_quantity: number | null
+          name: string
+          selling_price: number | null
+          sku: string | null
+          supplier_id: string | null
+          unit: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          barcode?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string | null
+          current_quantity?: number
+          description?: string | null
+          id?: string
+          min_quantity?: number | null
+          name: string
+          selling_price?: number | null
+          sku?: string | null
+          supplier_id?: string | null
+          unit: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          barcode?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string | null
+          current_quantity?: number
+          description?: string | null
+          id?: string
+          min_quantity?: number | null
+          name?: string
+          selling_price?: number | null
+          sku?: string | null
+          supplier_id?: string | null
+          unit?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      receivable_accounts: {
+        Row: {
+          amount: number
+          category_id: string
+          category_name: string | null
+          client_id: string
+          client_name: string
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          received_amount: number | null
+          received_date: string | null
+          remaining_amount: number | null
+          report_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category_id: string
+          category_name?: string | null
+          client_id: string
+          client_name: string
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          received_amount?: number | null
+          received_date?: string | null
+          remaining_amount?: number | null
+          report_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string
+          category_name?: string | null
+          client_id?: string
+          client_name?: string
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          received_amount?: number | null
+          received_date?: string | null
+          remaining_amount?: number | null
+          report_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receivable_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivable_accounts_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "financial_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shipment_documents: {
         Row: {
@@ -1109,15 +1417,31 @@ export type Database = {
     }
     Functions: {
       get_user_role: {
-        Args: { user_id: string }
+        Args: Record<PropertyKey, never> | { user_id: string }
         Returns: string
       }
+      has_driver_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      has_financial_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       has_fleet_access: {
-        Args: { user_id: string }
+        Args: Record<PropertyKey, never> | { user_id: string }
+        Returns: boolean
+      }
+      has_inventory_access: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       has_operational_access: {
-        Args: { user_id: string }
+        Args: Record<PropertyKey, never> | { user_id: string }
+        Returns: boolean
+      }
+      has_settings_access: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       is_admin: {
@@ -1154,7 +1478,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "manager" | "user" | "driver" | "helper"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1269,6 +1593,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "manager", "user", "driver", "helper"],
+    },
   },
 } as const

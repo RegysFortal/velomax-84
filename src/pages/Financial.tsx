@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -76,7 +75,7 @@ const FinancialPage = () => {
   const handleCloseReportWithDetails = async (reportId: string, paymentMethod: string, dueDate: string) => {
     try {
       // Primeiro atualiza os dados adicionais do relatório
-      await closeReport(reportId);
+      await closeReport(reportId, paymentMethod, dueDate);
       
       // Depois cria a conta a receber automaticamente
       const report = financialReports.find(r => r.id === reportId);
