@@ -21,7 +21,7 @@ export interface FinancialContextType {
   deleteFinancialReport: (id: string) => Promise<void>;
   getFinancialReport: (id: string) => FinancialReport | undefined;
   getReportsByStatus: (status: FinancialReport['status']) => FinancialReport[];
-  closeReport: (id: string) => Promise<void>;
+  closeReport: (id: string, paymentMethod?: string, dueDate?: string) => Promise<void>;
   reopenReport: (id: string) => Promise<void>;
   createReport: (report: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FinancialReport | null>;
   updatePaymentDetails: (id: string, paymentMethod: string | null, dueDate: string | null) => Promise<void>;
