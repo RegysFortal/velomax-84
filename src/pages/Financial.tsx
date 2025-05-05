@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -34,9 +35,13 @@ import { getCompanyInfo, createPDFReport, createExcelReport } from '@/utils/prin
 import { CloseReportDialog } from '@/components/financial/CloseReportDialog';
 import { EditPaymentDetailsDialog } from '@/components/financial/EditPaymentDetailsDialog';
 import { v4 as uuidv4 } from 'uuid';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { ReceivableAccount } from '@/types/financial';
 
 const FinancialPage = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("open");
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
   const [reportToClose, setReportToClose] = useState<FinancialReport | null>(null);
@@ -83,7 +88,7 @@ const FinancialPage = () => {
       
       if (report && client) {
         // Criar dados para a conta a receber
-        createReceivableAccount({
+        await createReceivableAccount({
           clientId: report.clientId,
           clientName: client.name,
           description: `Relatório ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
@@ -92,6 +97,8 @@ const FinancialPage = () => {
           status: 'pending',
           categoryId: 'fretes', // Categoria de fretes
           categoryName: 'Fretes',
+          reportId: report.id,
+          paymentMethod: paymentMethod,
           notes: `Referente ao relatório de ${client.name} no período de ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
         });
       }
@@ -100,21 +107,8 @@ const FinancialPage = () => {
     }
   };
 
-  // Função para editar as informações de pagamento
-  const handleEditPaymentDetails = async (reportId: string, paymentMethod: string | null, dueDate: string | null) => {
-    try {
-      await updatePaymentDetails(reportId, paymentMethod, dueDate);
-      
-      // Atualizar a conta a receber correspondente se necessário
-      // Isso seria implementado em um contexto real
-      console.log("Informações de pagamento atualizadas:", { reportId, paymentMethod, dueDate });
-    } catch (error) {
-      console.error("Erro ao atualizar detalhes de pagamento:", error);
-    }
-  };
-
-  // Função para criar uma conta a receber (simulando um contexto)
-  const createReceivableAccount = (data: {
+  // Função para criar uma conta a receber na base de dados
+  const createReceivableAccount = async (data: {
     clientId: string;
     clientName: string;
     description: string;
@@ -123,32 +117,108 @@ const FinancialPage = () => {
     status: 'pending' | 'received' | 'overdue' | 'partially_received';
     categoryId: string;
     categoryName: string;
+    reportId: string;
+    paymentMethod: string;
     notes?: string;
   }) => {
-    // Em uma implementação real, isto seria integrado ao contexto de contas a receber
-    console.log("Conta a receber criada:", data);
-    
-    // Simulando a criação da conta
-    const receivableAccount = {
-      id: uuidv4(),
-      ...data,
-      receivedDate: undefined,
-      receivedAmount: undefined,
-      remainingAmount: undefined,
-      receivedMethod: undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    // Aqui seria o lugar para salvar no estado global ou no banco de dados
-    console.log("Conta a receber gerada:", receivableAccount);
-    
-    // Feedback para o usuário em um ambiente real
-    return receivableAccount;
+    try {
+      const now = new Date().toISOString();
+      const newAccountData = {
+        client_id: data.clientId,
+        client_name: data.clientName,
+        description: data.description,
+        amount: data.amount,
+        due_date: data.dueDate,
+        status: data.status,
+        category_id: data.categoryId,
+        category_name: data.categoryName,
+        report_id: data.reportId,
+        payment_method: data.paymentMethod,
+        notes: data.notes,
+        created_at: now,
+        updated_at: now
+      };
+      
+      // Inserir no Supabase
+      const { data: insertedData, error } = await supabase
+        .from('receivable_accounts')
+        .insert(newAccountData)
+        .select();
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Conta a receber criada",
+        description: `Uma conta a receber foi criada automaticamente para ${data.clientName}.`,
+      });
+      
+      return insertedData;
+    } catch (error) {
+      console.error("Erro ao criar conta a receber:", error);
+      toast({
+        title: "Erro ao criar conta a receber",
+        description: "Ocorreu um erro ao criar a conta a receber.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleReopenReport = (reportId: string) => {
-    reopenReport(reportId);
+  // Função para editar as informações de pagamento
+  const handleEditPaymentDetails = async (reportId: string, paymentMethod: string | null, dueDate: string | null) => {
+    try {
+      await updatePaymentDetails(reportId, paymentMethod, dueDate);
+      
+      // Também atualiza a conta a receber correspondente, se existir
+      const report = financialReports.find(r => r.id === reportId);
+      
+      if (report) {
+        const updateData: any = {};
+        if (paymentMethod !== null) updateData.payment_method = paymentMethod;
+        if (dueDate !== null) updateData.due_date = dueDate;
+        
+        // Atualiza a conta a receber no Supabase
+        const { error } = await supabase
+          .from('receivable_accounts')
+          .update(updateData)
+          .eq('report_id', reportId);
+        
+        if (error) {
+          console.error("Erro ao atualizar conta a receber:", error);
+        } else {
+          toast({
+            title: "Conta a receber atualizada",
+            description: "Os detalhes de pagamento da conta a receber foram atualizados.",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar detalhes de pagamento:", error);
+    }
+  };
+
+  const handleReopenReport = async (reportId: string) => {
+    try {
+      await reopenReport(reportId);
+      
+      // Marca a conta a receber como cancelada ou exclui
+      const { error } = await supabase
+        .from('receivable_accounts')
+        .delete()
+        .eq('report_id', reportId);
+      
+      if (error) {
+        console.error("Erro ao excluir conta a receber:", error);
+      } else {
+        toast({
+          title: "Conta a receber excluída",
+          description: "A conta a receber relacionada a este relatório foi excluída.",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao reabrir relatório:", error);
+    }
   };
 
   const handleViewReport = (reportId: string) => {
@@ -186,8 +256,23 @@ const FinancialPage = () => {
   
   const handleDeleteReport = async () => {
     if (reportToDelete) {
-      await deleteFinancialReport(reportToDelete);
-      setReportToDelete(null);
+      try {
+        // Excluir a conta a receber relacionada ao relatório
+        const { error } = await supabase
+          .from('receivable_accounts')
+          .delete()
+          .eq('report_id', reportToDelete);
+        
+        if (error) {
+          console.error("Erro ao excluir conta a receber:", error);
+        }
+        
+        // Depois exclui o relatório
+        await deleteFinancialReport(reportToDelete);
+        setReportToDelete(null);
+      } catch (error) {
+        console.error("Erro ao excluir relatório:", error);
+      }
     }
   };
   
