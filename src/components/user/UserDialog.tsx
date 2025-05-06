@@ -1,5 +1,5 @@
 
-import { useEffect, Suspense } from 'react';
+import { useEffect } from 'react';
 import { User } from '@/types';
 import {
   Dialog,
@@ -14,14 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BasicInfoTab } from './tabs/BasicInfoTab';
 import { useUserForm } from './hooks/useUserForm';
 import { PermissionsTab } from './tabs/PermissionsTab';
-
-// Loading fallback component
-const LoadingPermissions = () => (
-  <div className="py-12 flex flex-col justify-center items-center">
-    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
-    <p className="text-sm text-muted-foreground">Carregando permissões...</p>
-  </div>
-);
 
 interface UserDialogProps {
   open: boolean;
@@ -73,7 +65,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                 <BasicInfoTab control={form.control} isCreating={isCreating} />
               </TabsContent>
               
-              <TabsContent value="permissions">
+              <TabsContent value="permissions" className="space-y-4 relative">
                 <PermissionsTab
                   isLoadingPermissions={isLoadingPermissions}
                   permissionsInitialized={permissionsInitialized}

@@ -73,28 +73,25 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     return defaultPermissions;
   }, [defaultPermission]);
 
-  // Function to safely initialize permissions with delay
-  const initializePermissionsWithDelay = useCallback((userPermissions?: Record<string, any>, delay: number = 100) => {
-    console.log("Inicializando permissões com delay:", delay, "ms");
+  // Function to safely initialize permissions immediately without delay
+  const initializePermissionsWithDelay = useCallback((userPermissions?: Record<string, any>, delay: number = 0) => {
+    console.log("Inicializando permissões, delay:", delay);
     setIsLoadingPermissions(true);
-    setPermissionsInitialized(false);
     
-    // Use setTimeout instead of requestAnimationFrame for more reliable behavior
-    setTimeout(() => {
-      try {
-        const initializedPermissions = initializePermissions(userPermissions);
-        console.log("Permissões inicializadas:", Object.keys(initializedPermissions).length);
-        setPermissions(initializedPermissions);
-        setPermissionsInitialized(true);
-      } catch (err) {
-        console.error("Erro ao inicializar permissões:", err);
-        toast.error("Erro ao carregar permissões", { 
-          description: "Tente novamente ou contate o suporte."
-        });
-      } finally {
-        setIsLoadingPermissions(false);
-      }
-    }, delay);
+    try {
+      // Initialize immediately instead of using setTimeout
+      const initializedPermissions = initializePermissions(userPermissions);
+      console.log("Permissões inicializadas:", Object.keys(initializedPermissions).length);
+      setPermissions(initializedPermissions);
+      setPermissionsInitialized(true);
+      setIsLoadingPermissions(false);
+    } catch (err) {
+      console.error("Erro ao inicializar permissões:", err);
+      toast.error("Erro ao carregar permissões", { 
+        description: "Tente novamente ou contate o suporte."
+      });
+      setIsLoadingPermissions(false);
+    }
   }, [initializePermissions]);
 
   // Manipulador para alterar permissões individuais
@@ -115,68 +112,66 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     
     console.log("Atualizando permissões baseado no papel:", currentRole);
     
-    // Use setTimeout to avoid UI freezing when updating permissions
-    setTimeout(() => {
-      try {
-        if (currentRole === 'admin') {
-          // Administradores têm acesso total a tudo
-          const adminPermissions: Record<string, PermissionLevel> = {};
-          Object.keys(permissions).forEach(key => {
-            adminPermissions[key] = {
-              view: true,
-              create: true,
-              edit: true,
-              delete: true
-            };
-          });
-          setPermissions(adminPermissions);
-        } else if (currentRole === 'manager' && isCreating) {
-          // Gerentes têm acesso a mais recursos, mas não todos
-          const managerPermissions = initializePermissions();
-          
-          // Definir permissões padrão para gerentes
-          ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
-           'vehicles', 'logbook', 'maintenance', 'financialDashboard',
-           'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
-           'priceTables', 'financialReports', 'backup'].forEach(key => {
-            if (managerPermissions[key]) {
-              managerPermissions[key].view = true;
-              managerPermissions[key].create = true;
-              managerPermissions[key].edit = true;
-              managerPermissions[key].delete = key !== 'backup'; // Gerentes não podem excluir backups
-            }
-          });
+    try {
+      if (currentRole === 'admin') {
+        // Administradores têm acesso total a tudo
+        const adminPermissions: Record<string, PermissionLevel> = {};
+        Object.keys(permissions).forEach(key => {
+          adminPermissions[key] = {
+            view: true,
+            create: true,
+            edit: true,
+            delete: true
+          };
+        });
+        setPermissions(adminPermissions);
+      } else if (currentRole === 'manager' && isCreating) {
+        // Gerentes têm acesso a mais recursos, mas não todos
+        const managerPermissions = initializePermissions();
+        
+        // Definir permissões padrão para gerentes
+        ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
+         'vehicles', 'logbook', 'maintenance', 'financialDashboard',
+         'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
+         'priceTables', 'financialReports', 'backup'].forEach(key => {
+          if (managerPermissions[key]) {
+            managerPermissions[key].view = true;
+            managerPermissions[key].create = true;
+            managerPermissions[key].edit = true;
+            managerPermissions[key].delete = key !== 'backup'; // Gerentes não podem excluir backups
+          }
+        });
 
-          setPermissions(managerPermissions);
-        } else if (currentRole === 'user' && isCreating) {
-          // Usuários comuns têm acesso limitado
-          const userPermissions = initializePermissions();
-          
-          // Definir permissões padrão para usuários
-          ['dashboard', 'deliveries', 'shipments'].forEach(key => {
-            if (userPermissions[key]) {
-              userPermissions[key].view = true;
-              userPermissions[key].create = false;
-              userPermissions[key].edit = false;
-              userPermissions[key].delete = false;
-            }
-          });
-          
-          setPermissions(userPermissions);
-        }
-      } catch (err) {
-        console.error("Erro ao atualizar permissões baseado no papel:", err);
+        setPermissions(managerPermissions);
+      } else if (currentRole === 'user' && isCreating) {
+        // Usuários comuns têm acesso limitado
+        const userPermissions = initializePermissions();
+        
+        // Definir permissões padrão para usuários
+        ['dashboard', 'deliveries', 'shipments'].forEach(key => {
+          if (userPermissions[key]) {
+            userPermissions[key].view = true;
+            userPermissions[key].create = false;
+            userPermissions[key].edit = false;
+            userPermissions[key].delete = false;
+          }
+        });
+        
+        setPermissions(userPermissions);
       }
-    }, 100);
+    } catch (err) {
+      console.error("Erro ao atualizar permissões baseado no papel:", err);
+    }
   }, [currentRole, isCreating, permissions, initializePermissions, permissionsInitialized, isLoadingPermissions]);
 
   // Initial permission initialization
   useEffect(() => {
     // Initialize permissions immediately when component mounts
     if (!permissionsInitialized && !isLoadingPermissions) {
-      initializePermissionsWithDelay(user?.permissions, 10);
+      console.log("Inicializando permissões no componente mount");
+      initializePermissionsWithDelay(user?.permissions);
     }
-  }, []);
+  }, [user, permissionsInitialized, isLoadingPermissions, initializePermissionsWithDelay]);
 
   return {
     permissions,

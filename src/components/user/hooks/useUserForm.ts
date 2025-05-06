@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -73,7 +74,8 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
       });
       
       // Initialize permissions immediately for new users
-      initializePermissionsWithDelay(undefined, 10);
+      console.log("Inicializando permissões para novo usuário");
+      initializePermissionsWithDelay(undefined);
     } else if (user) {
       // Determine correct role value
       let roleValue: 'user' | 'admin' | 'manager' = 'user';
@@ -101,13 +103,14 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
       });
 
       // Initialize user permissions immediately
-      initializePermissionsWithDelay(user.permissions, 10);
+      console.log("Inicializando permissões para usuário existente");
+      initializePermissionsWithDelay(user.permissions);
     }
   }, [form, user, isCreating, initializePermissionsWithDelay]);
 
-  // Handle tab change with optimized performance
+  // Handle tab change with stable implementation
   const handleTabChange = useCallback((value: string) => {
-    console.log("Changing tab to:", value);
+    console.log("Mudando para tab:", value);
     setActiveTab(value);
   }, []);
 

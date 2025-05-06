@@ -11,7 +11,6 @@ interface PermissionsTabProps {
   isAdmin: boolean;
 }
 
-// Using memo to prevent unnecessary re-renders
 export const PermissionsTab = memo(function PermissionsTab({
   isLoadingPermissions,
   permissionsInitialized,
