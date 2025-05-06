@@ -1,6 +1,6 @@
 
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
-import { User } from '@/types/user';
+import { User, PermissionLevel } from '@/types/user';
 
 export interface AuthContextType {
   user: User | null;
@@ -15,8 +15,8 @@ export interface AuthContextType {
   deleteUser: (userId: string) => Promise<boolean>;
   resetUserPassword: (userId: string, newPassword: string) => Promise<boolean>;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
-  hasPermission: (feature: keyof User['permissions']) => boolean;
+  hasPermission: (feature: string, level?: keyof PermissionLevel) => boolean;
   supabaseUser: SupabaseUser | null;
   session: Session | null;
-  refreshUsers: () => Promise<User[]>; // Adicionado para permitir atualizações manuais
+  refreshUsers: () => Promise<User[]>;
 }

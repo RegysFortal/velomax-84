@@ -44,21 +44,40 @@ export interface User {
     expirationDate?: string;
     issueDate?: string;
   };
-  // Permissions object
+  // Detailed permissions object
   permissions?: {
-    deliveries: boolean;
-    shipments: boolean;
-    clients: boolean;
-    cities: boolean;
-    reports: boolean;
-    financial: boolean;
-    priceTables: boolean;
-    dashboard: boolean;
-    logbook: boolean;
-    employees: boolean;
-    vehicles: boolean;
-    maintenance: boolean;
-    settings: boolean;
-    [key: string]: boolean;
+    dashboard?: PermissionLevel;
+    deliveries?: PermissionLevel;
+    shipments?: PermissionLevel;
+    shipmentReports?: PermissionLevel;
+    financialDashboard?: PermissionLevel;
+    reportsToClose?: PermissionLevel;
+    closing?: PermissionLevel;
+    cities?: PermissionLevel;
+    priceTables?: PermissionLevel;
+    receivableAccounts?: PermissionLevel;
+    payableAccounts?: PermissionLevel;
+    financialReports?: PermissionLevel;
+    vehicles?: PermissionLevel;
+    logbook?: PermissionLevel;
+    maintenance?: PermissionLevel;
+    products?: PermissionLevel;
+    inventory?: PermissionLevel;
+    inventoryEntries?: PermissionLevel;
+    inventoryExits?: PermissionLevel;
+    inventoryDashboard?: PermissionLevel;
+    system?: PermissionLevel;
+    company?: PermissionLevel;
+    users?: PermissionLevel;
+    backup?: PermissionLevel;
+    [key: string]: PermissionLevel | boolean | undefined;
   };
 }
+
+export interface PermissionLevel {
+  view: boolean;
+  create: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+

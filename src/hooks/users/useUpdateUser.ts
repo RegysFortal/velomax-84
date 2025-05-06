@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { mapAppUserToSupabase } from './userMappers';
 import { toast } from 'sonner';
 
 export const useUpdateUser = () => {
@@ -48,16 +49,7 @@ export const useUpdateUser = () => {
       }
 
       // Formatamos os dados do usuário para o formato Supabase
-      const supabaseUserData: any = {
-        name: userData.name,
-        username: userData.username,
-        email: userData.email,
-        role: userData.role,
-        department: userData.department,
-        position: userData.position,
-        phone: userData.phone,
-        updated_at: new Date().toISOString()
-      };
+      const supabaseUserData = mapAppUserToSupabase(userData);
 
       // Remover campos undefined
       Object.keys(supabaseUserData).forEach(key => 
@@ -76,31 +68,12 @@ export const useUpdateUser = () => {
 
       // Atualizar permissões se fornecidas
       if (userData.permissions) {
-        const permissionsData: any = {
-          deliveries: userData.permissions.deliveries,
-          shipments: userData.permissions.shipments,
-          clients: userData.permissions.clients,
-          cities: userData.permissions.cities,
-          reports: userData.permissions.reports,
-          financial: userData.permissions.financial,
-          price_tables: userData.permissions.priceTables,
-          dashboard: userData.permissions.dashboard,
-          logbook: userData.permissions.logbook,
-          employees: userData.permissions.employees,
-          vehicles: userData.permissions.vehicles,
-          maintenance: userData.permissions.maintenance,
-          settings: userData.permissions.settings,
-          updated_at: new Date().toISOString()
-        };
-
-        // Remover campos undefined
-        Object.keys(permissionsData).forEach(key => 
-          permissionsData[key] === undefined && delete permissionsData[key]
-        );
-
         const { error: permError } = await supabase
           .from('user_permissions' as any)
-          .update(permissionsData)
+          .update({ 
+            permissions: supabaseUserData.permissions,
+            updated_at: new Date().toISOString() 
+          })
           .eq('user_id', userId);
 
         if (permError) {

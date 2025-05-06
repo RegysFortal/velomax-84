@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import {
   Dialog,
@@ -28,7 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PermissionsSection } from './table/PermissionsSection';
 import { toast } from 'sonner';
 
 const userFormSchema = z.object({
@@ -42,35 +44,6 @@ const userFormSchema = z.object({
   department: z.string().optional(),
   position: z.string().optional(),
   phone: z.string().optional(),
-  permissions: z.object({
-    deliveries: z.boolean().default(false),
-    shipments: z.boolean().default(false),
-    clients: z.boolean().default(false),
-    cities: z.boolean().default(false),
-    reports: z.boolean().default(false),
-    financial: z.boolean().default(false),
-    priceTables: z.boolean().default(false),
-    dashboard: z.boolean().default(true),
-    logbook: z.boolean().default(false),
-    employees: z.boolean().default(false),
-    vehicles: z.boolean().default(false),
-    maintenance: z.boolean().default(false),
-    settings: z.boolean().default(false),
-  }).default({
-    deliveries: false,
-    shipments: false,
-    clients: false,
-    cities: false,
-    reports: false,
-    financial: false,
-    priceTables: false,
-    dashboard: true,
-    logbook: false,
-    employees: false,
-    vehicles: false,
-    maintenance: false,
-    settings: false,
-  }),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -86,6 +59,15 @@ interface UserDialogProps {
 export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: UserDialogProps) {
   const { createUser, updateUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+  const [permissions, setPermissions] = useState<Record<string, PermissionLevel>>({});
+  
+  const defaultPermission: PermissionLevel = {
+    view: false,
+    create: false,
+    edit: false, 
+    delete: false
+  };
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -98,23 +80,54 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
       department: '',
       position: '',
       phone: '',
-      permissions: {
-        deliveries: false,
-        shipments: false,
-        clients: false,
-        cities: false,
-        reports: false,
-        financial: false,
-        priceTables: false,
-        dashboard: true,
-        logbook: false,
-        employees: false,
-        vehicles: false,
-        maintenance: false,
-        settings: false,
-      },
     },
   });
+
+  // Inicializa o conjunto de permissões com valores padrão
+  const initializePermissions = (userPermissions?: Record<string, any>) => {
+    const defaultPermissions: Record<string, PermissionLevel> = {
+      dashboard: { ...defaultPermission, view: true }, // Dashboard é sempre visível por padrão
+      deliveries: { ...defaultPermission },
+      shipments: { ...defaultPermission },
+      shipmentReports: { ...defaultPermission },
+      financialDashboard: { ...defaultPermission },
+      reportsToClose: { ...defaultPermission },
+      closing: { ...defaultPermission },
+      cities: { ...defaultPermission },
+      priceTables: { ...defaultPermission },
+      receivableAccounts: { ...defaultPermission },
+      payableAccounts: { ...defaultPermission },
+      financialReports: { ...defaultPermission },
+      vehicles: { ...defaultPermission },
+      logbook: { ...defaultPermission },
+      maintenance: { ...defaultPermission },
+      products: { ...defaultPermission },
+      inventoryEntries: { ...defaultPermission },
+      inventoryExits: { ...defaultPermission },
+      inventoryDashboard: { ...defaultPermission },
+      system: { ...defaultPermission },
+      company: { ...defaultPermission },
+      users: { ...defaultPermission },
+      backup: { ...defaultPermission },
+    };
+
+    // Se o usuário já tiver permissões, converter do formato antigo para o novo
+    if (userPermissions) {
+      Object.keys(userPermissions).forEach(key => {
+        if (typeof userPermissions[key] === 'boolean') {
+          // Formato antigo (boolean)
+          if (defaultPermissions[key]) {
+            defaultPermissions[key].view = userPermissions[key];
+          }
+        } else if (typeof userPermissions[key] === 'object') {
+          // Já está no novo formato
+          defaultPermissions[key] = userPermissions[key];
+        }
+      });
+    }
+
+    return defaultPermissions;
+  };
 
   // Reset form when dialog opens/closes or user changes
   useEffect(() => {
@@ -131,22 +144,8 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           department: '',
           position: '',
           phone: '',
-          permissions: {
-            deliveries: false,
-            shipments: false,
-            clients: false,
-            cities: false,
-            reports: false,
-            financial: false,
-            priceTables: false,
-            dashboard: true,
-            logbook: false,
-            employees: false,
-            vehicles: false,
-            maintenance: false,
-            settings: false,
-          },
         });
+        setPermissions(initializePermissions());
       } else if (user) {
         // Determine correct role value
         let roleValue: 'user' | 'admin' | 'manager' = 'user';
@@ -154,29 +153,12 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           roleValue = user.role;
         }
         
-        // Ensure permissions object exists
-        const userPermissions = user.permissions || {
-          deliveries: false,
-          shipments: false,
-          clients: false,
-          cities: false,
-          reports: false,
-          financial: false,
-          priceTables: false,
-          dashboard: true,
-          logbook: false,
-          employees: false,
-          vehicles: false,
-          maintenance: false,
-          settings: false,
-        };
-        
         console.log("Definindo valores do formulário para usuário existente", { 
           name: user.name || '',
           username: user.username || '',
           email: user.email || '',
           role: roleValue,
-          permissions: userPermissions
+          permissions: user.permissions
         });
         
         form.reset({
@@ -188,11 +170,79 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           department: user.department || '',
           position: user.position || '',
           phone: user.phone || '',
-          permissions: userPermissions,
         });
+
+        // Inicializar permissões a partir do usuário existente
+        setPermissions(initializePermissions(user.permissions));
       }
+
+      // Reset para a primeira aba
+      setActiveTab('basic');
     }
   }, [form, user, open, isCreating]);
+
+  // Atualiza permissões quando o papel é alterado
+  useEffect(() => {
+    const role = form.watch('role');
+    
+    if (role === 'admin') {
+      // Administradores têm acesso total a tudo
+      const adminPermissions: Record<string, PermissionLevel> = {};
+      Object.keys(permissions).forEach(key => {
+        adminPermissions[key] = {
+          view: true,
+          create: true,
+          edit: true,
+          delete: true
+        };
+      });
+      setPermissions(adminPermissions);
+    } else if (role === 'manager' && isCreating) {
+      // Gerentes têm acesso a mais recursos, mas não todos
+      const managerPermissions = initializePermissions();
+      
+      // Definir permissões padrão para gerentes
+      ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
+       'vehicles', 'logbook', 'maintenance', 'financialDashboard',
+       'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
+       'priceTables', 'financialReports', 'backup'].forEach(key => {
+        if (managerPermissions[key]) {
+          managerPermissions[key].view = true;
+          managerPermissions[key].create = true;
+          managerPermissions[key].edit = true;
+          managerPermissions[key].delete = key !== 'backup'; // Gerentes não podem excluir backups
+        }
+      });
+
+      setPermissions(managerPermissions);
+    } else if (role === 'user' && isCreating) {
+      // Usuários comuns têm acesso limitado
+      const userPermissions = initializePermissions();
+      
+      // Definir permissões padrão para usuários
+      ['dashboard', 'deliveries', 'shipments'].forEach(key => {
+        if (userPermissions[key]) {
+          userPermissions[key].view = true;
+          userPermissions[key].create = false;
+          userPermissions[key].edit = false;
+          userPermissions[key].delete = false;
+        }
+      });
+      
+      setPermissions(userPermissions);
+    }
+  }, [form.watch('role'), isCreating]);
+
+  // Manipulador para alterar permissões individuais
+  const handlePermissionChange = (name: string, level: keyof PermissionLevel, value: boolean) => {
+    setPermissions(prev => ({
+      ...prev,
+      [name]: {
+        ...prev[name],
+        [level]: value
+      }
+    }));
+  };
 
   const onSubmit = async (data: UserFormValues) => {
     console.log("Formulário enviado com dados:", data);
@@ -208,24 +258,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           return;
         }
 
-        // Ensure permissions object is complete
-        const completePermissions = {
-          deliveries: data.permissions.deliveries || false,
-          shipments: data.permissions.shipments || false,
-          clients: data.permissions.clients || false,
-          cities: data.permissions.cities || false,
-          reports: data.permissions.reports || false,
-          financial: data.permissions.financial || false,
-          priceTables: data.permissions.priceTables || false,
-          dashboard: data.permissions.dashboard || true,
-          logbook: data.permissions.logbook || false,
-          employees: data.permissions.employees || false,
-          vehicles: data.permissions.vehicles || false,
-          maintenance: data.permissions.maintenance || false,
-          settings: data.permissions.settings || false,
-        };
-
-        console.log("Criando novo usuário com permissões:", completePermissions);
+        console.log("Criando novo usuário com permissões:", permissions);
         const newUser = await createUser({
           name: data.name,
           username: data.username,
@@ -235,7 +268,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           department: data.department,
           position: data.position,
           phone: data.phone,
-          permissions: completePermissions,
+          permissions: permissions,
           updatedAt: new Date().toISOString(),
         });
 
@@ -243,23 +276,6 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           description: `O usuário ${newUser.name} foi criado com sucesso.`,
         });
       } else if (user) {
-        // Ensure permissions object is complete for updates
-        const updatedPermissions = {
-          deliveries: data.permissions.deliveries || false,
-          shipments: data.permissions.shipments || false,
-          clients: data.permissions.clients || false,
-          cities: data.permissions.cities || false,
-          reports: data.permissions.reports || false,
-          financial: data.permissions.financial || false,
-          priceTables: data.permissions.priceTables || false,
-          dashboard: data.permissions.dashboard || true,
-          logbook: data.permissions.logbook || false,
-          employees: data.permissions.employees || false,
-          vehicles: data.permissions.vehicles || false,
-          maintenance: data.permissions.maintenance || false,
-          settings: data.permissions.settings || false,
-        };
-
         const updatedUser: Partial<User> = {
           name: data.name,
           username: data.username,
@@ -268,7 +284,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           department: data.department,
           position: data.position,
           phone: data.phone,
-          permissions: updatedPermissions,
+          permissions: permissions,
           updatedAt: new Date().toISOString(),
         };
 
@@ -295,9 +311,11 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
     }
   };
 
+  const isAdmin = form.watch('role') === 'admin';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isCreating ? 'Criar Novo Usuário' : 'Editar Usuário'}
@@ -306,386 +324,173 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
+                <TabsTrigger value="permissions">Permissões de Acesso</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="basic" className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome de Usuário</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome de Usuário</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="email" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{isCreating ? 'Senha' : 'Nova Senha (opcional)'}</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="password" placeholder={isCreating ? '' : 'Deixe em branco para manter a senha atual'} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{isCreating ? 'Senha' : 'Nova Senha (opcional)'}</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="password" placeholder={isCreating ? '' : 'Deixe em branco para manter a senha atual'} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Função</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma função" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="manager">Gerente</SelectItem>
-                        <SelectItem value="user">Usuário</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Função</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma função" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="admin">Administrador</SelectItem>
+                            <SelectItem value="manager">Gerente</SelectItem>
+                            <SelectItem value="user">Usuário</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Departamento</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um departamento" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="operations">Operações</SelectItem>
-                        <SelectItem value="finance">Financeiro</SelectItem>
-                        <SelectItem value="administrative">Administrativo</SelectItem>
-                        <SelectItem value="logistics">Logística</SelectItem>
-                        <SelectItem value="commercial">Comercial</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="department"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Departamento</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um departamento" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="operations">Operações</SelectItem>
+                            <SelectItem value="finance">Financeiro</SelectItem>
+                            <SelectItem value="administrative">Administrativo</SelectItem>
+                            <SelectItem value="logistics">Logística</SelectItem>
+                            <SelectItem value="commercial">Comercial</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="position"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cargo</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="position"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cargo</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Telefone</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-md font-medium">Permissões de Acesso</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="permissions.dashboard"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Dashboard
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.clients"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Clientes
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.deliveries"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Entregas
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.priceTables"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Tabelas de Preço
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.cities"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Cidades
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.reports"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Relatórios
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.financial"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Financeiro
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.logbook"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Diário de Bordo
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.vehicles"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Veículos
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.employees"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Funcionários
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.maintenance"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Manutenção
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.shipments"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Transportadoras
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="permissions.settings"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Configurações
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="permissions">
+                <div className="space-y-4">
+                  <div className="pb-2">
+                    <p className="text-sm text-muted-foreground">
+                      {isAdmin 
+                        ? 'Administradores têm acesso total a todos os recursos do sistema.' 
+                        : 'Configure as permissões de acesso para este usuário:'}
+                    </p>
+                  </div>
+                  <PermissionsSection 
+                    permissions={permissions} 
+                    onChange={handlePermissionChange}
+                    isAdmin={isAdmin}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>

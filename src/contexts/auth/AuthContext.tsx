@@ -135,7 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const value: AuthContextType = {
     user,
-    users, // Agora vem do useSupabaseUserManagement
+    users,
     currentUser,
     login,
     logout,
@@ -149,7 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hasPermission,
     supabaseUser,
     session,
-    refreshUsers  // Adicionado para permitir atualizações manuais
+    refreshUsers
   };
 
   return (

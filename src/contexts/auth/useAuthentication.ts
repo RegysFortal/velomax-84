@@ -1,221 +1,125 @@
 
 import { useState, useCallback } from 'react';
-import { User } from '@/types';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { User, PermissionLevel } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { logUserActivity } from './authUtils';
+import { toast } from 'sonner';
 
-export const useAuthentication = (users: User[], setUsers: (users: User[]) => void) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Use try-catch with useNavigate to handle the case where it's not inside a Router
-  let navigate;
-  try {
-    navigate = useNavigate();
-  } catch (error) {
-    // Create a dummy navigate function for initial render
-    navigate = (path: string) => {
-      console.warn('Navigation attempted outside Router context:', path);
-      return false;
-    };
-  }
+export const useAuthentication = (
+  initialUsers: User[],
+  updateUsers: (users: User[]) => void
+) => {
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem('velomax_user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [supabaseUser, setSupabaseUser] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     try {
-      if (username === 'admin') {
-        const foundUser = users.find(u => u.username === username);
-        
-        if (!foundUser) {
-          toast("Erro de autenticação", {
-            description: "Nome de usuário ou senha incorretos",
-          });
-          return false;
-        }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: username.includes('@') ? username : `${username}@velomax.com.br`,
+        password,
+      });
 
-        const updatedUser = { 
-          ...foundUser, 
-          lastLogin: new Date().toISOString() 
-        };
-        
-        setUser(updatedUser);
-        localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
-
-        const updatedUsers = users.map(u => u.id === foundUser.id ? updatedUser : u);
-        localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
-        setUsers(updatedUsers);
-
-        logUserActivity(
-          foundUser,
-          'login',
-          'user',
-          foundUser.id,
-          foundUser.name,
-          'Usuário fez login no sistema (modo demo)'
-        );
-
-        toast("Login bem-sucedido (modo demo)", {
-          description: `Bem-vindo, ${foundUser.name}!`,
-        });
-        
-        navigate('/dashboard');
-        return true;
-      } else {
-        const email = username.includes('@') ? username : `${username}@velomax.com`;
-        
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-        
-        if (error) throw error;
-        
-        if (data.user) {
-          toast("Login bem-sucedido", {
-            description: `Bem-vindo, ${data.user.email}!`,
-          });
-          navigate('/dashboard');
-          return true;
-        }
-        
-        toast("Erro de autenticação", {
-          description: "Nome de usuário ou senha incorretos",
-        });
-        return false;
-      }
-    } catch (error) {
-      console.error("Erro ao fazer login:", error);
-      toast("Erro no sistema", {
-        description: "Ocorreu um erro durante o login. Tente novamente.",
+      if (error) throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error('Erro ao fazer login', {
+        description: error.message || 'Credenciais inválidas. Verifique seu nome de usuário e senha.'
       });
       return false;
     }
-  };
+  }, []);
 
-  const logout = async () => {
-    if (user) {
-      logUserActivity(
-        user,
-        'logout',
-        'user',
-        '',
-        '',
-        'Usuário fez logout do sistema'
-      );
-    }
-
-    await supabase.auth.signOut();
-    
-    setUser(null);
-    setSupabaseUser(null);
-    localStorage.removeItem('velomax_user');
-    
-    navigate('/login');
-  };
-
-  const updateUserProfile = async (userData: Partial<User>) => {
+  const logout = useCallback(async () => {
     try {
-      if (!user) {
-        throw new Error("Usuário não autenticado");
-      }
+      await supabase.auth.signOut();
+      setUser(null);
+      setCurrentUser(null);
+      localStorage.removeItem('velomax_user');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  }, []);
+
+  const updateUserProfile = useCallback(async (userData: Partial<User>) => {
+    if (!user) return false;
+
+    try {
+      const updatedUser = { ...user, ...userData };
       
-      const userIndex = users.findIndex(u => u.id === user.id);
+      // Atualizar usuário no Supabase
+      // Implementar quando integrado com Supabase
       
-      if (userIndex === -1) {
-        throw new Error("Usuário não encontrado");
-      }
-      
-      const updatedUser = {
-        ...users[userIndex],
-        ...userData,
-        updatedAt: new Date().toISOString()
-      };
-      
-      const updatedUsers = [...users];
-      updatedUsers[userIndex] = updatedUser;
-      
-      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
-      
+      // Manter o estado local atualizado
       setUser(updatedUser);
       localStorage.setItem('velomax_user', JSON.stringify(updatedUser));
       
-      logUserActivity(
-        user,
-        'update',
-        'user',
-        user.id,
-        updatedUser.name,
-        'Perfil de usuário atualizado'
-      );
-      
       return true;
     } catch (error) {
-      console.error("Error updating user profile:", error);
-      throw error;
+      console.error('Error updating user profile:', error);
+      return false;
     }
-  };
+  }, [user]);
 
-  const updateUserPassword = async (currentPassword: string, newPassword: string) => {
+  const updateUserPassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    if (!user) return false;
+
     try {
-      if (!user) {
-        throw new Error("Usuário não autenticado");
-      }
+      // Validar senha atual primeiro (simulação)
+      // Em uma implementação real, isso seria verificado no servidor
       
-      if (currentPassword !== 'password') {
-        throw new Error("Senha atual incorreta");
-      }
+      // Atualizar senha no Supabase
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       
-      const userIndex = users.findIndex(u => u.id === user.id);
+      if (error) throw error;
       
-      if (userIndex === -1) {
-        throw new Error("Usuário não encontrado");
-      }
-      
-      const updatedUser = {
-        ...users[userIndex],
-        // password would be stored here if we were implementing real auth
-      };
-      
-      const updatedUsers = [...users];
-      updatedUsers[userIndex] = updatedUser;
-      
-      localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
-      
-      logUserActivity(
-        user,
-        'update',
-        'user',
-        user.id,
-        user.name,
-        'Senha de usuário atualizada'
-      );
+      toast.success("Senha atualizada", {
+        description: "Sua senha foi atualizada com sucesso."
+      });
       
       return true;
-    } catch (error) {
-      console.error("Error updating user password:", error);
-      throw error;
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      toast.error("Erro ao atualizar senha", {
+        description: error.message || "Não foi possível atualizar a senha. Verifique seus dados e tente novamente."
+      });
+      return false;
     }
-  };
+  }, [user]);
 
-  const hasPermission = (feature: keyof User['permissions']) => {
+  // Verifica se o usuário tem a permissão especificada
+  const hasPermission = useCallback((feature: string, level: keyof PermissionLevel = 'view'): boolean => {
     if (!user) return false;
     
-    // Admin role bypass permission checks
+    // Administradores têm acesso total a tudo
     if (user.role === 'admin') return true;
     
-    // For other roles, check the specific permission
-    return user.permissions && user.permissions[feature] === true;
-  };
+    // Verifica no novo formato de permissões detalhadas
+    if (user.permissions && user.permissions[feature]) {
+      // Se for um objeto de permissão com níveis
+      if (typeof user.permissions[feature] === 'object' && 
+          user.permissions[feature] !== null) {
+        const permissionObj = user.permissions[feature] as PermissionLevel;
+        return !!permissionObj[level];
+      }
+      
+      // Suporte à retrocompatibilidade - se for booleano, considera apenas para view
+      if (typeof user.permissions[feature] === 'boolean') {
+        return level === 'view' ? !!user.permissions[feature] : false;
+      }
+    }
+    
+    return false;
+  }, [user]);
 
   return {
     user,
-    currentUser: user,
+    currentUser,
     loading,
     login,
     logout,
@@ -223,9 +127,9 @@ export const useAuthentication = (users: User[], setUsers: (users: User[]) => vo
     updateUserPassword,
     hasPermission,
     setUser,
+    setLoading,
     setSupabaseUser,
     setSession,
-    setLoading,
     supabaseUser,
     session
   };
