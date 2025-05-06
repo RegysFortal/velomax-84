@@ -68,8 +68,7 @@ export const useSupabaseUsers = () => {
           *,
           permissions:user_permissions(*)
         `)
-        .order('created_at', { ascending: false })
-        .returns<any[]>();
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -123,8 +122,7 @@ export const useSupabaseUsers = () => {
       const { data: existingUsers, error: checkError } = await supabase
         .from('users')
         .select('email, username')
-        .or(`email.eq.${userData.email},username.eq.${userData.username}`)
-        .returns<any[]>();
+        .or(`email.eq.${userData.email},username.eq.${userData.username}`);
       
       if (checkError) throw checkError;
       
@@ -230,8 +228,7 @@ export const useSupabaseUsers = () => {
         }
         
         const { data: existingUsers, error: checkError } = await checkQuery
-          .or(queryStr)
-          .returns<any[]>();
+          .or(queryStr);
         
         if (checkError) throw checkError;
         
@@ -364,4 +361,3 @@ export const useSupabaseUsers = () => {
     deleteUser
   };
 };
-
