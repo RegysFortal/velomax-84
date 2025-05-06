@@ -61,6 +61,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const [permissions, setPermissions] = useState<Record<string, PermissionLevel>>({});
+  const [permissionsInitialized, setPermissionsInitialized] = useState(false);
   
   const defaultPermission: PermissionLevel = {
     view: false,
@@ -154,10 +155,14 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           position: '',
           phone: '',
         });
+        
+        setPermissionsInitialized(false);
         // Use setTimeout to prevent UI freezing when initializing permissions
         setTimeout(() => {
-          setPermissions(initializePermissions());
-        }, 0);
+          const defaultPerms = initializePermissions();
+          setPermissions(defaultPerms);
+          setPermissionsInitialized(true);
+        }, 10);
       } else if (user) {
         // Determine correct role value
         let roleValue: 'user' | 'admin' | 'manager' = 'user';
@@ -184,10 +189,13 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           phone: user.phone || '',
         });
 
+        setPermissionsInitialized(false);
         // Initialize permissions after a slight delay to avoid UI freezing
         setTimeout(() => {
-          setPermissions(initializePermissions(user.permissions));
-        }, 0);
+          const userPerms = initializePermissions(user.permissions);
+          setPermissions(userPerms);
+          setPermissionsInitialized(true);
+        }, 10);
       }
     }
   }, [form, user, open, isCreating, initializePermissions]);
@@ -196,7 +204,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
   const currentRole = form.watch('role');
   
   useEffect(() => {
-    if (!open) return;
+    if (!open || !permissionsInitialized) return;
     
     // Use setTimeout to avoid UI freezing when updating permissions
     setTimeout(() => {
@@ -246,8 +254,8 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
         
         setPermissions(userPermissions);
       }
-    }, 0);
-  }, [currentRole, isCreating, open, permissions, initializePermissions]);
+    }, 10);
+  }, [currentRole, isCreating, open, permissions, initializePermissions, permissionsInitialized]);
 
   // Manipulador para alterar permissões individuais
   const handlePermissionChange = useCallback((name: string, level: keyof PermissionLevel, value: boolean) => {
@@ -500,20 +508,26 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
               </TabsContent>
               
               <TabsContent value="permissions">
-                <div className="space-y-4">
-                  <div className="pb-2">
-                    <p className="text-sm text-muted-foreground">
-                      {isAdmin 
-                        ? 'Administradores têm acesso total a todos os recursos do sistema.' 
-                        : 'Configure as permissões de acesso para este usuário:'}
-                    </p>
+                {!permissionsInitialized ? (
+                  <div className="py-8 flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                   </div>
-                  <PermissionsSection 
-                    permissions={permissions} 
-                    onChange={handlePermissionChange}
-                    isAdmin={isAdmin}
-                  />
-                </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="pb-2">
+                      <p className="text-sm text-muted-foreground">
+                        {isAdmin 
+                          ? 'Administradores têm acesso total a todos os recursos do sistema.' 
+                          : 'Configure as permissões de acesso para este usuário:'}
+                      </p>
+                    </div>
+                    <PermissionsSection 
+                      permissions={permissions} 
+                      onChange={handlePermissionChange}
+                      isAdmin={isAdmin}
+                    />
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
 
