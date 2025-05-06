@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,8 +50,16 @@ export function SystemSettings() {
           } else if (data) {
             try {
               // Parse the JSON value
-              const parsedValue = JSON.parse(data.value);
-              setting.setState(parsedValue);
+              const parsedValue = JSON.parse(data.value.toString());
+              
+              // Handle different types appropriately
+              if (setting.key === 'enable_audit_log') {
+                setting.setState(!!parsedValue);
+              } else if (setting.key === 'data_retention') {
+                setting.setState(String(parsedValue));
+              } else {
+                setting.setState(parsedValue);
+              }
             } catch (parseError) {
               console.error(`Error parsing ${setting.key}:`, parseError);
               setting.setState(setting.defaultValue);

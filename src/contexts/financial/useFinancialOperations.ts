@@ -14,20 +14,17 @@ export const useFinancialOperations = () => {
   
   const { addFinancialReport, createReport } = useFinancialReportCreate(
     financialReports, 
-    setFinancialReports, 
-    receivableAccountsHook
+    setFinancialReports
   );
   
   const { updateFinancialReport } = useFinancialReportUpdate(
     financialReports, 
-    setFinancialReports,
-    receivableAccountsHook
+    setFinancialReports
   );
   
   const { deleteFinancialReport } = useFinancialReportDelete(
     financialReports, 
-    setFinancialReports,
-    receivableAccountsHook
+    setFinancialReports
   );
 
   return {
@@ -39,5 +36,6 @@ export const useFinancialOperations = () => {
     createReport,
     updateFinancialReport,
     deleteFinancialReport,
+    receivableAccountsHook,
   };
 };
