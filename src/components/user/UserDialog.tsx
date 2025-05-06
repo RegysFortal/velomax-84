@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -109,6 +108,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
       company: { ...defaultPermission },
       users: { ...defaultPermission },
       backup: { ...defaultPermission },
+      budgets: { ...defaultPermission }, // Added budgets permission
     };
 
     // Se o usuário já tiver permissões, converter do formato antigo para o novo

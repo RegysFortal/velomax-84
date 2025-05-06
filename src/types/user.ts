@@ -70,6 +70,7 @@ export interface User {
     company?: PermissionLevel;
     users?: PermissionLevel;
     backup?: PermissionLevel;
+    budgets?: PermissionLevel; // Added budgets permission
     [key: string]: PermissionLevel | boolean | undefined;
   };
 }
@@ -80,4 +81,3 @@ export interface PermissionLevel {
   edit: boolean;
   delete: boolean;
 }
-

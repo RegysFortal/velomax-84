@@ -33,7 +33,8 @@ export const PermissionsSection = ({
         { name: 'shipments', label: 'Embarques' },
         { name: 'shipmentReports', label: 'Relatório de Embarques' },
         { name: 'cities', label: 'Cidades' },
-        { name: 'priceTables', label: 'Tabela de Preços' }
+        { name: 'priceTables', label: 'Tabela de Preços' },
+        { name: 'budgets', label: 'Orçamentos' } // Added Orçamentos
       ]
     },
     {

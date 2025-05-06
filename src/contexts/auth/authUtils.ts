@@ -1,6 +1,21 @@
-
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
+
+// Default permission level
+const defaultPermissionLevel = (): PermissionLevel => ({
+  view: false,
+  create: false,
+  edit: false,
+  delete: false
+});
+
+// Full permission level
+const fullPermissionLevel = (): PermissionLevel => ({
+  view: true,
+  create: true,
+  edit: true,
+  delete: true
+});
 
 export const createDefaultAdminUser = (): User => {
   return {
@@ -12,68 +27,80 @@ export const createDefaultAdminUser = (): User => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     permissions: {
-      deliveries: true,
-      shipments: true,
-      clients: true,
-      cities: true,
-      reports: true,
-      financial: true,
-      priceTables: true,
-      dashboard: true,
-      logbook: true,
-      employees: true,
-      vehicles: true,
-      maintenance: true,
-      settings: true,
+      dashboard: fullPermissionLevel(),
+      deliveries: fullPermissionLevel(),
+      shipments: fullPermissionLevel(),
+      clients: fullPermissionLevel(),
+      cities: fullPermissionLevel(),
+      reports: fullPermissionLevel(),
+      financial: fullPermissionLevel(),
+      priceTables: fullPermissionLevel(),
+      logbook: fullPermissionLevel(),
+      employees: fullPermissionLevel(),
+      vehicles: fullPermissionLevel(),
+      maintenance: fullPermissionLevel(),
+      settings: fullPermissionLevel(),
+      budgets: fullPermissionLevel() // Added budgets permission
     }
   };
 };
 
 export const createUserPermissions = (role: 'admin' | 'manager' | 'user') => {
-  let permissions = {
-    deliveries: false,
-    shipments: false,
-    clients: false,
-    cities: false,
-    reports: false,
-    financial: false,
-    priceTables: false,
-    dashboard: false,
-    logbook: false,
-    employees: false,
-    vehicles: false,
-    maintenance: false,
-    settings: false,
+  let permissions: Record<string, PermissionLevel> = {
+    dashboard: defaultPermissionLevel(),
+    deliveries: defaultPermissionLevel(),
+    shipments: defaultPermissionLevel(),
+    clients: defaultPermissionLevel(),
+    cities: defaultPermissionLevel(),
+    reports: defaultPermissionLevel(),
+    financial: defaultPermissionLevel(),
+    priceTables: defaultPermissionLevel(),
+    logbook: defaultPermissionLevel(),
+    employees: defaultPermissionLevel(),
+    vehicles: defaultPermissionLevel(),
+    maintenance: defaultPermissionLevel(),
+    settings: defaultPermissionLevel(),
+    budgets: defaultPermissionLevel() // Added budgets permission
   };
 
   if (role === 'admin') {
     Object.keys(permissions).forEach(key => {
-      permissions[key as keyof User['permissions']] = true;
+      permissions[key as keyof typeof permissions] = fullPermissionLevel();
     });
   } 
   else if (role === 'manager') {
-    permissions = {
-      ...permissions,
-      dashboard: true,
-      priceTables: true,
-      employees: true,
-      clients: true,
-      cities: true,
-      deliveries: true,
-      shipments: true,
-      reports: true,
-      vehicles: true,
-      maintenance: true,
-    };
+    const viewCreateEditPermissions = ['dashboard', 'deliveries', 'shipments', 'clients', 
+      'cities', 'reports', 'vehicles', 'maintenance', 'priceTables', 'budgets'];
+    
+    viewCreateEditPermissions.forEach(key => {
+      permissions[key] = {
+        view: true,
+        create: true,
+        edit: true,
+        delete: true
+      };
+    });
+    
+    // For financial operations, managers can view but not delete
+    ['financial', 'logbook', 'employees'].forEach(key => {
+      permissions[key] = {
+        view: true,
+        create: true,
+        edit: true,
+        delete: false
+      };
+    });
   } 
   else if (role === 'user') {
-    permissions = {
-      ...permissions,
-      dashboard: true,
-      deliveries: true,
-      shipments: true,
-      reports: true,
-    };
+    // Users can only view certain things
+    ['dashboard', 'deliveries', 'shipments', 'reports', 'budgets'].forEach(key => {
+      permissions[key] = {
+        view: true,
+        create: false,
+        edit: false,
+        delete: false
+      };
+    });
   }
 
   return permissions;

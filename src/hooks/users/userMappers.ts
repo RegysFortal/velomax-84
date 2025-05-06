@@ -24,7 +24,8 @@ export const mapSupabaseUserToAppUser = (supabaseUser: any): User => {
     financial_reports: 'financialReports',
     inventory_entries: 'inventoryEntries',
     inventory_exits: 'inventoryExits',
-    inventory_dashboard: 'inventoryDashboard'
+    inventory_dashboard: 'inventoryDashboard',
+    budgets: 'budgets' // Added budgets mapping
   };
 
   // Função para mapear permissões
@@ -34,18 +35,26 @@ export const mapSupabaseUserToAppUser = (supabaseUser: any): User => {
     const permissions: Record<string, PermissionLevel> = {};
     
     // Processar cada permissão do banco
-    Object.entries(dbPermissions).forEach(([key, value]) => {
-      // Converter nome da permissão do formato snake_case para camelCase se necessário
-      const permKey = permissionMapping[key] || key;
-      
-      if (typeof value === 'boolean') {
-        // Formato antigo: converte para o novo formato
-        permissions[permKey] = createPermissionLevel(value as boolean);
-      } else if (typeof value === 'object' && value !== null) {
-        // Já está no novo formato com níveis
-        permissions[permKey] = value as PermissionLevel;
-      }
-    });
+    if (dbPermissions) {
+      Object.entries(dbPermissions).forEach(([key, value]) => {
+        // Converter nome da permissão do formato snake_case para camelCase se necessário
+        const permKey = permissionMapping[key] || key;
+        
+        if (typeof value === 'boolean') {
+          // Formato antigo: converte para o novo formato
+          permissions[permKey] = createPermissionLevel(value as boolean);
+        } else if (typeof value === 'object' && value !== null) {
+          // Já está no novo formato com níveis
+          const permValue = value as any;
+          permissions[permKey] = {
+            view: Boolean(permValue.view),
+            create: Boolean(permValue.create),
+            edit: Boolean(permValue.edit),
+            delete: Boolean(permValue.delete)
+          };
+        }
+      });
+    }
     
     // Garantir que dashboard seja sempre visível por padrão
     if (!permissions.dashboard) {
@@ -86,7 +95,8 @@ export const mapAppUserToSupabase = (appUser: Partial<User>): any => {
     financialReports: 'financial_reports',
     inventoryEntries: 'inventory_entries',
     inventoryExits: 'inventory_exits',
-    inventoryDashboard: 'inventory_dashboard'
+    inventoryDashboard: 'inventory_dashboard',
+    budgets: 'budgets' // Added budgets mapping
   };
 
   // Função para mapear permissões
@@ -116,7 +126,7 @@ export const mapAppUserToSupabase = (appUser: Partial<User>): any => {
     position: appUser.position,
     phone: appUser.phone,
     // Converte camelCase para snake_case onde necessário
-    permissions: mapPermissions(appUser.permissions),
+    permissions: mapPermissions(appUser.permissions as Record<string, PermissionLevel>),
     updated_at: appUser.updatedAt || new Date().toISOString()
   };
 };

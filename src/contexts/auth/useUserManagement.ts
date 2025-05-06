@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
 import { logUserActivity, createUserPermissions } from './authUtils';
 
 export const useUserManagement = (currentUser: User | null) => {
@@ -55,21 +54,66 @@ export const useUserManagement = (currentUser: User | null) => {
       
       // Ensure permissions are properly merged from existing and new data
       if (userData.permissions) {
-        userData.permissions = {
-          deliveries: userData.permissions.deliveries ?? users[userIndex].permissions?.deliveries ?? false,
-          shipments: userData.permissions.shipments ?? users[userIndex].permissions?.shipments ?? false,
-          clients: userData.permissions.clients ?? users[userIndex].permissions?.clients ?? false,
-          cities: userData.permissions.cities ?? users[userIndex].permissions?.cities ?? false,
-          reports: userData.permissions.reports ?? users[userIndex].permissions?.reports ?? false,
-          financial: userData.permissions.financial ?? users[userIndex].permissions?.financial ?? false,
-          priceTables: userData.permissions.priceTables ?? users[userIndex].permissions?.priceTables ?? false,
-          dashboard: userData.permissions.dashboard ?? users[userIndex].permissions?.dashboard ?? true,
-          logbook: userData.permissions.logbook ?? users[userIndex].permissions?.logbook ?? false,
-          employees: userData.permissions.employees ?? users[userIndex].permissions?.employees ?? false,
-          vehicles: userData.permissions.vehicles ?? users[userIndex].permissions?.vehicles ?? false,
-          maintenance: userData.permissions.maintenance ?? users[userIndex].permissions?.maintenance ?? false,
-          settings: userData.permissions.settings ?? users[userIndex].permissions?.settings ?? false,
+        const currentPermissions = users[userIndex].permissions || {};
+        
+        // Create properly typed permissions object
+        const mergedPermissions: Record<string, PermissionLevel> = {};
+        
+        // Helper function to create a permission level object
+        const createPermLevel = (perm: any): PermissionLevel => {
+          if (typeof perm === "boolean") {
+            return {
+              view: perm,
+              create: false,
+              edit: false,
+              delete: false
+            };
+          } else if (typeof perm === "object" && perm !== null) {
+            return {
+              view: Boolean(perm.view),
+              create: Boolean(perm.create),
+              edit: Boolean(perm.edit),
+              delete: Boolean(perm.delete)
+            };
+          }
+          return {
+            view: false,
+            create: false,
+            edit: false,
+            delete: false
+          };
         };
+        
+        // Process each permission key
+        [
+          'dashboard', 'deliveries', 'shipments', 'clients', 'cities', 'reports', 
+          'financial', 'priceTables', 'logbook', 'employees', 'vehicles', 
+          'maintenance', 'settings', 'shipmentReports', 'financialDashboard',
+          'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
+          'financialReports', 'products', 'inventoryEntries', 'inventoryExits',
+          'inventoryDashboard', 'system', 'company', 'users', 'backup', 'budgets'
+        ].forEach(key => {
+          // Use userData if available, otherwise fall back to current permissions
+          const newPerm = userData.permissions?.[key];
+          const currentPerm = currentPermissions[key];
+          
+          if (newPerm !== undefined) {
+            mergedPermissions[key] = createPermLevel(newPerm);
+          } else if (currentPerm !== undefined) {
+            mergedPermissions[key] = createPermLevel(currentPerm);
+          } else {
+            // Default permission if neither exists
+            mergedPermissions[key] = {
+              view: key === 'dashboard', // Dashboard always visible by default
+              create: false,
+              edit: false,
+              delete: false
+            };
+          }
+        });
+        
+        // Update userData with properly typed permissions
+        userData.permissions = mergedPermissions;
       }
       
       const updatedUser = {

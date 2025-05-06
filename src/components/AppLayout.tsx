@@ -82,10 +82,10 @@ export function AppLayout({ children }: AppLayoutProps) {
     // Only check permissions when user data is loaded
     if (user && !loading) {
       // Define permission rules for each path
-      const pathPermissions: Record<string, keyof User['permissions']> = {
+      const pathPermissions: Record<string, string> = {
         '/deliveries': 'deliveries',
         '/shipments': 'shipments',
-        '/shipment-reports': 'reports',
+        '/shipment-reports': 'shipmentReports',
         '/financial': 'financial',
         '/reports': 'reports',
         '/price-tables': 'priceTables',
@@ -97,7 +97,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/vehicles': 'vehicles',
         '/maintenance': 'maintenance',
         '/settings': 'settings',
-        '/budgets': 'financial'
+        '/budgets': 'budgets'  // Changed from 'financial' to 'budgets'
       };
 
       // Special case for activity logs (admin only)
