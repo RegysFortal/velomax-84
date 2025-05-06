@@ -15,7 +15,7 @@ export const useCreateUser = () => {
       
       // Verificar se email ou username já existem
       const { data: existingUsers, error: checkError } = await supabase
-        .from('users' as any)
+        .from('users')
         .select('email, username')
         .or(`email.eq.${userData.email},username.eq.${userData.username}`);
       
@@ -53,7 +53,7 @@ export const useCreateUser = () => {
       
       // Inserir no banco de dados as informações adicionais do usuário
       const { data: insertedUser, error: insertError } = await supabase
-        .from('users' as any)
+        .from('users')
         .insert({
           ...supabaseUserData,
           id: data.user.id,

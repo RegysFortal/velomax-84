@@ -1390,6 +1390,45 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          email: string
+          id: string
+          name: string | null
+          phone: string | null
+          position: string | null
+          role: string | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          email: string
+          id: string
+          name?: string | null
+          phone?: string | null
+          position?: string | null
+          role?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          position?: string | null
+          role?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       vehicles: {
         Row: {
           brand: string

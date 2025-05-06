@@ -16,7 +16,7 @@ export const useUpdateUser = () => {
       // Se estamos atualizando o email ou username, verificamos duplicatas
       if (userData.email || userData.username) {
         const checkQuery = supabase
-          .from('users' as any)
+          .from('users')
           .select('email, username')
           .neq('id', userId);
         
@@ -58,7 +58,7 @@ export const useUpdateUser = () => {
 
       // Atualizar usuário na tabela users
       const { data: updatedUser, error: userError } = await supabase
-        .from('users' as any)
+        .from('users')
         .update(supabaseUserData)
         .eq('id', userId)
         .select()

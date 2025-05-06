@@ -188,10 +188,12 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
   }, [form, user, open, isCreating]);
 
   // Atualiza permissões quando o papel é alterado
+  const currentRole = form.watch('role');
+  
   useEffect(() => {
-    const role = form.watch('role');
+    if (!open) return;
     
-    if (role === 'admin') {
+    if (currentRole === 'admin') {
       // Administradores têm acesso total a tudo
       const adminPermissions: Record<string, PermissionLevel> = {};
       Object.keys(permissions).forEach(key => {
@@ -203,7 +205,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
         };
       });
       setPermissions(adminPermissions);
-    } else if (role === 'manager' && isCreating) {
+    } else if (currentRole === 'manager' && isCreating) {
       // Gerentes têm acesso a mais recursos, mas não todos
       const managerPermissions = initializePermissions();
       
@@ -221,7 +223,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
       });
 
       setPermissions(managerPermissions);
-    } else if (role === 'user' && isCreating) {
+    } else if (currentRole === 'user' && isCreating) {
       // Usuários comuns têm acesso limitado
       const userPermissions = initializePermissions();
       
@@ -237,7 +239,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
       
       setPermissions(userPermissions);
     }
-  }, [form.watch('role'), isCreating]);
+  }, [currentRole, isCreating, open, permissions]);
 
   // Manipulador para alterar permissões individuais
   const handlePermissionChange = (name: string, level: keyof PermissionLevel, value: boolean) => {

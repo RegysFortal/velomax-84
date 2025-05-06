@@ -16,7 +16,7 @@ export const useFetchUsers = () => {
 
       // Buscar usuários básicos
       const { data: usersData, error: usersError } = await supabase
-        .from('users' as any)
+        .from('users')
         .select('*')
         .order('created_at', { ascending: false });
 
