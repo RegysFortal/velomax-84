@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Select,
   SelectContent,
@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/ui/form-field";
 
 interface TransportSectionProps {
   transportMode: "air" | "road";
@@ -52,6 +53,14 @@ export function TransportSection({
     [transportMode]
   );
 
+  // Handle transport mode changes - memoized to prevent re-creation
+  const handleTransportModeChange = useCallback((value: string) => {
+    // Use requestAnimationFrame to prevent UI blocking
+    window.requestAnimationFrame(() => {
+      setTransportMode(value as "air" | "road");
+    });
+  }, [setTransportMode]);
+  
   // Update state when transport mode changes - using useEffect with proper dependencies
   useEffect(() => {
     if (!carrierName) {
@@ -71,36 +80,47 @@ export function TransportSection({
     }
   }, [transportMode, carrierName, setCarrierName, currentCarriers]);
 
-  // Update carrier name when selection changes - with debounce
-  const handleCarrierChange = (value: string) => {
+  // Update carrier name when selection changes - memoized with requestAnimationFrame
+  const handleCarrierChange = useCallback((value: string) => {
     setSelectedCarrier(value);
     
-    if (value !== "outro") {
-      setCarrierName(value);
-      setCustomCarrierName("");
-    } else if (customCarrierName) {
-      // Only update if we have a custom carrier name
-      setCarrierName(customCarrierName);
-    }
-  };
+    // Use requestAnimationFrame to prevent UI freeze during selection
+    window.requestAnimationFrame(() => {
+      if (value !== "outro") {
+        setCarrierName(value);
+        setCustomCarrierName("");
+      } else if (customCarrierName) {
+        // Only update if we have a custom carrier name
+        setCarrierName(customCarrierName);
+      }
+    });
+  }, [customCarrierName, setCarrierName]);
 
-  // Update carrier name when user types a custom carrier name
-  const handleCustomCarrierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Update carrier name when user types a custom carrier name - memoized
+  const handleCustomCarrierChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCustomCarrierName(value);
+    
     // Use requestAnimationFrame to prevent UI freeze during typing
-    requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       setCarrierName(value);
     });
-  };
+  }, [setCarrierName]);
+
+  // Track tracking number change - memoized
+  const handleTrackingNumberChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Use requestAnimationFrame to prevent UI freeze during typing
+    window.requestAnimationFrame(() => {
+      setTrackingNumber(e.target.value);
+    });
+  }, [setTrackingNumber]);
 
   return (
     <div className="space-y-4">
-      <div>
-        <label htmlFor="transportMode" className="text-sm font-medium">Modo de Transporte</label>
+      <FormField id="transportMode" label="Modo de Transporte" required>
         <Select 
           value={transportMode} 
-          onValueChange={(value) => setTransportMode(value as "air" | "road")} 
+          onValueChange={handleTransportModeChange} 
           disabled={disabled}
         >
           <SelectTrigger id="transportMode">
@@ -111,10 +131,9 @@ export function TransportSection({
             <SelectItem value="road">Rodoviário</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </FormField>
 
-      <div>
-        <label htmlFor="carrierName" className="text-sm font-medium">Transportadora</label>
+      <FormField id="carrierName" label="Transportadora" required>
         <div className="space-y-2">
           <Select 
             value={selectedCarrier} 
@@ -143,17 +162,16 @@ export function TransportSection({
             />
           )}
         </div>
-      </div>
+      </FormField>
 
-      <div>
-        <label htmlFor="trackingNumber" className="text-sm font-medium">Conhecimento</label>
+      <FormField id="trackingNumber" label="Conhecimento" required>
         <Input 
           id="trackingNumber" 
           value={trackingNumber} 
-          onChange={(e) => setTrackingNumber(e.target.value)}
+          onChange={handleTrackingNumberChange}
           disabled={disabled}
         />
-      </div>
+      </FormField>
     </div>
   );
 }

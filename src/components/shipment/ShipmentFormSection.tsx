@@ -65,21 +65,43 @@ export const ShipmentFormSection = memo(function ShipmentFormSection({
   // Handler to update client name when client ID changes - memoized to prevent re-creation
   const handleClientChange = useCallback((id: string) => {
     try {
-      console.log("ShipmentFormSection - Client selected:", id);
-      setCompanyId(id);
-      // Find client and set name
-      const selectedClient = clients.find(client => client.id === id);
-      if (selectedClient) {
-        const displayName = selectedClient.tradingName || selectedClient.name;
-        console.log("ShipmentFormSection - Setting company name to:", displayName);
-        setCompanyName(displayName);
-      } else {
-        console.warn("ShipmentFormSection - Client not found with ID:", id);
-      }
+      // Use requestAnimationFrame to prevent UI blocking
+      window.requestAnimationFrame(() => {
+        console.log("ShipmentFormSection - Client selected:", id);
+        setCompanyId(id);
+        // Find client and set name
+        const selectedClient = clients.find(client => client.id === id);
+        if (selectedClient) {
+          const displayName = selectedClient.tradingName || selectedClient.name;
+          console.log("ShipmentFormSection - Setting company name to:", displayName);
+          setCompanyName(displayName);
+        } else {
+          console.warn("ShipmentFormSection - Client not found with ID:", id);
+        }
+      });
     } catch (error) {
       console.error("Error handling client change:", error);
     }
   }, [clients, setCompanyId, setCompanyName]);
+
+  // Memoized setters for transport mode and tracking to prevent re-renders
+  const handleTransportModeChange = useCallback((mode: "air" | "road") => {
+    window.requestAnimationFrame(() => {
+      setTransportMode(mode);
+    });
+  }, [setTransportMode]);
+  
+  const handleCarrierNameChange = useCallback((name: string) => {
+    window.requestAnimationFrame(() => {
+      setCarrierName(name);
+    });
+  }, [setCarrierName]);
+  
+  const handleTrackingNumberChange = useCallback((number: string) => {
+    window.requestAnimationFrame(() => {
+      setTrackingNumber(number);
+    });
+  }, [setTrackingNumber]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -94,11 +116,11 @@ export const ShipmentFormSection = memo(function ShipmentFormSection({
       
       <TransportSection 
         transportMode={transportMode}
-        setTransportMode={setTransportMode}
+        setTransportMode={handleTransportModeChange}
         carrierName={carrierName}
-        setCarrierName={setCarrierName}
+        setCarrierName={handleCarrierNameChange}
         trackingNumber={trackingNumber}
-        setTrackingNumber={setTrackingNumber}
+        setTrackingNumber={handleTrackingNumberChange}
         disabled={disabled}
       />
       
