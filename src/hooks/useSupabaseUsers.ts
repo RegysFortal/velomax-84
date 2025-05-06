@@ -74,7 +74,7 @@ export const useSupabaseUsers = () => {
       if (error) throw error;
 
       // Mapear os dados para o formato esperado pelo aplicativo
-      const formattedUsers = data.map(user => {
+      const formattedUsers = (data as any[]).map(user => {
         // Para cada usuário, pegamos as permissões (se existirem) e as formatamos
         const permissions = user.permissions && user.permissions.length > 0 
           ? user.permissions[0] 
@@ -128,14 +128,14 @@ export const useSupabaseUsers = () => {
       
       if (checkError) throw checkError;
       
-      // Type assertion to handle the type checking
-      const typedExistingUsers = existingUsers as Array<{email: string, username: string}>;
+      // Type assertion for more aggressive type safety
+      const typedExistingUsers = (existingUsers as any[]) || [];
       
-      if (typedExistingUsers && typedExistingUsers.length > 0) {
-        if (typedExistingUsers.some(u => u.email === userData.email)) {
+      if (typedExistingUsers.length > 0) {
+        if (typedExistingUsers.some((u: any) => u.email === userData.email)) {
           throw new Error('Email já está em uso');
         }
-        if (typedExistingUsers.some(u => u.username === userData.username)) {
+        if (typedExistingUsers.some((u: any) => u.username === userData.username)) {
           throw new Error('Nome de usuário já está em uso');
         }
       }
@@ -165,7 +165,7 @@ export const useSupabaseUsers = () => {
       // Formatamos as permissões para o Supabase
       if (userData.permissions) {
         const permissionsData = {
-          user_id: newUser.id,
+          user_id: (newUser as any).id,
           deliveries: userData.permissions.deliveries || false,
           shipments: userData.permissions.shipments || false,
           clients: userData.permissions.clients || false,
@@ -197,7 +197,7 @@ export const useSupabaseUsers = () => {
 
       // Mapear o usuário para o formato da aplicação
       return mapSupabaseUserToAppUser({
-        ...newUser,
+        ...(newUser as any),
         permissions: userData.permissions 
       });
     } catch (err) {
@@ -237,14 +237,14 @@ export const useSupabaseUsers = () => {
         
         if (checkError) throw checkError;
         
-        // Type assertion to handle the type checking
-        const typedExistingUsers = existingUsers as Array<{email: string, username: string}>;
+        // Type assertion for more aggressive type safety
+        const typedExistingUsers = (existingUsers as any[]) || [];
         
-        if (typedExistingUsers && typedExistingUsers.length > 0) {
-          if (typedExistingUsers.some(u => u.email === userData.email)) {
+        if (typedExistingUsers.length > 0) {
+          if (typedExistingUsers.some((u: any) => u.email === userData.email)) {
             throw new Error('Email já está em uso');
           }
-          if (typedExistingUsers.some(u => u.username === userData.username)) {
+          if (typedExistingUsers.some((u: any) => u.username === userData.username)) {
             throw new Error('Nome de usuário já está em uso');
           }
         }
