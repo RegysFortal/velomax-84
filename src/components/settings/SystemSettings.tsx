@@ -1,403 +1,74 @@
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/components/ui/use-toast';
-import { HardDrive, Database, Globe, Clock, AlertCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Define types for our settings
-type SettingValue = string | boolean;
-type SettingKey = 'backup_frequency' | 'data_retention' | 'timezone' | 'enable_audit_log';
-
-interface SettingConfig<T extends SettingValue> {
-  key: SettingKey;
-  setState: React.Dispatch<React.SetStateAction<T>>;
-  defaultValue: T;
-}
+import { useSystemSettings } from './hooks/useSystemSettings';
+import { BackupRetentionSection } from './sections/BackupRetentionSection';
+import { RegionalSettingsSection } from './sections/RegionalSettingsSection';
+import { ApiIntegrationSection } from './sections/ApiIntegrationSection';
 
 export function SystemSettings() {
   const { user } = useAuth();
-  const [isEditable, setIsEditable] = useState(true);  // Default to true
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [backupFrequency, setBackupFrequency] = useState('daily');
-  const [dataRetention, setDataRetention] = useState('90');
-  const [timezone, setTimezone] = useState('America/Sao_Paulo');
-  const [enableAuditLog, setEnableAuditLog] = useState(true);
-  const [apiKey, setApiKey] = useState('****************************************');
-  const [showApiKey, setShowApiKey] = useState(false);
-
-  // Load system settings from Supabase
-  useEffect(() => {
-    const loadSystemSettings = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Try to load from Supabase first
-        const stringSettings: SettingConfig<string>[] = [
-          { key: 'backup_frequency', setState: setBackupFrequency, defaultValue: 'daily' },
-          { key: 'data_retention', setState: setDataRetention, defaultValue: '90' },
-          { key: 'timezone', setState: setTimezone, defaultValue: 'America/Sao_Paulo' }
-        ];
-        
-        const booleanSettings: SettingConfig<boolean>[] = [
-          { key: 'enable_audit_log', setState: setEnableAuditLog, defaultValue: true }
-        ];
-        
-        // Load string settings
-        for (const setting of stringSettings) {
-          const { data, error } = await supabase
-            .from('system_settings')
-            .select('value')
-            .eq('key', setting.key)
-            .maybeSingle();
-          
-          if (error) {
-            console.error(`Error fetching ${setting.key}:`, error);
-          } else if (data) {
-            try {
-              // Parse the JSON value
-              const parsedValue = JSON.parse(data.value.toString());
-              // Convert to string if needed
-              setting.setState(String(parsedValue));
-            } catch (parseError) {
-              console.error(`Error parsing ${setting.key}:`, parseError);
-              setting.setState(setting.defaultValue);
-            }
-          }
-        }
-        
-        // Load boolean settings
-        for (const setting of booleanSettings) {
-          const { data, error } = await supabase
-            .from('system_settings')
-            .select('value')
-            .eq('key', setting.key)
-            .maybeSingle();
-          
-          if (error) {
-            console.error(`Error fetching ${setting.key}:`, error);
-          } else if (data) {
-            try {
-              // Parse the JSON value and convert to boolean
-              const parsedValue = JSON.parse(data.value.toString());
-              setting.setState(!!parsedValue);
-            } catch (parseError) {
-              console.error(`Error parsing ${setting.key}:`, parseError);
-              setting.setState(setting.defaultValue);
-            }
-          }
-        }
-        
-        // Fallback to localStorage if no data in Supabase
-        const savedSettings = localStorage.getItem('system_settings');
-        if (savedSettings) {
-          try {
-            const settings = JSON.parse(savedSettings);
-            if (!backupFrequency) setBackupFrequency(settings.backupFrequency || 'daily');
-            if (!dataRetention) setDataRetention(settings.dataRetention || '90');
-            if (!timezone) setTimezone(settings.timezone || 'America/Sao_Paulo');
-            if (enableAuditLog === undefined) setEnableAuditLog(settings.enableAuditLog !== undefined ? settings.enableAuditLog : true);
-          } catch (error) {
-            console.error("Error parsing saved settings:", error);
-          }
-        }
-        
-        // Check if current user has permissions to edit system settings
-        if (user) {
-          // Simplified permission check - if user is admin or has role that should allow editing
-          if (user.role === 'admin' || user.role === 'manager') {
-            setIsEditable(true);
-          } else {
-            // Only check with Supabase if needed
-            const { data: hasAccess, error } = await supabase.rpc('user_has_system_settings_access');
-            
-            if (error) {
-              console.error("Error checking permissions:", error);
-              // Fall back to allowing edit - default to permissive
-              setIsEditable(true);
-            } else {
-              // If we get an explicit false from the database, then deny
-              // Otherwise, allow editing (more permissive default)
-              setIsEditable(hasAccess !== false);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error loading system settings:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadSystemSettings();
-  }, [user]);
-
-  const handleSave = async () => {
-    if (!isEditable) {
-      toast({
-        title: "Acesso negado",
-        description: "Você não tem permissão para salvar configurações do sistema.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsSaving(true);
-      
-      // Save to localStorage for backward compatibility
-      const settings = {
-        backupFrequency,
-        dataRetention,
-        timezone,
-        enableAuditLog,
-      };
-      
-      localStorage.setItem('system_settings', JSON.stringify(settings));
-      
-      // Try to save to Supabase if we're connected
-      if (user) {
-        // For each setting, upsert to the system_settings table
-        const settingsArray = [
-          { key: 'backup_frequency', value: JSON.stringify(backupFrequency) },
-          { key: 'data_retention', value: JSON.stringify(parseInt(dataRetention)) },
-          { key: 'timezone', value: JSON.stringify(timezone) },
-          { key: 'enable_audit_log', value: JSON.stringify(enableAuditLog) },
-        ];
-        
-        for (const setting of settingsArray) {
-          const { data: existingSetting, error: fetchError } = await supabase
-            .from('system_settings')
-            .select('*')
-            .eq('key', setting.key)
-            .single();
-          
-          if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
-            console.error(`Error fetching ${setting.key}:`, fetchError);
-            continue;
-          }
-          
-          if (existingSetting) {
-            const { error: updateError } = await supabase
-              .from('system_settings')
-              .update({ 
-                value: setting.value,
-                updated_at: new Date().toISOString(),
-                user_id: user.id
-              })
-              .eq('id', existingSetting.id);
-            
-            if (updateError) {
-              console.error(`Error updating ${setting.key}:`, updateError);
-            }
-          } else {
-            const { error: insertError } = await supabase
-              .from('system_settings')
-              .insert([{
-                key: setting.key,
-                value: setting.value,
-                user_id: user.id
-              }]);
-            
-            if (insertError) {
-              console.error(`Error inserting ${setting.key}:`, insertError);
-            }
-          }
-        }
-      }
-      
-      toast({
-        title: "Configurações salvas",
-        description: "As configurações do sistema foram atualizadas com sucesso.",
-      });
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      toast({
-        title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar as configurações.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const generateNewApiKey = () => {
-    if (!isEditable) {
-      toast({
-        title: "Acesso negado",
-        description: "Você não tem permissão para gerar uma nova chave API.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (confirm('Tem certeza que deseja gerar uma nova chave API? A chave atual será invalidada.')) {
-      // In a real application, you would call an API to generate a new key
-      const newKey = 'new-' + Math.random().toString(36).substring(2, 15);
-      setApiKey(newKey);
-      setShowApiKey(true);
-      
-      toast({
-        title: "Nova chave API gerada",
-        description: "Uma nova chave API foi gerada. Guarde-a em um local seguro.",
-      });
-    }
-  };
+  const {
+    isLoading,
+    isEditable,
+    isSaving,
+    backupFrequency,
+    setBackupFrequency,
+    dataRetention,
+    setDataRetention,
+    timezone,
+    setTimezone,
+    enableAuditLog,
+    setEnableAuditLog,
+    apiKey,
+    showApiKey,
+    setShowApiKey,
+    handleSave,
+    generateNewApiKey,
+  } = useSystemSettings(user);
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Configurações do Sistema</CardTitle>
-            <CardDescription>Carregando configurações...</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-center p-6">
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-            </div>
-          </CardContent>
-        </Card>
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>Carregando configurações...</AlertDescription>
+        </Alert>
+        <div className="flex justify-center p-6">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Backup e Retenção de Dados</CardTitle>
-          <CardDescription>
-            Configure as políticas de backup e retenção de dados do sistema.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start space-x-4">
-            <HardDrive className="h-5 w-5 text-blue-500 mt-1" />
-            <div className="space-y-1 flex-1">
-              <Label htmlFor="backup-frequency">Frequência de Backup</Label>
-              <Select value={backupFrequency} onValueChange={setBackupFrequency} disabled={!isEditable}>
-                <SelectTrigger id="backup-frequency">
-                  <SelectValue placeholder="Selecione a frequência" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hourly">A cada hora</SelectItem>
-                  <SelectItem value="daily">Diário</SelectItem>
-                  <SelectItem value="weekly">Semanal</SelectItem>
-                  <SelectItem value="monthly">Mensal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-4">
-            <Database className="h-5 w-5 text-indigo-500 mt-1" />
-            <div className="space-y-1 flex-1">
-              <Label htmlFor="data-retention">Retenção de Dados (dias)</Label>
-              <Input
-                id="data-retention"
-                type="number"
-                value={dataRetention}
-                onChange={(e) => setDataRetention(e.target.value)}
-                min="1"
-                disabled={!isEditable}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <BackupRetentionSection 
+        backupFrequency={backupFrequency}
+        setBackupFrequency={setBackupFrequency}
+        dataRetention={dataRetention}
+        setDataRetention={setDataRetention}
+        isEditable={isEditable}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Configurações Regionais</CardTitle>
-          <CardDescription>
-            Defina o fuso horário e as configurações regionais do sistema.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start space-x-4">
-            <Globe className="h-5 w-5 text-green-500 mt-1" />
-            <div className="space-y-1 flex-1">
-              <Label htmlFor="timezone">Fuso Horário</Label>
-              <Select value={timezone} onValueChange={setTimezone} disabled={!isEditable}>
-                <SelectTrigger id="timezone">
-                  <SelectValue placeholder="Selecione o fuso horário" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="America/Sao_Paulo">Brasília (GMT-3)</SelectItem>
-                  <SelectItem value="America/Manaus">Manaus (GMT-4)</SelectItem>
-                  <SelectItem value="America/Belem">Belém (GMT-3)</SelectItem>
-                  <SelectItem value="America/Bahia">Salvador (GMT-3)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-4">
-            <Clock className="h-5 w-5 text-purple-500 mt-1" />
-            <div className="space-y-1 flex-1">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="audit-log"
-                  checked={enableAuditLog}
-                  onCheckedChange={setEnableAuditLog}
-                  disabled={!isEditable}
-                />
-                <Label htmlFor="audit-log">Habilitar Log de Auditoria</Label>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Registra todas as ações dos usuários para fins de auditoria e segurança.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <RegionalSettingsSection 
+        timezone={timezone}
+        setTimezone={setTimezone}
+        enableAuditLog={enableAuditLog}
+        setEnableAuditLog={setEnableAuditLog}
+        isEditable={isEditable}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>API e Integração</CardTitle>
-          <CardDescription>
-            Gerencie chaves de API e configurações de integração.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="api-key">Chave de API</Label>
-            <div className="flex">
-              <Input
-                id="api-key"
-                type={showApiKey ? "text" : "password"}
-                value={apiKey}
-                readOnly
-                className="flex-1 font-mono"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                className="ml-2"
-                onClick={() => setShowApiKey(!showApiKey)}
-              >
-                {showApiKey ? "Ocultar" : "Mostrar"}
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Esta chave é usada para acessar a API do sistema. Mantenha-a segura.
-            </p>
-          </div>
-          <Button variant="outline" onClick={generateNewApiKey} disabled={!isEditable}>
-            Gerar Nova Chave API
-          </Button>
-        </CardContent>
-      </Card>
+      <ApiIntegrationSection 
+        apiKey={apiKey}
+        showApiKey={showApiKey}
+        setShowApiKey={setShowApiKey}
+        generateNewApiKey={generateNewApiKey}
+        isEditable={isEditable}
+      />
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={!isEditable || isSaving}>
