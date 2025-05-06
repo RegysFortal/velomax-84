@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -109,7 +108,6 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
   // Handle tab change with optimized performance
   const handleTabChange = useCallback((value: string) => {
     console.log("Changing tab to:", value);
-    // First update the state
     setActiveTab(value);
   }, []);
 

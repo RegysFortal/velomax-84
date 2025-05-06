@@ -1,5 +1,5 @@
 
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense } from 'react';
 import { User } from '@/types';
 import {
   Dialog,
@@ -63,7 +63,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-            <Tabs value={activeTab} onValueChange={handleTabChange}>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid grid-cols-2 mb-4">
                 <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
                 <TabsTrigger value="permissions">Permissões de Acesso</TabsTrigger>
@@ -74,15 +74,13 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
               </TabsContent>
               
               <TabsContent value="permissions">
-                <Suspense fallback={<LoadingPermissions />}>
-                  <PermissionsTab
-                    isLoadingPermissions={isLoadingPermissions}
-                    permissionsInitialized={permissionsInitialized}
-                    permissions={permissions}
-                    onChange={handlePermissionChange}
-                    isAdmin={isAdmin}
-                  />
-                </Suspense>
+                <PermissionsTab
+                  isLoadingPermissions={isLoadingPermissions}
+                  permissionsInitialized={permissionsInitialized}
+                  permissions={permissions}
+                  onChange={handlePermissionChange}
+                  isAdmin={isAdmin}
+                />
               </TabsContent>
             </Tabs>
 

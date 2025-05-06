@@ -12,7 +12,7 @@ export type PermissionsState = {
 export const usePermissions = (user: User | null, isCreating: boolean, currentRole?: string) => {
   const [permissions, setPermissions] = useState<Record<string, PermissionLevel>>({});
   const [permissionsInitialized, setPermissionsInitialized] = useState(false);
-  const [isLoadingPermissions, setIsLoadingPermissions] = useState(false); // Changed to false by default
+  const [isLoadingPermissions, setIsLoadingPermissions] = useState(false);
   
   const defaultPermission: PermissionLevel = {
     view: false,
