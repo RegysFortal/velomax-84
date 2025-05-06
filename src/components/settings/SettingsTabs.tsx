@@ -8,6 +8,7 @@ import { SystemBackup } from './SystemBackup';
 import { UserManagement } from './UserManagement';
 import { CompanySettings } from './CompanySettings';
 import { BudgetProvider } from '@/contexts/budget';
+import { toast } from 'sonner';
 
 interface SettingsTabsProps {
   activeTab: string;
@@ -46,6 +47,17 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
       </div>
     );
   }
+
+  // Verificar se a aba ativa está disponível, caso contrário, redirecionar para a primeira aba disponível
+  useEffect(() => {
+    if (availableTabs.length > 0 && !availableTabs.includes(activeTab)) {
+      console.log(`Active tab ${activeTab} not available. Switching to ${availableTabs[0]}`);
+      handleTabChange(availableTabs[0]);
+      toast.info("Redirecionado para a aba disponível", {
+        description: "A aba selecionada não está disponível com suas permissões atuais."
+      });
+    }
+  }, [activeTab, availableTabs, handleTabChange]);
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">

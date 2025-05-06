@@ -22,13 +22,17 @@ export function UserManagementTable() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
+  console.log("UserManagementTable rendered with users:", users);
+
   const handleEditUser = (user: User) => {
+    console.log("Edit user clicked for:", user);
     setSelectedUser(user);
     setIsCreating(false);
     setIsDialogOpen(true);
   };
 
   const handleCreateUser = () => {
+    console.log("Create new user clicked");
     setSelectedUser(null);
     setIsCreating(true);
     setIsDialogOpen(true);
@@ -58,6 +62,7 @@ export function UserManagementTable() {
   };
 
   const closeDialog = () => {
+    console.log("Closing user dialog");
     setIsDialogOpen(false);
   };
 

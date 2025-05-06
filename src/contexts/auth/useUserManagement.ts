@@ -39,18 +39,21 @@ export const useUserManagement = (currentUser: User | null) => {
   });
 
   const saveUsers = (updatedUsers: User[]) => {
+    console.log("Saving updated users to localStorage", updatedUsers);
     localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
     setUsers(updatedUsers);
   };
 
   const updateUser = async (userId: string, userData: Partial<User>) => {
     try {
+      console.log("Updating user with ID:", userId, "and data:", userData);
       const userIndex = users.findIndex(u => u.id === userId);
       
       if (userIndex === -1) {
         throw new Error("Usuário não encontrado");
       }
       
+      // Ensure permissions are properly merged from existing and new data
       if (userData.permissions) {
         userData.permissions = {
           deliveries: userData.permissions.deliveries ?? users[userIndex].permissions?.deliveries ?? false,
@@ -60,7 +63,7 @@ export const useUserManagement = (currentUser: User | null) => {
           reports: userData.permissions.reports ?? users[userIndex].permissions?.reports ?? false,
           financial: userData.permissions.financial ?? users[userIndex].permissions?.financial ?? false,
           priceTables: userData.permissions.priceTables ?? users[userIndex].permissions?.priceTables ?? false,
-          dashboard: userData.permissions.dashboard ?? users[userIndex].permissions?.dashboard ?? false,
+          dashboard: userData.permissions.dashboard ?? users[userIndex].permissions?.dashboard ?? true,
           logbook: userData.permissions.logbook ?? users[userIndex].permissions?.logbook ?? false,
           employees: userData.permissions.employees ?? users[userIndex].permissions?.employees ?? false,
           vehicles: userData.permissions.vehicles ?? users[userIndex].permissions?.vehicles ?? false,
@@ -74,6 +77,8 @@ export const useUserManagement = (currentUser: User | null) => {
         ...userData,
         updatedAt: new Date().toISOString()
       };
+      
+      console.log("Final updated user:", updatedUser);
       
       const updatedUsers = [...users];
       updatedUsers[userIndex] = updatedUser;
@@ -100,6 +105,7 @@ export const useUserManagement = (currentUser: User | null) => {
 
   const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => {
     try {
+      console.log("Creating new user with data:", userData);
       const existingUser = users.find(u => u.username === userData.username);
       
       if (existingUser) {
@@ -122,6 +128,7 @@ export const useUserManagement = (currentUser: User | null) => {
         role = 'user';
       }
       
+      // Ensure permissions are set properly
       const permissions = userData.permissions || createUserPermissions(role as 'user' | 'admin' | 'manager');
       
       const newUser: User = {
@@ -132,6 +139,8 @@ export const useUserManagement = (currentUser: User | null) => {
         createdAt: new Date().toISOString(),
         updatedAt: userData.updatedAt || new Date().toISOString(),
       };
+      
+      console.log("Final new user object:", newUser);
       
       const updatedUsers = [...users, newUser];
       saveUsers(updatedUsers);

@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { SettingsMenuItems } from "./management/SettingsMenuItems";
 import { ManagementMenuItems } from "./management/ManagementMenuItems";
 import { useManagementPermissions } from "./management/useManagementPermissions";
+import { toast } from "sonner";
 
 interface ManagementMenuProps {
   user: User | null;
@@ -31,10 +32,13 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
   const {
+    settingsPermissions,
     isLoadingPermissions,
     hasSettingsAccess,
     hasManagementAccess
   } = useManagementPermissions(user, hasPermission);
+  
+  console.log("ManagementMenu rendered with permissions:", { settingsPermissions, hasSettingsAccess, hasManagementAccess });
   
   // If no user or still loading permissions, don't render the menu
   if (!user || isLoadingPermissions) {
@@ -42,7 +46,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
   }
   
   // If no permissions for anything, don't render the menu
-  if (!hasPermission('admin') && !hasPermission('management')) {
+  if (!hasPermission('admin') && !hasPermission('management') && !hasPermission('settings')) {
     return null;
   }
   
@@ -60,6 +64,11 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
     if (onOpenChange) {
       onOpenChange();
     }
+    
+    // Notify user of successful navigation
+    toast.success("Navegado para configurações", {
+      description: "Página de configurações do sistema."
+    });
   };
 
   return (

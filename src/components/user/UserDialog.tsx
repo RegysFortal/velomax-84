@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 const userFormSchema = z.object({
   name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
@@ -116,8 +117,11 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
     },
   });
 
+  // Reset form when dialog opens/closes or user changes
   useEffect(() => {
     if (open) {
+      console.log("Dialog opened, setting form values", { isCreating, user });
+      
       if (isCreating) {
         form.reset({
           name: '',
@@ -145,54 +149,67 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           },
         });
       } else if (user) {
+        // Determine correct role value
         let roleValue: 'user' | 'admin' | 'manager' = 'user';
         if (user.role === 'admin' || user.role === 'manager') {
           roleValue = user.role;
         }
         
+        // Ensure permissions object exists
+        const userPermissions = user.permissions || {
+          deliveries: false,
+          shipments: false,
+          clients: false,
+          cities: false,
+          reports: false,
+          financial: false,
+          priceTables: false,
+          dashboard: true,
+          logbook: false,
+          employees: false,
+          vehicles: false,
+          maintenance: false,
+          settings: false,
+        };
+        
+        console.log("Setting form values for existing user", { 
+          name: user.name || '',
+          username: user.username || '',
+          email: user.email || '',
+          role: roleValue,
+          permissions: userPermissions
+        });
+        
         form.reset({
-          name: user.name,
-          username: user.username,
-          email: user.email,
+          name: user.name || '',
+          username: user.username || '',
+          email: user.email || '',
           password: '',
           role: roleValue,
           department: user.department || '',
           position: user.position || '',
           phone: user.phone || '',
-          permissions: user.permissions || {
-            deliveries: false,
-            shipments: false,
-            clients: false,
-            cities: false,
-            reports: false,
-            financial: false,
-            priceTables: false,
-            dashboard: true,
-            logbook: false,
-            employees: false,
-            vehicles: false,
-            maintenance: false,
-            settings: false,
-          },
+          permissions: userPermissions,
         });
       }
     }
   }, [form, user, open, isCreating]);
 
   const onSubmit = async (data: UserFormValues) => {
+    console.log("Form submitted with data:", data);
     setIsSubmitting(true);
+    
     try {
       if (isCreating) {
         if (!data.password) {
-          toast({
-            title: "Senha obrigatória",
+          toast.error("Senha obrigatória", {
             description: "Você deve fornecer uma senha para o novo usuário.",
-            variant: "destructive",
           });
           setIsSubmitting(false);
           return;
         }
 
+        // Ensure permissions object is complete
         const completePermissions = {
           deliveries: data.permissions.deliveries || false,
           shipments: data.permissions.shipments || false,
@@ -209,6 +226,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           settings: data.permissions.settings || false,
         };
 
+        console.log("Creating new user with permissions:", completePermissions);
         const newUser = await createUser({
           name: data.name,
           username: data.username,
@@ -222,11 +240,11 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           updatedAt: new Date().toISOString(),
         });
 
-        toast({
-          title: "Usuário criado",
+        toast.success("Usuário criado", {
           description: `O usuário ${newUser.name} foi criado com sucesso.`,
         });
       } else if (user) {
+        // Ensure permissions object is complete for updates
         const updatedPermissions = {
           deliveries: data.permissions.deliveries || false,
           shipments: data.permissions.shipments || false,
@@ -255,13 +273,14 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           updatedAt: new Date().toISOString(),
         };
 
+        console.log("Updating user with ID:", user.id, "and data:", updatedUser);
+        
         if (data.password) {
           updatedUser.password = data.password;
         }
 
         await updateUser(user.id, updatedUser);
-        toast({
-          title: "Usuário atualizado",
+        toast.success("Usuário atualizado", {
           description: `As informações do usuário ${user.name} foram atualizadas com sucesso.`,
         });
       }
@@ -269,10 +288,8 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
       onClose();
     } catch (error) {
       console.error('Error saving user:', error);
-      toast({
-        title: "Erro ao salvar usuário",
+      toast.error("Erro ao salvar usuário", {
         description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar as informações do usuário.",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
