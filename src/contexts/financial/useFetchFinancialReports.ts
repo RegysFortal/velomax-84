@@ -19,7 +19,6 @@ export const useFetchFinancialReports = (
     try {
       setLoading(true);
       
-      // Wait 500ms to avoid flashing loading state if data loads quickly
       const { data, error } = await supabase
         .from('financial_reports')
         .select('*')
@@ -52,4 +51,6 @@ export const useFetchFinancialReports = (
       setLoading(false);
     }
   };
+
+  return { fetchFinancialReports };
 };

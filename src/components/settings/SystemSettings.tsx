@@ -13,7 +13,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function SystemSettings() {
   const { user } = useAuth();
-  const [isEditable, setIsEditable] = useState(true);  // Default to true to fix permission issue
+  const [isEditable, setIsEditable] = useState(true);  // Default to true
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [backupFrequency, setBackupFrequency] = useState('daily');
   const [dataRetention, setDataRetention] = useState('90');
   const [timezone, setTimezone] = useState('America/Sao_Paulo');
@@ -21,58 +23,84 @@ export function SystemSettings() {
   const [apiKey, setApiKey] = useState('****************************************');
   const [showApiKey, setShowApiKey] = useState(false);
 
-  // Check if current user has permissions to edit system settings
+  // Load system settings from Supabase
   useEffect(() => {
-    const checkPermissions = async () => {
+    const loadSystemSettings = async () => {
       try {
+        setIsLoading(true);
+        
+        // Try to load from Supabase first
+        const settingsToLoad = [
+          { key: 'backup_frequency', setState: setBackupFrequency, defaultValue: 'daily' },
+          { key: 'data_retention', setState: setDataRetention, defaultValue: '90' },
+          { key: 'timezone', setState: setTimezone, defaultValue: 'America/Sao_Paulo' },
+          { key: 'enable_audit_log', setState: setEnableAuditLog, defaultValue: true }
+        ];
+        
+        for (const setting of settingsToLoad) {
+          const { data, error } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('key', setting.key)
+            .maybeSingle();
+          
+          if (error) {
+            console.error(`Error fetching ${setting.key}:`, error);
+          } else if (data) {
+            try {
+              // Parse the JSON value
+              const parsedValue = JSON.parse(data.value);
+              setting.setState(parsedValue);
+            } catch (parseError) {
+              console.error(`Error parsing ${setting.key}:`, parseError);
+              setting.setState(setting.defaultValue);
+            }
+          }
+        }
+        
+        // Fallback to localStorage if no data in Supabase
+        const savedSettings = localStorage.getItem('system_settings');
+        if (savedSettings) {
+          try {
+            const settings = JSON.parse(savedSettings);
+            if (!backupFrequency) setBackupFrequency(settings.backupFrequency || 'daily');
+            if (!dataRetention) setDataRetention(settings.dataRetention || '90');
+            if (!timezone) setTimezone(settings.timezone || 'America/Sao_Paulo');
+            if (enableAuditLog === undefined) setEnableAuditLog(settings.enableAuditLog !== undefined ? settings.enableAuditLog : true);
+          } catch (error) {
+            console.error("Error parsing saved settings:", error);
+          }
+        }
+        
+        // Check if current user has permissions to edit system settings
         if (user) {
           // Simplified permission check - if user is admin or has role that should allow editing
           if (user.role === 'admin' || user.role === 'manager') {
             setIsEditable(true);
-            return;
-          }
-          
-          // Only check with Supabase if needed
-          const { data: hasAccess, error } = await supabase.rpc('user_has_system_settings_access');
-          
-          if (error) {
-            console.error("Error checking permissions:", error);
-            // Fall back to allowing edit - default to permissive
-            setIsEditable(true);
           } else {
-            // If we get an explicit false from the database, then deny
-            // Otherwise, allow editing (more permissive default)
-            setIsEditable(hasAccess !== false);
+            // Only check with Supabase if needed
+            const { data: hasAccess, error } = await supabase.rpc('user_has_system_settings_access');
+            
+            if (error) {
+              console.error("Error checking permissions:", error);
+              // Fall back to allowing edit - default to permissive
+              setIsEditable(true);
+            } else {
+              // If we get an explicit false from the database, then deny
+              // Otherwise, allow editing (more permissive default)
+              setIsEditable(hasAccess !== false);
+            }
           }
-        } else {
-          // If no user, still default to allowing edits locally
-          setIsEditable(true);
         }
       } catch (error) {
-        console.error("Error checking system permissions:", error);
-        // Fall back to allowing edit
-        setIsEditable(true);
+        console.error("Error loading system settings:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     
-    checkPermissions();
+    loadSystemSettings();
   }, [user]);
-
-  useEffect(() => {
-    // Load saved settings
-    const savedSettings = localStorage.getItem('system_settings');
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        setBackupFrequency(settings.backupFrequency || 'daily');
-        setDataRetention(settings.dataRetention || '90');
-        setTimezone(settings.timezone || 'America/Sao_Paulo');
-        setEnableAuditLog(settings.enableAuditLog !== undefined ? settings.enableAuditLog : true);
-      } catch (error) {
-        console.error("Error parsing saved settings:", error);
-      }
-    }
-  }, []);
 
   const handleSave = async () => {
     if (!isEditable) {
@@ -85,6 +113,8 @@ export function SystemSettings() {
     }
     
     try {
+      setIsSaving(true);
+      
       // Save to localStorage for backward compatibility
       const settings = {
         backupFrequency,
@@ -157,6 +187,8 @@ export function SystemSettings() {
         description: "Ocorreu um erro ao salvar as configurações.",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -183,6 +215,24 @@ export function SystemSettings() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Configurações do Sistema</CardTitle>
+            <CardDescription>Carregando configurações...</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center p-6">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -197,7 +247,7 @@ export function SystemSettings() {
             <HardDrive className="h-5 w-5 text-blue-500 mt-1" />
             <div className="space-y-1 flex-1">
               <Label htmlFor="backup-frequency">Frequência de Backup</Label>
-              <Select value={backupFrequency} onValueChange={setBackupFrequency}>
+              <Select value={backupFrequency} onValueChange={setBackupFrequency} disabled={!isEditable}>
                 <SelectTrigger id="backup-frequency">
                   <SelectValue placeholder="Selecione a frequência" />
                 </SelectTrigger>
@@ -221,6 +271,7 @@ export function SystemSettings() {
                 value={dataRetention}
                 onChange={(e) => setDataRetention(e.target.value)}
                 min="1"
+                disabled={!isEditable}
               />
             </div>
           </div>
@@ -239,7 +290,7 @@ export function SystemSettings() {
             <Globe className="h-5 w-5 text-green-500 mt-1" />
             <div className="space-y-1 flex-1">
               <Label htmlFor="timezone">Fuso Horário</Label>
-              <Select value={timezone} onValueChange={setTimezone}>
+              <Select value={timezone} onValueChange={setTimezone} disabled={!isEditable}>
                 <SelectTrigger id="timezone">
                   <SelectValue placeholder="Selecione o fuso horário" />
                 </SelectTrigger>
@@ -261,6 +312,7 @@ export function SystemSettings() {
                   id="audit-log"
                   checked={enableAuditLog}
                   onCheckedChange={setEnableAuditLog}
+                  disabled={!isEditable}
                 />
                 <Label htmlFor="audit-log">Habilitar Log de Auditoria</Label>
               </div>
@@ -303,14 +355,16 @@ export function SystemSettings() {
               Esta chave é usada para acessar a API do sistema. Mantenha-a segura.
             </p>
           </div>
-          <Button variant="outline" onClick={generateNewApiKey}>
+          <Button variant="outline" onClick={generateNewApiKey} disabled={!isEditable}>
             Gerar Nova Chave API
           </Button>
         </CardContent>
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave}>Salvar Configurações</Button>
+        <Button onClick={handleSave} disabled={!isEditable || isSaving}>
+          {isSaving ? "Salvando..." : "Salvar Configurações"}
+        </Button>
       </div>
     </div>
   );

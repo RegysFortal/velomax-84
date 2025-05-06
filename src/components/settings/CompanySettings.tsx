@@ -34,12 +34,38 @@ export function CompanySettings() {
     }
   });
   
-  // Check if current user has permissions to edit company settings
+  // Load company data from Supabase and check permissions
   useEffect(() => {
-    const checkPermissions = async () => {
+    const initializeCompanySettings = async () => {
       try {
         setIsLoading(true);
         
+        // Load company data from Supabase
+        const { data: companySettings, error } = await supabase
+          .from('company_settings')
+          .select('*')
+          .limit(1)
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Error fetching company settings:", error);
+        } else if (companySettings) {
+          // Transform database fields to match our interface
+          setCompanyData({
+            name: companySettings.name,
+            cnpj: companySettings.cnpj || '',
+            address: companySettings.address || '',
+            city: companySettings.city || '',
+            state: companySettings.state || '',
+            zipCode: companySettings.zipcode || '',
+            phone: companySettings.phone || '',
+            email: companySettings.email || '',
+            website: companySettings.website || '',
+            description: companySettings.description || ''
+          });
+        }
+        
+        // Check if current user has permissions to edit company settings
         if (!user) {
           setIsEditable(false);
           return;
@@ -66,14 +92,14 @@ export function CompanySettings() {
           setIsEditable(false);
         }
       } catch (error) {
-        console.error("Error in permission check flow:", error);
+        console.error("Error in company settings initialization:", error);
         setIsEditable(false);
       } finally {
         setIsLoading(false);
       }
     };
     
-    checkPermissions();
+    initializeCompanySettings();
   }, [user]);
   
   // Listen for company settings updates

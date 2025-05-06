@@ -20,6 +20,8 @@ interface NotificationSetting {
 
 export function NotificationSettings() {
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState<NotificationSetting[]>([
     {
       id: 'new-deliveries',
@@ -69,6 +71,7 @@ export function NotificationSettings() {
       if (!user) return;
       
       try {
+        setIsLoading(true);
         // First try to load from Supabase
         const { data, error } = await supabase
           .from('notification_settings')
@@ -94,6 +97,8 @@ export function NotificationSettings() {
         }
       } catch (error) {
         console.error("Error loading notification preferences:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -108,6 +113,7 @@ export function NotificationSettings() {
 
   const saveSettings = async () => {
     try {
+      setIsSaving(true);
       // Save to localStorage for backward compatibility
       localStorage.setItem('notification_settings', JSON.stringify(settings));
       
@@ -165,6 +171,8 @@ export function NotificationSettings() {
       toast.error("Erro ao salvar", {
         description: "Não foi possível salvar suas preferências de notificação.",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -177,27 +185,38 @@ export function NotificationSettings() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {settings.map((setting) => (
-          <div key={setting.id} className="flex items-center justify-between">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5">{setting.icon}</div>
-              <div>
-                <Label htmlFor={setting.id} className="text-base font-medium">
-                  {setting.title}
-                </Label>
-                <p className="text-sm text-muted-foreground">{setting.description}</p>
-              </div>
-            </div>
-            <Switch
-              id={setting.id}
-              checked={setting.enabled}
-              onCheckedChange={() => toggleSetting(setting.id)}
-            />
+        {isLoading ? (
+          <div className="flex justify-center py-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ))}
+        ) : (
+          settings.map((setting) => (
+            <div key={setting.id} className="flex items-center justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5">{setting.icon}</div>
+                <div>
+                  <Label htmlFor={setting.id} className="text-base font-medium">
+                    {setting.title}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">{setting.description}</p>
+                </div>
+              </div>
+              <Switch
+                id={setting.id}
+                checked={setting.enabled}
+                onCheckedChange={() => toggleSetting(setting.id)}
+              />
+            </div>
+          ))
+        )}
       </CardContent>
       <CardFooter className="flex justify-end">
-        <Button onClick={saveSettings}>Salvar Preferências</Button>
+        <Button 
+          onClick={saveSettings} 
+          disabled={isLoading || isSaving}
+        >
+          {isSaving ? "Salvando..." : "Salvar Preferências"}
+        </Button>
       </CardFooter>
     </Card>
   );

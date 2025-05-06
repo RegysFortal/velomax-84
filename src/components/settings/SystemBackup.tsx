@@ -21,18 +21,29 @@ export function SystemBackup() {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Check if current user has backup access permissions
   useEffect(() => {
     const checkBackupPermissions = async () => {
       try {
+        setIsLoading(true);
+        
         if (user) {
+          // First check by role for reliability
+          if (user.role === 'admin' || user.role === 'manager') {
+            setHasAccess(true);
+            setIsLoading(false);
+            return;
+          }
+          
+          // Only check with Supabase RPC if needed
           const { data: accessAllowed, error } = await supabase.rpc('user_has_backup_access');
           
           if (error) {
             console.error("Error checking backup permissions:", error);
-            // Fallback to client-side role check
-            setHasAccess(user.role === 'admin' || user.role === 'manager');
+            // Already checked role above, default to false
+            setHasAccess(false);
           } else {
             setHasAccess(!!accessAllowed);
           }
@@ -41,8 +52,10 @@ export function SystemBackup() {
         }
       } catch (error) {
         console.error("Error checking backup access:", error);
-        // Fallback to client-side role check
-        setHasAccess(user?.role === 'admin' || user?.role === 'manager');
+        // Already checked role above, default to false
+        setHasAccess(false);
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -239,6 +252,22 @@ export function SystemBackup() {
       e.target.value = '';
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Backup e Restauração do Sistema</CardTitle>
+          <CardDescription>Carregando permissões...</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Show restricted access message if user doesn't have permission
   if (!hasAccess) {
