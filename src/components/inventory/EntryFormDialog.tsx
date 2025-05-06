@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { StockEntry, Product } from '@/types/inventory';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EntryFormDialogProps {
   isOpen: boolean;
@@ -79,125 +80,127 @@ export function EntryFormDialog({ isOpen, onClose, onSave, products, entry }: En
           <DialogTitle>{entry ? 'Editar Entrada' : 'Nova Entrada'}</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField id="date" label="Data" required>
-              <Input 
-                id="date"
-                type="date"
-                value={formData.date.substring(0, 10)}
-                onChange={(e) => handleChange('date', e.target.value)}
-                required
+        <ScrollArea className="max-h-[70vh]">
+          <form onSubmit={handleSubmit} className="space-y-4 p-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField id="date" label="Data" required>
+                <Input 
+                  id="date"
+                  type="date"
+                  value={formData.date.substring(0, 10)}
+                  onChange={(e) => handleChange('date', e.target.value)}
+                  required
+                />
+              </FormField>
+              
+              <FormField id="product" label="Produto" required>
+                <Select 
+                  value={formData.productId} 
+                  onValueChange={handleProductChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um produto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map(product => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.name} ({product.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+              
+              <FormField id="quantity" label="Quantidade" required>
+                <Input 
+                  id="quantity"
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => handleChange('quantity', Number(e.target.value))}
+                  min={1}
+                  required
+                />
+              </FormField>
+              
+              <FormField id="invoiceNumber" label="Nota Fiscal" required>
+                <Input 
+                  id="invoiceNumber"
+                  value={formData.invoiceNumber}
+                  onChange={(e) => handleChange('invoiceNumber', e.target.value)}
+                  placeholder="Ex: NF-45678"
+                  required
+                />
+              </FormField>
+              
+              <FormField id="supplier" label="Fornecedor">
+                <Input 
+                  id="supplier"
+                  value={formData.supplier}
+                  onChange={(e) => handleChange('supplier', e.target.value)}
+                  placeholder="Ex: Auto Peças Brasil"
+                />
+              </FormField>
+              
+              <FormField id="unitPrice" label="Preço Unitário (R$)">
+                <Input 
+                  id="unitPrice"
+                  type="number"
+                  step="0.01"
+                  value={formData.unitPrice}
+                  onChange={(e) => handleChange('unitPrice', Number(e.target.value))}
+                  min={0}
+                />
+              </FormField>
+              
+              <FormField id="totalPrice" label="Preço Total (R$)">
+                <Input 
+                  id="totalPrice"
+                  type="number"
+                  step="0.01"
+                  value={formData.totalPrice}
+                  readOnly
+                />
+              </FormField>
+              
+              <FormField id="transportDocument" label="Documento de Transporte">
+                <Input 
+                  id="transportDocument"
+                  value={formData.transportDocument}
+                  onChange={(e) => handleChange('transportDocument', e.target.value)}
+                  placeholder="Ex: CT-12345"
+                />
+              </FormField>
+              
+              <FormField id="receivedBy" label="Recebido por">
+                <Input 
+                  id="receivedBy"
+                  value={formData.receivedBy}
+                  onChange={(e) => handleChange('receivedBy', e.target.value)}
+                  placeholder="Ex: João Silva"
+                />
+              </FormField>
+            </div>
+            
+            <FormField id="observations" label="Observações">
+              <Textarea 
+                id="observations"
+                value={formData.observations}
+                onChange={(e) => handleChange('observations', e.target.value)}
+                rows={3}
+                placeholder="Observações sobre a entrada de material"
               />
             </FormField>
-            
-            <FormField id="product" label="Produto" required>
-              <Select 
-                value={formData.productId} 
-                onValueChange={handleProductChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um produto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map(product => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name} ({product.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-            
-            <FormField id="quantity" label="Quantidade" required>
-              <Input 
-                id="quantity"
-                type="number"
-                value={formData.quantity}
-                onChange={(e) => handleChange('quantity', Number(e.target.value))}
-                min={1}
-                required
-              />
-            </FormField>
-            
-            <FormField id="invoiceNumber" label="Nota Fiscal" required>
-              <Input 
-                id="invoiceNumber"
-                value={formData.invoiceNumber}
-                onChange={(e) => handleChange('invoiceNumber', e.target.value)}
-                placeholder="Ex: NF-45678"
-                required
-              />
-            </FormField>
-            
-            <FormField id="supplier" label="Fornecedor">
-              <Input 
-                id="supplier"
-                value={formData.supplier}
-                onChange={(e) => handleChange('supplier', e.target.value)}
-                placeholder="Ex: Auto Peças Brasil"
-              />
-            </FormField>
-            
-            <FormField id="unitPrice" label="Preço Unitário (R$)">
-              <Input 
-                id="unitPrice"
-                type="number"
-                step="0.01"
-                value={formData.unitPrice}
-                onChange={(e) => handleChange('unitPrice', Number(e.target.value))}
-                min={0}
-              />
-            </FormField>
-            
-            <FormField id="totalPrice" label="Preço Total (R$)">
-              <Input 
-                id="totalPrice"
-                type="number"
-                step="0.01"
-                value={formData.totalPrice}
-                readOnly
-              />
-            </FormField>
-            
-            <FormField id="transportDocument" label="Documento de Transporte">
-              <Input 
-                id="transportDocument"
-                value={formData.transportDocument}
-                onChange={(e) => handleChange('transportDocument', e.target.value)}
-                placeholder="Ex: CT-12345"
-              />
-            </FormField>
-            
-            <FormField id="receivedBy" label="Recebido por">
-              <Input 
-                id="receivedBy"
-                value={formData.receivedBy}
-                onChange={(e) => handleChange('receivedBy', e.target.value)}
-                placeholder="Ex: João Silva"
-              />
-            </FormField>
-          </div>
-          
-          <FormField id="observations" label="Observações">
-            <Textarea 
-              id="observations"
-              value={formData.observations}
-              onChange={(e) => handleChange('observations', e.target.value)}
-              rows={3}
-              placeholder="Observações sobre a entrada de material"
-            />
-          </FormField>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit">
-              {entry ? 'Salvar Alterações' : 'Registrar Entrada'}
-            </Button>
-          </DialogFooter>
-        </form>
+          </form>
+        </ScrollArea>
+        
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" onClick={handleSubmit}>
+            {entry ? 'Salvar Alterações' : 'Registrar Entrada'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
