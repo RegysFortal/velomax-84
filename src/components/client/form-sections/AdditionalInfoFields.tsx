@@ -68,7 +68,7 @@ export function AdditionalInfoFields({ control, priceTables }: AdditionalInfoFie
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="none" disabled> {/* Changed from "empty" to "none" */}
+                    <SelectItem value="no_tables"> {/* Changed from "none" to "no_tables" */}
                       Nenhuma tabela disponível
                     </SelectItem>
                   )}

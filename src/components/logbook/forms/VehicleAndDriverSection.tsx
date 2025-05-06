@@ -95,7 +95,7 @@ export function VehicleAndDriverSection({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="none">Nenhum</SelectItem>
+                <SelectItem value="no_assistant">Nenhum</SelectItem> {/* Changed from "none" to "no_assistant" */}
                 {assistants.map((assistant) => (
                   <SelectItem key={assistant.id} value={assistant.id}>
                     {assistant.name}

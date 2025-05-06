@@ -56,7 +56,7 @@ export function PriceTableAndNotes({
           </SelectTrigger>
           <SelectContent>
             {isLoading ? (
-              <SelectItem value="loading" disabled>Carregando tabelas...</SelectItem>
+              <SelectItem value="loading_state">Carregando tabelas...</SelectItem> {/* Changed from "loading" to "loading_state" */}
             ) : availableTables.length > 0 ? (
               availableTables.map((table) => (
                 <SelectItem key={table.id} value={table.id}>
@@ -64,7 +64,7 @@ export function PriceTableAndNotes({
                 </SelectItem>
               ))
             ) : (
-              <SelectItem value="no-tables" disabled>Nenhuma tabela disponível</SelectItem>
+              <SelectItem value="no_tables">Nenhuma tabela disponível</SelectItem> {/* Changed from "no-tables" to "no_tables" */}
             )}
           </SelectContent>
         </Select>

@@ -34,7 +34,7 @@ export function RegionalSettingsSection({
           <Globe className="h-5 w-5 text-green-500 mt-1" />
           <div className="space-y-1 flex-1">
             <Label htmlFor="timezone">Fuso Horário</Label>
-            <Select value={timezone} onValueChange={setTimezone} disabled={!isEditable}>
+            <Select value={timezone || "America/Sao_Paulo"} onValueChange={setTimezone} disabled={!isEditable}>
               <SelectTrigger id="timezone">
                 <SelectValue placeholder="Selecione o fuso horário" />
               </SelectTrigger>

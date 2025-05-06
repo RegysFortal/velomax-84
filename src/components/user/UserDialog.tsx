@@ -432,7 +432,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          value={field.value || ''}
+                          value={field.value || "none"}  // Changed from "" to "none"
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -440,7 +440,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Selecione...</SelectItem>
+                            <SelectItem value="none">Selecione...</SelectItem> {/* Changed from "" to "none" */}
                             <SelectItem value="operations">Operações</SelectItem>
                             <SelectItem value="finance">Financeiro</SelectItem>
                             <SelectItem value="administrative">Administrativo</SelectItem>
