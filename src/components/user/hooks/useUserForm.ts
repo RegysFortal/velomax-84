@@ -73,8 +73,8 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
         phone: '',
       });
       
-      // Initialize permissions with a delay
-      initializePermissionsWithDelay(undefined, 100);
+      // Initialize permissions immediately for new users
+      initializePermissionsWithDelay(undefined, 10);
     } else if (user) {
       // Determine correct role value
       let roleValue: 'user' | 'admin' | 'manager' = 'user';
@@ -101,30 +101,17 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
         phone: user.phone || '',
       });
 
-      // Initialize user permissions with a delay
-      initializePermissionsWithDelay(user.permissions, 100);
+      // Initialize user permissions immediately
+      initializePermissionsWithDelay(user.permissions, 10);
     }
   }, [form, user, isCreating, initializePermissionsWithDelay]);
 
   // Handle tab change with optimized performance
   const handleTabChange = useCallback((value: string) => {
+    console.log("Changing tab to:", value);
     // First update the state
     setActiveTab(value);
-    
-    // Use requestAnimationFrame to ensure UI updates before any intensive processing
-    requestAnimationFrame(() => {
-      // If switching to permissions tab, ensure data is ready
-      if (value === 'permissions' && !permissionsInitialized && !isLoadingPermissions) {
-        console.log("Iniciando carregamento de permissões após mudança de tab");
-        // Re-initialize permissions if needed
-        if (isCreating) {
-          initializePermissionsWithDelay(undefined, 10);
-        } else if (user) {
-          initializePermissionsWithDelay(user.permissions, 10);
-        }
-      }
-    });
-  }, [permissionsInitialized, isLoadingPermissions, isCreating, user, initializePermissionsWithDelay]);
+  }, []);
 
   const onSubmit = async (data: UserFormValues) => {
     console.log("Formulário enviado com dados:", data);

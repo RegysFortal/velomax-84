@@ -55,5 +55,4 @@ export const PermissionsTab = memo(function PermissionsTab({
   );
 });
 
-// Default export for lazy loading compatibility
-export default { PermissionsTab };
+export default PermissionsTab;

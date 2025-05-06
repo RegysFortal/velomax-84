@@ -12,7 +12,7 @@ export type PermissionsState = {
 export const usePermissions = (user: User | null, isCreating: boolean, currentRole?: string) => {
   const [permissions, setPermissions] = useState<Record<string, PermissionLevel>>({});
   const [permissionsInitialized, setPermissionsInitialized] = useState(false);
-  const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
+  const [isLoadingPermissions, setIsLoadingPermissions] = useState(false); // Changed to false by default
   
   const defaultPermission: PermissionLevel = {
     view: false,
@@ -79,7 +79,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     setIsLoadingPermissions(true);
     setPermissionsInitialized(false);
     
-    // Use larger timeout to prevent UI freezing
+    // Use setTimeout instead of requestAnimationFrame for more reliable behavior
     setTimeout(() => {
       try {
         const initializedPermissions = initializePermissions(userPermissions);
@@ -169,6 +169,14 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
       }
     }, 100);
   }, [currentRole, isCreating, permissions, initializePermissions, permissionsInitialized, isLoadingPermissions]);
+
+  // Initial permission initialization
+  useEffect(() => {
+    // Initialize permissions immediately when component mounts
+    if (!permissionsInitialized && !isLoadingPermissions) {
+      initializePermissionsWithDelay(user?.permissions, 10);
+    }
+  }, []);
 
   return {
     permissions,

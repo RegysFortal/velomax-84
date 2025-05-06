@@ -13,11 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BasicInfoTab } from './tabs/BasicInfoTab';
 import { useUserForm } from './hooks/useUserForm';
-
-// Use lazy loading for the permissions tab to improve initial load performance
-const PermissionsTab = lazy(() => 
-  import('./tabs/PermissionsTab').then(module => ({ default: module.PermissionsTab }))
-);
+import { PermissionsTab } from './tabs/PermissionsTab';
 
 // Loading fallback component
 const LoadingPermissions = () => (
