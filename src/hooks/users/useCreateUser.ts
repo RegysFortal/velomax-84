@@ -66,14 +66,30 @@ export const useCreateUser = () => {
       
       // Inserir as permissões detalhadas para este usuário
       if (userData.permissions) {
-        const permissionsToInsert = Object.entries(userData.permissions).map(([resource, levels]) => ({
-          user_id: data.user.id,
-          resource,
-          view: levels.view || false,
-          create: levels.create || false,
-          edit: levels.edit || false,
-          delete: levels.delete || false
-        }));
+        const permissionsToInsert = Object.entries(userData.permissions).map(([resource, levels]) => {
+          // Verificar se é o formato antigo (boolean) ou novo (PermissionLevel)
+          if (typeof levels === 'boolean') {
+            // Converter boolean para o novo formato
+            return {
+              user_id: data.user.id,
+              resource,
+              view: levels,
+              create: levels,
+              edit: levels,
+              delete: levels
+            };
+          } else {
+            // Já está no novo formato
+            return {
+              user_id: data.user.id,
+              resource,
+              view: levels.view || false,
+              create: levels.create || false,
+              edit: levels.edit || false,
+              delete: levels.delete || false
+            };
+          }
+        });
         
         if (permissionsToInsert.length > 0) {
           const { error: permError } = await supabase

@@ -1,9 +1,10 @@
+
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { AppHeader } from './AppHeader';
 import { toast } from 'sonner';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AppLayoutProps {
@@ -144,9 +145,9 @@ export function AppLayout({ children }: AppLayoutProps) {
           });
           
           // Redirect to dashboard or first accessible page
-          if (hasPermission('dashboard')) {
+          if (hasPermission('dashboard', 'view')) {
             navigate('/dashboard');
-          } else if (hasPermission('deliveries')) {
+          } else if (hasPermission('deliveries', 'view')) {
             navigate('/deliveries');
           } else {
             navigate('/profile');

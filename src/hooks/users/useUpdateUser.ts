@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { mapAppUserToSupabase } from './userMappers';
 import { toast } from 'sonner';
@@ -82,14 +82,30 @@ export const useUpdateUser = () => {
         }
         
         // Agora, criar novas entradas para cada permissão
-        const permissionInserts = Object.entries(userData.permissions).map(([resource, levels]) => ({
-          user_id: userId,
-          resource,
-          view: levels.view || false,
-          create: levels.create || false,
-          edit: levels.edit || false,
-          delete: levels.delete || false
-        }));
+        const permissionInserts = Object.entries(userData.permissions).map(([resource, levels]) => {
+          // Verificar se é o formato antigo (boolean) ou novo (PermissionLevel)
+          if (typeof levels === 'boolean') {
+            // Converter boolean para o novo formato
+            return {
+              user_id: userId,
+              resource,
+              view: levels,
+              create: levels,
+              edit: levels,
+              delete: levels
+            };
+          } else {
+            // Já está no novo formato
+            return {
+              user_id: userId,
+              resource,
+              view: levels.view || false,
+              create: levels.create || false,
+              edit: levels.edit || false,
+              delete: levels.delete || false
+            };
+          }
+        });
         
         if (permissionInserts.length > 0) {
           const { error: insertError } = await supabase

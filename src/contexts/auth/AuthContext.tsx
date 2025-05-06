@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseUserManagement } from './useSupabaseUserManagement';
 import { useAuthentication } from './useAuthentication';
@@ -32,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout, 
     updateUserProfile, 
     updateUserPassword, 
-    hasPermission,
+    hasPermission: authHasPermission,
     setUser,
     setSupabaseUser,
     setSession,
@@ -132,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  // Atualizamos a função hasPermission para usar o novo sistema de permissões detalhadas
+  // Implementamos a função hasPermission para usar o novo sistema de permissões detalhadas
   const hasPermission = (feature: string, level: keyof PermissionLevel = 'view') => {
     // Admins always have all permissions
     if (user?.role === 'admin') return true;
@@ -145,6 +146,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     // If permission doesn't exist, deny
     if (!permission) return false;
+    
+    // Check if permission is a boolean (old format) or an object (new format)
+    if (typeof permission === 'boolean') {
+      return permission;
+    }
     
     // Return the specific level of permission
     return permission[level] || false;
