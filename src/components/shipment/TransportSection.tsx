@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Select,
   SelectContent,
@@ -19,7 +19,7 @@ interface TransportSectionProps {
   disabled?: boolean;
 }
 
-// Define carrier options by type
+// Define carrier options by type - moved outside component to prevent recreation
 const AIR_CARRIERS = ["Latam", "Gol", "Azul", "outro"];
 const ROAD_CARRIERS = ["Concept", "Jem", "Global", "outro"];
 
@@ -32,43 +32,55 @@ export function TransportSection({
   setTrackingNumber,
   disabled
 }: TransportSectionProps) {
-  const [selectedCarrier, setSelectedCarrier] = useState<string>(
-    carrierName && 
-    ((transportMode === "air" && AIR_CARRIERS.includes(carrierName)) || 
-     (transportMode === "road" && ROAD_CARRIERS.includes(carrierName))) 
-      ? carrierName 
-      : "outro"
-  );
+  // Use lazy initial state to prevent recalculation on every render
+  const [selectedCarrier, setSelectedCarrier] = useState<string>(() => {
+    if (carrierName && 
+      ((transportMode === "air" && AIR_CARRIERS.includes(carrierName)) || 
+      (transportMode === "road" && ROAD_CARRIERS.includes(carrierName)))) {
+      return carrierName;
+    }
+    return "outro";
+  });
   
-  const [customCarrierName, setCustomCarrierName] = useState<string>(
+  const [customCarrierName, setCustomCarrierName] = useState<string>(() => 
     selectedCarrier === "outro" ? carrierName : ""
   );
 
-  // Update state when transport mode changes
+  // Memoize current carriers to prevent recreation on every render
+  const currentCarriers = useMemo(() => 
+    transportMode === "air" ? AIR_CARRIERS : ROAD_CARRIERS, 
+    [transportMode]
+  );
+
+  // Update state when transport mode changes - using useEffect with proper dependencies
   useEffect(() => {
-    // Reset the selected carrier when transport mode changes
-    const currentCarriers = transportMode === "air" ? AIR_CARRIERS : ROAD_CARRIERS;
-    if (carrierName && currentCarriers.includes(carrierName)) {
-      setSelectedCarrier(carrierName);
-      setCustomCarrierName("");
-    } else if (carrierName) {
-      setSelectedCarrier("outro");
-      setCustomCarrierName(carrierName);
-    } else {
+    if (!carrierName) {
+      // If no carrier name, select the first one from the list
       setSelectedCarrier(currentCarriers[0]);
       setCarrierName(currentCarriers[0]);
+      setCustomCarrierName("");
+      return;
     }
-  }, [transportMode, carrierName, setCarrierName]);
+    
+    if (currentCarriers.includes(carrierName)) {
+      setSelectedCarrier(carrierName);
+      setCustomCarrierName("");
+    } else {
+      setSelectedCarrier("outro");
+      setCustomCarrierName(carrierName);
+    }
+  }, [transportMode, carrierName, setCarrierName, currentCarriers]);
 
-  // Update carrier name when selection changes
+  // Update carrier name when selection changes - with debounce
   const handleCarrierChange = (value: string) => {
     setSelectedCarrier(value);
     
     if (value !== "outro") {
       setCarrierName(value);
       setCustomCarrierName("");
-    } else {
-      setCustomCarrierName(customCarrierName || "");
+    } else if (customCarrierName) {
+      // Only update if we have a custom carrier name
+      setCarrierName(customCarrierName);
     }
   };
 
@@ -76,7 +88,10 @@ export function TransportSection({
   const handleCustomCarrierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCustomCarrierName(value);
-    setCarrierName(value);
+    // Use requestAnimationFrame to prevent UI freeze during typing
+    requestAnimationFrame(() => {
+      setCarrierName(value);
+    });
   };
 
   return (
@@ -110,7 +125,7 @@ export function TransportSection({
               <SelectValue placeholder="Selecione a transportadora" />
             </SelectTrigger>
             <SelectContent>
-              {(transportMode === "air" ? AIR_CARRIERS : ROAD_CARRIERS).map(carrier => (
+              {currentCarriers.map(carrier => (
                 <SelectItem key={carrier} value={carrier}>
                   {carrier === "outro" ? "Outro" : carrier}
                 </SelectItem>

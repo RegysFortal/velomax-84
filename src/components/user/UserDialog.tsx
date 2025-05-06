@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { User } from '@/types';
 import {
   Dialog,
@@ -12,8 +12,20 @@ import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BasicInfoTab } from './tabs/BasicInfoTab';
-import { PermissionsTab } from './tabs/PermissionsTab';
 import { useUserForm } from './hooks/useUserForm';
+
+// Use lazy loading for the permissions tab to improve initial load performance
+const PermissionsTab = lazy(() => 
+  import('./tabs/PermissionsTab').then(module => ({ default: module.PermissionsTab }))
+);
+
+// Loading fallback component
+const LoadingPermissions = () => (
+  <div className="py-12 flex flex-col justify-center items-center">
+    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
+    <p className="text-sm text-muted-foreground">Carregando permissões...</p>
+  </div>
+);
 
 interface UserDialogProps {
   open: boolean;
@@ -41,7 +53,6 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
   useEffect(() => {
     if (!open) {
       console.log("Dialog was closed, resetting state");
-      // Any additional cleanup can go here
     }
   }, [open]);
 
@@ -67,13 +78,15 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
               </TabsContent>
               
               <TabsContent value="permissions">
-                <PermissionsTab
-                  isLoadingPermissions={isLoadingPermissions}
-                  permissionsInitialized={permissionsInitialized}
-                  permissions={permissions}
-                  onChange={handlePermissionChange}
-                  isAdmin={isAdmin}
-                />
+                <Suspense fallback={<LoadingPermissions />}>
+                  <PermissionsTab
+                    isLoadingPermissions={isLoadingPermissions}
+                    permissionsInitialized={permissionsInitialized}
+                    permissions={permissions}
+                    onChange={handlePermissionChange}
+                    isAdmin={isAdmin}
+                  />
+                </Suspense>
               </TabsContent>
             </Tabs>
 

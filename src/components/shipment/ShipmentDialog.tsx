@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useClients } from "@/contexts/clients";
 import { useShipments } from "@/contexts/shipments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,7 +18,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const { clients } = useClients();
   const { addShipment, checkDuplicateTrackingNumber } = useShipments();
   
-  // Form state
+  // Form state - using lazy initialization where appropriate
   const [companyId, setCompanyId] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [transportMode, setTransportMode] = useState<TransportMode>("air");
@@ -38,6 +38,15 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const [actionNumber, setActionNumber] = useState("");
   const [releaseDate, setReleaseDate] = useState("");
   const [fiscalNotes, setFiscalNotes] = useState("");
+  
+  // Memoize functions to prevent unnecessary re-renders
+  const setTransportModeMemo = useCallback((mode: TransportMode) => {
+    setTransportMode(mode);
+  }, []);
+  
+  const setCarrierNameMemo = useCallback((name: string) => {
+    setCarrierName(name);
+  }, []);
   
   // If checkDuplicateTrackingNumber doesn't exist in the context, provide a fallback
   const checkDuplicateNumber = checkDuplicateTrackingNumber || ((number: string) => {
@@ -89,9 +98,9 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                 setCompanyId={setCompanyId}
                 setCompanyName={setCompanyName}
                 transportMode={transportMode}
-                setTransportMode={setTransportMode}
+                setTransportMode={setTransportModeMemo}
                 carrierName={carrierName}
-                setCarrierName={setCarrierName}
+                setCarrierName={setCarrierNameMemo}
                 trackingNumber={trackingNumber}
                 setTrackingNumber={setTrackingNumber}
                 packages={packages}

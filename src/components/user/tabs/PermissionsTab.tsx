@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { PermissionLevel } from '@/types';
 import { PermissionsSection } from '../table/PermissionsSection';
 
@@ -11,7 +11,8 @@ interface PermissionsTabProps {
   isAdmin: boolean;
 }
 
-export function PermissionsTab({
+// Using memo to prevent unnecessary re-renders
+export const PermissionsTab = memo(function PermissionsTab({
   isLoadingPermissions,
   permissionsInitialized,
   permissions,
@@ -52,4 +53,7 @@ export function PermissionsTab({
       />
     </div>
   );
-}
+});
+
+// Default export for lazy loading compatibility
+export default { PermissionsTab };

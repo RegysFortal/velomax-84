@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +17,8 @@ const Vehicles = () => {
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const { toast } = useToast();
 
-  const handleDelete = async (id: string) => {
+  // Use memoization to prevent unnecessary re-renders
+  const handleDelete = useCallback(async (id: string) => {
     try {
       await deleteVehicle(id);
       toast({
@@ -32,25 +33,31 @@ const Vehicles = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [deleteVehicle, toast]);
 
-  const handleEdit = (vehicle: Vehicle) => {
+  const handleEdit = useCallback((vehicle: Vehicle) => {
     setEditingVehicle(vehicle);
-    setDialogOpen(true);
-  };
+    // Use requestAnimationFrame to prevent UI blocking
+    requestAnimationFrame(() => {
+      setDialogOpen(true);
+    });
+  }, []);
 
-  const handleAddNew = () => {
+  const handleAddNew = useCallback(() => {
     setEditingVehicle(null);
-    setDialogOpen(true);
-  };
+    // Use requestAnimationFrame to prevent UI blocking
+    requestAnimationFrame(() => {
+      setDialogOpen(true);
+    });
+  }, []);
 
-  const handleDialogClose = (wasUpdated: boolean = false) => {
+  const handleDialogClose = useCallback((wasUpdated: boolean = false) => {
     // Only close the dialog if explicitly requested
     if (!wasUpdated) {
       setDialogOpen(false);
       setEditingVehicle(null);
     }
-  };
+  }, []);
 
   return (
     <AppLayout>

@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, memo } from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { Client } from "@/types";
 import { ClientSelection } from "./ClientSelection";
@@ -35,7 +35,8 @@ interface ShipmentFormSectionProps {
   disabled?: boolean;
 }
 
-export function ShipmentFormSection({
+// Use memoization to prevent unnecessary re-renders
+export const ShipmentFormSection = memo(function ShipmentFormSection({
   companyId,
   setCompanyId,
   setCompanyName,
@@ -61,8 +62,8 @@ export function ShipmentFormSection({
   shipmentId,
   disabled
 }: ShipmentFormSectionProps) {
-  // Handler to update client name when client ID changes
-  const handleClientChange = (id: string) => {
+  // Handler to update client name when client ID changes - memoized to prevent re-creation
+  const handleClientChange = useCallback((id: string) => {
     try {
       console.log("ShipmentFormSection - Client selected:", id);
       setCompanyId(id);
@@ -78,13 +79,7 @@ export function ShipmentFormSection({
     } catch (error) {
       console.error("Error handling client change:", error);
     }
-  };
-
-  // Debug output to help diagnose issues
-  useEffect(() => {
-    console.log("ShipmentFormSection - Rendering with companyId:", companyId);
-    console.log("ShipmentFormSection - Available clients:", clients.length);
-  }, [clients, companyId]);
+  }, [clients, setCompanyId, setCompanyName]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,4 +129,4 @@ export function ShipmentFormSection({
       />
     </div>
   );
-}
+});
