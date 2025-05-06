@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -40,6 +40,7 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
       position: '',
       phone: '',
     },
+    mode: 'onChange',
   });
 
   const currentRole = form.watch('role');
@@ -49,7 +50,7 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
     permissions,
     isLoadingPermissions,
     permissionsInitialized,
-    initializePermissionsWithDelay,
+    initializePermissions,
     handlePermissionChange,
     setPermissions
   } = usePermissions(user, isCreating, currentRole);
@@ -57,9 +58,6 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
   // Reset form when dialog opens/closes or user changes
   useEffect(() => {
     console.log("Definindo valores do formulário", { isCreating, user });
-    
-    // Important: Set the basic tab as active first to prevent freezing
-    setActiveTab('basic');
     
     if (isCreating) {
       form.reset({
@@ -75,7 +73,7 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
       
       // Initialize permissions immediately for new users
       console.log("Inicializando permissões para novo usuário");
-      initializePermissionsWithDelay(undefined);
+      initializePermissions(undefined);
     } else if (user) {
       // Determine correct role value
       let roleValue: 'user' | 'admin' | 'manager' = 'user';
@@ -104,11 +102,11 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
 
       // Initialize user permissions immediately
       console.log("Inicializando permissões para usuário existente");
-      initializePermissionsWithDelay(user.permissions);
+      initializePermissions(user.permissions);
     }
-  }, [form, user, isCreating, initializePermissionsWithDelay]);
+  }, [form, user, isCreating, initializePermissions]);
 
-  // Handle tab change with stable implementation
+  // Simple, stable tab change handler
   const handleTabChange = useCallback((value: string) => {
     console.log("Mudando para tab:", value);
     setActiveTab(value);

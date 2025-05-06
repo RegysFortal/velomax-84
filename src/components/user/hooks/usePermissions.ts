@@ -21,78 +21,76 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     delete: false
   };
 
-  // Memoize the initializePermissions function to avoid unnecessary re-renders
+  // Create all default permissions upfront
+  const defaultPermissions: Record<string, PermissionLevel> = {
+    dashboard: { ...defaultPermission, view: true }, // Dashboard é sempre visível por padrão
+    deliveries: { ...defaultPermission },
+    shipments: { ...defaultPermission },
+    shipmentReports: { ...defaultPermission },
+    financialDashboard: { ...defaultPermission },
+    reportsToClose: { ...defaultPermission },
+    closing: { ...defaultPermission },
+    cities: { ...defaultPermission },
+    priceTables: { ...defaultPermission },
+    receivableAccounts: { ...defaultPermission },
+    payableAccounts: { ...defaultPermission },
+    financialReports: { ...defaultPermission },
+    vehicles: { ...defaultPermission },
+    logbook: { ...defaultPermission },
+    maintenance: { ...defaultPermission },
+    products: { ...defaultPermission },
+    inventoryEntries: { ...defaultPermission },
+    inventoryExits: { ...defaultPermission },
+    inventoryDashboard: { ...defaultPermission },
+    system: { ...defaultPermission },
+    company: { ...defaultPermission },
+    users: { ...defaultPermission },
+    backup: { ...defaultPermission },
+    budgets: { ...defaultPermission },
+  };
+
+  // Function to initialize permissions synchronously
   const initializePermissions = useCallback((userPermissions?: Record<string, any>) => {
-    const defaultPermissions: Record<string, PermissionLevel> = {
-      dashboard: { ...defaultPermission, view: true }, // Dashboard é sempre visível por padrão
-      deliveries: { ...defaultPermission },
-      shipments: { ...defaultPermission },
-      shipmentReports: { ...defaultPermission },
-      financialDashboard: { ...defaultPermission },
-      reportsToClose: { ...defaultPermission },
-      closing: { ...defaultPermission },
-      cities: { ...defaultPermission },
-      priceTables: { ...defaultPermission },
-      receivableAccounts: { ...defaultPermission },
-      payableAccounts: { ...defaultPermission },
-      financialReports: { ...defaultPermission },
-      vehicles: { ...defaultPermission },
-      logbook: { ...defaultPermission },
-      maintenance: { ...defaultPermission },
-      products: { ...defaultPermission },
-      inventoryEntries: { ...defaultPermission },
-      inventoryExits: { ...defaultPermission },
-      inventoryDashboard: { ...defaultPermission },
-      system: { ...defaultPermission },
-      company: { ...defaultPermission },
-      users: { ...defaultPermission },
-      backup: { ...defaultPermission },
-      budgets: { ...defaultPermission },
-    };
-
-    // Se o usuário já tiver permissões, converter do formato antigo para o novo
-    if (userPermissions) {
-      Object.entries(userPermissions).forEach(([key, value]) => {
-        if (typeof value === 'boolean') {
-          // Formato antigo (boolean)
-          if (defaultPermissions[key]) {
-            defaultPermissions[key] = {
-              view: value,
-              create: value,
-              edit: value,
-              delete: value
-            };
-          }
-        } else if (typeof value === 'object') {
-          // Já está no novo formato
-          defaultPermissions[key] = value as PermissionLevel;
-        }
-      });
-    }
-
-    return defaultPermissions;
-  }, [defaultPermission]);
-
-  // Function to safely initialize permissions immediately without delay
-  const initializePermissionsWithDelay = useCallback((userPermissions?: Record<string, any>, delay: number = 0) => {
-    console.log("Inicializando permissões, delay:", delay);
+    console.log("Inicializando permissões diretamente");
     setIsLoadingPermissions(true);
     
     try {
-      // Initialize immediately instead of using setTimeout
-      const initializedPermissions = initializePermissions(userPermissions);
+      const initializedPermissions = { ...defaultPermissions };
+
+      // Se o usuário já tiver permissões, converter do formato antigo para o novo
+      if (userPermissions) {
+        Object.entries(userPermissions).forEach(([key, value]) => {
+          if (typeof value === 'boolean') {
+            // Formato antigo (boolean)
+            if (initializedPermissions[key]) {
+              initializedPermissions[key] = {
+                view: value,
+                create: value,
+                edit: value,
+                delete: value
+              };
+            }
+          } else if (typeof value === 'object') {
+            // Já está no novo formato
+            initializedPermissions[key] = value as PermissionLevel;
+          }
+        });
+      }
+
       console.log("Permissões inicializadas:", Object.keys(initializedPermissions).length);
       setPermissions(initializedPermissions);
       setPermissionsInitialized(true);
-      setIsLoadingPermissions(false);
     } catch (err) {
       console.error("Erro ao inicializar permissões:", err);
       toast.error("Erro ao carregar permissões", { 
         description: "Tente novamente ou contate o suporte."
       });
+    } finally {
       setIsLoadingPermissions(false);
     }
-  }, [initializePermissions]);
+    
+    return defaultPermissions;
+  }, [defaultPermission]);
 
   // Manipulador para alterar permissões individuais
   const handlePermissionChange = useCallback((name: string, level: keyof PermissionLevel, value: boolean) => {
@@ -107,8 +105,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
 
   // Atualiza permissões quando o papel é alterado
   useEffect(() => {
-    // Only update permissions if permissions are initialized, and we're not still loading
-    if (!permissionsInitialized || isLoadingPermissions || !currentRole) return;
+    if (!permissionsInitialized) return;
     
     console.log("Atualizando permissões baseado no papel:", currentRole);
     
@@ -127,7 +124,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
         setPermissions(adminPermissions);
       } else if (currentRole === 'manager' && isCreating) {
         // Gerentes têm acesso a mais recursos, mas não todos
-        const managerPermissions = initializePermissions();
+        const managerPermissions = { ...defaultPermissions };
         
         // Definir permissões padrão para gerentes
         ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
@@ -145,7 +142,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
         setPermissions(managerPermissions);
       } else if (currentRole === 'user' && isCreating) {
         // Usuários comuns têm acesso limitado
-        const userPermissions = initializePermissions();
+        const userPermissions = { ...defaultPermissions };
         
         // Definir permissões padrão para usuários
         ['dashboard', 'deliveries', 'shipments'].forEach(key => {
@@ -162,22 +159,21 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     } catch (err) {
       console.error("Erro ao atualizar permissões baseado no papel:", err);
     }
-  }, [currentRole, isCreating, permissions, initializePermissions, permissionsInitialized, isLoadingPermissions]);
+  }, [currentRole, isCreating, permissionsInitialized, defaultPermissions]);
 
-  // Initial permission initialization
+  // Initial permission initialization - happens once when the component mounts
   useEffect(() => {
-    // Initialize permissions immediately when component mounts
     if (!permissionsInitialized && !isLoadingPermissions) {
-      console.log("Inicializando permissões no componente mount");
-      initializePermissionsWithDelay(user?.permissions);
+      console.log("Inicializando permissões no useEffect");
+      initializePermissions(user?.permissions);
     }
-  }, [user, permissionsInitialized, isLoadingPermissions, initializePermissionsWithDelay]);
+  }, [user, permissionsInitialized, isLoadingPermissions, initializePermissions]);
 
   return {
     permissions,
     isLoadingPermissions,
     permissionsInitialized,
-    initializePermissionsWithDelay,
+    initializePermissions,
     handlePermissionChange,
     setPermissions,
   };
