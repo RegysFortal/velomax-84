@@ -55,58 +55,96 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log("Auth state changed:", event, session);
         setSession(session);
         
         if (session?.user) {
           setSupabaseUser(session.user);
           
-          const storedUsers = localStorage.getItem('velomax_users');
-          const usersList = storedUsers ? JSON.parse(storedUsers) : [];
-          
-          let localUser = usersList.find((u: User) => u.email === session.user.email);
-          
-          if (!localUser) {
-            localUser = {
+          try {
+            // Buscar informações do usuário no banco de dados
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (userError && userError.code !== 'PGRST116') {
+              console.error("Erro ao buscar dados do usuário:", userError);
+            }
+            
+            // Buscar permissões do usuário
+            const { data: permissionsData, error: permissionsError } = await supabase
+              .from('user_permissions')
+              .select('*')
+              .eq('user_id', session.user.id);
+            
+            if (permissionsError) {
+              console.error("Erro ao buscar permissões do usuário:", permissionsError);
+            }
+            
+            // Buscar papel (role) do usuário
+            const { data: roleData, error: roleError } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            if (roleError && roleError.code !== 'PGRST116') {
+              console.error("Erro ao buscar papel do usuário:", roleError);
+            }
+            
+            // Construir objeto de permissões
+            const permissionsObj: Record<string, PermissionLevel> = {};
+            if (permissionsData && permissionsData.length > 0) {
+              permissionsData.forEach((perm: any) => {
+                permissionsObj[perm.resource] = {
+                  view: perm.view || false,
+                  create: perm.create || false,
+                  edit: perm.edit || false,
+                  delete: perm.delete || false
+                };
+              });
+            }
+            
+            // Construir objeto de usuário completo
+            const localUser: User = {
               id: session.user.id,
-              name: session.user.user_metadata.name || session.user.email?.split('@')[0] || 'Usuário',
-              username: session.user.email?.split('@')[0] || session.user.id,
-              email: session.user.email || `${session.user.id}@velomax.com`,
-              role: 'admin',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              name: userData?.name || session.user.user_metadata.name || session.user.email?.split('@')[0] || 'Usuário',
+              username: userData?.username || session.user.email?.split('@')[0] || session.user.id,
+              email: userData?.email || session.user.email || `${session.user.id}@velomax.com`,
+              role: roleData?.role || userData?.role || 'user',
+              department: userData?.department,
+              position: userData?.position,
+              phone: userData?.phone,
+              createdAt: userData?.created_at || new Date().toISOString(),
+              updatedAt: userData?.updated_at || new Date().toISOString(),
               lastLogin: new Date().toISOString(),
-              permissions: {
-                deliveries: { view: true, create: true, edit: true, delete: true },
-                shipments: { view: true, create: true, edit: true, delete: true },
-                clients: { view: true, create: true, edit: true, delete: true },
-                cities: { view: true, create: true, edit: true, delete: true },
-                reports: { view: true, create: true, edit: true, delete: true },
-                financial: { view: true, create: true, edit: true, delete: true },
-                priceTables: { view: true, create: true, edit: true, delete: true },
-                dashboard: { view: true, create: true, edit: true, delete: true },
-                logbook: { view: true, create: true, edit: true, delete: true },
-                employees: { view: true, create: true, edit: true, delete: true },
-                vehicles: { view: true, create: true, edit: true, delete: true },
-                maintenance: { view: true, create: true, edit: true, delete: true },
-                settings: { view: true, create: true, edit: true, delete: true },
-              }
+              permissions: permissionsObj
             };
             
-            usersList.push(localUser);
+            // Atualizar estado do usuário
+            console.log("Usuário autenticado com dados completos:", localUser);
+            setUser(localUser);
+            localStorage.setItem('velomax_user', JSON.stringify(localUser));
+            
+            // Atualizar lista local de usuários
+            const storedUsers = localStorage.getItem('velomax_users');
+            let usersList = storedUsers ? JSON.parse(storedUsers) : [];
+            
+            const existingUserIndex = usersList.findIndex((u: User) => u.id === localUser.id);
+            if (existingUserIndex >= 0) {
+              usersList[existingUserIndex] = { ...localUser, lastLogin: new Date().toISOString() };
+            } else {
+              usersList.push(localUser);
+            }
+            
             localStorage.setItem('velomax_users', JSON.stringify(usersList));
-          } else {
-            const updatedUsers = usersList.map((u: User) => 
-              u.id === localUser.id 
-                ? { ...u, lastLogin: new Date().toISOString() } 
-                : u
-            );
-            localStorage.setItem('velomax_users', JSON.stringify(updatedUsers));
+            
+          } catch (error) {
+            console.error("Erro ao processar dados de autenticação:", error);
           }
-          
-          setUser(localUser);
-          localStorage.setItem('velomax_user', JSON.stringify(localUser));
         } else {
           setSupabaseUser(null);
           setUser(null);

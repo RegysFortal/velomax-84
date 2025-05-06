@@ -42,6 +42,7 @@ export const useCreateUser = () => {
         user_metadata: {
           name: userData.name,
           username: userData.username,
+          role: userData.role
         }
       });
       
@@ -63,6 +64,18 @@ export const useCreateUser = () => {
         .single();
       
       if (insertError) throw insertError;
+
+      // Inserir registro na tabela user_roles para definir o papel do usuário
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: data.user.id,
+          role: userData.role || 'user'
+        });
+      
+      if (roleError) {
+        console.error('Erro ao inserir papel do usuário:', roleError);
+      }
       
       // Inserir as permissões detalhadas para este usuário
       if (userData.permissions) {
@@ -104,6 +117,8 @@ export const useCreateUser = () => {
           }
         }
       }
+      
+      console.log("Usuário criado com sucesso:", data.user.id);
       
       // Retornar o usuário criado no formato apropriado
       return {
