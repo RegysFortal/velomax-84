@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Settings } from "lucide-react";
 import { User } from "@/types";
 import {
@@ -28,6 +28,7 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
   onOpenChange
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isMobile } = useIsMobile();
   const {
     isLoadingPermissions,
@@ -50,11 +51,22 @@ export const ManagementMenu: React.FC<ManagementMenuProps> = ({
     return null;
   }
 
+  const handleSettingsClick = () => {
+    console.log("Settings clicked, navigating to /settings");
+    // Navigating directly to settings before showing the menu
+    navigate('/settings');
+    
+    // If there's an onOpenChange handler, call it
+    if (onOpenChange) {
+      onOpenChange();
+    }
+  };
+
   return (
     <NavigationMenuItem className={isMobile ? "w-full" : ""}>
       <NavigationMenuTrigger 
         className={isMobile ? "w-full justify-start" : ""}
-        onClick={onOpenChange}
+        onClick={handleSettingsClick}
       >
         <Settings className="mr-2 h-4 w-4" />
         Configurações

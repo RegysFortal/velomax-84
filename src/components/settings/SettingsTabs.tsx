@@ -26,11 +26,26 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   handleTabChange,
   permissions,
 }) => {
-  // Log when the component renders with which active tab
+  // Debug logs to help troubleshoot issues
   useEffect(() => {
     console.log("SettingsTabs rendered with activeTab:", activeTab);
     console.log("Permissions:", permissions);
   }, [activeTab, permissions]);
+
+  // Renderizar apenas as abas com permissões
+  const availableTabs = Object.entries(permissions)
+    .filter(([_, hasPermission]) => hasPermission)
+    .map(([tab]) => tab);
+
+  console.log("Available tabs:", availableTabs);
+  
+  if (availableTabs.length === 0) {
+    return (
+      <div className="p-4 text-center">
+        <p>Você não tem permissões para visualizar as configurações do sistema.</p>
+      </div>
+    );
+  }
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">

@@ -6,11 +6,22 @@ import { SettingsAlert } from '@/components/settings/SettingsAlert';
 import { SettingsTabs } from '@/components/settings/SettingsTabs';
 import { useSettingsPermissions } from '@/components/settings/useSettingsPermissions';
 import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
 
 const SettingsPage = () => {
-  const [activeTab, setActiveTab] = useState('system');
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || 'system');
   const { user } = useAuth();
   const { permissions, loading, error, setError, setPermissions } = useSettingsPermissions(user);
+
+  useEffect(() => {
+    // Update the active tab when the URL parameter changes
+    if (tabParam) {
+      console.log("Setting active tab from URL parameter:", tabParam);
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   useEffect(() => {
     console.log("Settings page rendered with activeTab:", activeTab);
@@ -64,6 +75,10 @@ const SettingsPage = () => {
   if (!Object.values(permissions).some(Boolean)) {
     setPermissions(prev => ({ ...prev, notifications: true }));
   }
+  
+  // Debug permissions for troubleshooting
+  console.log("Final permissions for tabs:", permissions);
+  console.log("Active tab being rendered:", activeTab);
 
   return (
     <div className="flex flex-col gap-6">
