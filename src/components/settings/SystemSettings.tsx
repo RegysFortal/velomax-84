@@ -12,6 +12,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+// Define types for our settings
+type SettingValue = string | boolean;
+type SettingKey = 'backup_frequency' | 'data_retention' | 'timezone' | 'enable_audit_log';
+
+interface SettingConfig<T extends SettingValue> {
+  key: SettingKey;
+  setState: React.Dispatch<React.SetStateAction<T>>;
+  defaultValue: T;
+}
+
 export function SystemSettings() {
   const { user } = useAuth();
   const [isEditable, setIsEditable] = useState(true);  // Default to true
@@ -31,14 +41,18 @@ export function SystemSettings() {
         setIsLoading(true);
         
         // Try to load from Supabase first
-        const settingsToLoad = [
+        const stringSettings: SettingConfig<string>[] = [
           { key: 'backup_frequency', setState: setBackupFrequency, defaultValue: 'daily' },
           { key: 'data_retention', setState: setDataRetention, defaultValue: '90' },
-          { key: 'timezone', setState: setTimezone, defaultValue: 'America/Sao_Paulo' },
+          { key: 'timezone', setState: setTimezone, defaultValue: 'America/Sao_Paulo' }
+        ];
+        
+        const booleanSettings: SettingConfig<boolean>[] = [
           { key: 'enable_audit_log', setState: setEnableAuditLog, defaultValue: true }
         ];
         
-        for (const setting of settingsToLoad) {
+        // Load string settings
+        for (const setting of stringSettings) {
           const { data, error } = await supabase
             .from('system_settings')
             .select('value')
@@ -51,15 +65,30 @@ export function SystemSettings() {
             try {
               // Parse the JSON value
               const parsedValue = JSON.parse(data.value.toString());
-              
-              // Handle different types appropriately
-              if (setting.key === 'enable_audit_log') {
-                setting.setState(!!parsedValue);
-              } else if (setting.key === 'data_retention') {
-                setting.setState(String(parsedValue));
-              } else {
-                setting.setState(parsedValue);
-              }
+              // Convert to string if needed
+              setting.setState(String(parsedValue));
+            } catch (parseError) {
+              console.error(`Error parsing ${setting.key}:`, parseError);
+              setting.setState(setting.defaultValue);
+            }
+          }
+        }
+        
+        // Load boolean settings
+        for (const setting of booleanSettings) {
+          const { data, error } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('key', setting.key)
+            .maybeSingle();
+          
+          if (error) {
+            console.error(`Error fetching ${setting.key}:`, error);
+          } else if (data) {
+            try {
+              // Parse the JSON value and convert to boolean
+              const parsedValue = JSON.parse(data.value.toString());
+              setting.setState(!!parsedValue);
             } catch (parseError) {
               console.error(`Error parsing ${setting.key}:`, parseError);
               setting.setState(setting.defaultValue);
