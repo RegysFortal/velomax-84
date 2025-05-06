@@ -50,26 +50,6 @@ const mapSupabaseUserToAppUser = (supabaseUser: any): User => {
   };
 };
 
-// Mapeia nosso tipo User para o formato Supabase
-const mapAppUserToSupabaseUser = (appUser: Partial<User>) => {
-  const supabaseUser: any = {
-    name: appUser.name,
-    username: appUser.username,
-    email: appUser.email,
-    role: appUser.role,
-    department: appUser.department,
-    position: appUser.position,
-    phone: appUser.phone,
-  };
-
-  if (appUser.permissions) {
-    // O supabase não terá a tabela de permissões diretamente, apenas mapearemos para o formato correto
-    // no hook de createUser ou updateUser
-  }
-
-  return supabaseUser;
-};
-
 export const useSupabaseUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,14 +61,15 @@ export const useSupabaseUsers = () => {
       setLoading(true);
       setError(null);
 
-      // Fazemos uma query que junta as tabelas de users e user_permissions
+      // Fazemos uma query usando a API REST genérica para evitar problemas de tipagem
       const { data, error } = await supabase
         .from('users')
         .select(`
           *,
           permissions:user_permissions(*)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .returns<any[]>();
 
       if (error) throw error;
 
@@ -142,13 +123,18 @@ export const useSupabaseUsers = () => {
       const { data: existingUsers, error: checkError } = await supabase
         .from('users')
         .select('email, username')
-        .or(`email.eq.${userData.email},username.eq.${userData.username}`);
+        .or(`email.eq.${userData.email},username.eq.${userData.username}`)
+        .returns<any[]>();
       
       if (checkError) throw checkError;
       
       if (existingUsers && existingUsers.length > 0) {
-        const errorField = existingUsers[0].email === userData.email ? 'Email' : 'Nome de usuário';
-        throw new Error(`${errorField} já está em uso.`);
+        if (existingUsers.some(u => u.email === userData.email)) {
+          throw new Error('Email já está em uso');
+        }
+        if (existingUsers.some(u => u.username === userData.username)) {
+          throw new Error('Nome de usuário já está em uso');
+        }
       }
 
       // Formatamos os dados do usuário para o formato Supabase
@@ -193,7 +179,6 @@ export const useSupabaseUsers = () => {
         };
 
         // Inserir permissões na tabela user_permissions
-        // Isso não deveria ser necessário por causa do trigger, mas vamos garantir
         const { error: permError } = await supabase
           .from('user_permissions')
           .insert(permissionsData);
@@ -234,29 +219,34 @@ export const useSupabaseUsers = () => {
           .select('email, username')
           .neq('id', userId);
         
+        let queryStr = '';
+        
         if (userData.email) {
-          checkQuery.eq('email', userData.email);
+          queryStr = `email.eq.${userData.email}`;
         }
         
         if (userData.username) {
-          checkQuery.or(`username.eq.${userData.username}`);
+          queryStr = queryStr ? `${queryStr},username.eq.${userData.username}` : `username.eq.${userData.username}`;
         }
         
-        const { data: existingUsers, error: checkError } = await checkQuery;
+        const { data: existingUsers, error: checkError } = await checkQuery
+          .or(queryStr)
+          .returns<any[]>();
         
         if (checkError) throw checkError;
         
         if (existingUsers && existingUsers.length > 0) {
-          const emailExists = existingUsers.some(u => u.email === userData.email);
-          const usernameExists = existingUsers.some(u => u.username === userData.username);
-          
-          if (emailExists) throw new Error('Email já está em uso');
-          if (usernameExists) throw new Error('Nome de usuário já está em uso');
+          if (existingUsers.some(u => u.email === userData.email)) {
+            throw new Error('Email já está em uso');
+          }
+          if (existingUsers.some(u => u.username === userData.username)) {
+            throw new Error('Nome de usuário já está em uso');
+          }
         }
       }
 
       // Formatamos os dados do usuário para o formato Supabase
-      const supabaseUserData = {
+      const supabaseUserData: any = {
         name: userData.name,
         username: userData.username,
         email: userData.email,
@@ -284,7 +274,7 @@ export const useSupabaseUsers = () => {
 
       // Atualizar permissões se fornecidas
       if (userData.permissions) {
-        const permissionsData = {
+        const permissionsData: any = {
           deliveries: userData.permissions.deliveries,
           shipments: userData.permissions.shipments,
           clients: userData.permissions.clients,
@@ -374,3 +364,4 @@ export const useSupabaseUsers = () => {
     deleteUser
   };
 };
+
