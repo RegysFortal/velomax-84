@@ -18,6 +18,8 @@ export const PermissionsTab = memo(function PermissionsTab({
   onChange,
   isAdmin
 }: PermissionsTabProps) {
+  console.log("Rendering PermissionsTab with:", { isLoadingPermissions, permissionsInitialized, isAdmin });
+  
   return (
     <div className="space-y-4" data-testid="permissions-tab">
       <div className="pb-2">
@@ -40,7 +42,7 @@ export const PermissionsTab = memo(function PermissionsTab({
         </div>
       ) : (
         <PermissionsSection 
-          permissions={permissions} 
+          permissions={permissions || {}} 
           onChange={onChange}
           isAdmin={isAdmin}
         />

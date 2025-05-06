@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { PermissionLevel, User } from '@/types';
 import { toast } from 'sonner';
 
@@ -47,7 +47,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
       budgets: { ...defaultPermission },
     };
 
-    // If it's an existing user, just return base permissions
+    // If it's an existing user, just return their permissions
     if (!isCreating && user?.permissions) {
       return user.permissions as Record<string, PermissionLevel>;
     }
@@ -129,11 +129,12 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     }
   }, [permissions]);
 
-  // Effect for role changes
-  if (currentRole === 'admin' && Object.values(permissions).some(p => !p.view)) {
-    // If role is admin but not all permissions are granted, update them
-    updatePermissionsForRole('admin');
-  }
+  // Effect to update permissions when role changes
+  useEffect(() => {
+    if (currentRole === 'admin') {
+      updatePermissionsForRole('admin');
+    }
+  }, [currentRole, updatePermissionsForRole]);
 
   return {
     permissions,
