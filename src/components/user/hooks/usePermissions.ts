@@ -49,7 +49,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     budgets: { ...defaultPermission },
   };
 
-  // Function to initialize permissions synchronously
+  // Function to initialize permissions immediately
   const initializePermissions = useCallback((userPermissions?: Record<string, any>) => {
     console.log("Inicializando permissões diretamente");
     setIsLoadingPermissions(true);
@@ -88,9 +88,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     } finally {
       setIsLoadingPermissions(false);
     }
-    
-    return defaultPermissions;
-  }, [defaultPermission]);
+  }, [defaultPermissions]);
 
   // Manipulador para alterar permissões individuais
   const handlePermissionChange = useCallback((name: string, level: keyof PermissionLevel, value: boolean) => {
@@ -159,7 +157,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
     } catch (err) {
       console.error("Erro ao atualizar permissões baseado no papel:", err);
     }
-  }, [currentRole, isCreating, permissionsInitialized, defaultPermissions]);
+  }, [currentRole, isCreating, permissionsInitialized, defaultPermissions, permissions]);
 
   // Initial permission initialization - happens once when the component mounts
   useEffect(() => {

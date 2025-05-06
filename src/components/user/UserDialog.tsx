@@ -46,7 +46,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isCreating ? 'Criar Novo Usuário' : 'Editar Usuário'}
@@ -54,18 +54,18 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-            <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-2">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid grid-cols-2 mb-4">
                 <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
                 <TabsTrigger value="permissions">Permissões de Acesso</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="basic" className="space-y-4">
+              <TabsContent value="basic" className="space-y-4 pt-2">
                 <BasicInfoTab control={form.control} isCreating={isCreating} />
               </TabsContent>
               
-              <TabsContent value="permissions" className="space-y-4">
+              <TabsContent value="permissions" className="space-y-4 pt-2">
                 <PermissionsTab
                   isLoadingPermissions={isLoadingPermissions}
                   permissionsInitialized={permissionsInitialized}

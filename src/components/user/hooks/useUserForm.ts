@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -106,7 +106,7 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
     }
   }, [form, user, isCreating, initializePermissions]);
 
-  // Simple, stable tab change handler
+  // Tab change handler with memorized function
   const handleTabChange = useCallback((value: string) => {
     console.log("Mudando para tab:", value);
     setActiveTab(value);

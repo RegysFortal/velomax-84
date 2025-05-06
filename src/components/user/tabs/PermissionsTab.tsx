@@ -18,7 +18,6 @@ export const PermissionsTab = memo(function PermissionsTab({
   onChange,
   isAdmin
 }: PermissionsTabProps) {
-  // Make sure we return consistent component structure to prevent re-renders/flickering
   return (
     <div className="space-y-4">
       <div className="pb-2">
@@ -30,13 +29,13 @@ export const PermissionsTab = memo(function PermissionsTab({
       </div>
       
       {isLoadingPermissions ? (
-        <div className="py-8 flex flex-col justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
+        <div className="py-4 flex flex-col justify-center items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-2"></div>
           <p className="text-sm text-muted-foreground">Carregando permissões...</p>
         </div>
       ) : !permissionsInitialized ? (
-        <div className="py-8 flex flex-col justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
+        <div className="py-4 flex flex-col justify-center items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-2"></div>
           <p className="text-sm text-muted-foreground">Inicializando permissões...</p>
         </div>
       ) : (
