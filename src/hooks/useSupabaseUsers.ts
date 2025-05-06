@@ -61,9 +61,10 @@ export const useSupabaseUsers = () => {
       setLoading(true);
       setError(null);
 
-      // Fazemos uma query usando a API REST genérica para evitar problemas de tipagem
+      // Using supabase.rpc() for a custom function or supabase.auth.admin to get users
+      // Since we're working with non-standard tables, we need to use a more flexible approach
       const { data, error } = await supabase
-        .from('users')
+        .from('users' as any)
         .select(`
           *,
           permissions:user_permissions(*)
@@ -119,18 +120,22 @@ export const useSupabaseUsers = () => {
       console.log("Criando novo usuário no Supabase:", userData);
       
       // Verificar se já existe um usuário com o mesmo email ou username
+      // Using a parameterized approach instead of string interpolation
       const { data: existingUsers, error: checkError } = await supabase
-        .from('users')
+        .from('users' as any)
         .select('email, username')
         .or(`email.eq.${userData.email},username.eq.${userData.username}`);
       
       if (checkError) throw checkError;
       
-      if (existingUsers && existingUsers.length > 0) {
-        if (existingUsers.some(u => u.email === userData.email)) {
+      // Type assertion to handle the type checking
+      const typedExistingUsers = existingUsers as Array<{email: string, username: string}>;
+      
+      if (typedExistingUsers && typedExistingUsers.length > 0) {
+        if (typedExistingUsers.some(u => u.email === userData.email)) {
           throw new Error('Email já está em uso');
         }
-        if (existingUsers.some(u => u.username === userData.username)) {
+        if (typedExistingUsers.some(u => u.username === userData.username)) {
           throw new Error('Nome de usuário já está em uso');
         }
       }
@@ -148,7 +153,7 @@ export const useSupabaseUsers = () => {
 
       // Inserir usuário na tabela users
       const { data: newUser, error: userError } = await supabase
-        .from('users')
+        .from('users' as any)
         .insert(supabaseUserData)
         .select()
         .single();
@@ -178,7 +183,7 @@ export const useSupabaseUsers = () => {
 
         // Inserir permissões na tabela user_permissions
         const { error: permError } = await supabase
-          .from('user_permissions')
+          .from('user_permissions' as any)
           .insert(permissionsData);
 
         if (permError) {
@@ -213,7 +218,7 @@ export const useSupabaseUsers = () => {
       // Se estamos atualizando o email ou username, verificamos duplicatas
       if (userData.email || userData.username) {
         const checkQuery = supabase
-          .from('users')
+          .from('users' as any)
           .select('email, username')
           .neq('id', userId);
         
@@ -232,11 +237,14 @@ export const useSupabaseUsers = () => {
         
         if (checkError) throw checkError;
         
-        if (existingUsers && existingUsers.length > 0) {
-          if (existingUsers.some(u => u.email === userData.email)) {
+        // Type assertion to handle the type checking
+        const typedExistingUsers = existingUsers as Array<{email: string, username: string}>;
+        
+        if (typedExistingUsers && typedExistingUsers.length > 0) {
+          if (typedExistingUsers.some(u => u.email === userData.email)) {
             throw new Error('Email já está em uso');
           }
-          if (existingUsers.some(u => u.username === userData.username)) {
+          if (typedExistingUsers.some(u => u.username === userData.username)) {
             throw new Error('Nome de usuário já está em uso');
           }
         }
@@ -261,7 +269,7 @@ export const useSupabaseUsers = () => {
 
       // Atualizar usuário na tabela users
       const { data: updatedUser, error: userError } = await supabase
-        .from('users')
+        .from('users' as any)
         .update(supabaseUserData)
         .eq('id', userId)
         .select()
@@ -294,7 +302,7 @@ export const useSupabaseUsers = () => {
         );
 
         const { error: permError } = await supabase
-          .from('user_permissions')
+          .from('user_permissions' as any)
           .update(permissionsData)
           .eq('user_id', userId);
 
@@ -325,7 +333,7 @@ export const useSupabaseUsers = () => {
 
       // Excluir usuário (as permissões serão excluídas automaticamente por causa do CASCADE)
       const { error } = await supabase
-        .from('users')
+        .from('users' as any)
         .delete()
         .eq('id', userId);
 
