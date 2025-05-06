@@ -29,6 +29,7 @@ interface PayableAccountsTableProps {
   onEdit: (account: PayableAccount) => void;
   onDelete: (id: string) => void;
   onMarkAsPaid: (id: string) => void;
+  isLoading?: boolean;
 }
 
 export const PayableAccountsTable = ({
@@ -36,6 +37,7 @@ export const PayableAccountsTable = ({
   onEdit,
   onDelete,
   onMarkAsPaid,
+  isLoading = false,
 }: PayableAccountsTableProps) => {
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
   
@@ -65,23 +67,6 @@ export const PayableAccountsTable = ({
         return <span className="text-gray-500 font-medium">Desconhecido</span>;
     }
   };
-  
-  const getPaymentMethodLabel = (method: string) => {
-    switch (method) {
-      case "pix":
-        return "PIX";
-      case "card":
-        return "Cartão";
-      case "transfer":
-        return "Transferência";
-      case "cash":
-        return "Dinheiro";
-      case "bank_slip":
-        return "Boleto";
-      default:
-        return "Outro";
-    }
-  };
 
   return (
     <>
@@ -95,14 +80,19 @@ export const PayableAccountsTable = ({
               <TableHead>Vencimento</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Pagamento</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {accounts.length === 0 ? (
+            {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
+                  Carregando contas a pagar...
+                </TableCell>
+              </TableRow>
+            ) : accounts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
                   Nenhuma conta a pagar encontrada.
                 </TableCell>
               </TableRow>
@@ -119,7 +109,6 @@ export const PayableAccountsTable = ({
                   </TableCell>
                   <TableCell>{formatCurrency(account.amount)}</TableCell>
                   <TableCell>{getStatusLabel(account.status)}</TableCell>
-                  <TableCell>{getPaymentMethodLabel(account.paymentMethod)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       {account.status !== "paid" && (

@@ -39,6 +39,7 @@ interface ReceivableAccountsTableProps {
   onEdit: (account: ReceivableAccount) => void;
   onDelete: (id: string) => void;
   onMarkAsReceived: (id: string, fullAmount: boolean, partialAmount?: number) => void;
+  isLoading?: boolean;
 }
 
 export const ReceivableAccountsTable = ({
@@ -46,6 +47,7 @@ export const ReceivableAccountsTable = ({
   onEdit,
   onDelete,
   onMarkAsReceived,
+  isLoading = false
 }: ReceivableAccountsTableProps) => {
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
@@ -109,11 +111,16 @@ export const ReceivableAccountsTable = ({
       case "pix":
         return "PIX";
       case "bank_slip":
+      case "boleto":
         return "Boleto";
       case "transfer":
+      case "transferencia":
         return "Transferência";
       case "cash":
+      case "especie":
         return "Dinheiro";
+      case "cartao":
+        return "Cartão";
       default:
         return "Outro";
     }
@@ -135,7 +142,13 @@ export const ReceivableAccountsTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {accounts.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                  Carregando contas a receber...
+                </TableCell>
+              </TableRow>
+            ) : accounts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
                   Nenhuma conta a receber encontrada.

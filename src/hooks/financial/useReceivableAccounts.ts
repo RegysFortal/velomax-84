@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { v4 as uuidv4 } from 'uuid';
 
 interface ReceivableAccountData {
   clientId: string;
@@ -41,7 +40,32 @@ export function useReceivableAccounts() {
         updated_at: now
       };
       
-      // Inserir no Supabase
+      // Check if an account for this report already exists
+      const { data: existingAccount } = await supabase
+        .from('receivable_accounts')
+        .select('*')
+        .eq('report_id', data.reportId)
+        .maybeSingle();
+      
+      if (existingAccount) {
+        console.log("Account already exists for this report, updating instead of creating");
+        const { data: updatedData, error } = await supabase
+          .from('receivable_accounts')
+          .update(newAccountData)
+          .eq('report_id', data.reportId)
+          .select();
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Conta a receber atualizada",
+          description: `A conta a receber para ${data.clientName} foi atualizada.`,
+        });
+        
+        return updatedData;
+      }
+      
+      // Insert new account if none exists
       const { data: insertedData, error } = await supabase
         .from('receivable_accounts')
         .insert(newAccountData)
