@@ -99,8 +99,8 @@ export const useReportStatus = (
     const updateData: Partial<FinancialReport> = {};
     
     // Only include properties that are being updated
-    if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
-    if (dueDate !== undefined) updateData.dueDate = dueDate;
+    if (paymentMethod !== null) updateData.paymentMethod = paymentMethod;
+    if (dueDate !== null) updateData.dueDate = dueDate;
     
     await updateFinancialReport(id, updateData);
     
