@@ -9,7 +9,6 @@ import { LogbookDashboard } from '@/components/logbook/dashboard/LogbookDashboar
 import { LogbookPageHeader } from '@/components/logbook/LogbookPageHeader';
 import { EntryList } from '@/components/logbook/tabs/EntryList';
 import { FuelList } from '@/components/logbook/tabs/FuelList';
-import { MaintenanceList } from '@/components/logbook/tabs/MaintenanceList';
 import { format } from 'date-fns';
 
 const Logbooks = () => {
@@ -18,7 +17,6 @@ const Logbooks = () => {
     vehicles, 
     employees, 
     fuelRecords, 
-    maintenanceRecords, 
     isLoading 
   } = useLogbook();
   
@@ -38,11 +36,6 @@ const Logbooks = () => {
     record.date === format(selectedDate, 'yyyy-MM-dd')
   );
   
-  // Filter maintenance records by date
-  const filteredMaintenanceRecords = maintenanceRecords.filter(record => 
-    record.date === format(selectedDate, 'yyyy-MM-dd')
-  );
-  
   // Handle new entry button click
   const handleNewEntry = () => {
     setIsNewEntryOpen(true);
@@ -51,11 +44,6 @@ const Logbooks = () => {
   // Handle new fuel button click
   const handleNewFuel = () => {
     setIsNewFuelOpen(true);
-  };
-  
-  // Handle new maintenance button click
-  const handleNewMaintenance = () => {
-    setIsNewMaintenanceOpen(true);
   };
   
   if (isLoading) {
@@ -108,14 +96,6 @@ const Logbooks = () => {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="maintenance" className="relative">
-              Manutenções
-              {filteredMaintenanceRecords.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {filteredMaintenanceRecords.length}
-                </Badge>
-              )}
-            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="entries">
@@ -140,19 +120,6 @@ const Logbooks = () => {
                   vehicles={vehicles}
                   selectedDate={selectedDate}
                   onNewFuel={handleNewFuel}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="maintenance">
-            <Card>
-              <CardContent className="p-0">
-                <MaintenanceList 
-                  maintenanceRecords={filteredMaintenanceRecords}
-                  vehicles={vehicles}
-                  selectedDate={selectedDate}
-                  onNewMaintenance={handleNewMaintenance}
                 />
               </CardContent>
             </Card>
