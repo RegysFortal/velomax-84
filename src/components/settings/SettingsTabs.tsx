@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSettings } from './SystemSettings';
 import { NotificationSettings } from './NotificationSettings';
@@ -26,7 +26,7 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   handleTabChange,
   permissions,
 }) => {
-  // Use effect to log when the component renders with which active tab
+  // Log when the component renders with which active tab
   useEffect(() => {
     console.log("SettingsTabs rendered with activeTab:", activeTab);
     console.log("Permissions:", permissions);
