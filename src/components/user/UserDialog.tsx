@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -113,15 +114,20 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
 
     // Se o usuário já tiver permissões, converter do formato antigo para o novo
     if (userPermissions) {
-      Object.keys(userPermissions).forEach(key => {
-        if (typeof userPermissions[key] === 'boolean') {
+      Object.entries(userPermissions).forEach(([key, value]) => {
+        if (typeof value === 'boolean') {
           // Formato antigo (boolean)
           if (defaultPermissions[key]) {
-            defaultPermissions[key].view = userPermissions[key];
+            defaultPermissions[key] = {
+              view: value,
+              create: value,
+              edit: value,
+              delete: value
+            };
           }
-        } else if (typeof userPermissions[key] === 'object') {
+        } else if (typeof value === 'object') {
           // Já está no novo formato
-          defaultPermissions[key] = userPermissions[key];
+          defaultPermissions[key] = value as PermissionLevel;
         }
       });
     }
@@ -424,7 +430,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          value={field.value}
+                          value={field.value || ''}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -432,6 +438,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="">Selecione...</SelectItem>
                             <SelectItem value="operations">Operações</SelectItem>
                             <SelectItem value="finance">Financeiro</SelectItem>
                             <SelectItem value="administrative">Administrativo</SelectItem>
@@ -451,7 +458,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                       <FormItem>
                         <FormLabel>Cargo</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -465,7 +472,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                       <FormItem>
                         <FormLabel>Telefone</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

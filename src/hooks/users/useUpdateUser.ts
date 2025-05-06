@@ -82,27 +82,29 @@ export const useUpdateUser = () => {
         }
         
         // Agora, criar novas entradas para cada permissão
-        const permissionInserts = Object.entries(userData.permissions).map(([resource, levels]) => {
+        const permissionInserts = Object.entries(userData.permissions || {}).map(([resource, levels]) => {
           // Verificar se é o formato antigo (boolean) ou novo (PermissionLevel)
-          if (typeof levels === 'boolean') {
+          const permLevels = levels as (boolean | PermissionLevel);
+          
+          if (typeof permLevels === 'boolean') {
             // Converter boolean para o novo formato
             return {
               user_id: userId,
               resource,
-              view: levels,
-              create: levels,
-              edit: levels,
-              delete: levels
+              view: permLevels,
+              create: permLevels,
+              edit: permLevels,
+              delete: permLevels
             };
           } else {
             // Já está no novo formato
             return {
               user_id: userId,
               resource,
-              view: levels.view || false,
-              create: levels.create || false,
-              edit: levels.edit || false,
-              delete: levels.delete || false
+              view: permLevels.view || false,
+              create: permLevels.create || false,
+              edit: permLevels.edit || false,
+              delete: permLevels.delete || false
             };
           }
         });

@@ -24,6 +24,10 @@ export const useFetchUsers = () => {
 
       // Buscar permissões para cada usuário
       const userIds = usersData.map((user: any) => user.id);
+      
+      // Se não há usuários, retornar lista vazia
+      if (!userIds.length) return [];
+
       const { data: permissionsData, error: permissionsError } = await supabase
         .from('user_permissions')
         .select('*')
