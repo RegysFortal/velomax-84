@@ -10,17 +10,8 @@ export type PermissionsState = {
 }
 
 export const usePermissions = (user: User | null, isCreating: boolean, currentRole?: string) => {
-  const [permissions, setPermissions] = useState<Record<string, PermissionLevel>>(() => {
-    // Initialize default permissions immediately
-    console.log("Inicializando permissões durante montagem do hook");
-    return getDefaultPermissions(currentRole || 'user', isCreating);
-  });
-  
-  const [permissionsInitialized, setPermissionsInitialized] = useState(true);
-  const [isLoadingPermissions, setIsLoadingPermissions] = useState(false);
-  
-  // Create all default permissions upfront
-  const getDefaultPermissions = useCallback((role: string, isCreating: boolean): Record<string, PermissionLevel> => {
+  // Define the getDefaultPermissions function before using it in useState
+  const getDefaultPermissions = (role: string, isCreating: boolean): Record<string, PermissionLevel> => {
     const defaultPermission: PermissionLevel = {
       view: false,
       create: false,
@@ -99,7 +90,16 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
       });
       return userPermissions;
     }
-  }, []);
+  };
+
+  // Now we can safely initialize the state
+  const [permissions, setPermissions] = useState<Record<string, PermissionLevel>>(() => {
+    console.log("Inicializando permissões durante montagem do hook");
+    return getDefaultPermissions(currentRole || 'user', isCreating);
+  });
+  
+  const [permissionsInitialized, setPermissionsInitialized] = useState(true);
+  const [isLoadingPermissions, setIsLoadingPermissions] = useState(false);
 
   // Handler for individual permission changes
   const handlePermissionChange = useCallback((name: string, level: keyof PermissionLevel, value: boolean) => {
