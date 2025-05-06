@@ -62,6 +62,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
   const [activeTab, setActiveTab] = useState('basic');
   const [permissions, setPermissions] = useState<Record<string, PermissionLevel>>({});
   const [permissionsInitialized, setPermissionsInitialized] = useState(false);
+  const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
   
   const defaultPermission: PermissionLevel = {
     view: false,
@@ -136,6 +137,30 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
     return defaultPermissions;
   }, [defaultPermission]);
 
+  // Function to safely initialize permissions with delay
+  const initializePermissionsWithDelay = useCallback((userPermissions?: Record<string, any>, delay: number = 50) => {
+    console.log("Inicializando permissões com delay:", delay, "ms");
+    setIsLoadingPermissions(true);
+    setPermissionsInitialized(false);
+    
+    // Use larger timeout to prevent UI freezing
+    setTimeout(() => {
+      try {
+        const initializedPermissions = initializePermissions(userPermissions);
+        console.log("Permissões inicializadas:", Object.keys(initializedPermissions).length);
+        setPermissions(initializedPermissions);
+        setPermissionsInitialized(true);
+      } catch (err) {
+        console.error("Erro ao inicializar permissões:", err);
+        toast.error("Erro ao carregar permissões", { 
+          description: "Tente novamente ou contate o suporte."
+        });
+      } finally {
+        setIsLoadingPermissions(false);
+      }
+    }, delay);
+  }, [initializePermissions]);
+
   // Reset form when dialog opens/closes or user changes
   useEffect(() => {
     if (open) {
@@ -156,13 +181,8 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           phone: '',
         });
         
-        setPermissionsInitialized(false);
-        // Use setTimeout to prevent UI freezing when initializing permissions
-        setTimeout(() => {
-          const defaultPerms = initializePermissions();
-          setPermissions(defaultPerms);
-          setPermissionsInitialized(true);
-        }, 10);
+        // Initialize permissions with a delay
+        initializePermissionsWithDelay(undefined, 100);
       } else if (user) {
         // Determine correct role value
         let roleValue: 'user' | 'admin' | 'manager' = 'user';
@@ -189,73 +209,79 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           phone: user.phone || '',
         });
 
-        setPermissionsInitialized(false);
-        // Initialize permissions after a slight delay to avoid UI freezing
-        setTimeout(() => {
-          const userPerms = initializePermissions(user.permissions);
-          setPermissions(userPerms);
-          setPermissionsInitialized(true);
-        }, 10);
+        // Initialize user permissions with a delay
+        initializePermissionsWithDelay(user.permissions, 100);
       }
+    } else {
+      // When dialog closes, reset state to prevent memory leaks
+      setPermissionsInitialized(false);
+      setIsLoadingPermissions(true);
     }
-  }, [form, user, open, isCreating, initializePermissions]);
+  }, [form, user, open, isCreating, initializePermissionsWithDelay]);
 
   // Atualiza permissões quando o papel é alterado
   const currentRole = form.watch('role');
   
   useEffect(() => {
-    if (!open || !permissionsInitialized) return;
+    // Only update permissions if dialog is open, permissions are initialized, and we're not still loading
+    if (!open || !permissionsInitialized || isLoadingPermissions) return;
+    
+    console.log("Atualizando permissões baseado no papel:", currentRole);
     
     // Use setTimeout to avoid UI freezing when updating permissions
     setTimeout(() => {
-      if (currentRole === 'admin') {
-        // Administradores têm acesso total a tudo
-        const adminPermissions: Record<string, PermissionLevel> = {};
-        Object.keys(permissions).forEach(key => {
-          adminPermissions[key] = {
-            view: true,
-            create: true,
-            edit: true,
-            delete: true
-          };
-        });
-        setPermissions(adminPermissions);
-      } else if (currentRole === 'manager' && isCreating) {
-        // Gerentes têm acesso a mais recursos, mas não todos
-        const managerPermissions = initializePermissions();
-        
-        // Definir permissões padrão para gerentes
-        ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
-         'vehicles', 'logbook', 'maintenance', 'financialDashboard',
-         'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
-         'priceTables', 'financialReports', 'backup'].forEach(key => {
-          if (managerPermissions[key]) {
-            managerPermissions[key].view = true;
-            managerPermissions[key].create = true;
-            managerPermissions[key].edit = true;
-            managerPermissions[key].delete = key !== 'backup'; // Gerentes não podem excluir backups
-          }
-        });
+      try {
+        if (currentRole === 'admin') {
+          // Administradores têm acesso total a tudo
+          const adminPermissions: Record<string, PermissionLevel> = {};
+          Object.keys(permissions).forEach(key => {
+            adminPermissions[key] = {
+              view: true,
+              create: true,
+              edit: true,
+              delete: true
+            };
+          });
+          setPermissions(adminPermissions);
+        } else if (currentRole === 'manager' && isCreating) {
+          // Gerentes têm acesso a mais recursos, mas não todos
+          const managerPermissions = initializePermissions();
+          
+          // Definir permissões padrão para gerentes
+          ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
+           'vehicles', 'logbook', 'maintenance', 'financialDashboard',
+           'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
+           'priceTables', 'financialReports', 'backup'].forEach(key => {
+            if (managerPermissions[key]) {
+              managerPermissions[key].view = true;
+              managerPermissions[key].create = true;
+              managerPermissions[key].edit = true;
+              managerPermissions[key].delete = key !== 'backup'; // Gerentes não podem excluir backups
+            }
+          });
 
-        setPermissions(managerPermissions);
-      } else if (currentRole === 'user' && isCreating) {
-        // Usuários comuns têm acesso limitado
-        const userPermissions = initializePermissions();
-        
-        // Definir permissões padrão para usuários
-        ['dashboard', 'deliveries', 'shipments'].forEach(key => {
-          if (userPermissions[key]) {
-            userPermissions[key].view = true;
-            userPermissions[key].create = false;
-            userPermissions[key].edit = false;
-            userPermissions[key].delete = false;
-          }
-        });
-        
-        setPermissions(userPermissions);
+          setPermissions(managerPermissions);
+        } else if (currentRole === 'user' && isCreating) {
+          // Usuários comuns têm acesso limitado
+          const userPermissions = initializePermissions();
+          
+          // Definir permissões padrão para usuários
+          ['dashboard', 'deliveries', 'shipments'].forEach(key => {
+            if (userPermissions[key]) {
+              userPermissions[key].view = true;
+              userPermissions[key].create = false;
+              userPermissions[key].edit = false;
+              userPermissions[key].delete = false;
+            }
+          });
+          
+          setPermissions(userPermissions);
+        }
+      } catch (err) {
+        console.error("Erro ao atualizar permissões baseado no papel:", err);
       }
-    }, 10);
-  }, [currentRole, isCreating, open, permissions, initializePermissions, permissionsInitialized]);
+    }, 50);
+  }, [currentRole, isCreating, open, permissions, initializePermissions, permissionsInitialized, isLoadingPermissions]);
 
   // Manipulador para alterar permissões individuais
   const handlePermissionChange = useCallback((name: string, level: keyof PermissionLevel, value: boolean) => {
@@ -337,11 +363,23 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
 
   const isAdmin = form.watch('role') === 'admin';
 
-  // Handle tab change with a slight delay to prevent UI freezing
+  // Handle tab change with optimized performance
   const handleTabChange = (value: string) => {
-    // First update the UI to show the tab is changing
+    // First update the state
+    setActiveTab(value);
+    
+    // Use requestAnimationFrame to ensure UI updates before any intensive processing
     requestAnimationFrame(() => {
-      setActiveTab(value);
+      // If switching to permissions tab, ensure data is ready
+      if (value === 'permissions' && !permissionsInitialized && !isLoadingPermissions) {
+        console.log("Iniciando carregamento de permissões após mudança de tab");
+        // Re-initialize permissions if needed
+        if (isCreating) {
+          initializePermissionsWithDelay(undefined, 10);
+        } else if (user) {
+          initializePermissionsWithDelay(user.permissions, 10);
+        }
+      }
     });
   };
 
@@ -508,9 +546,15 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
               </TabsContent>
               
               <TabsContent value="permissions">
-                {!permissionsInitialized ? (
-                  <div className="py-8 flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                {isLoadingPermissions ? (
+                  <div className="py-12 flex flex-col justify-center items-center">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
+                    <p className="text-sm text-muted-foreground">Carregando permissões...</p>
+                  </div>
+                ) : !permissionsInitialized ? (
+                  <div className="py-12 flex flex-col justify-center items-center">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
+                    <p className="text-sm text-muted-foreground">Inicializando permissões...</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
