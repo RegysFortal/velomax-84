@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -83,8 +83,8 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
     },
   });
 
-  // Inicializa o conjunto de permissões com valores padrão
-  const initializePermissions = (userPermissions?: Record<string, any>) => {
+  // Memoize the initializePermissions function to avoid unnecessary re-renders
+  const initializePermissions = useCallback((userPermissions?: Record<string, any>) => {
     const defaultPermissions: Record<string, PermissionLevel> = {
       dashboard: { ...defaultPermission, view: true }, // Dashboard é sempre visível por padrão
       deliveries: { ...defaultPermission },
@@ -109,7 +109,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
       company: { ...defaultPermission },
       users: { ...defaultPermission },
       backup: { ...defaultPermission },
-      budgets: { ...defaultPermission }, // Added budgets permission
+      budgets: { ...defaultPermission },
     };
 
     // Se o usuário já tiver permissões, converter do formato antigo para o novo
@@ -133,12 +133,15 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
     }
 
     return defaultPermissions;
-  };
+  }, [defaultPermission]);
 
   // Reset form when dialog opens/closes or user changes
   useEffect(() => {
     if (open) {
       console.log("Diálogo aberto, definindo valores do formulário", { isCreating, user });
+      
+      // Important: Set the basic tab as active first to prevent freezing when opening dialog
+      setActiveTab('basic');
       
       if (isCreating) {
         form.reset({
@@ -151,7 +154,10 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           position: '',
           phone: '',
         });
-        setPermissions(initializePermissions());
+        // Use setTimeout to prevent UI freezing when initializing permissions
+        setTimeout(() => {
+          setPermissions(initializePermissions());
+        }, 0);
       } else if (user) {
         // Determine correct role value
         let roleValue: 'user' | 'admin' | 'manager' = 'user';
@@ -178,14 +184,13 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           phone: user.phone || '',
         });
 
-        // Inicializar permissões a partir do usuário existente
-        setPermissions(initializePermissions(user.permissions));
+        // Initialize permissions after a slight delay to avoid UI freezing
+        setTimeout(() => {
+          setPermissions(initializePermissions(user.permissions));
+        }, 0);
       }
-
-      // Reset para a primeira aba
-      setActiveTab('basic');
     }
-  }, [form, user, open, isCreating]);
+  }, [form, user, open, isCreating, initializePermissions]);
 
   // Atualiza permissões quando o papel é alterado
   const currentRole = form.watch('role');
@@ -193,56 +198,59 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
   useEffect(() => {
     if (!open) return;
     
-    if (currentRole === 'admin') {
-      // Administradores têm acesso total a tudo
-      const adminPermissions: Record<string, PermissionLevel> = {};
-      Object.keys(permissions).forEach(key => {
-        adminPermissions[key] = {
-          view: true,
-          create: true,
-          edit: true,
-          delete: true
-        };
-      });
-      setPermissions(adminPermissions);
-    } else if (currentRole === 'manager' && isCreating) {
-      // Gerentes têm acesso a mais recursos, mas não todos
-      const managerPermissions = initializePermissions();
-      
-      // Definir permissões padrão para gerentes
-      ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
-       'vehicles', 'logbook', 'maintenance', 'financialDashboard',
-       'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
-       'priceTables', 'financialReports', 'backup'].forEach(key => {
-        if (managerPermissions[key]) {
-          managerPermissions[key].view = true;
-          managerPermissions[key].create = true;
-          managerPermissions[key].edit = true;
-          managerPermissions[key].delete = key !== 'backup'; // Gerentes não podem excluir backups
-        }
-      });
+    // Use setTimeout to avoid UI freezing when updating permissions
+    setTimeout(() => {
+      if (currentRole === 'admin') {
+        // Administradores têm acesso total a tudo
+        const adminPermissions: Record<string, PermissionLevel> = {};
+        Object.keys(permissions).forEach(key => {
+          adminPermissions[key] = {
+            view: true,
+            create: true,
+            edit: true,
+            delete: true
+          };
+        });
+        setPermissions(adminPermissions);
+      } else if (currentRole === 'manager' && isCreating) {
+        // Gerentes têm acesso a mais recursos, mas não todos
+        const managerPermissions = initializePermissions();
+        
+        // Definir permissões padrão para gerentes
+        ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
+         'vehicles', 'logbook', 'maintenance', 'financialDashboard',
+         'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
+         'priceTables', 'financialReports', 'backup'].forEach(key => {
+          if (managerPermissions[key]) {
+            managerPermissions[key].view = true;
+            managerPermissions[key].create = true;
+            managerPermissions[key].edit = true;
+            managerPermissions[key].delete = key !== 'backup'; // Gerentes não podem excluir backups
+          }
+        });
 
-      setPermissions(managerPermissions);
-    } else if (currentRole === 'user' && isCreating) {
-      // Usuários comuns têm acesso limitado
-      const userPermissions = initializePermissions();
-      
-      // Definir permissões padrão para usuários
-      ['dashboard', 'deliveries', 'shipments'].forEach(key => {
-        if (userPermissions[key]) {
-          userPermissions[key].view = true;
-          userPermissions[key].create = false;
-          userPermissions[key].edit = false;
-          userPermissions[key].delete = false;
-        }
-      });
-      
-      setPermissions(userPermissions);
-    }
-  }, [currentRole, isCreating, open, permissions]);
+        setPermissions(managerPermissions);
+      } else if (currentRole === 'user' && isCreating) {
+        // Usuários comuns têm acesso limitado
+        const userPermissions = initializePermissions();
+        
+        // Definir permissões padrão para usuários
+        ['dashboard', 'deliveries', 'shipments'].forEach(key => {
+          if (userPermissions[key]) {
+            userPermissions[key].view = true;
+            userPermissions[key].create = false;
+            userPermissions[key].edit = false;
+            userPermissions[key].delete = false;
+          }
+        });
+        
+        setPermissions(userPermissions);
+      }
+    }, 0);
+  }, [currentRole, isCreating, open, permissions, initializePermissions]);
 
   // Manipulador para alterar permissões individuais
-  const handlePermissionChange = (name: string, level: keyof PermissionLevel, value: boolean) => {
+  const handlePermissionChange = useCallback((name: string, level: keyof PermissionLevel, value: boolean) => {
     setPermissions(prev => ({
       ...prev,
       [name]: {
@@ -250,7 +258,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
         [level]: value
       }
     }));
-  };
+  }, []);
 
   const onSubmit = async (data: UserFormValues) => {
     console.log("Formulário enviado com dados:", data);
@@ -273,9 +281,9 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           email: data.email,
           password: data.password,
           role: data.role,
-          department: data.department,
-          position: data.position,
-          phone: data.phone,
+          department: data.department || undefined,
+          position: data.position || undefined,
+          phone: data.phone || undefined,
           permissions: permissions,
           updatedAt: new Date().toISOString(),
         });
@@ -289,9 +297,9 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           username: data.username,
           email: data.email,
           role: data.role,
-          department: data.department,
-          position: data.position,
-          phone: data.phone,
+          department: data.department || undefined,
+          position: data.position || undefined,
+          phone: data.phone || undefined,
           permissions: permissions,
           updatedAt: new Date().toISOString(),
         };
@@ -321,6 +329,14 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
 
   const isAdmin = form.watch('role') === 'admin';
 
+  // Handle tab change with a slight delay to prevent UI freezing
+  const handleTabChange = (value: string) => {
+    // First update the UI to show the tab is changing
+    requestAnimationFrame(() => {
+      setActiveTab(value);
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
@@ -332,7 +348,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="grid grid-cols-2 mb-4">
                 <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
                 <TabsTrigger value="permissions">Permissões de Acesso</TabsTrigger>
@@ -432,7 +448,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          value={field.value || "none"}  // Changed from "" to "none"
+                          value={field.value || "none"}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -440,7 +456,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="none">Selecione...</SelectItem> {/* Changed from "" to "none" */}
+                            <SelectItem value="none">Selecione...</SelectItem>
                             <SelectItem value="operations">Operações</SelectItem>
                             <SelectItem value="finance">Financeiro</SelectItem>
                             <SelectItem value="administrative">Administrativo</SelectItem>
