@@ -12,10 +12,11 @@ export interface AuthContextType {
   updateUserProfile: (userData: Partial<User>) => Promise<boolean>;
   updateUser: (userId: string, userData: Partial<User>) => Promise<boolean>;
   createUser: (userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => Promise<User>;
-  deleteUser: (userId: string) => boolean;
-  resetUserPassword: (userId: string, newPassword: string) => boolean;
+  deleteUser: (userId: string) => Promise<boolean>;
+  resetUserPassword: (userId: string, newPassword: string) => Promise<boolean>;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   hasPermission: (feature: keyof User['permissions']) => boolean;
   supabaseUser: SupabaseUser | null;
   session: Session | null;
+  refreshUsers: () => Promise<User[]>; // Adicionado para permitir atualizações manuais
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserManagementTable } from '@/components/user/UserManagementTable';
@@ -7,10 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export function UserManagement() {
-  const { user } = useAuth();
+  const { user, refreshUsers } = useAuth();
   const [activeTab, setActiveTab] = useState('userList');
   const [hasAccess, setHasAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,19 +36,19 @@ export function UserManagement() {
           const { data: accessAllowed, error } = await supabase.rpc('user_has_user_management_access');
           
           if (error) {
-            console.error("Error checking user management permissions:", error);
+            console.error("Erro ao verificar permissões de gerenciamento de usuários:", error);
             // Already checked role above, so keep as false if we get here
             setHasAccess(false);
           } else {
             setHasAccess(!!accessAllowed);
           }
         } catch (error) {
-          console.error("Exception checking user management access:", error);
+          console.error("Exceção ao verificar acesso de gerenciamento de usuários:", error);
           // Already checked role above, so keep as false if we get here
           setHasAccess(false);
         }
       } catch (error) {
-        console.error("Error in permission check flow:", error);
+        console.error("Erro no fluxo de verificação de permissão:", error);
         // Fallback to role-based check
         setHasAccess(user?.role === 'admin');
       } finally {
@@ -59,6 +58,15 @@ export function UserManagement() {
     
     checkPermissions();
   }, [user]);
+
+  // Atualiza a lista de usuários quando o componente é carregado
+  useEffect(() => {
+    if (hasAccess) {
+      refreshUsers().catch(err => {
+        console.error("Erro ao atualizar lista de usuários:", err);
+      });
+    }
+  }, [hasAccess, refreshUsers]);
 
   // Show loading state while checking permissions
   if (isLoading) {

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -12,27 +12,28 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Edit, Trash2 } from 'lucide-react';
+import { UserPlus, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { UserDialog } from './UserDialog';
 import { toast } from 'sonner';
 
 export function UserManagementTable() {
-  const { users, currentUser, deleteUser } = useAuth();
+  const { users, currentUser, deleteUser, refreshUsers } = useAuth();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  console.log("UserManagementTable rendered with users:", users);
+  console.log("UserManagementTable renderizado com usuários:", users);
 
   const handleEditUser = (user: User) => {
-    console.log("Edit user clicked for:", user);
+    console.log("Editar usuário clicado para:", user);
     setSelectedUser(user);
     setIsCreating(false);
     setIsDialogOpen(true);
   };
 
   const handleCreateUser = () => {
-    console.log("Create new user clicked");
+    console.log("Criar novo usuário clicado");
     setSelectedUser(null);
     setIsCreating(true);
     setIsDialogOpen(true);
@@ -48,7 +49,7 @@ export function UserManagementTable() {
 
     if (confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`)) {
       try {
-        deleteUser(user.id);
+        await deleteUser(user.id);
         toast.success("Usuário excluído", {
           description: `O usuário ${user.name} foi excluído com sucesso.`,
         });
@@ -61,8 +62,25 @@ export function UserManagementTable() {
     }
   };
 
+  const handleRefreshUsers = async () => {
+    setIsLoading(true);
+    try {
+      await refreshUsers();
+      toast.success("Lista de usuários atualizada", {
+        description: "Os dados foram atualizados do banco de dados."
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar lista de usuários:", error);
+      toast.error("Erro ao atualizar usuários", {
+        description: "Não foi possível atualizar a lista de usuários."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const closeDialog = () => {
-    console.log("Closing user dialog");
+    console.log("Fechando diálogo de usuário");
     setIsDialogOpen(false);
   };
 
@@ -94,10 +112,21 @@ export function UserManagementTable() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Usuários do Sistema</h3>
-        <Button onClick={handleCreateUser} className="flex gap-2 items-center">
-          <UserPlus size={16} />
-          <span>Novo Usuário</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleRefreshUsers} 
+            variant="outline"
+            className="flex gap-2 items-center"
+            disabled={isLoading}
+          >
+            <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
+            <span>Atualizar</span>
+          </Button>
+          <Button onClick={handleCreateUser} className="flex gap-2 items-center">
+            <UserPlus size={16} />
+            <span>Novo Usuário</span>
+          </Button>
+        </div>
       </div>
 
       <div className="border rounded-md">

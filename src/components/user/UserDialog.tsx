@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -120,7 +119,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
   // Reset form when dialog opens/closes or user changes
   useEffect(() => {
     if (open) {
-      console.log("Dialog opened, setting form values", { isCreating, user });
+      console.log("Diálogo aberto, definindo valores do formulário", { isCreating, user });
       
       if (isCreating) {
         form.reset({
@@ -172,7 +171,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           settings: false,
         };
         
-        console.log("Setting form values for existing user", { 
+        console.log("Definindo valores do formulário para usuário existente", { 
           name: user.name || '',
           username: user.username || '',
           email: user.email || '',
@@ -196,7 +195,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
   }, [form, user, open, isCreating]);
 
   const onSubmit = async (data: UserFormValues) => {
-    console.log("Form submitted with data:", data);
+    console.log("Formulário enviado com dados:", data);
     setIsSubmitting(true);
     
     try {
@@ -226,7 +225,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           settings: data.permissions.settings || false,
         };
 
-        console.log("Creating new user with permissions:", completePermissions);
+        console.log("Criando novo usuário com permissões:", completePermissions);
         const newUser = await createUser({
           name: data.name,
           username: data.username,
@@ -273,7 +272,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           updatedAt: new Date().toISOString(),
         };
 
-        console.log("Updating user with ID:", user.id, "and data:", updatedUser);
+        console.log("Atualizando usuário com ID:", user.id, "e dados:", updatedUser);
         
         if (data.password) {
           updatedUser.password = data.password;
@@ -287,7 +286,7 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
 
       onClose();
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error('Erro ao salvar usuário:', error);
       toast.error("Erro ao salvar usuário", {
         description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar as informações do usuário.",
       });

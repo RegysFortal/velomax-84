@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
-import { useUserManagement } from './useUserManagement';
+import { useSupabaseUserManagement } from './useSupabaseUserManagement';
 import { useAuthentication } from './useAuthentication';
 import { AuthContextType } from './types';
 import { createDefaultAdminUser } from './authUtils';
@@ -50,8 +50,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateUser, 
     createUser, 
     deleteUser, 
-    resetUserPassword 
-  } = useUserManagement(user);
+    resetUserPassword,
+    refreshUsers 
+  } = useSupabaseUserManagement(user);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -134,7 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const value: AuthContextType = {
     user,
-    users: initialUsers, // Use initialUsers instead of users from useUserManagement
+    users, // Agora vem do useSupabaseUserManagement
     currentUser,
     login,
     logout,
@@ -146,8 +147,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateUserPassword,
     loading,
     hasPermission,
-    supabaseUser,  // Add missing property
-    session        // Add missing property
+    supabaseUser,
+    session,
+    refreshUsers  // Adicionado para permitir atualizações manuais
   };
 
   return (
