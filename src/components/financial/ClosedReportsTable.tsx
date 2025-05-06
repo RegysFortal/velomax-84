@@ -43,52 +43,52 @@ export const ClosedReportsTable = ({
   const { clients = [] } = useClients();
 
   return (
-    <div className="rounded-md border overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Período</TableHead>
-            <TableHead>Entregas</TableHead>
-            <TableHead>Método de Pagamento</TableHead>
-            <TableHead>Vencimento</TableHead>
-            <TableHead className="text-right">Valor Total</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
+    <ScrollArea className="w-full border rounded-md">
+      <div className="min-w-[1200px]">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={7} className="text-center">
-                Carregando relatórios...
-              </TableCell>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Período</TableHead>
+              <TableHead>Entregas</TableHead>
+              <TableHead>Método de Pagamento</TableHead>
+              <TableHead>Vencimento</TableHead>
+              <TableHead className="text-right">Valor Total</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
-          ) : reports.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center">
-                Nenhum relatório fechado
-              </TableCell>
-            </TableRow>
-          ) : (
-            reports.map((report) => {
-              const client = clients.find(c => c.id === report.clientId);
-              return (
-                <TableRow key={report.id}>
-                  <TableCell className="font-medium">{client?.name || 'N/A'}</TableCell>
-                  <TableCell>
-                    {format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até {' '}
-                    {format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}
-                  </TableCell>
-                  <TableCell>{report.totalDeliveries}</TableCell>
-                  <TableCell>{getPaymentMethodLabel(report.paymentMethod)}</TableCell>
-                  <TableCell>
-                    {report.dueDate 
-                      ? format(new Date(report.dueDate), 'dd/MM/yyyy', { locale: ptBR }) 
-                      : 'N/A'}
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
-                  <TableCell className="text-right">
-                    <ScrollArea className="max-w-[300px] whitespace-nowrap">
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center">
+                  Carregando relatórios...
+                </TableCell>
+              </TableRow>
+            ) : reports.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center">
+                  Nenhum relatório fechado
+                </TableCell>
+              </TableRow>
+            ) : (
+              reports.map((report) => {
+                const client = clients.find(c => c.id === report.clientId);
+                return (
+                  <TableRow key={report.id}>
+                    <TableCell className="font-medium">{client?.name || 'N/A'}</TableCell>
+                    <TableCell>
+                      {format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} até {' '}
+                      {format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell>{report.totalDeliveries}</TableCell>
+                    <TableCell>{getPaymentMethodLabel(report.paymentMethod)}</TableCell>
+                    <TableCell>
+                      {report.dueDate 
+                        ? format(new Date(report.dueDate), 'dd/MM/yyyy', { locale: ptBR }) 
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
+                    <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button
                           size="sm"
@@ -139,14 +139,14 @@ export const ClosedReportsTable = ({
                           Excluir
                         </Button>
                       </div>
-                    </ScrollArea>
-                  </TableCell>
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
-    </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </ScrollArea>
   );
 };
