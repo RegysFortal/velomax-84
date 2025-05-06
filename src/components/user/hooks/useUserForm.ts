@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -28,17 +28,18 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
 
+  // Initialize form with default values
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
-      name: '',
-      username: '',
-      email: '',
+      name: user?.name || '',
+      username: user?.username || '',
+      email: user?.email || '',
       password: '',
-      role: 'user' as const,
-      department: '',
-      position: '',
-      phone: '',
+      role: (user?.role as 'user' | 'admin' | 'manager') || 'user',
+      department: user?.department || '',
+      position: user?.position || '',
+      phone: user?.phone || '',
     },
     mode: 'onChange',
   });
@@ -50,63 +51,10 @@ export const useUserForm = (user: User | null, isCreating: boolean, onClose: () 
     permissions,
     isLoadingPermissions,
     permissionsInitialized,
-    initializePermissions,
     handlePermissionChange,
-    setPermissions
   } = usePermissions(user, isCreating, currentRole);
 
-  // Reset form when dialog opens/closes or user changes
-  useEffect(() => {
-    console.log("Definindo valores do formulário", { isCreating, user });
-    
-    if (isCreating) {
-      form.reset({
-        name: '',
-        username: '',
-        email: '',
-        password: '',
-        role: 'user',
-        department: '',
-        position: '',
-        phone: '',
-      });
-      
-      // Initialize permissions immediately for new users
-      console.log("Inicializando permissões para novo usuário");
-      initializePermissions(undefined);
-    } else if (user) {
-      // Determine correct role value
-      let roleValue: 'user' | 'admin' | 'manager' = 'user';
-      if (user.role === 'admin' || user.role === 'manager') {
-        roleValue = user.role;
-      }
-      
-      console.log("Definindo valores do formulário para usuário existente", { 
-        name: user.name || '',
-        username: user.username || '',
-        email: user.email || '',
-        role: roleValue,
-        permissions: user.permissions
-      });
-      
-      form.reset({
-        name: user.name || '',
-        username: user.username || '',
-        email: user.email || '',
-        password: '',
-        role: roleValue,
-        department: user.department || '',
-        position: user.position || '',
-        phone: user.phone || '',
-      });
-
-      // Initialize user permissions immediately
-      console.log("Inicializando permissões para usuário existente");
-      initializePermissions(user.permissions);
-    }
-  }, [form, user, isCreating, initializePermissions]);
-
-  // Tab change handler with memorized function
+  // Use stable callback for tab changes
   const handleTabChange = useCallback((value: string) => {
     console.log("Mudando para tab:", value);
     setActiveTab(value);

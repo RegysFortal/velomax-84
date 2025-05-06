@@ -57,15 +57,15 @@ export function UserDialog({ open, onOpenChange, user, isCreating, onClose }: Us
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-2">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
-                <TabsTrigger value="permissions">Permissões de Acesso</TabsTrigger>
+                <TabsTrigger value="basic" data-testid="basic-tab-trigger">Informações Básicas</TabsTrigger>
+                <TabsTrigger value="permissions" data-testid="permissions-tab-trigger">Permissões de Acesso</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="basic" className="space-y-4 pt-2">
+              <TabsContent value="basic" className="space-y-4 pt-2" data-testid="basic-tab-content">
                 <BasicInfoTab control={form.control} isCreating={isCreating} />
               </TabsContent>
               
-              <TabsContent value="permissions" className="space-y-4 pt-2">
+              <TabsContent value="permissions" className="space-y-4 pt-2" data-testid="permissions-tab-content">
                 <PermissionsTab
                   isLoadingPermissions={isLoadingPermissions}
                   permissionsInitialized={permissionsInitialized}

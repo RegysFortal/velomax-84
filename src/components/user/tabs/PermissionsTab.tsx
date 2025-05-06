@@ -19,7 +19,7 @@ export const PermissionsTab = memo(function PermissionsTab({
   isAdmin
 }: PermissionsTabProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="permissions-tab">
       <div className="pb-2">
         <p className="text-sm text-muted-foreground">
           {isAdmin 
