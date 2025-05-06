@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { mapSupabaseUserToAppUser } from './userMappers';
+import { mapAppUserToSupabase } from './userMappers';
 
 export const useCreateUser = () => {
   const [loading, setLoading] = useState(false);
@@ -13,7 +13,7 @@ export const useCreateUser = () => {
       setLoading(true);
       console.log("Criando novo usuário no Supabase:", userData);
       
-      // Verificar se já existe um usuário com o mesmo email ou username
+      // Verificar se email ou username já existem
       const { data: existingUsers, error: checkError } = await supabase
         .from('users' as any)
         .select('email, username')
@@ -21,77 +21,88 @@ export const useCreateUser = () => {
       
       if (checkError) throw checkError;
       
-      // Type assertion for more aggressive type safety
-      const typedExistingUsers = (existingUsers as any[]) || [];
-      
-      if (typedExistingUsers.length > 0) {
-        if (typedExistingUsers.some((u: any) => u.email === userData.email)) {
+      if (existingUsers && existingUsers.length > 0) {
+        // Verifica qual campo está duplicado
+        if (existingUsers.some((user: any) => user.email === userData.email)) {
           throw new Error('Email já está em uso');
         }
-        if (typedExistingUsers.some((u: any) => u.username === userData.username)) {
+        if (existingUsers.some((user: any) => user.username === userData.username)) {
           throw new Error('Nome de usuário já está em uso');
         }
       }
-
-      // Formatamos os dados do usuário para o formato Supabase
-      const supabaseUserData = {
-        name: userData.name,
-        username: userData.username,
+      
+      // Formatar dados para o formato Supabase
+      const supabaseUserData = mapAppUserToSupabase(userData);
+      
+      // Criar o usuário
+      const { data, error } = await supabase.auth.admin.createUser({
         email: userData.email,
-        role: userData.role || 'user',
-        department: userData.department,
-        position: userData.position,
-        phone: userData.phone
-      };
-
-      // Inserir usuário na tabela users
-      const { data: newUser, error: userError } = await supabase
+        password: userData.password,
+        email_confirm: true,
+        user_metadata: {
+          name: userData.name,
+          username: userData.username,
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (!data.user) {
+        throw new Error('Falha ao criar usuário');
+      }
+      
+      // Inserir no banco de dados as informações adicionais do usuário
+      const { data: insertedUser, error: insertError } = await supabase
         .from('users' as any)
-        .insert(supabaseUserData)
+        .insert({
+          ...supabaseUserData,
+          id: data.user.id,
+          created_at: new Date().toISOString()
+        })
         .select()
         .single();
-
-      if (userError) throw userError;
-
-      if (!newUser) throw new Error('Falha ao criar usuário');
-
-      // Formatamos as permissões para o Supabase
+      
+      if (insertError) throw insertError;
+      
+      // Inserir as permissões detalhadas para este usuário
       if (userData.permissions) {
-        const permissionsData = {
-          user_id: (newUser as any).id,
-          deliveries: userData.permissions.deliveries || false,
-          shipments: userData.permissions.shipments || false,
-          clients: userData.permissions.clients || false,
-          cities: userData.permissions.cities || false,
-          reports: userData.permissions.reports || false,
-          financial: userData.permissions.financial || false,
-          price_tables: userData.permissions.priceTables || false,
-          dashboard: userData.permissions.dashboard || true,
-          logbook: userData.permissions.logbook || false,
-          employees: userData.permissions.employees || false,
-          vehicles: userData.permissions.vehicles || false,
-          maintenance: userData.permissions.maintenance || false,
-          settings: userData.permissions.settings || false
-        };
-
-        // Inserir permissões na tabela user_permissions
-        const { error: permError } = await supabase
-          .from('user_permissions' as any)
-          .insert(permissionsData);
-
-        if (permError) {
-          console.error("Erro ao criar permissões:", permError);
-          // Não vamos falhar aqui porque o trigger pode ter cuidado disso
+        const permissionsToInsert = Object.entries(userData.permissions).map(([resource, levels]) => ({
+          user_id: data.user.id,
+          resource,
+          view: levels.view || false,
+          create: levels.create || false,
+          edit: levels.edit || false,
+          delete: levels.delete || false
+        }));
+        
+        if (permissionsToInsert.length > 0) {
+          const { error: permError } = await supabase
+            .from('user_permissions')
+            .insert(permissionsToInsert);
+            
+          if (permError) {
+            console.error('Erro ao inserir permissões:', permError);
+            throw permError;
+          }
         }
       }
-
-      // Mapear o usuário para o formato da aplicação
-      return mapSupabaseUserToAppUser({
-        ...(newUser as any),
-        permissions: userData.permissions 
-      });
+      
+      // Retornar o usuário criado no formato apropriado
+      return {
+        id: data.user.id,
+        email: userData.email,
+        name: userData.name,
+        username: userData.username,
+        role: userData.role,
+        department: userData.department,
+        position: userData.position,
+        phone: userData.phone,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        permissions: userData.permissions
+      } as User;
     } catch (err) {
-      console.error("Erro ao criar usuário:", err);
+      console.error('Erro ao criar usuário:', err);
       const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao criar usuário";
       toast.error("Erro ao criar usuário", {
         description: errorMessage

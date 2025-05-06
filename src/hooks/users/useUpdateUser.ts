@@ -68,17 +68,38 @@ export const useUpdateUser = () => {
 
       // Atualizar permissões se fornecidas
       if (userData.permissions) {
-        const { error: permError } = await supabase
-          .from('user_permissions' as any)
-          .update({ 
-            permissions: supabaseUserData.permissions,
-            updated_at: new Date().toISOString() 
-          })
+        console.log("Atualizando permissões detalhadas para o usuário:", userId);
+        
+        // Primeiro, remover permissões existentes para este usuário
+        const { error: deleteError } = await supabase
+          .from('user_permissions')
+          .delete()
           .eq('user_id', userId);
-
-        if (permError) {
-          console.error("Erro ao atualizar permissões:", permError);
-          throw permError;
+          
+        if (deleteError) {
+          console.error("Erro ao excluir permissões antigas:", deleteError);
+          throw deleteError;
+        }
+        
+        // Agora, criar novas entradas para cada permissão
+        const permissionInserts = Object.entries(userData.permissions).map(([resource, levels]) => ({
+          user_id: userId,
+          resource,
+          view: levels.view || false,
+          create: levels.create || false,
+          edit: levels.edit || false,
+          delete: levels.delete || false
+        }));
+        
+        if (permissionInserts.length > 0) {
+          const { error: insertError } = await supabase
+            .from('user_permissions')
+            .insert(permissionInserts);
+            
+          if (insertError) {
+            console.error("Erro ao inserir novas permissões:", insertError);
+            throw insertError;
+          }
         }
       }
 

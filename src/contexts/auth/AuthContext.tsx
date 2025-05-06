@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -132,6 +131,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Atualizamos a função hasPermission para usar o novo sistema de permissões detalhadas
+  const hasPermission = (feature: string, level: keyof PermissionLevel = 'view') => {
+    // Admins always have all permissions
+    if (user?.role === 'admin') return true;
+    
+    // If user doesn't exist or doesn't have permissions, deny
+    if (!user || !user.permissions) return false;
+    
+    // Check if the feature is in the user's permissions
+    const permission = user.permissions[feature];
+    
+    // If permission doesn't exist, deny
+    if (!permission) return false;
+    
+    // Return the specific level of permission
+    return permission[level] || false;
+  };
 
   const value: AuthContextType = {
     user,

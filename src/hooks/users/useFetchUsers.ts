@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { mapSupabaseUserToAppUser } from './userMappers';
@@ -14,26 +14,49 @@ export const useFetchUsers = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      // Buscar usuários básicos
+      const { data: usersData, error: usersError } = await supabase
         .from('users' as any)
-        .select(`
-          *,
-          permissions:user_permissions(*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (usersError) throw usersError;
+
+      // Buscar permissões para cada usuário
+      const userIds = usersData.map((user: any) => user.id);
+      const { data: permissionsData, error: permissionsError } = await supabase
+        .from('user_permissions')
+        .select('*')
+        .in('user_id', userIds);
+
+      if (permissionsError) {
+        console.error("Erro ao buscar permissões:", permissionsError);
+        // Continue mesmo com erro nas permissões
+      }
+
+      // Agrupar permissões por usuário
+      const permissionsByUser: Record<string, Record<string, PermissionLevel>> = {};
+      
+      if (permissionsData) {
+        permissionsData.forEach((perm: any) => {
+          if (!permissionsByUser[perm.user_id]) {
+            permissionsByUser[perm.user_id] = {};
+          }
+          
+          permissionsByUser[perm.user_id][perm.resource] = {
+            view: perm.view || false,
+            create: perm.create || false,
+            edit: perm.edit || false,
+            delete: perm.delete || false
+          };
+        });
+      }
 
       // Mapear os dados para o formato esperado pelo aplicativo
-      const formattedUsers = (data as any[]).map(user => {
-        // Para cada usuário, pegamos as permissões (se existirem) e as formatamos
-        const permissions = user.permissions && user.permissions.length > 0 
-          ? user.permissions[0] 
-          : null;
-
+      const formattedUsers = (usersData as any[]).map(user => {
         return mapSupabaseUserToAppUser({
           ...user,
-          permissions
+          permissions: permissionsByUser[user.id] || {}
         });
       });
 

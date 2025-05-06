@@ -1,4 +1,3 @@
-
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -82,22 +81,22 @@ export function AppLayout({ children }: AppLayoutProps) {
     // Only check permissions when user data is loaded
     if (user && !loading) {
       // Define permission rules for each path
-      const pathPermissions: Record<string, string> = {
-        '/deliveries': 'deliveries',
-        '/shipments': 'shipments',
-        '/shipment-reports': 'shipmentReports',
-        '/financial': 'financial',
-        '/reports': 'reports',
-        '/price-tables': 'priceTables',
-        '/cities': 'cities',
-        '/dashboard': 'dashboard',
-        '/logbook': 'logbook',
-        '/clients': 'clients',
-        '/employees': 'employees',
-        '/vehicles': 'vehicles',
-        '/maintenance': 'maintenance',
-        '/settings': 'settings',
-        '/budgets': 'budgets'  // Changed from 'financial' to 'budgets'
+      const pathPermissions: Record<string, { path: string; level: keyof PermissionLevel }> = {
+        '/deliveries': { path: 'deliveries', level: 'view' },
+        '/shipments': { path: 'shipments', level: 'view' },
+        '/shipment-reports': { path: 'shipmentReports', level: 'view' },
+        '/financial': { path: 'financial', level: 'view' },
+        '/reports': { path: 'reports', level: 'view' },
+        '/price-tables': { path: 'priceTables', level: 'view' },
+        '/cities': { path: 'cities', level: 'view' },
+        '/dashboard': { path: 'dashboard', level: 'view' },
+        '/logbook': { path: 'logbook', level: 'view' },
+        '/clients': { path: 'clients', level: 'view' },
+        '/employees': { path: 'employees', level: 'view' },
+        '/vehicles': { path: 'vehicles', level: 'view' },
+        '/maintenance': { path: 'maintenance', level: 'view' },
+        '/settings': { path: 'settings', level: 'view' },
+        '/budgets': { path: 'budgets', level: 'view' }
       };
 
       // Special case for activity logs (admin only)
@@ -129,17 +128,17 @@ export function AppLayout({ children }: AppLayoutProps) {
       }
 
       // Check if current path needs permission
-      const requiredPermission = pathPermissions[location.pathname];
+      const permissionConfig = pathPermissions[location.pathname];
       
-      if (requiredPermission) {
+      if (permissionConfig) {
         // Admin users bypass permission checks
         if (user.role === 'admin') {
           return;
         }
         
         // Check if user has required permission
-        if (!hasPermission(requiredPermission)) {
-          console.log(`User lacks permission: ${requiredPermission} for path: ${location.pathname}`);
+        if (!hasPermission(permissionConfig.path, permissionConfig.level)) {
+          console.log(`User lacks permission: ${permissionConfig.path} for path: ${location.pathname}`);
           toast("Acesso restrito", {
             description: "Você não tem permissão para acessar esta página.",
           });

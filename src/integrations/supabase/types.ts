@@ -1336,6 +1336,42 @@ export type Database = {
           },
         ]
       }
+      user_permissions: {
+        Row: {
+          create: boolean | null
+          created_at: string | null
+          delete: boolean | null
+          edit: boolean | null
+          id: string
+          resource: string
+          updated_at: string | null
+          user_id: string
+          view: boolean | null
+        }
+        Insert: {
+          create?: boolean | null
+          created_at?: string | null
+          delete?: boolean | null
+          edit?: boolean | null
+          id?: string
+          resource: string
+          updated_at?: string | null
+          user_id: string
+          view?: boolean | null
+        }
+        Update: {
+          create?: boolean | null
+          created_at?: string | null
+          delete?: boolean | null
+          edit?: boolean | null
+          id?: string
+          resource?: string
+          updated_at?: string | null
+          user_id?: string
+          view?: boolean | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1460,12 +1496,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      user_has_budgets_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       user_has_company_settings_access: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
       user_has_notification_settings_access: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_has_permission: {
+        Args: { resource_name: string; permission_type: string }
         Returns: boolean
       }
       user_has_system_settings_access: {
