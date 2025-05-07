@@ -123,7 +123,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               phone: userData?.phone,
               createdAt: userData?.created_at || new Date().toISOString(),
               updatedAt: userData?.updated_at || new Date().toISOString(),
-              lastLogin: new Date().toISOString(),
               permissions: permissionsObj
             };
             
@@ -138,7 +137,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
             const existingUserIndex = usersList.findIndex((u: User) => u.id === localUser.id);
             if (existingUserIndex >= 0) {
-              usersList[existingUserIndex] = { ...localUser, lastLogin: new Date().toISOString() };
+              // Remove lastLogin as it's not in the User type
+              usersList[existingUserIndex] = { ...localUser };
             } else {
               usersList.push(localUser);
             }
