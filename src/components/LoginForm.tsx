@@ -45,7 +45,7 @@ export const LoginForm = () => {
     setIsSubmitting(true);
     
     try {
-      const email = username.includes('@') ? username : `${username}@velomax.com.br`;
+      const email = username.includes('@') ? username : `${username}@velomax.com`;
       
       console.log(`Tentando login com email: ${email}`);
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -62,7 +62,7 @@ export const LoginForm = () => {
         console.log("Login bem-sucedido com Supabase");
         toast({
           title: "Login bem-sucedido",
-          description: `Bem-vindo!`,
+          description: `Bem-vindo, ${data.user.email}!`,
         });
         navigate('/dashboard');
       }
@@ -93,7 +93,7 @@ export const LoginForm = () => {
     setIsResetting(true);
     
     try {
-      const email = forgotUsername.includes('@') ? forgotUsername : `${forgotUsername}@velomax.com.br`;
+      const email = forgotUsername.includes('@') ? forgotUsername : `${forgotUsername}@velomax.com`;
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password',
