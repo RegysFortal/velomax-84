@@ -1,9 +1,8 @@
-
-import { User, PermissionLevel } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { User, PermissionLevel } from '@/types';
 
 // Default permission level
-export const defaultPermissionLevel = (): PermissionLevel => ({
+const defaultPermissionLevel = (): PermissionLevel => ({
   view: false,
   create: false,
   edit: false,
@@ -11,7 +10,7 @@ export const defaultPermissionLevel = (): PermissionLevel => ({
 });
 
 // Full permission level
-export const fullPermissionLevel = (): PermissionLevel => ({
+const fullPermissionLevel = (): PermissionLevel => ({
   view: true,
   create: true,
   edit: true,
@@ -41,7 +40,7 @@ export const createDefaultAdminUser = (): User => {
       vehicles: fullPermissionLevel(),
       maintenance: fullPermissionLevel(),
       settings: fullPermissionLevel(),
-      budgets: fullPermissionLevel()
+      budgets: fullPermissionLevel() // Added budgets permission
     }
   };
 };
@@ -61,7 +60,7 @@ export const createUserPermissions = (role: 'admin' | 'manager' | 'user') => {
     vehicles: defaultPermissionLevel(),
     maintenance: defaultPermissionLevel(),
     settings: defaultPermissionLevel(),
-    budgets: defaultPermissionLevel()
+    budgets: defaultPermissionLevel() // Added budgets permission
   };
 
   if (role === 'admin') {
@@ -135,27 +134,4 @@ export const logUserActivity = (
   } catch (error) {
     console.error('Failed to log activity:', error);
   }
-};
-
-// Utility function to check permissions
-export const hasPermission = (user: User | null, feature: string, level: keyof PermissionLevel = 'view'): boolean => {
-  // Admins always have all permissions
-  if (user?.role === 'admin') return true;
-  
-  // If user doesn't exist or doesn't have permissions, deny
-  if (!user || !user.permissions) return false;
-  
-  // Check if the feature is in the user's permissions
-  const permission = user.permissions[feature];
-  
-  // If permission doesn't exist, deny
-  if (!permission) return false;
-  
-  // Check if permission is a boolean (old format) or an object (new format)
-  if (typeof permission === 'boolean') {
-    return permission;
-  }
-  
-  // Return the specific level of permission
-  return permission[level] || false;
 };
