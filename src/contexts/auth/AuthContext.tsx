@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import { User } from '@/types';
+import { User, PermissionLevel } from '@/types';
 import { useSupabaseUserManagement } from './useSupabaseUserManagement';
 import { useAuthentication } from './useAuthentication';
 import { AuthContextType } from './types';
