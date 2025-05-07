@@ -10,7 +10,7 @@ import { ShipmentsProvider } from './contexts/shipments';
 import { ClientsProvider } from './contexts';
 import { PriceTablesProvider } from './contexts/priceTables';
 import { CitiesProvider } from './contexts/CitiesContext';
-import { FinancialProvider } from './contexts/financial'; // Updated import path
+import { FinancialProvider } from './contexts/financial'; 
 import { BudgetProvider } from './contexts/budget';
 import { LogbookProvider } from './contexts/LogbookContext';
 import PrivateRoute from './components/PrivateRoute';
@@ -50,17 +50,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <ActivityLogProvider>
-            <CitiesProvider>
-              <PriceTablesProvider>
-                <ClientsProvider>
-                  <FinancialProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <ActivityLogProvider>
+              <CitiesProvider>
+                <PriceTablesProvider>
+                  <ClientsProvider>
                     <ShipmentsProvider>
                       <DeliveriesProvider>
-                        <BudgetProvider>
-                          <LogbookProvider>
-                            <BrowserRouter>
+                        <FinancialProvider>
+                          <BudgetProvider>
+                            <LogbookProvider>
                               <Routes>
                                 <Route path="/" element={<Navigate to="/login" replace />} />
                                 <Route path="/login" element={<Login />} />
@@ -115,17 +115,17 @@ function App() {
                                   <Route path="*" element={<NotFound />} />
                                 </Route>
                               </Routes>
-                            </BrowserRouter>
-                          </LogbookProvider>
-                        </BudgetProvider>
+                            </LogbookProvider>
+                          </BudgetProvider>
+                        </FinancialProvider>
                       </DeliveriesProvider>
                     </ShipmentsProvider>
-                  </FinancialProvider>
-                </ClientsProvider>
-              </PriceTablesProvider>
-            </CitiesProvider>
-          </ActivityLogProvider>
-        </AuthProvider>
+                  </ClientsProvider>
+                </PriceTablesProvider>
+              </CitiesProvider>
+            </ActivityLogProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
   );

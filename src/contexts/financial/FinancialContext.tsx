@@ -11,6 +11,7 @@ const FinancialContext = createContext<FinancialContextType | undefined>(undefin
 
 export const FinancialProvider = ({ children }: { children: ReactNode }) => {
   const { supabaseUser: user } = useAuth();
+  
   const {
     financialReports,
     setFinancialReports,
