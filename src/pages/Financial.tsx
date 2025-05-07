@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -24,8 +23,6 @@ import { OpenReportsTable } from '@/components/financial/OpenReportsTable';
 import { ClosedReportsTable } from '@/components/financial/ClosedReportsTable';
 import { useReceivableAccounts } from '@/hooks/financial/useReceivableAccounts';
 import { useFinancialReportUtils } from '@/hooks/financial/useFinancialReportUtils';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { useClients } from '@/contexts';
 
 const FinancialPage = () => {
@@ -48,9 +45,7 @@ const FinancialPage = () => {
   
   const { clients } = useClients();
   const { 
-    createReceivableAccount, 
-    deleteReceivableAccount, 
-    updateReceivableAccount 
+    deleteReceivableAccount 
   } = useReceivableAccounts();
   
   const { 
@@ -71,29 +66,8 @@ const FinancialPage = () => {
   
   const handleCloseReportWithDetails = async (reportId: string, paymentMethod: string, dueDate: string) => {
     try {
-      // Primeiro atualiza os dados adicionais do relatório
+      // O closeReport já lidará com a criação da conta a receber internamente
       await closeReport(reportId, paymentMethod, dueDate);
-      
-      // Depois cria a conta a receber automaticamente
-      const report = financialReports.find(r => r.id === reportId);
-      const client = report ? clients.find(c => c.id === report.clientId) : null;
-      
-      if (report && client) {
-        // Criar dados para a conta a receber
-        await createReceivableAccount({
-          clientId: report.clientId,
-          clientName: client.name,
-          description: `Relatório ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
-          amount: report.totalFreight,
-          dueDate: dueDate,
-          status: 'pending',
-          categoryId: 'fretes', // Categoria de fretes
-          categoryName: 'Fretes',
-          reportId: report.id,
-          paymentMethod: paymentMethod,
-          notes: `Referente ao relatório de ${client.name} no período de ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
-        });
-      }
     } catch (error) {
       console.error("Erro ao fechar relatório:", error);
     }
@@ -102,15 +76,8 @@ const FinancialPage = () => {
   // Função para editar as informações de pagamento
   const handleEditPaymentDetails = async (reportId: string, paymentMethod: string | null, dueDate: string | null) => {
     try {
+      // O updatePaymentDetails já lidará com a atualização da conta a receber
       await updatePaymentDetails(reportId, paymentMethod, dueDate);
-      
-      // Também atualiza a conta a receber correspondente
-      if (paymentMethod !== null || dueDate !== null) {
-        await updateReceivableAccount(reportId, {
-          paymentMethod: paymentMethod || undefined,
-          dueDate: dueDate || undefined
-        });
-      }
     } catch (error) {
       console.error("Erro ao atualizar detalhes de pagamento:", error);
     }
@@ -118,10 +85,8 @@ const FinancialPage = () => {
 
   const handleReopenReport = async (reportId: string) => {
     try {
+      // O reopenReport já lidará com a exclusão da conta a receber
       await reopenReport(reportId);
-      
-      // Exclui a conta a receber relacionada
-      await deleteReceivableAccount(reportId);
     } catch (error) {
       console.error("Erro ao reabrir relatório:", error);
     }

@@ -1,12 +1,18 @@
 
 import { FinancialReport } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useReceivableAccounts } from '@/hooks/financial/useReceivableAccounts';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useClients } from '@/contexts';
 
 export const useReportStatus = (
   financialReports: FinancialReport[],
   updateFinancialReport: (id: string, report: Partial<FinancialReport>) => Promise<void>
 ) => {
   const { toast } = useToast();
+  const { clients } = useClients();
+  const { createReceivableAccount, deleteReceivableAccount, updateReceivableAccount } = useReceivableAccounts();
 
   const getFinancialReport = (id: string) => {
     return financialReports.find((report) => report.id === id);
@@ -38,17 +44,33 @@ export const useReportStatus = (
     
     await updateFinancialReport(id, updateData);
     
-    // Notificar o usuário de que uma conta a receber seria criada automaticamente
-    if (paymentMethod || dueDate) {
-      toast({
-        title: "Conta a receber criada",
-        description: `Uma conta a receber foi criada automaticamente para o relatório.`,
-      });
+    // Criar conta a receber automaticamente para o relatório fechado
+    try {
+      const client = clients.find(c => c.id === reportToClose.clientId);
+      
+      if (client && paymentMethod && dueDate) {
+        await createReceivableAccount({
+          clientId: reportToClose.clientId,
+          clientName: client.name,
+          description: `Relatório ${format(new Date(reportToClose.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(reportToClose.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
+          amount: reportToClose.totalFreight,
+          dueDate: dueDate,
+          status: 'pending',
+          categoryId: 'fretes', // Categoria padrão para fretes
+          categoryName: 'Fretes',
+          reportId: reportToClose.id,
+          paymentMethod: paymentMethod,
+          notes: `Referente ao relatório de ${client.name} no período de ${format(new Date(reportToClose.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(reportToClose.endDate), 'dd/MM/yyyy', { locale: ptBR })}`
+        });
+        
+        toast({
+          title: "Conta a receber criada",
+          description: `Uma conta a receber foi criada automaticamente para ${client.name}.`,
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao criar conta a receber:", error);
     }
-    
-    console.log("Relatórios após fechamento:", 
-      financialReports.map(r => ({id: r.id, status: r.status}))
-    );
     
     toast({
       title: "Relatório fechado",
@@ -72,9 +94,12 @@ export const useReportStatus = (
     
     await updateFinancialReport(id, { status: 'open' });
     
-    console.log("Relatórios após reabertura:", 
-      financialReports.map(r => ({id: r.id, status: r.status}))
-    );
+    // Excluir a conta a receber relacionada quando reabrir o relatório
+    try {
+      await deleteReceivableAccount(id);
+    } catch (error) {
+      console.error("Erro ao excluir conta a receber:", error);
+    }
     
     toast({
       title: "Relatório reaberto",
@@ -104,7 +129,18 @@ export const useReportStatus = (
     
     await updateFinancialReport(id, updateData);
     
-    // Notificar o usuário que os detalhes da conta a receber seriam atualizados
+    // Também atualizar a conta a receber correspondente
+    try {
+      if (paymentMethod !== null || dueDate !== null) {
+        await updateReceivableAccount(id, {
+          paymentMethod: paymentMethod || undefined,
+          dueDate: dueDate || undefined
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar conta a receber:", error);
+    }
+    
     toast({
       title: "Detalhes atualizados",
       description: `Os detalhes de pagamento foram atualizados com sucesso.`,
