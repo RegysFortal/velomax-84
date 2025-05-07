@@ -108,16 +108,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               });
             }
             
-            // Fix type error: Cast the role string to the appropriate type
-            const userRole = roleData?.role as 'user' | 'admin' | 'manager' | 'driver' | 'helper' || 'user';
-            
             // Construir objeto de usuário completo
             const localUser: User = {
               id: session.user.id,
               name: userData?.name || session.user.user_metadata.name || session.user.email?.split('@')[0] || 'Usuário',
               username: userData?.username || session.user.email?.split('@')[0] || session.user.id,
               email: userData?.email || session.user.email || `${session.user.id}@velomax.com`,
-              role: userRole,
+              role: roleData?.role || userData?.role || 'user',
               department: userData?.department,
               position: userData?.position,
               phone: userData?.phone,
