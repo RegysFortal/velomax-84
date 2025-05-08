@@ -3,11 +3,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
 
-interface PrivateRouteProps {
-  children: React.ReactNode;
-}
-
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
+const PrivateRoute = () => {
   const { user, loading } = useAuth();
   
   if (loading) {
@@ -22,7 +18,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
   
-  return <>{children}</>;
+  return <Outlet />;
 };
 
 export default PrivateRoute;
