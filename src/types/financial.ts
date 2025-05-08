@@ -1,3 +1,4 @@
+
 export interface FinancialReport {
   id: string;
   clientId: string;
@@ -69,5 +70,4 @@ export interface ReceivableAccount {
   notes?: string;
   createdAt: string;
   updatedAt: string;
-  reportId?: string;
 }
