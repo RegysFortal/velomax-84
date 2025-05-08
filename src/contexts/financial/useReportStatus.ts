@@ -57,7 +57,7 @@ export const useReportStatus = (
           description: `Relatório ${format(new Date(reportToClose.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(reportToClose.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
           amount: reportToClose.totalFreight,
           dueDate: dueDate,
-          status: 'pending',
+          status: 'pending' as const, // Explicitly defining status as a literal type
           categoryId: 'fretes', // Categoria padrão para fretes
           categoryName: 'Fretes',
           reportId: reportToClose.id,
@@ -209,7 +209,7 @@ export const useReportStatus = (
         toast({
           title: "Aviso",
           description: "Não foi possível atualizar a conta a receber relacionada.",
-          variant: "warning"
+          variant: "default"  // Changed from "warning" to "default"
         });
       }
       
