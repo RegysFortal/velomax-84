@@ -84,59 +84,51 @@ export function useReceivableAccounts() {
       // Check if an account for this report already exists
       const { data: existingAccount, error: queryError } = await supabase
         .from('receivable_accounts')
-        .select('*')
+        .select('id')
         .eq('report_id', data.reportId)
         .maybeSingle();
       
       if (queryError) {
-        console.error("Error checking for existing account:", queryError);
+        console.error("Erro ao verificar conta existente:", queryError);
         throw queryError;
       }
       
       if (existingAccount) {
-        console.log("Account already exists for this report, updating instead of creating:", existingAccount);
+        console.log("Conta já existe para este relatório, atualizando:", existingAccount);
         const { data: updatedData, error } = await supabase
           .from('receivable_accounts')
-          .update(newAccountData)
-          .eq('id', existingAccount.id)  // Use the account ID, not report_id
+          .update({
+            ...newAccountData,
+            updated_at: now
+          })
+          .eq('id', existingAccount.id)
           .select();
         
-        if (error) throw error;
+        if (error) {
+          console.error("Erro ao atualizar conta existente:", error);
+          throw error;
+        }
         
-        toast({
-          title: "Conta a receber atualizada",
-          description: `A conta a receber para ${data.clientName} foi atualizada.`,
-        });
-        
+        console.log("Conta atualizada com sucesso:", updatedData);
         return updatedData;
+      } else {
+        // Insert new account if none exists
+        const { data: insertedData, error: insertError } = await supabase
+          .from('receivable_accounts')
+          .insert(newAccountData)
+          .select();
+        
+        if (insertError) {
+          console.error("Erro ao inserir nova conta:", insertError);
+          throw insertError;
+        }
+        
+        console.log("Nova conta a receber criada:", insertedData);
+        return insertedData;
       }
-      
-      // Insert new account if none exists
-      const { data: insertedData, error: insertError } = await supabase
-        .from('receivable_accounts')
-        .insert(newAccountData)
-        .select();
-      
-      if (insertError) {
-        console.error("Error inserting new account:", insertError);
-        throw insertError;
-      }
-      
-      console.log("Nova conta a receber criada:", insertedData);
-      
-      toast({
-        title: "Conta a receber criada",
-        description: `Uma conta a receber foi criada automaticamente para ${data.clientName}.`,
-      });
-      
-      return insertedData;
     } catch (error) {
       console.error("Erro ao criar conta a receber:", error);
-      toast({
-        title: "Erro ao criar conta a receber",
-        description: "Ocorreu um erro ao criar a conta a receber.",
-        variant: "destructive"
-      });
+      throw error;
     }
   };
   
@@ -174,11 +166,7 @@ export function useReceivableAccounts() {
         return false;
       }
       
-      toast({
-        title: "Conta a receber excluída",
-        description: "A conta a receber relacionada a este relatório foi excluída.",
-      });
-      
+      console.log("Conta a receber excluída com sucesso");
       return true;
     } catch (error) {
       console.error("Erro ao excluir conta a receber:", error);
@@ -210,7 +198,10 @@ export function useReceivableAccounts() {
         return false;
       }
       
-      const updateData: any = {};
+      const updateData: any = {
+        updated_at: new Date().toISOString()
+      };
+      
       if (data.paymentMethod !== undefined) updateData.payment_method = data.paymentMethod;
       if (data.dueDate !== undefined) updateData.due_date = data.dueDate;
       
@@ -226,11 +217,7 @@ export function useReceivableAccounts() {
         return false;
       }
       
-      toast({
-        title: "Conta a receber atualizada",
-        description: "Os detalhes de pagamento da conta a receber foram atualizados.",
-      });
-      
+      console.log("Conta a receber atualizada com sucesso");
       return true;
     } catch (error) {
       console.error("Erro ao atualizar conta a receber:", error);
