@@ -1,8 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ReceivableAccountData } from './types';
+import { useToast } from '@/hooks/use-toast';
 
 export function useCreateReceivableAccount() {
+  const { toast } = useToast();
+  
   const createReceivableAccount = async (data: ReceivableAccountData) => {
     try {
       console.log("Criando/atualizando conta a receber:", data);
@@ -36,6 +39,8 @@ export function useCreateReceivableAccount() {
         throw queryError;
       }
       
+      let result;
+      
       if (existingAccount) {
         console.log("Conta já existe para este relatório, atualizando:", existingAccount);
         const { data: updatedData, error } = await supabase
@@ -49,11 +54,16 @@ export function useCreateReceivableAccount() {
         
         if (error) {
           console.error("Erro ao atualizar conta existente:", error);
+          toast({
+            title: "Erro ao atualizar conta",
+            description: "Não foi possível atualizar a conta a receber.",
+            variant: "destructive"
+          });
           throw error;
         }
         
         console.log("Conta atualizada com sucesso:", updatedData);
-        return updatedData;
+        result = updatedData;
       } else {
         // Insert new account if none exists
         const { data: insertedData, error: insertError } = await supabase
@@ -63,12 +73,19 @@ export function useCreateReceivableAccount() {
         
         if (insertError) {
           console.error("Erro ao inserir nova conta:", insertError);
+          toast({
+            title: "Erro ao criar conta",
+            description: "Não foi possível criar a conta a receber.",
+            variant: "destructive"
+          });
           throw insertError;
         }
         
         console.log("Nova conta a receber criada:", insertedData);
-        return insertedData;
+        result = insertedData;
       }
+      
+      return result;
     } catch (error) {
       console.error("Erro ao criar conta a receber:", error);
       throw error;

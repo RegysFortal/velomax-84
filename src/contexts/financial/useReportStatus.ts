@@ -51,13 +51,13 @@ export const useReportStatus = (
       
       if (client && paymentMethod && dueDate) {
         // Preparar dados para criar a conta a receber
-        const accountData = {
+        const accountData: ReceivableAccountData = {
           clientId: reportToClose.clientId,
           clientName: client.name,
           description: `Relatório ${format(new Date(reportToClose.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(reportToClose.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
           amount: reportToClose.totalFreight,
           dueDate: dueDate,
-          status: 'pending' as const, // Explicitly defining status as a literal type
+          status: "pending", // Explicitly defining status as a literal type
           categoryId: 'fretes', // Categoria padrão para fretes
           categoryName: 'Fretes',
           reportId: reportToClose.id,
