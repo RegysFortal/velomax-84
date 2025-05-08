@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ReceivableAccount } from '@/types/financial';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
+import { useFinancial } from '@/contexts/financial';
 
 export const useReceivableAccountsPage = () => {
   const [accounts, setAccounts] = useState<ReceivableAccount[]>([]);
@@ -11,6 +12,9 @@ export const useReceivableAccountsPage = () => {
   const [editingAccount, setEditingAccount] = useState<ReceivableAccount | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  
+  // Access the financial context to get reports
+  const { financialReports = [] } = useFinancial();
   
   // Fetch accounts when component mounts
   useEffect(() => {
@@ -44,7 +48,8 @@ export const useReceivableAccountsPage = () => {
         categoryName: account.category_name,
         notes: account.notes,
         createdAt: account.created_at,
-        updatedAt: account.updated_at
+        updatedAt: account.updated_at,
+        reportId: account.report_id
       }));
       
       setAccounts(mappedAccounts);
@@ -310,6 +315,7 @@ export const useReceivableAccountsPage = () => {
     handleUpdateAccount,
     handleDeleteAccount,
     handleEdit,
-    handleMarkAsReceived
+    handleMarkAsReceived,
+    financialReports
   };
 };
