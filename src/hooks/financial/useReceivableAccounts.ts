@@ -62,6 +62,8 @@ export function useReceivableAccounts() {
 
   const createReceivableAccount = async (data: ReceivableAccountData) => {
     try {
+      console.log("Criando/atualizando conta a receber:", data);
+      
       const now = new Date().toISOString();
       const newAccountData = {
         client_id: data.clientId,
@@ -80,18 +82,23 @@ export function useReceivableAccounts() {
       };
       
       // Check if an account for this report already exists
-      const { data: existingAccount } = await supabase
+      const { data: existingAccount, error: queryError } = await supabase
         .from('receivable_accounts')
         .select('*')
         .eq('report_id', data.reportId)
         .maybeSingle();
       
+      if (queryError) {
+        console.error("Error checking for existing account:", queryError);
+        throw queryError;
+      }
+      
       if (existingAccount) {
-        console.log("Account already exists for this report, updating instead of creating");
+        console.log("Account already exists for this report, updating instead of creating:", existingAccount);
         const { data: updatedData, error } = await supabase
           .from('receivable_accounts')
           .update(newAccountData)
-          .eq('report_id', data.reportId)
+          .eq('id', existingAccount.id)  // Use the account ID, not report_id
           .select();
         
         if (error) throw error;
@@ -105,14 +112,17 @@ export function useReceivableAccounts() {
       }
       
       // Insert new account if none exists
-      const { data: insertedData, error } = await supabase
+      const { data: insertedData, error: insertError } = await supabase
         .from('receivable_accounts')
         .insert(newAccountData)
         .select();
       
-      if (error) {
-        throw error;
+      if (insertError) {
+        console.error("Error inserting new account:", insertError);
+        throw insertError;
       }
+      
+      console.log("Nova conta a receber criada:", insertedData);
       
       toast({
         title: "Conta a receber criada",
@@ -132,13 +142,35 @@ export function useReceivableAccounts() {
   
   const deleteReceivableAccount = async (reportId: string) => {
     try {
-      const { error } = await supabase
+      console.log("Tentando excluir conta a receber para o relatório:", reportId);
+      
+      // First, find the account with this report_id
+      const { data: accountToDelete, error: findError } = await supabase
+        .from('receivable_accounts')
+        .select('id')
+        .eq('report_id', reportId)
+        .maybeSingle();
+      
+      if (findError) {
+        console.error("Erro ao buscar conta a receber para exclusão:", findError);
+        return false;
+      }
+      
+      if (!accountToDelete) {
+        console.log("Nenhuma conta a receber encontrada para este relatório");
+        return true;
+      }
+      
+      console.log("Conta encontrada para exclusão:", accountToDelete);
+      
+      // Now delete the account using its ID
+      const { error: deleteError } = await supabase
         .from('receivable_accounts')
         .delete()
-        .eq('report_id', reportId);
+        .eq('id', accountToDelete.id);
       
-      if (error) {
-        console.error("Erro ao excluir conta a receber:", error);
+      if (deleteError) {
+        console.error("Erro ao excluir conta a receber:", deleteError);
         return false;
       }
       
@@ -159,14 +191,35 @@ export function useReceivableAccounts() {
     dueDate?: string;
   }) => {
     try {
+      console.log("Tentando atualizar conta a receber para o relatório:", reportId, data);
+      
+      // First, find the account with this report_id
+      const { data: accountToUpdate, error: findError } = await supabase
+        .from('receivable_accounts')
+        .select('id')
+        .eq('report_id', reportId)
+        .maybeSingle();
+      
+      if (findError) {
+        console.error("Erro ao buscar conta a receber para atualização:", findError);
+        return false;
+      }
+      
+      if (!accountToUpdate) {
+        console.log("Nenhuma conta a receber encontrada para este relatório");
+        return false;
+      }
+      
       const updateData: any = {};
       if (data.paymentMethod !== undefined) updateData.payment_method = data.paymentMethod;
       if (data.dueDate !== undefined) updateData.due_date = data.dueDate;
       
+      console.log("Atualizando conta com ID:", accountToUpdate.id, "dados:", updateData);
+      
       const { error } = await supabase
         .from('receivable_accounts')
         .update(updateData)
-        .eq('report_id', reportId);
+        .eq('id', accountToUpdate.id);
       
       if (error) {
         console.error("Erro ao atualizar conta a receber:", error);

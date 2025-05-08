@@ -49,7 +49,8 @@ export const useReportStatus = (
       const client = clients.find(c => c.id === reportToClose.clientId);
       
       if (client && paymentMethod && dueDate) {
-        await createReceivableAccount({
+        // Tenta criar a conta a receber
+        const result = await createReceivableAccount({
           clientId: reportToClose.clientId,
           clientName: client.name,
           description: `Relatório ${format(new Date(reportToClose.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(reportToClose.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
@@ -63,10 +64,14 @@ export const useReportStatus = (
           notes: `Referente ao relatório de ${client.name} no período de ${format(new Date(reportToClose.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(reportToClose.endDate), 'dd/MM/yyyy', { locale: ptBR })}`
         });
         
+        console.log("Conta a receber criada/atualizada:", result);
+        
         toast({
           title: "Conta a receber criada",
           description: `Uma conta a receber foi criada automaticamente para ${client.name}.`,
         });
+      } else {
+        console.error("Dados insuficientes para criar conta a receber:", { client, paymentMethod, dueDate });
       }
     } catch (error) {
       console.error("Erro ao criar conta a receber:", error);
@@ -96,7 +101,8 @@ export const useReportStatus = (
     
     // Excluir a conta a receber relacionada quando reabrir o relatório
     try {
-      await deleteReceivableAccount(id);
+      const result = await deleteReceivableAccount(id);
+      console.log("Resultado da exclusão da conta a receber:", result);
     } catch (error) {
       console.error("Erro ao excluir conta a receber:", error);
     }
@@ -132,10 +138,11 @@ export const useReportStatus = (
     // Também atualizar a conta a receber correspondente
     try {
       if (paymentMethod !== null || dueDate !== null) {
-        await updateReceivableAccount(id, {
+        const result = await updateReceivableAccount(id, {
           paymentMethod: paymentMethod || undefined,
           dueDate: dueDate || undefined
         });
+        console.log("Resultado da atualização da conta a receber:", result);
       }
     } catch (error) {
       console.error("Erro ao atualizar conta a receber:", error);
