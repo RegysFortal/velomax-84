@@ -1,7 +1,7 @@
 
 import { FinancialReport } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { useReceivableAccounts } from '@/hooks/financial/useReceivableAccounts';
+import { useReceivableAccounts, ReceivableAccountData } from '@/hooks/financial/useReceivableAccounts';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useClients } from '@/contexts';
