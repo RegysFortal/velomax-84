@@ -24,6 +24,7 @@ interface SettingsTabsProps {
     notifications: boolean;
     clients: boolean;
     employees: boolean;
+    contractors: boolean;
   };
 }
 
@@ -73,6 +74,7 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
         {permissions.backup && <TabsTrigger value="backup">Backup</TabsTrigger>}
         {permissions.clients && <TabsTrigger value="clients">Clientes</TabsTrigger>}
         {permissions.employees && <TabsTrigger value="employees">Funcionários</TabsTrigger>}
+        {permissions.contractors && <TabsTrigger value="contractors">Terceiros</TabsTrigger>}
         {permissions.notifications && <TabsTrigger value="notifications">Notificações</TabsTrigger>}
       </TabsList>
       
@@ -112,6 +114,12 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
       {permissions.employees && (
         <TabsContent value="employees" className="space-y-6">
           <EmployeesManagement />
+        </TabsContent>
+      )}
+      
+      {permissions.contractors && (
+        <TabsContent value="contractors" className="space-y-6">
+          <ContractorsManagement />
         </TabsContent>
       )}
       

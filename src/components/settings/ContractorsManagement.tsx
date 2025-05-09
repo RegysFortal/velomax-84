@@ -21,7 +21,7 @@ export function ContractorsManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ContractorTable />
+          <ContractorTable onEditClick={handleEditContractor} />
         </CardContent>
       </Card>
     </div>

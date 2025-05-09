@@ -23,6 +23,9 @@ export const PermissionsSection = ({
         { name: 'system', label: 'Sistema' },
         { name: 'company', label: 'Empresa' },
         { name: 'users', label: 'Usuários' },
+        { name: 'clients', label: 'Clientes' },
+        { name: 'employees', label: 'Funcionários' },
+        { name: 'contractors', label: 'Terceiros' },
         { name: 'backup', label: 'Backup' }
       ]
     },
@@ -34,7 +37,7 @@ export const PermissionsSection = ({
         { name: 'shipmentReports', label: 'Relatório de Embarques' },
         { name: 'cities', label: 'Cidades' },
         { name: 'priceTables', label: 'Tabela de Preços' },
-        { name: 'budgets', label: 'Orçamentos' } // Added Orçamentos
+        { name: 'budgets', label: 'Orçamentos' }
       ]
     },
     {

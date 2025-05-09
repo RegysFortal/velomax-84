@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
@@ -12,6 +11,7 @@ interface SettingsPermissions {
   notifications: boolean;
   clients: boolean;
   employees: boolean;
+  contractors: boolean;
 }
 
 export const useSettingsPermissions = (user: User | null) => {
@@ -22,7 +22,8 @@ export const useSettingsPermissions = (user: User | null) => {
     backup: false,
     notifications: true, // Default to true as all users can manage their own notifications
     clients: false,
-    employees: false
+    employees: false,
+    contractors: false
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +45,8 @@ export const useSettingsPermissions = (user: User | null) => {
             backup: true,
             notifications: true,
             clients: true,
-            employees: true
+            employees: true,
+            contractors: true
           });
           setLoading(false);
           return;
@@ -56,7 +58,8 @@ export const useSettingsPermissions = (user: User | null) => {
             backup: true,
             notifications: true,
             clients: true,
-            employees: true
+            employees: true,
+            contractors: true
           });
           setLoading(false);
           return;
@@ -87,6 +90,10 @@ export const useSettingsPermissions = (user: User | null) => {
           supabase.rpc('user_has_employees_access').then(({ data, error }) => {
             if (error) throw new Error(`Employees access check failed: ${error.message}`);
             return { key: 'employees', value: !!data };
+          }),
+          supabase.rpc('user_has_contractors_access').then(({ data, error }) => {
+            if (error) throw new Error(`Contractors access check failed: ${error.message}`);
+            return { key: 'contractors', value: !!data };
           }),
           // Notifications are assumed to be available to all users
           Promise.resolve({ key: 'notifications', value: true })

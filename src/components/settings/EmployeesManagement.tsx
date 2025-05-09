@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useEmployeesData } from '@/hooks/useEmployeesData';
 import { toast } from 'sonner';
 import { EmployeesTable } from '@/components/employee/EmployeesTable';
+import { User } from '@/types';
 
 export function EmployeesManagement() {
   const { employees, loading, updateEmployee, deleteEmployee } = useEmployeesData();
@@ -47,7 +48,7 @@ export function EmployeesManagement() {
               loading={loading}
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
-              onEditClick={handleEditEmployee}
+              onEditClick={(employee: User) => handleEditEmployee(employee.id)}
               onDeleteClick={handleDeleteEmployee}
             />
           )}

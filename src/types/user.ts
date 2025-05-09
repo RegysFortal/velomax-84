@@ -70,7 +70,10 @@ export interface User {
     company?: PermissionLevel;
     users?: PermissionLevel;
     backup?: PermissionLevel;
-    budgets?: PermissionLevel; // Added budgets permission
+    budgets?: PermissionLevel;
+    clients?: PermissionLevel;
+    employees?: PermissionLevel;
+    contractors?: PermissionLevel;
     [key: string]: PermissionLevel | boolean | undefined;
   };
 }

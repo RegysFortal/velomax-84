@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { AppHeader } from './AppHeader';
 import { toast } from 'sonner';
 import { User, PermissionLevel } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -22,6 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     backup: false,
     clients: false,
     employees: false,
+    contractors: false,
     notifications: true // Default to true as most users can manage their own
   });
   
@@ -32,66 +32,33 @@ export function AppLayout({ children }: AppLayoutProps) {
       return;
     }
     
-    // Fetch settings permissions if the user is authenticated
+    // Set permissions based on role
     if (user && !loading) {
-      const fetchSettingsPermissions = async () => {
-        try {
-          const { data: systemAccess, error: systemError } = await supabase.rpc('user_has_system_settings_access');
-          const { data: companyAccess, error: companyError } = await supabase.rpc('user_has_company_settings_access');
-          const { data: userAccess, error: userError } = await supabase.rpc('user_has_user_management_access');
-          const { data: backupAccess, error: backupError } = await supabase.rpc('user_has_backup_access');
-          const { data: clientsAccess, error: clientsError } = await supabase.rpc('user_has_clients_access');
-          const { data: employeesAccess, error: employeesError } = await supabase.rpc('user_has_employees_access');
-          
-          // If there are errors, fall back to client-side permission checks
-          if (systemError || companyError || userError || backupError || clientsError || employeesError) {
-            console.error("Error fetching settings permissions:", { 
-              systemError, 
-              companyError, 
-              userError, 
-              backupError,
-              clientsError,
-              employeesError
-            });
-            
-            // Fall back to client-side permission checks
-            setSettingsPermissions({
-              system: user.role === 'admin',
-              company: user.role === 'admin',
-              users: user.role === 'admin',
-              backup: user.role === 'admin' || user.role === 'manager',
-              clients: user.role === 'admin' || user.role === 'manager',
-              employees: user.role === 'admin' || user.role === 'manager',
-              notifications: true // Most users can manage their own
-            });
-          } else {
-            setSettingsPermissions({
-              system: !!systemAccess,
-              company: !!companyAccess,
-              users: !!userAccess,
-              backup: !!backupAccess,
-              clients: !!clientsAccess,
-              employees: !!employeesAccess,
-              notifications: true // Most users can manage their own
-            });
-          }
-        } catch (error) {
-          console.error("Error checking settings permissions:", error);
-          
-          // Fall back to client-side permission checks
-          setSettingsPermissions({
-            system: user.role === 'admin',
-            company: user.role === 'admin',
-            users: user.role === 'admin',
-            backup: user.role === 'admin' || user.role === 'manager',
-            clients: user.role === 'admin' || user.role === 'manager',
-            employees: user.role === 'admin' || user.role === 'manager',
-            notifications: true
-          });
-        }
-      };
+      // Fall back to client-side permission checks
+      setSettingsPermissions({
+        system: user.role === 'admin',
+        company: user.role === 'admin',
+        users: user.role === 'admin',
+        backup: user.role === 'admin' || user.role === 'manager',
+        clients: user.role === 'admin' || user.role === 'manager',
+        employees: user.role === 'admin' || user.role === 'manager',
+        contractors: user.role === 'admin' || user.role === 'manager',
+        notifications: true // Most users can manage their own
+      });
       
-      fetchSettingsPermissions();
+      // If user has permissions object, use that to override role-based permissions
+      if (user.permissions) {
+        setSettingsPermissions(prev => ({
+          ...prev,
+          system: !!user.permissions?.system?.view || prev.system,
+          company: !!user.permissions?.company?.view || prev.company,
+          users: !!user.permissions?.users?.view || prev.users,
+          backup: !!user.permissions?.backup?.view || prev.backup,
+          clients: !!user.permissions?.clients?.view || prev.clients,
+          employees: !!user.permissions?.employees?.view || prev.employees,
+          contractors: !!user.permissions?.contractors?.view || prev.contractors
+        }));
+      }
     }
   }, [user, loading, navigate]);
 
@@ -111,6 +78,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/logbook': { path: 'logbook', level: 'view' },
         '/clients': { path: 'clients', level: 'view' },
         '/employees': { path: 'employees', level: 'view' },
+        '/contractors': { path: 'contractors', level: 'view' },
         '/vehicles': { path: 'vehicles', level: 'view' },
         '/maintenance': { path: 'maintenance', level: 'view' },
         '/settings': { path: 'settings', level: 'view' },
