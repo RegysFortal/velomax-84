@@ -82,22 +82,22 @@ export const useSettingsPermissions = (user: User | null) => {
           supabase.rpc('user_has_backup_access').then(({ data, error }) => {
             if (error) throw new Error(`Backup access check failed: ${error.message}`);
             return { key: 'backup', value: !!data };
-          }),
-          supabase.rpc('user_has_clients_access').then(({ data, error }) => {
-            if (error) throw new Error(`Clients access check failed: ${error.message}`);
-            return { key: 'clients', value: !!data };
-          }),
-          supabase.rpc('user_has_employees_access').then(({ data, error }) => {
-            if (error) throw new Error(`Employees access check failed: ${error.message}`);
-            return { key: 'employees', value: !!data };
-          }),
-          supabase.rpc('user_has_contractors_access').then(({ data, error }) => {
-            if (error) throw new Error(`Contractors access check failed: ${error.message}`);
-            return { key: 'contractors', value: !!data };
-          }),
+          })
+        ];
+        
+        // Use user permissions object directly for clients, employees and contractors
+        // instead of RPC calls since they don't exist yet
+        const clientsAccess = !!user.permissions?.clients?.view;
+        const employeesAccess = !!user.permissions?.employees?.view;
+        const contractorsAccess = !!user.permissions?.contractors?.view;
+        
+        permissionPromises.push(
+          Promise.resolve({ key: 'clients', value: clientsAccess }),
+          Promise.resolve({ key: 'employees', value: employeesAccess }),
+          Promise.resolve({ key: 'contractors', value: contractorsAccess }),
           // Notifications are assumed to be available to all users
           Promise.resolve({ key: 'notifications', value: true })
-        ];
+        );
 
         const results = await Promise.allSettled(permissionPromises);
         

@@ -16,7 +16,11 @@ import { ptBR } from 'date-fns/locale';
 import { useEmployeesData } from '@/hooks/useEmployeesData';
 import { User } from '@/types';
 
-export function ContractorTable() {
+interface ContractorTableProps {
+  onEditClick?: (id: string) => void;
+}
+
+export function ContractorTable({ onEditClick }: ContractorTableProps) {
   const [editContractor, setEditContractor] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
@@ -26,8 +30,12 @@ export function ContractorTable() {
   const contractors = employees.filter(employee => employee.type === 'contractor');
 
   const handleEdit = (contractor: User) => {
-    setEditContractor(contractor);
-    setIsEditDialogOpen(true);
+    if (onEditClick) {
+      onEditClick(contractor.id);
+    } else {
+      setEditContractor(contractor);
+      setIsEditDialogOpen(true);
+    }
   };
 
   const handleDelete = async (id: string) => {
