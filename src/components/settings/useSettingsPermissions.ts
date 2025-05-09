@@ -10,6 +10,8 @@ interface SettingsPermissions {
   users: boolean;
   backup: boolean;
   notifications: boolean;
+  clients: boolean;
+  employees: boolean;
 }
 
 export const useSettingsPermissions = (user: User | null) => {
@@ -18,7 +20,9 @@ export const useSettingsPermissions = (user: User | null) => {
     company: false,
     users: false,
     backup: false,
-    notifications: true // Default to true as all users can manage their own notifications
+    notifications: true, // Default to true as all users can manage their own notifications
+    clients: false,
+    employees: false
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +42,9 @@ export const useSettingsPermissions = (user: User | null) => {
             company: true,
             users: true,
             backup: true,
-            notifications: true
+            notifications: true,
+            clients: true,
+            employees: true
           });
           setLoading(false);
           return;
@@ -48,7 +54,9 @@ export const useSettingsPermissions = (user: User | null) => {
             company: false,
             users: false,
             backup: true,
-            notifications: true
+            notifications: true,
+            clients: true,
+            employees: true
           });
           setLoading(false);
           return;
@@ -71,6 +79,14 @@ export const useSettingsPermissions = (user: User | null) => {
           supabase.rpc('user_has_backup_access').then(({ data, error }) => {
             if (error) throw new Error(`Backup access check failed: ${error.message}`);
             return { key: 'backup', value: !!data };
+          }),
+          supabase.rpc('user_has_clients_access').then(({ data, error }) => {
+            if (error) throw new Error(`Clients access check failed: ${error.message}`);
+            return { key: 'clients', value: !!data };
+          }),
+          supabase.rpc('user_has_employees_access').then(({ data, error }) => {
+            if (error) throw new Error(`Employees access check failed: ${error.message}`);
+            return { key: 'employees', value: !!data };
           }),
           // Notifications are assumed to be available to all users
           Promise.resolve({ key: 'notifications', value: true })

@@ -20,6 +20,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     company: false,
     users: false,
     backup: false,
+    clients: false,
+    employees: false,
     notifications: true // Default to true as most users can manage their own
   });
   
@@ -38,10 +40,19 @@ export function AppLayout({ children }: AppLayoutProps) {
           const { data: companyAccess, error: companyError } = await supabase.rpc('user_has_company_settings_access');
           const { data: userAccess, error: userError } = await supabase.rpc('user_has_user_management_access');
           const { data: backupAccess, error: backupError } = await supabase.rpc('user_has_backup_access');
+          const { data: clientsAccess, error: clientsError } = await supabase.rpc('user_has_clients_access');
+          const { data: employeesAccess, error: employeesError } = await supabase.rpc('user_has_employees_access');
           
           // If there are errors, fall back to client-side permission checks
-          if (systemError || companyError || userError || backupError) {
-            console.error("Error fetching settings permissions:", { systemError, companyError, userError, backupError });
+          if (systemError || companyError || userError || backupError || clientsError || employeesError) {
+            console.error("Error fetching settings permissions:", { 
+              systemError, 
+              companyError, 
+              userError, 
+              backupError,
+              clientsError,
+              employeesError
+            });
             
             // Fall back to client-side permission checks
             setSettingsPermissions({
@@ -49,6 +60,8 @@ export function AppLayout({ children }: AppLayoutProps) {
               company: user.role === 'admin',
               users: user.role === 'admin',
               backup: user.role === 'admin' || user.role === 'manager',
+              clients: user.role === 'admin' || user.role === 'manager',
+              employees: user.role === 'admin' || user.role === 'manager',
               notifications: true // Most users can manage their own
             });
           } else {
@@ -57,6 +70,8 @@ export function AppLayout({ children }: AppLayoutProps) {
               company: !!companyAccess,
               users: !!userAccess,
               backup: !!backupAccess,
+              clients: !!clientsAccess,
+              employees: !!employeesAccess,
               notifications: true // Most users can manage their own
             });
           }
@@ -69,6 +84,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             company: user.role === 'admin',
             users: user.role === 'admin',
             backup: user.role === 'admin' || user.role === 'manager',
+            clients: user.role === 'admin' || user.role === 'manager',
+            employees: user.role === 'admin' || user.role === 'manager',
             notifications: true
           });
         }

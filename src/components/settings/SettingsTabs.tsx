@@ -7,8 +7,11 @@ import { BudgetBackupTools } from '@/components/budget/BudgetBackupTools';
 import { SystemBackup } from './SystemBackup';
 import { UserManagement } from './UserManagement';
 import { CompanySettings } from './CompanySettings';
+import { ClientsManagement } from './ClientsManagement';
 import { BudgetProvider } from '@/contexts/budget';
 import { toast } from 'sonner';
+import { EmployeesManagement } from './EmployeesManagement';
+import { ContractorsManagement } from './ContractorsManagement';
 
 interface SettingsTabsProps {
   activeTab: string;
@@ -19,6 +22,8 @@ interface SettingsTabsProps {
     users: boolean;
     backup: boolean;
     notifications: boolean;
+    clients: boolean;
+    employees: boolean;
   };
 }
 
@@ -66,6 +71,8 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
         {permissions.company && <TabsTrigger value="company">Empresa</TabsTrigger>}
         {permissions.users && <TabsTrigger value="users">Usuários</TabsTrigger>}
         {permissions.backup && <TabsTrigger value="backup">Backup</TabsTrigger>}
+        {permissions.clients && <TabsTrigger value="clients">Clientes</TabsTrigger>}
+        {permissions.employees && <TabsTrigger value="employees">Funcionários</TabsTrigger>}
         {permissions.notifications && <TabsTrigger value="notifications">Notificações</TabsTrigger>}
       </TabsList>
       
@@ -93,6 +100,18 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
           <BudgetProvider>
             <BudgetBackupTools />
           </BudgetProvider>
+        </TabsContent>
+      )}
+      
+      {permissions.clients && (
+        <TabsContent value="clients" className="space-y-6">
+          <ClientsManagement />
+        </TabsContent>
+      )}
+      
+      {permissions.employees && (
+        <TabsContent value="employees" className="space-y-6">
+          <EmployeesManagement />
         </TabsContent>
       )}
       

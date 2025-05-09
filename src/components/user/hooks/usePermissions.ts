@@ -45,6 +45,8 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
       users: { ...defaultPermission },
       backup: { ...defaultPermission },
       budgets: { ...defaultPermission },
+      clients: { ...defaultPermission },
+      employees: { ...defaultPermission },
     };
 
     // If it's an existing user, just return their permissions
@@ -71,7 +73,7 @@ export const usePermissions = (user: User | null, isCreating: boolean, currentRo
       ['dashboard', 'deliveries', 'shipments', 'shipmentReports', 'cities',
        'vehicles', 'logbook', 'maintenance', 'financialDashboard',
        'reportsToClose', 'closing', 'receivableAccounts', 'payableAccounts',
-       'priceTables', 'financialReports', 'backup'].forEach(key => {
+       'priceTables', 'financialReports', 'backup', 'clients', 'employees'].forEach(key => {
         if (managerPermissions[key]) {
           managerPermissions[key].view = true;
           managerPermissions[key].create = true;

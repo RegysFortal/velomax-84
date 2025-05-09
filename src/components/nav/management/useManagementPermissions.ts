@@ -8,6 +8,8 @@ export interface SettingsPermissions {
   company: boolean;
   users: boolean;
   backup: boolean;
+  clients: boolean;
+  employees: boolean;
 }
 
 export function useManagementPermissions(
@@ -18,7 +20,9 @@ export function useManagementPermissions(
     system: false,
     company: false,
     users: false,
-    backup: false
+    backup: false,
+    clients: false,
+    employees: false
   });
   const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
 
@@ -38,7 +42,9 @@ export function useManagementPermissions(
             system: true,
             company: true,
             users: true,
-            backup: true
+            backup: true,
+            clients: true,
+            employees: true
           });
           setIsLoadingPermissions(false);
           return;
@@ -47,7 +53,9 @@ export function useManagementPermissions(
             system: false,
             company: false,
             users: false,
-            backup: true
+            backup: true,
+            clients: true,
+            employees: true
           });
           setIsLoadingPermissions(false);
           return;
@@ -59,23 +67,31 @@ export function useManagementPermissions(
             systemAccess, 
             companyAccess, 
             userAccess, 
-            backupAccess
+            backupAccess,
+            clientsAccess,
+            employeesAccess
           ] = await Promise.all([
             supabase.rpc('user_has_system_settings_access'),
             supabase.rpc('user_has_company_settings_access'),
             supabase.rpc('user_has_user_management_access'),
-            supabase.rpc('user_has_backup_access')
+            supabase.rpc('user_has_backup_access'),
+            supabase.rpc('user_has_clients_access'),
+            supabase.rpc('user_has_employees_access')
           ]);
           
           // Check for errors in any of the requests
-          const hasErrors = systemAccess.error || companyAccess.error || userAccess.error || backupAccess.error;
+          const hasErrors = systemAccess.error || companyAccess.error || 
+                            userAccess.error || backupAccess.error || 
+                            clientsAccess.error || employeesAccess.error;
           
           if (hasErrors) {
             console.error("Error fetching settings permissions:", { 
               systemError: systemAccess.error, 
               companyError: companyAccess.error, 
               userError: userAccess.error, 
-              backupError: backupAccess.error 
+              backupError: backupAccess.error,
+              clientsError: clientsAccess.error,
+              employeesError: employeesAccess.error
             });
             // Already set by role or defaults to false
           } else {
@@ -83,7 +99,9 @@ export function useManagementPermissions(
               system: !!systemAccess.data,
               company: !!companyAccess.data,
               users: !!userAccess.data,
-              backup: !!backupAccess.data
+              backup: !!backupAccess.data,
+              clients: !!clientsAccess.data,
+              employees: !!employeesAccess.data
             });
           }
         } catch (error) {
@@ -103,6 +121,8 @@ export function useManagementPermissions(
                            settingsPermissions.company || 
                            settingsPermissions.users || 
                            settingsPermissions.backup || 
+                           settingsPermissions.clients ||
+                           settingsPermissions.employees ||
                            hasPermission('notifications');
   
   const hasManagementAccess = hasPermission('employees') || 
