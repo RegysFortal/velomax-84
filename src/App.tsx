@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -23,7 +24,7 @@ import Employees from './pages/Employees';
 import Vehicles from './pages/Vehicles';
 import Logbooks from './pages/Logbooks';
 import Maintenance from './pages/Maintenance';
-import FinancialPage from './pages/financial'; // Updated this import path
+import Financial from './pages/Financial';
 import FinancialDashboard from './pages/FinancialDashboard';
 import Shipments from './pages/shipments/ShipmentsPage';
 import ShipmentReports from './pages/ShipmentReports';
@@ -89,7 +90,7 @@ function App() {
                                   <Route path="logbooks" element={<Logbooks />} />
                                   <Route path="logbook" element={<Logbook />} />
                                   <Route path="maintenance" element={<Maintenance />} />
-                                  <Route path="financial" element={<FinancialPage />} />
+                                  <Route path="financial" element={<Financial />} />
                                   <Route path="financial-dashboard" element={<FinancialDashboard />} />
                                   <Route path="shipments" element={<Shipments />} />
                                   <Route path="shipment-reports" element={<ShipmentReports />} />
