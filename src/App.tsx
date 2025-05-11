@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -43,6 +42,7 @@ import ActivityLogs from './pages/ActivityLogs';
 import Contractors from './pages/Contractors';
 import Logbook from './pages/Logbook';
 import Settings from './pages/Settings';
+import FinancialPage from './pages/financial';
 
 function App() {
   const queryClient = new QueryClient();
@@ -90,7 +90,7 @@ function App() {
                                   <Route path="logbooks" element={<Logbooks />} />
                                   <Route path="logbook" element={<Logbook />} />
                                   <Route path="maintenance" element={<Maintenance />} />
-                                  <Route path="financial" element={<Financial />} />
+                                  <Route path="financial" element={<FinancialPage />} />
                                   <Route path="financial-dashboard" element={<FinancialDashboard />} />
                                   <Route path="shipments" element={<Shipments />} />
                                   <Route path="shipment-reports" element={<ShipmentReports />} />
