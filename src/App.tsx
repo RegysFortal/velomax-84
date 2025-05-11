@@ -23,7 +23,7 @@ import Employees from './pages/Employees';
 import Vehicles from './pages/Vehicles';
 import Logbooks from './pages/Logbooks';
 import Maintenance from './pages/Maintenance';
-import Financial from './pages/Financial';
+import FinancialPage from './pages/financial'; // Updated this import path
 import FinancialDashboard from './pages/FinancialDashboard';
 import Shipments from './pages/shipments/ShipmentsPage';
 import ShipmentReports from './pages/ShipmentReports';
@@ -42,7 +42,6 @@ import ActivityLogs from './pages/ActivityLogs';
 import Contractors from './pages/Contractors';
 import Logbook from './pages/Logbook';
 import Settings from './pages/Settings';
-import FinancialPage from './pages/financial';
 
 function App() {
   const queryClient = new QueryClient();
