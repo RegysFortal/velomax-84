@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { useState } from 'react';
 import { useShipments } from '@/contexts/shipments';
-import { AppLayout } from '@/components/AppLayout';
 import { ShipmentsHeader } from './ShipmentsHeader';
 import { ShipmentsTable } from './ShipmentsTable';
 import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
@@ -31,21 +31,19 @@ export default function ShipmentsPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="flex flex-col space-y-6 h-full">
-        <ShipmentsHeader 
-          onCreateClick={() => setIsCreateDialogOpen(true)}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
-        
-        <ShipmentsTable
-          searchTerm={searchTerm}
-          refreshTrigger={refreshTrigger}
-          onRowClick={setSelectedShipment}
-          onStatusChange={handleStatusChange}
-        />
-      </div>
+    <div className="flex flex-col space-y-6 h-full">
+      <ShipmentsHeader 
+        onCreateClick={() => setIsCreateDialogOpen(true)}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
+      
+      <ShipmentsTable
+        searchTerm={searchTerm}
+        refreshTrigger={refreshTrigger}
+        onRowClick={setSelectedShipment}
+        onStatusChange={handleStatusChange}
+      />
       
       {/* Shipment details dialog */}
       {selectedShipment && (
@@ -61,6 +59,6 @@ export default function ShipmentsPage() {
         open={isCreateDialogOpen}
         onOpenChange={handleCreateDialogClose}
       />
-    </AppLayout>
+    </div>
   );
 }

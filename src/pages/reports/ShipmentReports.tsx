@@ -1,6 +1,6 @@
+
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FileText, Download } from 'lucide-react';
@@ -96,55 +96,53 @@ export default function ShipmentReports() {
   };
 
   return (
-    <AppLayout>
-      <div className="flex flex-col space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Relatórios de Embarques</h1>
-            <p className="text-muted-foreground">
-              Análise e relatórios de embarques e cargas
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={generatePDF}>
-              <FileText className="mr-2 h-4 w-4" />
-              Gerar PDF
-            </Button>
-            <Button variant="outline" onClick={exportToExcel}>
-              <Download className="mr-2 h-4 w-4" />
-              Exportar Excel
-            </Button>
-          </div>
+    <div className="flex flex-col space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Relatórios de Embarques</h1>
+          <p className="text-muted-foreground">
+            Análise e relatórios de embarques e cargas
+          </p>
         </div>
-
-        <ReportMetricCards filteredShipments={filteredShipments} />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ReportStatusChart filteredShipments={filteredShipments} />
-          <ReportFilters
-            startDate={startDate}
-            endDate={endDate}
-            filterStatus={filterStatus}
-            filterMode={filterMode}
-            filterCarrier={filterCarrier}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            onStatusChange={setFilterStatus}
-            onModeChange={setFilterMode}
-            onCarrierChange={setFilterCarrier}
-            uniqueCarriers={uniqueCarriers}
-          />
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={generatePDF}>
+            <FileText className="mr-2 h-4 w-4" />
+            Gerar PDF
+          </Button>
+          <Button variant="outline" onClick={exportToExcel}>
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Excel
+          </Button>
         </div>
-
-        <Card>
-          <ReportShipmentsTable
-            loading={loading}
-            filteredShipments={filteredShipments}
-            onStatusChange={handleStatusChange}
-            onRowClick={setSelectedShipment}
-          />
-        </Card>
       </div>
+
+      <ReportMetricCards filteredShipments={filteredShipments} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ReportStatusChart filteredShipments={filteredShipments} />
+        <ReportFilters
+          startDate={startDate}
+          endDate={endDate}
+          filterStatus={filterStatus}
+          filterMode={filterMode}
+          filterCarrier={filterCarrier}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onStatusChange={setFilterStatus}
+          onModeChange={setFilterMode}
+          onCarrierChange={setFilterCarrier}
+          uniqueCarriers={uniqueCarriers}
+        />
+      </div>
+
+      <Card>
+        <ReportShipmentsTable
+          loading={loading}
+          filteredShipments={filteredShipments}
+          onStatusChange={handleStatusChange}
+          onRowClick={setSelectedShipment}
+        />
+      </Card>
 
       {selectedShipment && (
         <ShipmentDetails 
@@ -153,6 +151,6 @@ export default function ShipmentReports() {
           onClose={handleShipmentDetailClose}
         />
       )}
-    </AppLayout>
+    </div>
   );
 }
