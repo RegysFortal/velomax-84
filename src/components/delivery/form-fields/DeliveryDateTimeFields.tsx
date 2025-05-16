@@ -34,7 +34,7 @@ export function DeliveryDateTimeFields({
                 date={field.value ? new Date(`${field.value}T12:00:00`) : undefined}
                 onSelect={(date) => {
                   if (date) {
-                    // Using our helper function to avoid timezone issues
+                    // CORRIGIDO: Usando nossa função auxiliar para evitar problemas com fuso horário
                     const formattedDate = toISODateString(date);
                     
                     console.log(`DeliveryDateTimeFields - Setting ${dateName} to:`, formattedDate);

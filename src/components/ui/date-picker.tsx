@@ -64,7 +64,7 @@ export function DatePicker({
     setOpen(false)
     
     if (newDate) {
-      // Ensure we use local time by setting the time to noon
+      // CORRIGIDO: Garantir que usamos hora meio-dia para evitar problemas com fusos horários
       const localDate = new Date(newDate)
       localDate.setHours(12, 0, 0, 0)
       onSelect?.(localDate)

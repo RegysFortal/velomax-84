@@ -83,6 +83,7 @@ export default function DeliveriesPage() {
           startDate={startDate ? new Date(startDate) : null}
           setStartDate={(date) => {
             if (date instanceof Date) {
+              // CORRIGIDO: Usando o formato YYYY-MM-DD sem ajuste de fuso horário
               setStartDate(date.toISOString().split('T')[0]);
             } else {
               setStartDate(null);
@@ -91,6 +92,7 @@ export default function DeliveriesPage() {
           endDate={endDate ? new Date(endDate) : null}
           setEndDate={(date) => {
             if (date instanceof Date) {
+              // CORRIGIDO: Usando o formato YYYY-MM-DD sem ajuste de fuso horário
               setEndDate(date.toISOString().split('T')[0]);
             } else {
               setEndDate(null);

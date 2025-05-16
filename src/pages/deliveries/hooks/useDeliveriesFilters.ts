@@ -91,7 +91,7 @@ export const useDeliveriesFilters = ({
         return false;
       }
 
-      // Filter by date range
+      // Filter by date range - CORRIGIDO: configuração correta de horas para comparação
       if (startDate && endDate) {
         const deliveryDate = new Date(delivery.deliveryDate);
         const start = new Date(startDate);

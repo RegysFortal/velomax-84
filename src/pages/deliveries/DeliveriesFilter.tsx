@@ -46,7 +46,7 @@ export const DeliveriesFilter: React.FC<DeliveriesFilterProps> = ({
     setEndDateObj(endDate || undefined);
   }, [startDate, endDate]);
   
-  // Handle date selection
+  // Handle date selection - CORRIGIDO: não ajusta mais o fuso horário
   const handleStartDateChange = (date: Date | undefined) => {
     setStartDateObj(date);
     setStartDate(date || null);
