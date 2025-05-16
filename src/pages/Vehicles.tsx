@@ -1,6 +1,5 @@
 
 import React, { useState, useCallback } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useLogbook } from '@/contexts/LogbookContext';
@@ -60,34 +59,32 @@ const Vehicles = () => {
   }, []);
 
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Veículos</h1>
-            <p className="text-muted-foreground">
-              Gerencie a frota de veículos da sua empresa.
-            </p>
-          </div>
-          <Button onClick={handleAddNew}>
-            <Plus className="mr-2 h-4 w-4" />
-            Adicionar Veículo
-          </Button>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Veículos</h1>
+          <p className="text-muted-foreground">
+            Gerencie a frota de veículos da sua empresa.
+          </p>
         </div>
-
-        <VehicleListCard 
-          vehicles={vehicles}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-
-        <VehicleDialog 
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          editingVehicle={editingVehicle}
-        />
+        <Button onClick={handleAddNew}>
+          <Plus className="mr-2 h-4 w-4" />
+          Adicionar Veículo
+        </Button>
       </div>
-    </AppLayout>
+
+      <VehicleListCard 
+        vehicles={vehicles}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      <VehicleDialog 
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editingVehicle={editingVehicle}
+      />
+    </div>
   );
 };
 

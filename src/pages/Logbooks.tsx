@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -48,85 +47,81 @@ const Logbooks = () => {
   
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <p>Carregando dados do diário de bordo...</p>
-          </div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <p>Carregando dados do diário de bordo...</p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
   
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-6">
-        <LogbookPageHeader 
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          isNewEntryOpen={isNewEntryOpen}
-          setIsNewEntryOpen={setIsNewEntryOpen}
-          isNewFuelOpen={isNewFuelOpen}
-          setIsNewFuelOpen={setIsNewFuelOpen}
-          isNewMaintenanceOpen={isNewMaintenanceOpen}
-          setIsNewMaintenanceOpen={setIsNewMaintenanceOpen}
-        />
+    <div className="flex flex-col gap-6">
+      <LogbookPageHeader 
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        isNewEntryOpen={isNewEntryOpen}
+        setIsNewEntryOpen={setIsNewEntryOpen}
+        isNewFuelOpen={isNewFuelOpen}
+        setIsNewFuelOpen={setIsNewFuelOpen}
+        isNewMaintenanceOpen={isNewMaintenanceOpen}
+        setIsNewMaintenanceOpen={setIsNewMaintenanceOpen}
+      />
+      
+      <LogbookDashboard 
+        vehicles={vehicles} 
+        employees={employees}
+        filteredEntries={filteredEntries}
+      />
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="entries" className="relative">
+            Registros de Viagem
+            {filteredEntries.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {filteredEntries.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="fuel" className="relative">
+            Abastecimentos
+            {filteredFuelRecords.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {filteredFuelRecords.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
         
-        <LogbookDashboard 
-          vehicles={vehicles} 
-          employees={employees}
-          filteredEntries={filteredEntries}
-        />
+        <TabsContent value="entries">
+          <Card>
+            <CardContent className="p-0">
+              <EntryList 
+                entries={filteredEntries} 
+                vehicles={vehicles}
+                employees={employees}
+                selectedDate={selectedDate}
+                onNewEntry={handleNewEntry}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="entries" className="relative">
-              Registros de Viagem
-              {filteredEntries.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {filteredEntries.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="fuel" className="relative">
-              Abastecimentos
-              {filteredFuelRecords.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {filteredFuelRecords.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="entries">
-            <Card>
-              <CardContent className="p-0">
-                <EntryList 
-                  entries={filteredEntries} 
-                  vehicles={vehicles}
-                  employees={employees}
-                  selectedDate={selectedDate}
-                  onNewEntry={handleNewEntry}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="fuel">
-            <Card>
-              <CardContent className="p-0">
-                <FuelList 
-                  fuelRecords={filteredFuelRecords} 
-                  vehicles={vehicles}
-                  selectedDate={selectedDate}
-                  onNewFuel={handleNewFuel}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </AppLayout>
+        <TabsContent value="fuel">
+          <Card>
+            <CardContent className="p-0">
+              <FuelList 
+                fuelRecords={filteredFuelRecords} 
+                vehicles={vehicles}
+                selectedDate={selectedDate}
+                onNewFuel={handleNewFuel}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
