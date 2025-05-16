@@ -1,6 +1,5 @@
 
 import { useState, useCallback } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -43,39 +42,37 @@ const ClientsPage = () => {
   }, []);
 
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
-            <p className="text-muted-foreground">
-              Gerencie os clientes da sua empresa.
-            </p>
-          </div>
-          <ClientAddDialog />
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+          <p className="text-muted-foreground">
+            Gerencie os clientes da sua empresa.
+          </p>
         </div>
-
-        <Card>
-          <CardHeader className="pb-2">
-          </CardHeader>
-          <CardContent className="pl-2 pb-4 pt-0">
-            <ClientTable 
-              clients={clients}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              onEditClient={handleEditClient}
-              onDeleteClient={handleDeleteClient}
-            />
-          </CardContent>
-        </Card>
-
-        <ClientEditDialog 
-          isOpen={isEditModalOpen}
-          onOpenChange={handleEditModalClose}
-          client={selectedClient}
-        />
+        <ClientAddDialog />
       </div>
-    </AppLayout>
+
+      <Card>
+        <CardHeader className="pb-2">
+        </CardHeader>
+        <CardContent className="pl-2 pb-4 pt-0">
+          <ClientTable 
+            clients={clients}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onEditClient={handleEditClient}
+            onDeleteClient={handleDeleteClient}
+          />
+        </CardContent>
+      </Card>
+
+      <ClientEditDialog 
+        isOpen={isEditModalOpen}
+        onOpenChange={handleEditModalClose}
+        client={selectedClient}
+      />
+    </div>
   );
 };
 
