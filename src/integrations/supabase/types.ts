@@ -1493,7 +1493,7 @@ export type Database = {
     Functions: {
       get_user_role: {
         Args: Record<PropertyKey, never> | { user_id: string }
-        Returns: string
+        Returns: Database["public"]["Enums"]["user_role"]
       }
       has_driver_access: {
         Args: Record<PropertyKey, never>

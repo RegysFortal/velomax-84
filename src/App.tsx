@@ -19,7 +19,7 @@ import Index from './pages/Index';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import Activities from './pages/Activities';
-import Deliveries from './pages/Deliveries';
+import DeliveriesPage from './pages/deliveries/DeliveriesPage';
 import Employees from './pages/Employees';
 import Vehicles from './pages/Vehicles';
 import Logbooks from './pages/Logbooks';
@@ -27,7 +27,7 @@ import Maintenance from './pages/Maintenance';
 import Financial from './pages/Financial';
 import FinancialDashboard from './pages/FinancialDashboard';
 import Shipments from './pages/shipments/ShipmentsPage';
-import ShipmentReports from './pages/ShipmentReports';
+import ShipmentReports from './pages/reports/ShipmentReports';
 import Budgets from './pages/Budgets';
 import Clients from './pages/Clients';
 import Cities from './pages/Cities';
@@ -84,7 +84,7 @@ function App() {
                                   }
                                 >
                                   <Route path="activities" element={<Activities />} />
-                                  <Route path="deliveries" element={<Deliveries />} />
+                                  <Route path="deliveries" element={<DeliveriesPage />} />
                                   <Route path="employees" element={<Employees />} />
                                   <Route path="vehicles" element={<Vehicles />} />
                                   <Route path="logbooks" element={<Logbooks />} />
