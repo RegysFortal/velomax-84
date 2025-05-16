@@ -91,17 +91,15 @@ export const useDeliveriesFilters = ({
         return false;
       }
 
-      // Filter by date range - CORRIGIDO: configuração correta de horas para comparação
+      // Filter by date range - CORRIGIDO: Comparação correta de datas sem problemas de fuso horário
       if (startDate && endDate) {
-        const deliveryDate = new Date(delivery.deliveryDate);
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        // Obter apenas a parte da data da data de entrega (YYYY-MM-DD)
+        const deliveryDateOnly = delivery.deliveryDate.split('T')[0];
         
-        // Set hours to ensure correct comparison
-        start.setHours(0, 0, 0, 0);
-        end.setHours(23, 59, 59, 999);
-        
-        return deliveryDate >= start && deliveryDate <= end;
+        // Comparar apenas as partes de data, sem considerar hora
+        if (deliveryDateOnly < startDate || deliveryDateOnly > endDate) {
+          return false;
+        }
       }
 
       return true;

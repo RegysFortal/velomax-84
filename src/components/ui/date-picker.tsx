@@ -64,11 +64,16 @@ export function DatePicker({
     setOpen(false)
     
     if (newDate) {
-      // CORRIGIDO: Garantir que usamos hora meio-dia para evitar problemas com fusos horários
-      const localDate = new Date(newDate)
-      localDate.setHours(12, 0, 0, 0)
-      onSelect?.(localDate)
+      // CORRIGIDO: Garantindo que a data seja criada como 12:00 no horário do Brasil
+      // Isso evita problemas quando a data é convertida para string
+      const year = newDate.getFullYear();
+      const month = newDate.getMonth();
+      const day = newDate.getDate();
       
+      // Criar uma nova data no fuso horário local usando o construtor de data
+      const localDate = new Date(year, month, day, 12, 0, 0);
+      
+      onSelect?.(localDate)
       setInputValue(format(localDate, "dd/MM/yyyy", { locale: ptBR }))
     } else {
       onSelect?.(undefined)

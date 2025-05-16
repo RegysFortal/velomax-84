@@ -13,6 +13,7 @@ import { RefreshCcw } from 'lucide-react';
 import { DeliveriesFilter } from './DeliveriesFilter';
 import { DeliveriesHeader } from './DeliveriesHeader';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toISODateString } from '@/utils/dateUtils';
 
 // Hooks extraídos
 import { useDeliveriesFilters } from './hooks/useDeliveriesFilters';
@@ -83,8 +84,8 @@ export default function DeliveriesPage() {
           startDate={startDate ? new Date(startDate) : null}
           setStartDate={(date) => {
             if (date instanceof Date) {
-              // CORRIGIDO: Usando o formato YYYY-MM-DD sem ajuste de fuso horário
-              setStartDate(date.toISOString().split('T')[0]);
+              // CORRIGIDO: Usando nossa função auxiliar para garantir o formato correto
+              setStartDate(toISODateString(date));
             } else {
               setStartDate(null);
             }
@@ -92,8 +93,8 @@ export default function DeliveriesPage() {
           endDate={endDate ? new Date(endDate) : null}
           setEndDate={(date) => {
             if (date instanceof Date) {
-              // CORRIGIDO: Usando o formato YYYY-MM-DD sem ajuste de fuso horário
-              setEndDate(date.toISOString().split('T')[0]);
+              // CORRIGIDO: Usando nossa função auxiliar para garantir o formato correto
+              setEndDate(toISODateString(date));
             } else {
               setEndDate(null);
             }
