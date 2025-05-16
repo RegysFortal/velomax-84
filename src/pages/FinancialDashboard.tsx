@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,10 +12,14 @@ import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts/clients';
 import { useFinancial } from '@/contexts/financial';
 import { DateRange } from "react-day-picker";
+import { toISODateString, toLocalDate } from '@/utils/dateUtils';
 
 const FinancialDashboard = () => {
-  const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  // Inicializar datas usando toISODateString para garantir consistência
+  const today = new Date();
+  const [startDate, setStartDate] = useState(toISODateString(toLocalDate(startOfMonth(today))));
+  const [endDate, setEndDate] = useState(toISODateString(toLocalDate(endOfMonth(today))));
+  
   const { deliveries } = useDeliveries();
   const { clients } = useClients();
   const { financialReports } = useFinancial();
@@ -247,10 +252,10 @@ const FinancialDashboard = () => {
   
   const handleDateRangeChange = (range: DateRange) => {
     if (range.from) {
-      setStartDate(format(range.from, 'yyyy-MM-dd'));
+      setStartDate(toISODateString(range.from));
     }
     if (range.to) {
-      setEndDate(format(range.to, 'yyyy-MM-dd'));
+      setEndDate(toISODateString(range.to));
     }
   };
   
@@ -265,8 +270,8 @@ const FinancialDashboard = () => {
         </div>
         <DateRangeFilter 
           dateRange={{
-            from: new Date(startDate),
-            to: new Date(endDate)
+            from: new Date(`${startDate}T12:00:00`),
+            to: new Date(`${endDate}T12:00:00`)
           }} 
           onDateRangeChange={handleDateRangeChange} 
         />

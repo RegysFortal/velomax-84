@@ -3,12 +3,28 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 /**
+ * Create a Date object at noon in the local timezone to avoid timezone issues
+ */
+export const toLocalDate = (date: Date): Date => {
+  if (!date) return new Date();
+  
+  // Create a date at noon in local timezone
+  const localDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    12, 0, 0
+  );
+  
+  return localDate;
+};
+
+/**
  * Format a date to a locale format (YYYY-MM-DD)
  */
 export const formatToLocaleDate = (date: Date): string => {
-  // Create a local copy of the date and set it to noon to avoid timezone issues
-  const localDate = new Date(date);
-  localDate.setHours(12, 0, 0, 0);
+  // Create a local date at noon to avoid timezone issues
+  const localDate = toLocalDate(date);
   
   // Format to ISO and take only the date part
   return localDate.toISOString().split('T')[0];
@@ -34,15 +50,12 @@ export const formatToReadableDate = (date: Date | string): string => {
       console.error('Error parsing date:', date, e);
       // Fallback to a generic approach
       const parsedDate = new Date(date);
-      parsedDate.setHours(12, 0, 0, 0);
-      return format(parsedDate, 'dd/MM/yyyy', { locale: ptBR });
+      return format(toLocalDate(parsedDate), 'dd/MM/yyyy', { locale: ptBR });
     }
   }
   
   // If it's already a Date object, ensure we're using noon to avoid timezone issues
-  const localDate = new Date(date);
-  localDate.setHours(12, 0, 0, 0);
-  return format(localDate, 'dd/MM/yyyy', { locale: ptBR });
+  return format(toLocalDate(date), 'dd/MM/yyyy', { locale: ptBR });
 };
 
 /**
@@ -57,8 +70,7 @@ export const formatDateWithTime = (date: Date | string, timeString?: string): st
     // Create date at noon to avoid timezone issues
     localDate = new Date(`${date}T12:00:00`);
   } else {
-    localDate = new Date(date);
-    localDate.setHours(12, 0, 0, 0);
+    localDate = toLocalDate(date);
   }
   
   if (timeString) {
@@ -77,10 +89,13 @@ export const formatDateWithTime = (date: Date | string, timeString?: string): st
 export const toISODateString = (date: Date): string => {
   if (!date) return '';
   
+  // Ensure we're using a local date
+  const localDate = toLocalDate(date);
+  
   // Create a correct date string by manually extracting year, month, day
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // +1 porque mês começa em 0
-  const day = String(date.getDate()).padStart(2, '0');
+  const year = localDate.getFullYear();
+  const month = String(localDate.getMonth() + 1).padStart(2, '0'); // +1 porque mês começa em 0
+  const day = String(localDate.getDate()).padStart(2, '0');
   
   return `${year}-${month}-${day}`;
 };
@@ -109,7 +124,7 @@ export const parseDateString = (dateString: string): Date | null => {
       }
       
       if (!isNaN(day) && !isNaN(month) && !isNaN(year) && day >= 1 && day <= 31 && month >= 1 && month <= 12) {
-        // Month is 0-indexed in JS Date, create date at noon to avoid timezone issues
+        // Create date at noon to avoid timezone issues
         const date = new Date(year, month - 1, day, 12, 0, 0);
         if (!isNaN(date.getTime()) && date.getDate() === day) { // This checks if it's a valid date
           return date;

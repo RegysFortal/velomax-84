@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
-import { parseDateString, formatPartialDateString } from "@/utils/dateUtils"
+import { parseDateString, formatPartialDateString, toLocalDate } from "@/utils/dateUtils"
 
 interface DatePickerProps {
   date?: Date
@@ -64,13 +64,8 @@ export function DatePicker({
     setOpen(false)
     
     if (newDate) {
-      // Create a new date object to avoid timezone issues
-      const year = newDate.getFullYear();
-      const month = newDate.getMonth();
-      const day = newDate.getDate();
-      
-      // Create date with noon time in local timezone to avoid date shifting
-      const localDate = new Date(year, month, day, 12, 0, 0);
+      // Use toLocalDate helper to create a date at noon in the local timezone
+      const localDate = toLocalDate(newDate);
       
       onSelect?.(localDate)
       setInputValue(format(localDate, "dd/MM/yyyy", { locale: ptBR }))
