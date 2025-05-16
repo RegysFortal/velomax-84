@@ -2,20 +2,18 @@
 import React from 'react';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
-import { useFinancial } from '@/contexts/financial'; // Updated import path
+import { useFinancial } from '@/contexts/financial'; 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DeliveryFormDialog } from '@/components/delivery/DeliveryFormDialog';
 import { DeliverySearch } from '@/components/delivery/DeliverySearch';
 import { DeliveryTable } from '@/components/delivery/DeliveryTable';
 import { DeliveryDetails } from '@/components/delivery/DeliveryDetails';
-import { Button } from '@/components/ui/button';
-import { RefreshCcw } from 'lucide-react';
 import { DeliveriesFilter } from './DeliveriesFilter';
 import { DeliveriesHeader } from './DeliveriesHeader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toISODateString } from '@/utils/dateUtils';
 
-// Hooks extraídos
+// Hooks
 import { useDeliveriesFilters } from './hooks/useDeliveriesFilters';
 import { useDeliveriesOps } from './hooks/useDeliveriesOps';
 
@@ -81,19 +79,17 @@ export default function DeliveriesPage() {
         <DeliveriesFilter
           selectedClientId={selectedClientId}
           setSelectedClientId={setSelectedClientId}
-          startDate={startDate ? new Date(startDate) : null}
+          startDate={startDate ? new Date(`${startDate}T12:00:00`) : null}
           setStartDate={(date) => {
             if (date instanceof Date) {
-              // CORRIGIDO: Usando nossa função auxiliar para garantir o formato correto
               setStartDate(toISODateString(date));
             } else {
               setStartDate(null);
             }
           }}
-          endDate={endDate ? new Date(endDate) : null}
+          endDate={endDate ? new Date(`${endDate}T12:00:00`) : null}
           setEndDate={(date) => {
             if (date instanceof Date) {
-              // CORRIGIDO: Usando nossa função auxiliar para garantir o formato correto
               setEndDate(toISODateString(date));
             } else {
               setEndDate(null);

@@ -73,13 +73,11 @@ export const formatDateWithTime = (date: Date | string, timeString?: string): st
 
 /**
  * Convert a Date to ISO date string (YYYY-MM-DD) without timezone issues
- * Esta função foi atualizada para considerar o fuso horário do Brasil
  */
 export const toISODateString = (date: Date): string => {
   if (!date) return '';
   
-  // CORRIGIDO: Usa o ano, mês e dia diretamente do objeto de data
-  // Em vez de criar uma string ISO e depois extrair a parte da data
+  // Create a correct date string by manually extracting year, month, day
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0'); // +1 porque mês começa em 0
   const day = String(date.getDate()).padStart(2, '0');

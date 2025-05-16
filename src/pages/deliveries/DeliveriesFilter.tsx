@@ -7,7 +7,6 @@ import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
 import { DatePicker } from '@/components/ui/date-picker';
 import { X } from 'lucide-react';
 import { Client } from '@/types';
-import { format } from 'date-fns';
 
 interface DeliveriesFilterProps {
   selectedClientId: string;
@@ -32,31 +31,6 @@ export const DeliveriesFilter: React.FC<DeliveriesFilterProps> = ({
   filteredDeliveriesCount,
   clients
 }) => {
-  const [startDateObj, setStartDateObj] = useState<Date | undefined>(
-    startDate || undefined
-  );
-  
-  const [endDateObj, setEndDateObj] = useState<Date | undefined>(
-    endDate || undefined
-  );
-  
-  // Update local date objects when props change
-  useEffect(() => {
-    setStartDateObj(startDate || undefined);
-    setEndDateObj(endDate || undefined);
-  }, [startDate, endDate]);
-  
-  // CORRIGIDO: Manipuladores de datas atualizados para preservar o dia correto
-  const handleStartDateChange = (date: Date | undefined) => {
-    setStartDateObj(date);
-    setStartDate(date || null);
-  };
-  
-  const handleEndDateChange = (date: Date | undefined) => {
-    setEndDateObj(date);
-    setEndDate(date || null);
-  };
-  
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -76,16 +50,16 @@ export const DeliveriesFilter: React.FC<DeliveriesFilterProps> = ({
           <div>
             <Label htmlFor="start-date">Data Inicial</Label>
             <DatePicker
-              date={startDateObj}
-              onSelect={handleStartDateChange}
+              date={startDate}
+              onSelect={setStartDate}
               placeholder="Selecione a data inicial"
             />
           </div>
           <div>
             <Label htmlFor="end-date">Data Final</Label>
             <DatePicker
-              date={endDateObj}
-              onSelect={handleEndDateChange}
+              date={endDate}
+              onSelect={setEndDate}
               placeholder="Selecione a data final"
             />
           </div>

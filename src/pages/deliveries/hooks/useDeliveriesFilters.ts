@@ -91,12 +91,12 @@ export const useDeliveriesFilters = ({
         return false;
       }
 
-      // Filter by date range - CORRIGIDO: Comparação correta de datas sem problemas de fuso horário
+      // Filter by date range
       if (startDate && endDate) {
-        // Obter apenas a parte da data da data de entrega (YYYY-MM-DD)
+        // Get just the date part of the delivery date (YYYY-MM-DD)
         const deliveryDateOnly = delivery.deliveryDate.split('T')[0];
         
-        // Comparar apenas as partes de data, sem considerar hora
+        // Compare only the date parts without considering time
         if (deliveryDateOnly < startDate || deliveryDateOnly > endDate) {
           return false;
         }
