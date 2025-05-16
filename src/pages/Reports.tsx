@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -225,7 +224,7 @@ const Reports = () => {
   };
 
   return (
-    <AppLayout>
+    <div className="flex flex-col gap-6">
       <ScrollArea className="h-[calc(100vh-148px)] w-full">
         <div className="flex flex-col gap-6 px-8 py-6">
           <div>
@@ -326,7 +325,7 @@ const Reports = () => {
           )}
         </div>
       </ScrollArea>
-    </AppLayout>
+    </div>
   );
 };
 
