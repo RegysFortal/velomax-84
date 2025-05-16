@@ -1,7 +1,5 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
@@ -143,54 +141,52 @@ const FinancialPage = () => {
   };
   
   return (
-    <AppLayout>
+    <div className="flex flex-col gap-6 px-8 py-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
+        <p className="text-muted-foreground">
+          Gerenciamento dos relatórios financeiros de clientes.
+        </p>
+      </div>
+      
+      {/* Hidden logo for PDF generation */}
+      <div className="hidden">
+        <Logo className="company-logo" />
+      </div>
+      
       <ScrollArea className="h-[calc(100vh-148px)] w-full">
-        <div className="flex flex-col gap-6 px-8 py-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
-            <p className="text-muted-foreground">
-              Gerenciamento dos relatórios financeiros de clientes.
-            </p>
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="open">Relatórios a Fechar</TabsTrigger>
+            <TabsTrigger value="closed">Relatórios Fechados</TabsTrigger>
+          </TabsList>
           
-          {/* Hidden logo for PDF generation */}
-          <div className="hidden">
-            <Logo className="company-logo" />
-          </div>
+          <TabsContent value="open" className="space-y-4">
+            <OpenReportsTable 
+              reports={openReports}
+              isLoading={isLoading}
+              formatCurrency={formatCurrency}
+              onViewReport={handleViewReport}
+              onCloseReport={setReportToClose}
+              onDeleteReport={setReportToDelete}
+            />
+          </TabsContent>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="open">Relatórios a Fechar</TabsTrigger>
-              <TabsTrigger value="closed">Relatórios Fechados</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="open" className="space-y-4">
-              <OpenReportsTable 
-                reports={openReports}
-                isLoading={isLoading}
-                formatCurrency={formatCurrency}
-                onViewReport={handleViewReport}
-                onCloseReport={setReportToClose}
-                onDeleteReport={setReportToDelete}
-              />
-            </TabsContent>
-            
-            <TabsContent value="closed" className="space-y-4">
-              <ClosedReportsTable 
-                reports={closedReports}
-                isLoading={isLoading}
-                formatCurrency={formatCurrency}
-                onViewReport={handleViewReport}
-                onReopenReport={handleReopenReport}
-                onExportPDF={handleExportPDF}
-                onExportExcel={handleExportExcel}
-                onDeleteReport={setReportToDelete}
-                onEditPaymentDetails={setReportToEdit}
-                getPaymentMethodLabel={getPaymentMethodLabel}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+          <TabsContent value="closed" className="space-y-4">
+            <ClosedReportsTable 
+              reports={closedReports}
+              isLoading={isLoading}
+              formatCurrency={formatCurrency}
+              onViewReport={handleViewReport}
+              onReopenReport={handleReopenReport}
+              onExportPDF={handleExportPDF}
+              onExportExcel={handleExportExcel}
+              onDeleteReport={setReportToDelete}
+              onEditPaymentDetails={setReportToEdit}
+              getPaymentMethodLabel={getPaymentMethodLabel}
+            />
+          </TabsContent>
+        </Tabs>
       </ScrollArea>
       
       {/* Diálogo para fechar relatório com informações de pagamento */}
@@ -228,7 +224,7 @@ const FinancialPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppLayout>
+    </div>
   );
 };
 

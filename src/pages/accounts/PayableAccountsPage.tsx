@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -265,97 +264,95 @@ export default function PayableAccountsPage() {
   };
   
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Contas a Pagar</h1>
-            <p className="text-muted-foreground">
-              Gerencie todas as suas contas a pagar em um só lugar.
-            </p>
-          </div>
-          <Button onClick={() => { setIsFormOpen(true); setEditingAccount(null); }}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Conta
-          </Button>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Contas a Pagar</h1>
+          <p className="text-muted-foreground">
+            Gerencie todas as suas contas a pagar em um só lugar.
+          </p>
         </div>
-
-        {/* Summary cards */}
-        <PayableAccountsStats accounts={accounts} />
-        
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="all">Todas</TabsTrigger>
-            <TabsTrigger value="pending">Pendentes</TabsTrigger>
-            <TabsTrigger value="overdue">Atrasadas</TabsTrigger>
-            <TabsTrigger value="paid">Pagas</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all">
-            <div className="space-y-4">
-              <PayableAccountsFilters />
-              <PayableAccountsTable 
-                accounts={accounts} 
-                onEdit={handleEdit} 
-                onDelete={handleDeleteAccount}
-                onMarkAsPaid={handleMarkAsPaid}
-                isLoading={isLoading}
-              />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="pending">
-            <div className="space-y-4">
-              <PayableAccountsFilters />
-              <PayableAccountsTable 
-                accounts={accounts.filter(account => account.status === 'pending')} 
-                onEdit={handleEdit} 
-                onDelete={handleDeleteAccount}
-                onMarkAsPaid={handleMarkAsPaid}
-                isLoading={isLoading}
-              />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="overdue">
-            <div className="space-y-4">
-              <PayableAccountsFilters />
-              <PayableAccountsTable 
-                accounts={accounts.filter(account => account.status === 'overdue')} 
-                onEdit={handleEdit} 
-                onDelete={handleDeleteAccount}
-                onMarkAsPaid={handleMarkAsPaid}
-                isLoading={isLoading}
-              />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="paid">
-            <div className="space-y-4">
-              <PayableAccountsFilters />
-              <PayableAccountsTable 
-                accounts={accounts.filter(account => account.status === 'paid')} 
-                onEdit={handleEdit} 
-                onDelete={handleDeleteAccount}
-                onMarkAsPaid={handleMarkAsPaid}
-                isLoading={isLoading}
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
-        
-        {isFormOpen && (
-          <PayableAccountsForm 
-            open={isFormOpen}
-            onOpenChange={setIsFormOpen}
-            onSubmit={editingAccount ? 
-              (data) => handleUpdateAccount(editingAccount.id, data) : 
-              handleAddAccount
-            }
-            account={editingAccount}
-          />
-        )}
+        <Button onClick={() => { setIsFormOpen(true); setEditingAccount(null); }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nova Conta
+        </Button>
       </div>
-    </AppLayout>
+
+      {/* Summary cards */}
+      <PayableAccountsStats accounts={accounts} />
+      
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="all">Todas</TabsTrigger>
+          <TabsTrigger value="pending">Pendentes</TabsTrigger>
+          <TabsTrigger value="overdue">Atrasadas</TabsTrigger>
+          <TabsTrigger value="paid">Pagas</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="all">
+          <div className="space-y-4">
+            <PayableAccountsFilters />
+            <PayableAccountsTable 
+              accounts={accounts} 
+              onEdit={handleEdit} 
+              onDelete={handleDeleteAccount}
+              onMarkAsPaid={handleMarkAsPaid}
+              isLoading={isLoading}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="pending">
+          <div className="space-y-4">
+            <PayableAccountsFilters />
+            <PayableAccountsTable 
+              accounts={accounts.filter(account => account.status === 'pending')} 
+              onEdit={handleEdit} 
+              onDelete={handleDeleteAccount}
+              onMarkAsPaid={handleMarkAsPaid}
+              isLoading={isLoading}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="overdue">
+          <div className="space-y-4">
+            <PayableAccountsFilters />
+            <PayableAccountsTable 
+              accounts={accounts.filter(account => account.status === 'overdue')} 
+              onEdit={handleEdit} 
+              onDelete={handleDeleteAccount}
+              onMarkAsPaid={handleMarkAsPaid}
+              isLoading={isLoading}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="paid">
+          <div className="space-y-4">
+            <PayableAccountsFilters />
+            <PayableAccountsTable 
+              accounts={accounts.filter(account => account.status === 'paid')} 
+              onEdit={handleEdit} 
+              onDelete={handleDeleteAccount}
+              onMarkAsPaid={handleMarkAsPaid}
+              isLoading={isLoading}
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      {isFormOpen && (
+        <PayableAccountsForm 
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          onSubmit={editingAccount ? 
+            (data) => handleUpdateAccount(editingAccount.id, data) : 
+            handleAddAccount
+          }
+          account={editingAccount}
+        />
+      )}
+    </div>
   );
 }

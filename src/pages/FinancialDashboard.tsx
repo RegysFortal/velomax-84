@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { AppLayout } from '@/components/AppLayout';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { FinancialMetricCards } from '@/components/dashboard/financial/FinancialMetricCards';
 import { FinancialChartSection } from '@/components/dashboard/financial/FinancialChartSection';
@@ -11,7 +9,7 @@ import { RecentReportsTable } from '@/components/dashboard/financial/RecentRepor
 import { TopClientsTable } from '@/components/dashboard/financial/TopClientsTable';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts/clients';
-import { useFinancial } from '@/contexts/financial'; // Updated import path
+import { useFinancial } from '@/contexts/financial';
 import { DateRange } from "react-day-picker";
 
 const FinancialDashboard = () => {
@@ -257,51 +255,49 @@ const FinancialDashboard = () => {
   };
   
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard Financeiro</h1>
-            <p className="text-muted-foreground">
-              Acompanhe os indicadores financeiros e o desempenho da operação
-            </p>
-          </div>
-          <DateRangeFilter 
-            dateRange={{
-              from: new Date(startDate),
-              to: new Date(endDate)
-            }} 
-            onDateRangeChange={handleDateRangeChange} 
-          />
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard Financeiro</h1>
+          <p className="text-muted-foreground">
+            Acompanhe os indicadores financeiros e o desempenho da operação
+          </p>
         </div>
-        
-        <FinancialMetricCards 
-          totalDeliveries={stats.totalDeliveries}
-          totalWeight={stats.totalWeight}
-          totalFreight={stats.totalFreight}
-          activeClients={stats.activeClients}
-          averageTicket={stats.averageTicket}
-          latePaymentRate={stats.latePaymentRate}
+        <DateRangeFilter 
+          dateRange={{
+            from: new Date(startDate),
+            to: new Date(endDate)
+          }} 
+          onDateRangeChange={handleDateRangeChange} 
         />
-        
-        <FinancialChartSection 
-          clientDistribution={stats.clientDistribution}
-          monthlyComparison={stats.monthlyComparison}
-          growthTimeline={stats.growthTimeline}
-        />
-        
-        <FinancialSummaryCards
-          averageDeliveries={stats.averageDeliveries}
-          startDate={startDate}
-          endDate={endDate}
-        />
-        
-        <div className="grid gap-4 md:grid-cols-2">
-          <RecentReportsTable topReports={stats.topReports} />
-          <TopClientsTable topClients={stats.topClients} />
-        </div>
       </div>
-    </AppLayout>
+      
+      <FinancialMetricCards 
+        totalDeliveries={stats.totalDeliveries}
+        totalWeight={stats.totalWeight}
+        totalFreight={stats.totalFreight}
+        activeClients={stats.activeClients}
+        averageTicket={stats.averageTicket}
+        latePaymentRate={stats.latePaymentRate}
+      />
+      
+      <FinancialChartSection 
+        clientDistribution={stats.clientDistribution}
+        monthlyComparison={stats.monthlyComparison}
+        growthTimeline={stats.growthTimeline}
+      />
+      
+      <FinancialSummaryCards
+        averageDeliveries={stats.averageDeliveries}
+        startDate={startDate}
+        endDate={endDate}
+      />
+      
+      <div className="grid gap-4 md:grid-cols-2">
+        <RecentReportsTable topReports={stats.topReports} />
+        <TopClientsTable topClients={stats.topClients} />
+      </div>
+    </div>
   );
 };
 
