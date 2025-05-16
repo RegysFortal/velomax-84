@@ -55,7 +55,14 @@ export function CityEditDialog({
   }, [selectedCity, form]);
 
   const handleSubmit = (data: z.infer<typeof cityFormSchema>) => {
-    onUpdateCity(data);
+    // Ensure all required fields are present with their correct types
+    const cityData = {
+      name: String(data.name),
+      state: String(data.state),
+      distance: Number(data.distance)
+    };
+    
+    onUpdateCity(cityData);
     form.reset();
   };
 
