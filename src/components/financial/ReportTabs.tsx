@@ -21,6 +21,7 @@ interface ReportTabsProps {
   onExportPDF: (report: FinancialReport) => void;
   onExportExcel: (report: FinancialReport) => void;
   onEditPaymentDetails: (report: FinancialReport) => void;
+  onSendToReceivables: (report: FinancialReport) => void;
 }
 
 export const ReportTabs: React.FC<ReportTabsProps> = ({
@@ -37,7 +38,8 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({
   onReopenReport,
   onExportPDF,
   onExportExcel,
-  onEditPaymentDetails
+  onEditPaymentDetails,
+  onSendToReceivables
 }) => {
   return (
     <ScrollArea className="h-[calc(100vh-148px)] w-full">
@@ -70,6 +72,7 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({
             onDeleteReport={onDeleteReport}
             onEditPaymentDetails={onEditPaymentDetails}
             getPaymentMethodLabel={getPaymentMethodLabel}
+            onSendToReceivables={onSendToReceivables}
           />
         </TabsContent>
       </Tabs>

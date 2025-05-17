@@ -6,9 +6,12 @@ import { useFinancial } from '@/contexts/financial';
 import { useClients } from '@/contexts';
 import { useReceivableAccounts } from '@/hooks/financial/useReceivableAccounts';
 import { FinancialReport } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 export function useFinancialOperations() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
   const { 
     financialReports,
     closeReport, 
@@ -22,7 +25,8 @@ export function useFinancialOperations() {
   const { 
     createReceivableAccount, 
     deleteReceivableAccount, 
-    updateReceivableAccount 
+    updateReceivableAccount,
+    checkReceivableAccountExists 
   } = useReceivableAccounts();
 
   const handleViewReport = (reportId: string) => {
@@ -101,11 +105,55 @@ export function useFinancialOperations() {
     }
   };
   
+  // Função para enviar um relatório para contas a receber
+  const handleSendToReceivables = async (report: FinancialReport) => {
+    try {
+      // Verificar se já existe uma conta a receber para este relatório
+      const exists = await checkReceivableAccountExists(report.id);
+      
+      if (exists) {
+        throw new Error('REPORT_ALREADY_IN_RECEIVABLES');
+      }
+      
+      // Se não existe, criar uma nova conta a receber
+      const client = clients.find(c => c.id === report.clientId);
+      
+      if (!client) {
+        throw new Error('CLIENT_NOT_FOUND');
+      }
+      
+      // Criar conta a receber
+      await createReceivableAccount({
+        clientId: report.clientId,
+        clientName: client.name,
+        description: `Relatório ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
+        amount: report.totalFreight,
+        dueDate: report.dueDate || format(new Date(), 'yyyy-MM-dd'),
+        status: 'pending',
+        categoryId: 'fretes',
+        categoryName: 'Fretes',
+        reportId: report.id,
+        paymentMethod: report.paymentMethod || 'boleto',
+        notes: `Referente ao relatório de ${client.name} no período de ${format(new Date(report.startDate), 'dd/MM/yyyy', { locale: ptBR })} a ${format(new Date(report.endDate), 'dd/MM/yyyy', { locale: ptBR })}`,
+      });
+      
+      toast({
+        title: "Sucesso",
+        description: "Relatório enviado para contas a receber com sucesso.",
+      });
+      
+    } catch (error: any) {
+      console.error("Erro ao enviar relatório para contas a receber:", error);
+      throw error;
+    }
+  };
+  
   return {
     handleViewReport,
     handleCloseReportWithDetails,
     handleEditPaymentDetails,
     handleReopenReport,
-    handleDeleteReport
+    handleDeleteReport,
+    handleSendToReceivables
   };
 }

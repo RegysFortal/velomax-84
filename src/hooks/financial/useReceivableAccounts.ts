@@ -60,6 +60,24 @@ export function useReceivableAccounts() {
     }
   };
 
+  // Verificar se já existe uma conta a receber para um relatório específico
+  const checkReceivableAccountExists = async (reportId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('receivable_accounts')
+        .select('id')
+        .eq('report_id', reportId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      return !!data;
+    } catch (error) {
+      console.error("Erro ao verificar conta a receber:", error);
+      return false;
+    }
+  };
+
   const createReceivableAccount = async (data: ReceivableAccountData) => {
     try {
       const now = new Date().toISOString();
@@ -189,6 +207,7 @@ export function useReceivableAccounts() {
     fetchReceivableAccounts,
     createReceivableAccount,
     deleteReceivableAccount,
-    updateReceivableAccount
+    updateReceivableAccount,
+    checkReceivableAccountExists
   };
 }

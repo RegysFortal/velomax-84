@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Edit, FileText, FileDown, FileUp, Trash2, CreditCard } from 'lucide-react';
+import { Edit, FileText, FileDown, FileUp, Trash2, CreditCard, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -26,6 +26,7 @@ interface ClosedReportsTableProps {
   onDeleteReport: (reportId: string) => void;
   onEditPaymentDetails: (report: FinancialReport) => void;
   getPaymentMethodLabel: (method?: string) => string;
+  onSendToReceivables: (report: FinancialReport) => void;
 }
 
 export const ClosedReportsTable = ({
@@ -38,7 +39,8 @@ export const ClosedReportsTable = ({
   onExportExcel,
   onDeleteReport,
   onEditPaymentDetails,
-  getPaymentMethodLabel
+  getPaymentMethodLabel,
+  onSendToReceivables
 }: ClosedReportsTableProps) => {
   const { clients = [] } = useClients();
 
@@ -55,7 +57,7 @@ export const ClosedReportsTable = ({
                 <TableHead>Método de Pagamento</TableHead>
                 <TableHead>Vencimento</TableHead>
                 <TableHead className="text-right">Valor Total</TableHead>
-                <TableHead className="text-right w-[300px]">Ações</TableHead>
+                <TableHead className="text-right w-[350px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -130,6 +132,14 @@ export const ClosedReportsTable = ({
                           >
                             <FileUp className="h-4 w-4 mr-1" />
                             Excel
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onSendToReceivables(report)}
+                          >
+                            <Send className="h-4 w-4 mr-1" />
+                            Contas a Receber
                           </Button>
                           <Button 
                             size="sm" 

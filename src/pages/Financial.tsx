@@ -7,6 +7,8 @@ import { useFinancialReportUtils } from '@/hooks/financial/useFinancialReportUti
 import { FinancialHeader } from '@/components/financial/FinancialHeader';
 import { ReportTabs } from '@/components/financial/ReportTabs';
 import { ReportDialogs } from '@/components/financial/ReportDialogs';
+import { useToast } from '@/hooks/use-toast';
+import { FinancialReport } from '@/types';
 
 const FinancialPage = () => {
   // Estado da página
@@ -21,6 +23,8 @@ const FinancialPage = () => {
     setReportToEdit
   } = useFinancialPageState();
   
+  const { toast } = useToast();
+  
   // Get financial data safely with fallbacks
   const { 
     financialReports = [], 
@@ -33,7 +37,8 @@ const FinancialPage = () => {
     handleCloseReportWithDetails,
     handleEditPaymentDetails,
     handleReopenReport,
-    handleDeleteReport
+    handleDeleteReport,
+    handleSendToReceivables
   } = useFinancialOperations();
   
   // Utilidades para relatórios financeiros
@@ -43,6 +48,25 @@ const FinancialPage = () => {
     handleExportPDF, 
     handleExportExcel 
   } = useFinancialReportUtils();
+  
+  // Verificar se um relatório já tem conta a receber associada
+  const handleSendToReceivablesWithCheck = (report: FinancialReport) => {
+    // Verifica se já existe conta a receber para este relatório
+    handleSendToReceivables(report).catch(error => {
+      if (error.message === 'REPORT_ALREADY_IN_RECEIVABLES') {
+        toast({
+          title: "Aviso",
+          description: "Este relatório já consta em contas a receber.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao enviar relatório para contas a receber.",
+          variant: "destructive"
+        });
+      }
+    });
+  };
   
   // Filtragem dos relatórios por status
   const openReports = financialReports.filter(report => report.status === 'open');
@@ -75,6 +99,7 @@ const FinancialPage = () => {
         onExportPDF={handleExportPDF}
         onExportExcel={handleExportExcel}
         onEditPaymentDetails={setReportToEdit}
+        onSendToReceivables={handleSendToReceivablesWithCheck}
       />
       
       <ReportDialogs
