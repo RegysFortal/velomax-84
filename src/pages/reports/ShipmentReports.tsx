@@ -27,11 +27,10 @@ export default function ShipmentReports() {
   const { shipments, loading, refreshShipmentsData } = useShipments();
   
   // Make sure to refresh shipment data when the component mounts
-  // Use an empty dependency array to run only once
   useEffect(() => {
     console.log("ShipmentReports - Calling refreshShipmentsData on mount");
     refreshShipmentsData();
-  }, []); // Empty dependency array ensures this only runs once on mount
+  }, []); 
   
   // For debugging - log the shipments whenever they change
   useEffect(() => {
@@ -40,7 +39,7 @@ export default function ShipmentReports() {
   
   const filteredShipments = shipments.filter(shipment => {
     // Debug logging to check filters
-    console.log(`Filtering shipment ${shipment.trackingNumber}, status: ${shipment.status}, carrier: ${shipment.carrierName}`);
+    console.log(`Filtering shipment ${shipment.trackingNumber}, status: ${shipment.status}, carrier: ${shipment.carrierName}, mode: ${shipment.transportMode}`);
     
     // Validate that dates are valid before comparing
     let startDateObj = new Date(startDate);
@@ -59,7 +58,7 @@ export default function ShipmentReports() {
     const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
     
     const matchesCarrier = filterCarrier === 'all' || 
-      (shipment.carrierName && shipment.carrierName.toLowerCase().includes(filterCarrier.toLowerCase()));
+      (shipment.carrierName && shipment.carrierName.toLowerCase() === filterCarrier.toLowerCase());
       
     const matchesMode = filterMode === 'all' || shipment.transportMode === filterMode;
     
@@ -82,6 +81,7 @@ export default function ShipmentReports() {
     console.log(`Filtered shipments count: ${filteredShipments.length}`);
   }, [filteredShipments.length]);
 
+  // Extract unique carriers from shipments
   const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName).filter(Boolean)));
   const { generatePDF, exportToExcel } = useReportActions(filteredShipments);
 

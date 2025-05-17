@@ -44,6 +44,33 @@ export function ReportFilters({
     endDate ? toLocalDate(new Date(`${endDate}T12:00:00`)) : undefined
   );
   
+  // Lista de transportadoras filtradas por modo de transporte
+  const [filteredCarriers, setFilteredCarriers] = useState<string[]>([]);
+  
+  // Transportadoras disponíveis por modo de transporte
+  const airCarriers = ["Azul", "Gol", "Latam"];
+  const roadCarriers = ["Concept", "Global", "Jeam", "Outro"];
+  
+  // Atualiza transportadoras quando o modo de transporte muda
+  useEffect(() => {
+    if (filterMode === 'air') {
+      setFilteredCarriers(airCarriers);
+      // Se a transportadora atual não for aérea, redefina para 'all'
+      if (!airCarriers.includes(filterCarrier) && filterCarrier !== 'all') {
+        onCarrierChange('all');
+      }
+    } else if (filterMode === 'road') {
+      setFilteredCarriers(roadCarriers);
+      // Se a transportadora atual não for rodoviária, redefina para 'all'
+      if (!roadCarriers.includes(filterCarrier) && filterCarrier !== 'all') {
+        onCarrierChange('all');
+      }
+    } else {
+      // Modo 'all': mostrar todas as transportadoras disponíveis
+      setFilteredCarriers([...new Set([...airCarriers, ...roadCarriers, ...uniqueCarriers])]);
+    }
+  }, [filterMode, filterCarrier, uniqueCarriers]);
+  
   // Atualizamos os objetos de data locais quando as props mudam
   useEffect(() => {
     if (startDate) {
@@ -153,14 +180,14 @@ export function ReportFilters({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a transportadora" />
               </SelectTrigger>
-              <SelectContent className="z-50">
+              <SelectContent className="z-50 max-h-60 overflow-y-auto">
                 <SelectItem value="all">Todas</SelectItem>
-                {uniqueCarriers.map((carrier) => (
+                {filteredCarriers.map((carrier) => (
                   <SelectItem 
-                    key={carrier as React.Key} 
-                    value={carrier as string}
+                    key={carrier} 
+                    value={carrier}
                   >
-                    {carrier as React.ReactNode}
+                    {carrier}
                   </SelectItem>
                 ))}
               </SelectContent>
