@@ -44,18 +44,26 @@ export const useReportActions = (data: Shipment[]) => {
         format: 'a4'
       });
       
+      // Format current date
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
       const fileName = `embarques_${format(new Date(), 'dd-MM-yyyy')}`;
+      
+      // Add company information
+      const companyInfo = getCompanyInfo();
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`${companyInfo.name}`, 14, 15);
+      doc.text(`CNPJ: ${companyInfo.cnpj}`, 14, 20);
       
       // Add title centered
       doc.setFontSize(18);
       doc.setFont("helvetica", "bold");
-      doc.text("RELATÓRIO DE EMBARQUES", 148.5, 20, { align: 'center' });
+      doc.text("RELATÓRIO DE EMBARQUES", 148.5, 30, { align: 'center' });
       
       // Add date on the left side
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text(`Data: ${currentDate}`, 14, 30);
+      doc.text(`Data: ${currentDate}`, 14, 40);
       
       // Create table headers and data
       const headers = [
@@ -78,7 +86,7 @@ export const useReportActions = (data: Shipment[]) => {
       
       // Add table to PDF
       doc.autoTable({
-        startY: 35,
+        startY: 45,
         head: [headers],
         body: tableData,
         theme: 'grid',
@@ -151,14 +159,9 @@ export const useReportActions = (data: Shipment[]) => {
       
       ws['!cols'] = colWidths;
       
-      // Style the header (title and date)
-      ws.A1.s = { font: { bold: true, sz: 14 } };
-      ws.A2.s = { font: { sz: 10 } };
+      // Style the header (title and date) - note: Excel styling might be limited
       
       // Add alignment to center the title
-      ws.A1.s = { ...ws.A1.s, alignment: { horizontal: 'center' } };
-      
-      // Create merged cell for title (across all columns)
       if (!ws['!merges']) ws['!merges'] = [];
       ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } });
       

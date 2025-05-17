@@ -82,7 +82,7 @@ export default function ShipmentReports() {
 
   // Extract unique carriers from shipments
   const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName).filter(Boolean)));
-  const { generatePDF, exportToExcel } = useReportActions(filteredShipments);
+  const { generatePDF, exportToExcel, loading: reportLoading } = useReportActions(filteredShipments);
 
   const handleStatusChange = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -104,12 +104,28 @@ export default function ShipmentReports() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={generatePDF}>
-            <FileText className="mr-2 h-4 w-4" />
+          <Button 
+            variant="outline" 
+            onClick={generatePDF}
+            disabled={reportLoading || filteredShipments.length === 0}
+          >
+            {reportLoading ? (
+              <div className="animate-spin h-4 w-4 mr-2 border-2 border-b-transparent rounded-full" />
+            ) : (
+              <FileText className="mr-2 h-4 w-4" />
+            )}
             Gerar PDF
           </Button>
-          <Button variant="outline" onClick={exportToExcel}>
-            <Download className="mr-2 h-4 w-4" />
+          <Button 
+            variant="outline" 
+            onClick={exportToExcel}
+            disabled={reportLoading || filteredShipments.length === 0}
+          >
+            {reportLoading ? (
+              <div className="animate-spin h-4 w-4 mr-2 border-2 border-b-transparent rounded-full" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
             Exportar Excel
           </Button>
         </div>
