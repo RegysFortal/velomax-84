@@ -130,8 +130,8 @@ export const useReportActions = (data: Shipment[]) => {
           item.carrierName || 'N/A',
           item.companyName || 'N/A',
           item.trackingNumber || 'N/A',
-          item.packages,
-          item.weight,
+          item.packages.toString(), // Convert number to string
+          item.weight.toString(),   // Convert number to string
           item.observations || ''
         ]);
       });
