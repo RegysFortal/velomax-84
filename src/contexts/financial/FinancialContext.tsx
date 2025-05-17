@@ -1,7 +1,7 @@
-
 import { createContext, useContext, ReactNode } from 'react';
 import { FinancialContextType } from './types';
-import { useFinancialOperations } from './useFinancialOperations';
+// Remove the incorrect import
+// import { useFinancialOperations } from './useFinancialOperations';
 import { useFetchFinancialReports } from './useFetchFinancialReports';
 import { useReportStatus } from './useReportStatus';
 import { useFinancialStorage } from './useFinancialStorage';
@@ -60,3 +60,4 @@ export const useFinancial = () => {
   }
   return context;
 };
+

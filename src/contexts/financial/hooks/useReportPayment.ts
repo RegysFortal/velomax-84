@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFinancial } from '@/contexts/financial';
@@ -25,11 +24,48 @@ export function useReportPayment() {
     checkReceivableAccountExists 
   } = useReceivableAccounts();
 
-  const handleCloseReportWithDetails = async ({ reportId, paymentMethod, dueDate }: CloseReportParams) => {
+  // Modified to match the expected signature in Financial.tsx
+  const handleCloseReportWithDetails = async (reportId: string, paymentMethod: string, dueDate: string): Promise<void> => {
     try {
       // First update the report details
       await closeReport(reportId, paymentMethod, dueDate);
+    } catch (error) {
+      console.error("Erro ao fechar relatório:", error);
+    }
+  };
+
+  // Modified to match the expected signature in Financial.tsx
+  const handleEditPaymentDetails = async (reportId: string, paymentMethod: string, dueDate: string): Promise<void> => {
+    try {
+      await updatePaymentDetails(reportId, paymentMethod, dueDate);
       
+      // Also update the corresponding receivable account
+      await updateReceivableAccount(reportId, {
+        paymentMethod,
+        dueDate
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar detalhes de pagamento:", error);
+    }
+  };
+
+  // Modified to match the expected signature in Financial.tsx
+  const handleReopenReport = async (reportId: string): Promise<void> => {
+    try {
+      await reopenReport(reportId);
+      
+      // Delete the related receivable account
+      await deleteReceivableAccount(reportId);
+    } catch (error) {
+      console.error("Erro ao reabrir relatório:", error);
+    }
+  };
+
+  // Keep the original methods with their original signatures for internal use
+  const _handleCloseReportWithParams = async ({ reportId, paymentMethod, dueDate }: CloseReportParams): Promise<boolean> => {
+    try {
+      // First update the report details
+      await closeReport(reportId, paymentMethod, dueDate);
       return true;
     } catch (error) {
       console.error("Erro ao fechar relatório:", error);
@@ -37,18 +73,17 @@ export function useReportPayment() {
     }
   };
 
-  const handleEditPaymentDetails = async ({ reportId, paymentMethod, dueDate }: ReportPaymentDetails) => {
+  const _handleEditPaymentDetails = async ({ reportId, paymentMethod, dueDate }: ReportPaymentDetails): Promise<boolean> => {
     try {
-      await updatePaymentDetails(reportId, paymentMethod, dueDate);
-      
-      // Also update the corresponding receivable account
       if (paymentMethod !== null || dueDate !== null) {
+        await updatePaymentDetails(reportId, paymentMethod, dueDate);
+        
+        // Also update the corresponding receivable account
         await updateReceivableAccount(reportId, {
           paymentMethod: paymentMethod || undefined,
           dueDate: dueDate || undefined
         });
       }
-      
       return true;
     } catch (error) {
       console.error("Erro ao atualizar detalhes de pagamento:", error);
@@ -56,13 +91,12 @@ export function useReportPayment() {
     }
   };
 
-  const handleReopenReport = async (reportId: string) => {
+  const _handleReopenReport = async (reportId: string): Promise<boolean> => {
     try {
       await reopenReport(reportId);
       
       // Delete the related receivable account
       await deleteReceivableAccount(reportId);
-      
       return true;
     } catch (error) {
       console.error("Erro ao reabrir relatório:", error);
@@ -73,6 +107,10 @@ export function useReportPayment() {
   return {
     handleCloseReportWithDetails,
     handleEditPaymentDetails,
-    handleReopenReport
+    handleReopenReport,
+    // Export the internal methods for components that need the original signatures
+    _handleCloseReportWithParams,
+    _handleEditPaymentDetails,
+    _handleReopenReport
   };
 }

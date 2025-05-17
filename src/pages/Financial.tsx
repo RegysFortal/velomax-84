@@ -1,3 +1,4 @@
+
 import { Logo } from '@/components/ui/logo';
 import { useFinancial } from '@/contexts/financial';
 import { useFinancialPageState } from '@/hooks/financial/useFinancialPageState';
@@ -51,20 +52,24 @@ const FinancialPage = () => {
   // Verificar se um relatório já tem conta a receber associada
   const handleSendToReceivablesWithCheck = (report: FinancialReport) => {
     // Verifica se já existe conta a receber para este relatório
-    handleSendToReceivables(report).catch(error => {
-      if (error.message === 'REPORT_ALREADY_IN_RECEIVABLES') {
-        toast({
-          title: "Aviso",
-          description: "Este relatório já consta em contas a receber.",
-        });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Erro ao enviar relatório para contas a receber.",
-          variant: "destructive"
-        });
-      }
-    });
+    handleSendToReceivables(report)
+      .then(() => {
+        // Success is already handled inside the hook with toast
+      })
+      .catch(error => {
+        if (error.message === 'REPORT_ALREADY_IN_RECEIVABLES') {
+          toast({
+            title: "Aviso",
+            description: "Este relatório já consta em contas a receber.",
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Erro ao enviar relatório para contas a receber.",
+            variant: "destructive"
+          });
+        }
+      });
   };
   
   // Filtragem dos relatórios por status
@@ -108,8 +113,12 @@ const FinancialPage = () => {
         setReportToEdit={setReportToEdit}
         reportToDelete={reportToDelete}
         setReportToDelete={setReportToDelete}
-        onCloseReport={handleCloseReportWithDetails}
-        onEditPaymentDetails={handleEditPaymentDetails}
+        onCloseReport={(id, method, date) => {
+          return handleCloseReportWithDetails(id, method, date);
+        }}
+        onEditPaymentDetails={(id, method, date) => {
+          return handleEditPaymentDetails(id, method, date);
+        }}
         onDeleteReport={handleDeleteReport}
       />
     </div>

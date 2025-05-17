@@ -20,32 +20,13 @@ export function useFinancialOperations() {
   } = useReportPayment();
   const { handleDeleteReport } = useReportDeletion();
   const { handleSendToReceivables } = useReceivablesOperations();
-  
-  // Handle sending reports to receivables with error handling
-  const handleSendToReceivablesWithCheck = (report: FinancialReport) => {
-    // Verify if the report already has a receivable account
-    handleSendToReceivables(report).catch(error => {
-      if (error.message === 'REPORT_ALREADY_IN_RECEIVABLES') {
-        toast({
-          title: "Aviso",
-          description: "Este relatório já consta em contas a receber.",
-        });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Erro ao enviar relatório para contas a receber.",
-          variant: "destructive"
-        });
-      }
-    });
-  };
-  
+
   return {
     handleViewReport,
     handleCloseReportWithDetails,
     handleEditPaymentDetails,
     handleReopenReport,
     handleDeleteReport,
-    handleSendToReceivables: handleSendToReceivablesWithCheck
+    handleSendToReceivables
   };
 }
