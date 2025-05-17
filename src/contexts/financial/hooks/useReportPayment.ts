@@ -50,7 +50,7 @@ export function useReportPayment() {
     }
   };
 
-  // Updated to match the expected signature in Financial.tsx
+  // Updated to match the expected signature in Financial.tsx - Changed return type to void
   const handleReopenReport = async (reportId: string): Promise<void> => {
     try {
       await reopenReport(reportId);

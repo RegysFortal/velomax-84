@@ -9,7 +9,23 @@ export function useReportDeletion() {
   const { deleteFinancialReport } = useFinancial();
   const { deleteReceivableAccount } = useReceivableAccounts();
 
-  const handleDeleteReport = async (reportId: string) => {
+  // Updated return type to Promise<void> for compatibility with Financial.tsx
+  const handleDeleteReport = async (reportId: string): Promise<void> => {
+    if (reportId) {
+      try {
+        // First delete the related receivable account
+        await deleteReceivableAccount(reportId);
+        
+        // Then delete the report
+        await deleteFinancialReport(reportId);
+      } catch (error) {
+        console.error("Erro ao excluir relatório:", error);
+      }
+    }
+  };
+
+  // Internal method with original return type for when boolean result is needed
+  const _handleDeleteReport = async (reportId: string): Promise<boolean> => {
     if (reportId) {
       try {
         // First delete the related receivable account
@@ -28,6 +44,7 @@ export function useReportDeletion() {
   };
 
   return {
-    handleDeleteReport
+    handleDeleteReport,
+    _handleDeleteReport
   };
 }
