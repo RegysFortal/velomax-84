@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,8 @@ export function ReportFilters({
   onCarrierChange,
   uniqueCarriers
 }: ReportFiltersProps) {
-  // Convert string dates to Date objects for the DatePicker
+  // Convertemos strings de data para objetos Date para o DatePicker
+  // Important: Usando toLocalDate para criar datas ao meio-dia para evitar problemas de fuso horário
   const [startDateObj, setStartDateObj] = useState<Date | undefined>(
     startDate ? toLocalDate(new Date(`${startDate}T12:00:00`)) : undefined
   );
@@ -42,7 +44,7 @@ export function ReportFilters({
     endDate ? toLocalDate(new Date(`${endDate}T12:00:00`)) : undefined
   );
   
-  // Update local date objects when props change
+  // Atualizamos os objetos de data locais quando as props mudam
   useEffect(() => {
     if (startDate) {
       setStartDateObj(toLocalDate(new Date(`${startDate}T12:00:00`)));
@@ -57,10 +59,11 @@ export function ReportFilters({
     }
   }, [startDate, endDate]);
   
-  // Handle date selection from DatePicker
+  // Tratamos a seleção de data do DatePicker
   const handleStartDateSelect = (date: Date | undefined) => {
     setStartDateObj(date);
     if (date) {
+      console.log('Selecionou data inicial:', date, 'Convertendo para ISO:', toISODateString(date));
       onStartDateChange(toISODateString(date));
     }
   };
@@ -68,6 +71,7 @@ export function ReportFilters({
   const handleEndDateSelect = (date: Date | undefined) => {
     setEndDateObj(date);
     if (date) {
+      console.log('Selecionou data final:', date, 'Convertendo para ISO:', toISODateString(date));
       onEndDateChange(toISODateString(date));
     }
   };

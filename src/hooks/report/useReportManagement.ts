@@ -80,6 +80,8 @@ export function useReportManagement() {
       const startDateObj = toLocalDate(startDate);
       const endDateObj = toLocalDate(endDate);
       
+      console.log('Filtrando clientes por período:', startDateObj, endDateObj);
+      
       // Set hours to ensure proper date comparison
       startDateObj.setHours(0, 0, 0, 0);
       endDateObj.setHours(23, 59, 59, 999);
@@ -126,6 +128,9 @@ export function useReportManagement() {
       const startLocalDate = toLocalDate(startDate);
       const endLocalDate = toLocalDate(endDate);
       
+      console.log('Gerando relatório - data inicial:', startLocalDate);
+      console.log('Gerando relatório - data final:', endLocalDate);
+      
       // Set hours for proper comparison
       startLocalDate.setHours(0, 0, 0, 0);
       endLocalDate.setHours(23, 59, 59, 999);
@@ -148,6 +153,8 @@ export function useReportManagement() {
         totalFreight: totalFreight,
         status: 'open', // Explicitly using the union type value
       };
+      
+      console.log('Dados do novo relatório:', newReport);
       
       const createdReport = await createReport(newReport);
       

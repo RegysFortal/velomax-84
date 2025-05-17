@@ -29,6 +29,22 @@ export function ReportFilters({
   onEndDateChange,
   onApplyFilters
 }: ReportFiltersProps = {}) {
+  console.log('ReportFilters rendering with dates:', startDate, endDate);
+  
+  const handleStartDateSelect = (date: Date | undefined) => {
+    console.log('Selecionou data inicial em ReportFilters:', date);
+    if (onStartDateChange) {
+      onStartDateChange(date);
+    }
+  };
+  
+  const handleEndDateSelect = (date: Date | undefined) => {
+    console.log('Selecionou data final em ReportFilters:', date);
+    if (onEndDateChange) {
+      onEndDateChange(date);
+    }
+  };
+  
   return (
     <div className="flex flex-wrap items-end gap-4">
       {onStartDateChange && (
@@ -36,7 +52,7 @@ export function ReportFilters({
           <Label htmlFor="start-date">Data Inicial</Label>
           <DatePicker
             date={startDate}
-            onSelect={onStartDateChange}
+            onSelect={handleStartDateSelect}
             placeholder="Selecionar data inicial"
           />
         </div>
@@ -47,7 +63,7 @@ export function ReportFilters({
           <Label htmlFor="end-date">Data Final</Label>
           <DatePicker
             date={endDate}
-            onSelect={onEndDateChange}
+            onSelect={handleEndDateSelect}
             placeholder="Selecionar data final"
           />
         </div>

@@ -47,6 +47,7 @@ export function ReportGenerationForm({
       return;
     }
     
+    console.log('Gerando relatório com datas:', startDate, endDate);
     await handleGenerateReport();
   };
 
@@ -76,13 +77,19 @@ export function ReportGenerationForm({
             <div className="flex gap-2">
               <DatePicker 
                 date={startDate} 
-                onSelect={setStartDate} 
+                onSelect={(date) => {
+                  console.log('Data inicial selecionada:', date);
+                  setStartDate(date);
+                }} 
                 placeholder={isGenerating ? "Carregando..." : "Data inicial"} 
                 allowTyping={true}
               />
               <DatePicker 
                 date={endDate} 
-                onSelect={setEndDate} 
+                onSelect={(date) => {
+                  console.log('Data final selecionada:', date);
+                  setEndDate(date);
+                }} 
                 placeholder={isGenerating ? "Carregando..." : "Data final"} 
                 allowTyping={true}
               />

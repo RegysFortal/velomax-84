@@ -55,6 +55,7 @@ export function DatePicker({
     if (formatted.length === 10) {
       const parsedDate = parseDateString(formatted)
       if (parsedDate && !isNaN(parsedDate.getTime())) {
+        console.log('Data digitada:', parsedDate);
         onSelect?.(parsedDate)
       }
     }
@@ -65,7 +66,11 @@ export function DatePicker({
     
     if (newDate) {
       // Use toLocalDate helper to create a date at noon in the local timezone
+      // This é essencial para evitar problemas com fuso horário
       const localDate = toLocalDate(newDate);
+      
+      console.log('Data selecionada no calendário:', newDate);
+      console.log('Data local ajustada:', localDate);
       
       onSelect?.(localDate)
       setInputValue(format(localDate, "dd/MM/yyyy", { locale: ptBR }))
