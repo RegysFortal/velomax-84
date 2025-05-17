@@ -63,7 +63,7 @@ export const ClosedReportsTable = ({
                 <TableHead>Método de Pagamento</TableHead>
                 <TableHead>Vencimento</TableHead>
                 <TableHead className="text-right">Valor Total</TableHead>
-                <TableHead className="text-right w-[150px]">Ações</TableHead>
+                <TableHead className="text-right w-[80px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,54 +98,51 @@ export const ClosedReportsTable = ({
                       </TableCell>
                       <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onViewReport(report.id)}
-                          >
-                            <FileText className="h-4 w-4" />
-                            <span className="sr-only">Ver</span>
-                          </Button>
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Ações</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56 bg-popover">
-                              <DropdownMenuItem onClick={() => onEditPaymentDetails(report)}>
-                                <CreditCard className="h-4 w-4 mr-2" />
-                                Editar detalhes de pagamento
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onReopenReport(report.id)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Reabrir
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onExportPDF(report)}>
-                                <FileDown className="h-4 w-4 mr-2" />
-                                Exportar PDF
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onExportExcel(report)}>
-                                <FileUp className="h-4 w-4 mr-2" />
-                                Exportar Excel
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onSendToReceivables(report)}>
-                                <Send className="h-4 w-4 mr-2" />
-                                Enviar para contas a receber
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => onDeleteReport(report.id)}
-                                className="text-red-500 hover:text-red-600 focus:text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Abrir menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56 bg-popover">
+                            <DropdownMenuItem onClick={() => onViewReport(report.id)}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Visualizar relatório
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onEditPaymentDetails(report)}>
+                              <CreditCard className="h-4 w-4 mr-2" />
+                              Editar detalhes de pagamento
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onReopenReport(report.id)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Reabrir
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onExportPDF(report)}>
+                              <FileDown className="h-4 w-4 mr-2" />
+                              Exportar PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onExportExcel(report)}>
+                              <FileUp className="h-4 w-4 mr-2" />
+                              Exportar Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onSendToReceivables(report)}>
+                              <Send className="h-4 w-4 mr-2" />
+                              Enviar para contas a receber
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => onDeleteReport(report.id)}
+                              className="text-red-500 hover:text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );
