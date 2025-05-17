@@ -60,9 +60,9 @@ export const ClosedReportsTable = ({
                 <TableHead>Cliente</TableHead>
                 <TableHead>Período</TableHead>
                 <TableHead>Entregas</TableHead>
-                <TableHead>Método de Pagamento</TableHead>
+                <TableHead>Método</TableHead>
                 <TableHead>Vencimento</TableHead>
-                <TableHead className="text-right">Valor Total</TableHead>
+                <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-right w-[80px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
