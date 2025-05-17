@@ -1,3 +1,4 @@
+
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFinancial } from '@/contexts/financial';
@@ -24,7 +25,7 @@ export function useReportPayment() {
     checkReceivableAccountExists 
   } = useReceivableAccounts();
 
-  // Modified to match the expected signature in Financial.tsx
+  // Updated to match the expected signature in Financial.tsx
   const handleCloseReportWithDetails = async (reportId: string, paymentMethod: string, dueDate: string): Promise<void> => {
     try {
       // First update the report details
@@ -34,7 +35,7 @@ export function useReportPayment() {
     }
   };
 
-  // Modified to match the expected signature in Financial.tsx
+  // Updated to match the expected signature in Financial.tsx
   const handleEditPaymentDetails = async (reportId: string, paymentMethod: string, dueDate: string): Promise<void> => {
     try {
       await updatePaymentDetails(reportId, paymentMethod, dueDate);
@@ -49,7 +50,7 @@ export function useReportPayment() {
     }
   };
 
-  // Modified to match the expected signature in Financial.tsx
+  // Updated to match the expected signature in Financial.tsx
   const handleReopenReport = async (reportId: string): Promise<void> => {
     try {
       await reopenReport(reportId);

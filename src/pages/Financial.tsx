@@ -57,7 +57,7 @@ const FinancialPage = () => {
         // Success is already handled inside the hook with toast
       })
       .catch(error => {
-        if (error.message === 'REPORT_ALREADY_IN_RECEIVABLES') {
+        if (error?.message === 'REPORT_ALREADY_IN_RECEIVABLES') {
           toast({
             title: "Aviso",
             description: "Este relatório já consta em contas a receber.",
@@ -113,12 +113,8 @@ const FinancialPage = () => {
         setReportToEdit={setReportToEdit}
         reportToDelete={reportToDelete}
         setReportToDelete={setReportToDelete}
-        onCloseReport={(id, method, date) => {
-          return handleCloseReportWithDetails(id, method, date);
-        }}
-        onEditPaymentDetails={(id, method, date) => {
-          return handleEditPaymentDetails(id, method, date);
-        }}
+        onCloseReport={handleCloseReportWithDetails}
+        onEditPaymentDetails={handleEditPaymentDetails}
         onDeleteReport={handleDeleteReport}
       />
     </div>

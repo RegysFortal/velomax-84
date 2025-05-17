@@ -1,7 +1,8 @@
+
 import { createContext, useContext, ReactNode } from 'react';
 import { FinancialContextType } from './types';
-// Remove the incorrect import
-// import { useFinancialOperations } from './useFinancialOperations';
+// Import from the stub file directly in the same directory
+import { useFinancialOperations } from './useFinancialOperations';
 import { useFetchFinancialReports } from './useFetchFinancialReports';
 import { useReportStatus } from './useReportStatus';
 import { useFinancialStorage } from './useFinancialStorage';
@@ -60,4 +61,3 @@ export const useFinancial = () => {
   }
   return context;
 };
-

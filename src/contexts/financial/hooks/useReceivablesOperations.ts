@@ -60,7 +60,7 @@ export function useReceivablesOperations() {
     }
   };
 
-  // Modified to return a Promise that can be caught
+  // Return a Promise that can be caught
   const handleSendToReceivables = async (report: FinancialReport): Promise<boolean> => {
     try {
       await createReceivableForReport(report);
