@@ -1,9 +1,13 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
-import 'jspdf-autotable'; // Import jspdf-autotable to extend jsPDF with autoTable
-import { createPDFReport, createExcelReport } from '@/utils/exportUtils';
+import 'jspdf-autotable';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Shipment } from '@/types';
+import { formatCurrency } from '@/lib/utils';
 
 // Add type augmentation for jsPDF to recognize autoTable
 declare module 'jspdf' {
@@ -12,7 +16,7 @@ declare module 'jspdf' {
   }
 }
 
-export const useReportActions = (data: any[]) => {
+export const useReportActions = (data: Shipment[]) => {
   const [loading, setLoading] = useState(false);
   
   const getCompanyInfo = () => {
@@ -29,51 +33,69 @@ export const useReportActions = (data: any[]) => {
     };
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
-
   const generatePDF = async () => {
     try {
       setLoading(true);
-      const doc = new jsPDF();
       
-      // Add title
-      doc.setFontSize(18);
-      doc.text("Relatório Financeiro", 105, 20, { align: 'center' });
-      
-      // Add date
-      doc.setFontSize(12);
-      doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 105, 30, { align: 'center' });
-      
-      // Add table headers
-      const headers = ["Cliente", "Valor", "Status"];
-      
-      // Add table data
-      const tableData = data.map(item => [
-        item.name || 'N/A',
-        formatCurrency(item.amount || 0),
-        item.status || 'N/A'
-      ]);
-      
-      // Add table to PDF using autoTable (imported via jspdf-autotable)
-      doc.autoTable({
-        head: [headers],
-        body: tableData,
-        startY: 40,
-        theme: 'grid'
+      // Create PDF document in landscape orientation for better table display
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
       });
       
-      // Generate filename that includes client name if available
-      // If this is a general report without client specific data, use "Financeiro"
-      const reportName = data[0]?.name ? `Relatório_${data[0].name}` : `Relatório_Financeiro`;
-      const fileName = `${reportName}.pdf`;
+      const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
+      const fileName = `embarques_${format(new Date(), 'dd-MM-yyyy')}`;
       
-      // Save PDF
-      doc.save(fileName);
+      // Add title centered
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text("RELATÓRIO DE EMBARQUES", 148.5, 20, { align: 'center' });
+      
+      // Add date on the left side
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Data: ${currentDate}`, 14, 30);
+      
+      // Create table headers and data
+      const headers = [
+        "Transportadora", 
+        "Cliente", 
+        "Conhecimento", 
+        "Volumes", 
+        "Peso (kg)",
+        "Observações"
+      ];
+      
+      const tableData = data.map(item => [
+        item.carrierName || 'N/A',
+        item.companyName || 'N/A',
+        item.trackingNumber || 'N/A',
+        item.packages.toString(),
+        item.weight.toString(),
+        (item.observations || '').slice(0, 50) + (item.observations && item.observations.length > 50 ? '...' : '')
+      ]);
+      
+      // Add table to PDF
+      doc.autoTable({
+        startY: 35,
+        head: [headers],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [80, 80, 80],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 2,
+        }
+      });
+      
+      // Save PDF with the correct filename
+      doc.save(`${fileName}.pdf`);
       
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
@@ -88,39 +110,63 @@ export const useReportActions = (data: any[]) => {
     try {
       setLoading(true);
       
-      // Create workbook
+      const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
+      const fileName = `embarques_${format(new Date(), 'dd-MM-yyyy')}`;
+      
+      // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
       
-      // Convert data to worksheet format
+      // Set up headers and formatting
       const wsData = [
-        ["Relatório Financeiro"],
-        [`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`],
+        ["RELATÓRIO DE EMBARQUES"],
+        [`Data: ${currentDate}`],
         [],
-        ["Cliente", "Valor", "Status"]
+        ["Transportadora", "Cliente", "Conhecimento", "Volumes", "Peso (kg)", "Observações"]
       ];
       
       // Add data rows
       data.forEach(item => {
         wsData.push([
-          item.name || 'N/A',
-          item.amount || 0,
-          item.status || 'N/A'
+          item.carrierName || 'N/A',
+          item.companyName || 'N/A',
+          item.trackingNumber || 'N/A',
+          item.packages,
+          item.weight,
+          item.observations || ''
         ]);
       });
       
-      // Create worksheet from data
+      // Create worksheet
       const ws = XLSX.utils.aoa_to_sheet(wsData);
       
+      // Set column widths
+      const colWidths = [
+        { wch: 15 }, // Transportadora
+        { wch: 25 }, // Cliente
+        { wch: 15 }, // Conhecimento
+        { wch: 8 },  // Volumes
+        { wch: 10 }, // Peso
+        { wch: 30 }  // Observações
+      ];
+      
+      ws['!cols'] = colWidths;
+      
+      // Style the header (title and date)
+      ws.A1.s = { font: { bold: true, sz: 14 } };
+      ws.A2.s = { font: { sz: 10 } };
+      
+      // Add alignment to center the title
+      ws.A1.s = { ...ws.A1.s, alignment: { horizontal: 'center' } };
+      
+      // Create merged cell for title (across all columns)
+      if (!ws['!merges']) ws['!merges'] = [];
+      ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } });
+      
       // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+      XLSX.utils.book_append_sheet(wb, ws, "Embarques");
       
-      // Generate filename that includes client name if available
-      // If this is a general report without client specific data, use "Financeiro"
-      const reportName = data[0]?.name ? `Relatório_${data[0].name}` : `Relatório_Financeiro`;
-      const fileName = `${reportName}.xlsx`;
-      
-      // Save workbook
-      XLSX.writeFile(wb, fileName);
+      // Save Excel file
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
       
       toast.success("Excel gerado com sucesso!");
     } catch (error) {
