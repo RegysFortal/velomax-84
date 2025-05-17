@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FileText, MoreHorizontal, CreditCard, Edit, FileDown, FileUp, Trash2, Send } from 'lucide-react';
@@ -52,8 +51,8 @@ export const ClosedReportsTable = ({
 
   return (
     <div className="border rounded-md overflow-hidden">
-      <ScrollArea className="h-[calc(100vh-350px)]" type="always">
-        <div className="min-w-[1200px]">
+      <ScrollArea className="h-[calc(100vh-350px)] overflow-x-auto" type="always">
+        <div className="w-full min-w-[900px]">
           <Table>
             <TableHeader>
               <TableRow>
