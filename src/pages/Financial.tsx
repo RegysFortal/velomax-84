@@ -1,4 +1,3 @@
-
 import { Logo } from '@/components/ui/logo';
 import { useFinancial } from '@/contexts/financial';
 import { useFinancialPageState } from '@/hooks/financial/useFinancialPageState';
