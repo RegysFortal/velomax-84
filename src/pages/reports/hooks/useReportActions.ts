@@ -46,7 +46,8 @@ export const useReportActions = (data: Shipment[]) => {
       
       // Format current date
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
-      const fileName = `embarques_${format(new Date(), 'dd-MM-yyyy')}`;
+      // Filename with first letter capitalized
+      const fileName = `Embarques_${format(new Date(), 'dd-MM')}`;
       
       // Add company information
       const companyInfo = getCompanyInfo();
@@ -119,7 +120,8 @@ export const useReportActions = (data: Shipment[]) => {
       setLoading(true);
       
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
-      const fileName = `embarques_${format(new Date(), 'dd-MM-yyyy')}`;
+      // Filename with first letter capitalized
+      const fileName = `Embarques_${format(new Date(), 'dd-MM')}`;
       
       // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
@@ -138,8 +140,8 @@ export const useReportActions = (data: Shipment[]) => {
           item.carrierName || 'N/A',
           item.companyName || 'N/A',
           item.trackingNumber || 'N/A',
-          item.packages.toString(), // Convert number to string
-          item.weight.toString(),   // Convert number to string
+          item.packages.toString(), 
+          item.weight.toString(),
           item.observations || ''
         ]);
       });
