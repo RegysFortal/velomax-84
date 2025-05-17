@@ -1,28 +1,20 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import React from 'react';
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { TransportMode } from "@/types/shipment";
 
 interface TransportSectionProps {
-  transportMode: "air" | "road";
-  setTransportMode: (mode: "air" | "road") => void;
+  transportMode: TransportMode;
+  setTransportMode: (mode: TransportMode) => void;
   carrierName: string;
   setCarrierName: (name: string) => void;
   trackingNumber: string;
   setTrackingNumber: (number: string) => void;
   disabled?: boolean;
 }
-
-// Define carrier options by type - moved outside component to prevent recreation
-const AIR_CARRIERS = ["Latam", "Gol", "Azul", "outro"];
-const ROAD_CARRIERS = ["Concept", "Jem", "Global", "outro"];
 
 export function TransportSection({
   transportMode,
@@ -33,145 +25,49 @@ export function TransportSection({
   setTrackingNumber,
   disabled
 }: TransportSectionProps) {
-  // Use lazy initial state to prevent recalculation on every render
-  const [selectedCarrier, setSelectedCarrier] = useState<string>(() => {
-    if (carrierName && 
-      ((transportMode === "air" && AIR_CARRIERS.includes(carrierName)) || 
-      (transportMode === "road" && ROAD_CARRIERS.includes(carrierName)))) {
-      return carrierName;
-    }
-    return "outro";
-  });
-  
-  const [customCarrierName, setCustomCarrierName] = useState<string>(() => 
-    selectedCarrier === "outro" ? carrierName : ""
-  );
-
-  // Memoize current carriers to prevent recreation on every render
-  const currentCarriers = useMemo(() => 
-    transportMode === "air" ? AIR_CARRIERS : ROAD_CARRIERS, 
-    [transportMode]
-  );
-
-  // Handle transport mode changes - memoized to prevent re-creation
-  const handleTransportModeChange = useCallback((value: string) => {
-    // Use requestAnimationFrame to prevent UI blocking
-    window.requestAnimationFrame(() => {
-      setTransportMode(value as "air" | "road");
-    });
-  }, [setTransportMode]);
-  
-  // Update state when transport mode changes - using useEffect with proper dependencies
-  useEffect(() => {
-    if (!carrierName) {
-      // If no carrier name, select the first one from the list
-      setSelectedCarrier(currentCarriers[0]);
-      setCarrierName(currentCarriers[0]);
-      setCustomCarrierName("");
-      return;
-    }
-    
-    if (currentCarriers.includes(carrierName)) {
-      setSelectedCarrier(carrierName);
-      setCustomCarrierName("");
-    } else {
-      setSelectedCarrier("outro");
-      setCustomCarrierName(carrierName);
-    }
-  }, [transportMode, carrierName, setCarrierName, currentCarriers]);
-
-  // Update carrier name when selection changes - memoized with requestAnimationFrame
-  const handleCarrierChange = useCallback((value: string) => {
-    setSelectedCarrier(value);
-    
-    // Use requestAnimationFrame to prevent UI freeze during selection
-    window.requestAnimationFrame(() => {
-      if (value !== "outro") {
-        setCarrierName(value);
-        setCustomCarrierName("");
-      } else if (customCarrierName) {
-        // Only update if we have a custom carrier name
-        setCarrierName(customCarrierName);
-      }
-    });
-  }, [customCarrierName, setCarrierName]);
-
-  // Update carrier name when user types a custom carrier name - memoized
-  const handleCustomCarrierChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCustomCarrierName(value);
-    
-    // Use requestAnimationFrame to prevent UI freeze during typing
-    window.requestAnimationFrame(() => {
-      setCarrierName(value);
-    });
-  }, [setCarrierName]);
-
-  // Track tracking number change - memoized
-  const handleTrackingNumberChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Use requestAnimationFrame to prevent UI freeze during typing
-    window.requestAnimationFrame(() => {
-      setTrackingNumber(e.target.value);
-    });
-  }, [setTrackingNumber]);
-
   return (
     <div className="space-y-4">
-      <FormField id="transportMode" label="Modo de Transporte" required>
-        <Select 
-          value={transportMode} 
-          onValueChange={handleTransportModeChange} 
-          disabled={disabled}
-        >
-          <SelectTrigger id="transportMode">
-            <SelectValue placeholder="Selecione o tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="air">Aéreo</SelectItem>
-            <SelectItem value="road">Rodoviário</SelectItem>
-          </SelectContent>
-        </Select>
-      </FormField>
-
-      <FormField id="carrierName" label="Transportadora" required>
-        <div className="space-y-2">
-          <Select 
-            value={selectedCarrier} 
-            onValueChange={handleCarrierChange}
+      <div className="space-y-2">
+        <FormField id="transportMode" label="Tipo de Transporte">
+          <RadioGroup
+            value={transportMode}
+            onValueChange={(value) => setTransportMode(value as TransportMode)}
             disabled={disabled}
+            className="flex space-x-4"
           >
-            <SelectTrigger id="carrierSelect">
-              <SelectValue placeholder="Selecione a transportadora" />
-            </SelectTrigger>
-            <SelectContent>
-              {currentCarriers.map(carrier => (
-                <SelectItem key={carrier} value={carrier}>
-                  {carrier === "outro" ? "Outro" : carrier}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          {selectedCarrier === "outro" && (
-            <Input
-              id="customCarrierName"
-              value={customCarrierName}
-              onChange={handleCustomCarrierChange}
-              placeholder="Digite o nome da transportadora"
-              disabled={disabled}
-            />
-          )}
-        </div>
-      </FormField>
-
-      <FormField id="trackingNumber" label="Conhecimento" required>
-        <Input 
-          id="trackingNumber" 
-          value={trackingNumber} 
-          onChange={handleTrackingNumberChange}
-          disabled={disabled}
-        />
-      </FormField>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="air" id="air" />
+              <Label htmlFor="air">Aéreo</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="road" id="road" />
+              <Label htmlFor="road">Rodoviário</Label>
+            </div>
+          </RadioGroup>
+        </FormField>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField id="carrierName" label="Transportadora">
+          <Input
+            id="carrierName"
+            value={carrierName}
+            onChange={(e) => setCarrierName(e.target.value)}
+            placeholder="Nome da transportadora"
+            disabled={disabled}
+          />
+        </FormField>
+        
+        <FormField id="trackingNumber" label="Conhecimento">
+          <Input
+            id="trackingNumber"
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="Número do conhecimento"
+            disabled={disabled}
+          />
+        </FormField>
+      </div>
     </div>
   );
 }

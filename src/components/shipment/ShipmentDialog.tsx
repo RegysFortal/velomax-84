@@ -59,56 +59,7 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
     }
   }, [open]);
   
-  // Memoize functions to prevent unnecessary re-renders
-  const setTransportModeMemo = useCallback((mode: TransportMode) => {
-    // Use requestAnimationFrame to prevent UI blocking
-    window.requestAnimationFrame(() => {
-      setTransportMode(mode);
-    });
-  }, []);
-  
-  const setCarrierNameMemo = useCallback((name: string) => {
-    // Use requestAnimationFrame to prevent UI blocking
-    window.requestAnimationFrame(() => {
-      setCarrierName(name);
-    });
-  }, []);
-  
-  // If checkDuplicateTrackingNumber doesn't exist in the context, provide a fallback
-  const checkDuplicateNumber = checkDuplicateTrackingNumber || ((number: string) => {
-    console.log("Checking for duplicate tracking number:", number);
-    return false; // Default implementation returns false
-  });
-  
-  const { 
-    showDuplicateAlert,
-    setShowDuplicateAlert,
-    handleSubmit,
-    handleConfirmDuplicate 
-  } = useShipmentFormSubmit({
-    companyId,
-    companyName,
-    transportMode,
-    carrierName,
-    trackingNumber,
-    packages,
-    weight,
-    arrivalFlight,
-    arrivalDate,
-    observations,
-    status,
-    retentionReason,
-    retentionAmount,
-    paymentDate,
-    releaseDate,
-    actionNumber,
-    fiscalNotes,
-    clients,
-    addShipment,
-    checkDuplicateTrackingNumber: checkDuplicateNumber,
-    closeDialog: () => onOpenChange(false)
-  });
-  
+  // Create page to display shipments
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -127,9 +78,9 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                   setCompanyId={setCompanyId}
                   setCompanyName={setCompanyName}
                   transportMode={transportMode}
-                  setTransportMode={setTransportModeMemo}
+                  setTransportMode={setTransportMode}
                   carrierName={carrierName}
-                  setCarrierName={setCarrierNameMemo}
+                  setCarrierName={setCarrierName}
                   trackingNumber={trackingNumber}
                   setTrackingNumber={setTrackingNumber}
                   packages={packages}
@@ -157,7 +108,35 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                   fiscalNotes={fiscalNotes}
                   setFiscalNotes={setFiscalNotes}
                   clients={clients}
-                  onSubmit={handleSubmit}
+                  onSubmit={() => {
+                    const { 
+                      handleSubmit, 
+                      handleConfirmDuplicate 
+                    } = useShipmentFormSubmit({
+                      companyId,
+                      companyName,
+                      transportMode,
+                      carrierName,
+                      trackingNumber,
+                      packages,
+                      weight,
+                      arrivalFlight,
+                      arrivalDate,
+                      observations,
+                      status,
+                      retentionReason,
+                      retentionAmount,
+                      paymentDate,
+                      releaseDate,
+                      actionNumber,
+                      fiscalNotes,
+                      clients,
+                      addShipment,
+                      checkDuplicateTrackingNumber,
+                      closeDialog: () => onOpenChange(false)
+                    });
+                    handleSubmit();
+                  }}
                   onCancel={() => onOpenChange(false)}
                 />
               </div>
@@ -167,9 +146,75 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       </Dialog>
       
       <DuplicateTrackingAlert
-        open={showDuplicateAlert}
-        onOpenChange={setShowDuplicateAlert}
-        onConfirm={handleConfirmDuplicate}
+        open={useShipmentFormSubmit({
+          companyId,
+          companyName,
+          transportMode,
+          carrierName,
+          trackingNumber,
+          packages,
+          weight,
+          arrivalFlight,
+          arrivalDate,
+          observations,
+          status,
+          retentionReason,
+          retentionAmount,
+          paymentDate,
+          releaseDate,
+          actionNumber,
+          fiscalNotes,
+          clients,
+          addShipment,
+          checkDuplicateTrackingNumber,
+          closeDialog: () => onOpenChange(false)
+        }).showDuplicateAlert}
+        onOpenChange={useShipmentFormSubmit({
+          companyId,
+          companyName,
+          transportMode,
+          carrierName,
+          trackingNumber,
+          packages,
+          weight,
+          arrivalFlight,
+          arrivalDate,
+          observations,
+          status,
+          retentionReason,
+          retentionAmount,
+          paymentDate,
+          releaseDate,
+          actionNumber,
+          fiscalNotes,
+          clients,
+          addShipment,
+          checkDuplicateTrackingNumber,
+          closeDialog: () => onOpenChange(false)
+        }).setShowDuplicateAlert}
+        onConfirm={useShipmentFormSubmit({
+          companyId,
+          companyName,
+          transportMode,
+          carrierName,
+          trackingNumber,
+          packages,
+          weight,
+          arrivalFlight,
+          arrivalDate,
+          observations,
+          status,
+          retentionReason,
+          retentionAmount,
+          paymentDate,
+          releaseDate,
+          actionNumber,
+          fiscalNotes,
+          clients,
+          addShipment,
+          checkDuplicateTrackingNumber,
+          closeDialog: () => onOpenChange(false)
+        }).handleConfirmDuplicate}
         trackingNumber={trackingNumber}
       />
     </>
