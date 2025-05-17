@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Edit, FileText, FileDown, FileUp, Trash2, CreditCard, Send, MoreHorizontal } from 'lucide-react';
+import { FileText, MoreHorizontal, CreditCard, Edit, FileDown, FileUp, Trash2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -115,7 +115,7 @@ export const ClosedReportsTable = ({
                                 <span className="sr-only">Ações</span>
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuContent align="end" className="w-56 bg-popover">
                               <DropdownMenuItem onClick={() => onEditPaymentDetails(report)}>
                                 <CreditCard className="h-4 w-4 mr-2" />
                                 Editar detalhes de pagamento
