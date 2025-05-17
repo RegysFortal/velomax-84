@@ -1,21 +1,12 @@
 
-import React, { useState, useCallback, useEffect } from "react";
+import React from "react";
 import { useClients } from "@/contexts/clients";
-import { useShipments } from "@/contexts/shipments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ShipmentFormContent } from "./ShipmentFormContent";
-import { ShipmentStatus, TransportMode } from "@/types/shipment";
 import { DuplicateTrackingAlert } from "./DuplicateTrackingAlert";
-import { useShipmentFormSubmit } from "./hooks/useShipmentFormSubmit";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-// Loading state component
-const FormLoadingState = () => (
-  <div className="flex flex-col items-center justify-center py-8">
-    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-    <p className="mt-4 text-sm text-muted-foreground">Carregando formulário...</p>
-  </div>
-);
+import { FormLoadingState } from "./components/FormLoadingState";
+import { useShipmentDialogState } from "./hooks/useShipmentDialogState";
 
 interface ShipmentDialogProps {
   open: boolean;
@@ -24,70 +15,12 @@ interface ShipmentDialogProps {
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const { clients } = useClients();
-  const { addShipment, checkDuplicateTrackingNumber } = useShipments();
-  const [isFormReady, setIsFormReady] = useState(false);
   
-  // Form state - using lazy initialization where appropriate
-  const [companyId, setCompanyId] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [transportMode, setTransportMode] = useState<TransportMode>("air");
-  const [carrierName, setCarrierName] = useState("");
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [packages, setPackages] = useState("");
-  const [weight, setWeight] = useState("");
-  const [arrivalFlight, setArrivalFlight] = useState("");
-  const [arrivalDate, setArrivalDate] = useState("");
-  const [observations, setObservations] = useState("");
-  const [status, setStatus] = useState<ShipmentStatus>("in_transit");
-  
-  // Retention data
-  const [retentionReason, setRetentionReason] = useState("");
-  const [retentionAmount, setRetentionAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
-  const [actionNumber, setActionNumber] = useState("");
-  const [releaseDate, setReleaseDate] = useState("");
-  const [fiscalNotes, setFiscalNotes] = useState("");
-  
-  // Initialize form submission hook properly
-  const { 
-    showDuplicateAlert,
-    setShowDuplicateAlert,
-    handleSubmit,
-    handleConfirmDuplicate
-  } = useShipmentFormSubmit({
-    companyId,
-    companyName,
-    transportMode,
-    carrierName,
-    trackingNumber,
-    packages,
-    weight,
-    arrivalFlight,
-    arrivalDate,
-    observations,
-    status,
-    retentionReason,
-    retentionAmount,
-    paymentDate,
-    releaseDate,
-    actionNumber,
-    fiscalNotes,
+  const formState = useShipmentDialogState({
     clients,
-    addShipment,
-    checkDuplicateTrackingNumber,
-    closeDialog: () => onOpenChange(false)
+    onClose: () => onOpenChange(false),
+    open
   });
-  
-  // Delay form initialization to prevent UI freezing
-  useEffect(() => {
-    if (open) {
-      setIsFormReady(false);
-      const timer = setTimeout(() => {
-        setIsFormReady(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [open]);
   
   return (
     <>
@@ -98,46 +31,46 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
           </DialogHeader>
           
           <ScrollArea className="h-[calc(90vh-120px)] pr-4">
-            {!isFormReady ? (
+            {!formState.isFormReady ? (
               <FormLoadingState />
             ) : (
               <div className="px-1 py-2">
                 <ShipmentFormContent
-                  companyId={companyId}
-                  setCompanyId={setCompanyId}
-                  setCompanyName={setCompanyName}
-                  transportMode={transportMode}
-                  setTransportMode={setTransportMode}
-                  carrierName={carrierName}
-                  setCarrierName={setCarrierName}
-                  trackingNumber={trackingNumber}
-                  setTrackingNumber={setTrackingNumber}
-                  packages={packages}
-                  setPackages={setPackages}
-                  weight={weight}
-                  setWeight={setWeight}
-                  arrivalFlight={arrivalFlight}
-                  setArrivalFlight={setArrivalFlight}
-                  arrivalDate={arrivalDate}
-                  setArrivalDate={setArrivalDate}
-                  observations={observations}
-                  setObservations={setObservations}
-                  status={status}
-                  setStatus={setStatus}
-                  retentionReason={retentionReason}
-                  setRetentionReason={setRetentionReason}
-                  retentionAmount={retentionAmount}
-                  setRetentionAmount={setRetentionAmount}
-                  paymentDate={paymentDate}
-                  setPaymentDate={setPaymentDate}
-                  actionNumber={actionNumber}
-                  setActionNumber={setActionNumber}
-                  releaseDate={releaseDate}
-                  setReleaseDate={setReleaseDate}
-                  fiscalNotes={fiscalNotes}
-                  setFiscalNotes={setFiscalNotes}
+                  companyId={formState.companyId}
+                  setCompanyId={formState.setCompanyId}
+                  setCompanyName={formState.setCompanyName}
+                  transportMode={formState.transportMode}
+                  setTransportMode={formState.setTransportMode}
+                  carrierName={formState.carrierName}
+                  setCarrierName={formState.setCarrierName}
+                  trackingNumber={formState.trackingNumber}
+                  setTrackingNumber={formState.setTrackingNumber}
+                  packages={formState.packages}
+                  setPackages={formState.setPackages}
+                  weight={formState.weight}
+                  setWeight={formState.setWeight}
+                  arrivalFlight={formState.arrivalFlight}
+                  setArrivalFlight={formState.setArrivalFlight}
+                  arrivalDate={formState.arrivalDate}
+                  setArrivalDate={formState.setArrivalDate}
+                  observations={formState.observations}
+                  setObservations={formState.setObservations}
+                  status={formState.status}
+                  setStatus={formState.setStatus}
+                  retentionReason={formState.retentionReason}
+                  setRetentionReason={formState.setRetentionReason}
+                  retentionAmount={formState.retentionAmount}
+                  setRetentionAmount={formState.setRetentionAmount}
+                  paymentDate={formState.paymentDate}
+                  setPaymentDate={formState.setPaymentDate}
+                  actionNumber={formState.actionNumber}
+                  setActionNumber={formState.setActionNumber}
+                  releaseDate={formState.releaseDate}
+                  setReleaseDate={formState.setReleaseDate}
+                  fiscalNotes={formState.fiscalNotes}
+                  setFiscalNotes={formState.setFiscalNotes}
                   clients={clients}
-                  onSubmit={handleSubmit}
+                  onSubmit={formState.handleSubmit}
                   onCancel={() => onOpenChange(false)}
                 />
               </div>
@@ -147,10 +80,10 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
       </Dialog>
       
       <DuplicateTrackingAlert
-        open={showDuplicateAlert}
-        onOpenChange={setShowDuplicateAlert}
-        onConfirm={handleConfirmDuplicate}
-        trackingNumber={trackingNumber}
+        open={formState.showDuplicateAlert}
+        onOpenChange={formState.setShowDuplicateAlert}
+        onConfirm={formState.handleConfirmDuplicate}
+        trackingNumber={formState.trackingNumber}
       />
     </>
   );
