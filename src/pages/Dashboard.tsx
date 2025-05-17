@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { EventsCalendar } from '@/components/dashboard/EventsCalendar';
+import { DelayedShipmentsAlert } from '@/components/dashboard/DelayedShipmentsAlert';
 import { useShipments } from '@/contexts/shipments';
 import { useDeliveriesStorage } from '@/hooks/useDeliveriesStorage';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -37,6 +37,7 @@ const Dashboard = () => {
            createdDate <= (dateRange.to || new Date());
   });
   
+  // Filter data based on date range
   const filteredDeliveries = deliveries.filter(delivery => {
     const deliveryDate = new Date(delivery.deliveryDate);
     return deliveryDate >= (dateRange.from || new Date()) && 
@@ -82,6 +83,9 @@ const Dashboard = () => {
           Painel de controle principal
         </p>
       </div>
+      
+      {/* Alerta de embarques atrasados */}
+      <DelayedShipmentsAlert />
       
       <DateRangeFilter 
         dateRange={dateRange} 
