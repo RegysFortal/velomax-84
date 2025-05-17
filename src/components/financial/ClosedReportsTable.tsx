@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Edit, FileText, FileDown, FileUp, Trash2, CreditCard, Send } from 'lucide-react';
+import { Edit, FileText, FileDown, FileUp, Trash2, CreditCard, Send, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -14,6 +14,12 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FinancialReport } from '@/types';
 import { useClients } from '@/contexts';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ClosedReportsTableProps {
   reports: FinancialReport[];
@@ -57,7 +63,7 @@ export const ClosedReportsTable = ({
                 <TableHead>Método de Pagamento</TableHead>
                 <TableHead>Vencimento</TableHead>
                 <TableHead className="text-right">Valor Total</TableHead>
-                <TableHead className="text-right w-[350px]">Ações</TableHead>
+                <TableHead className="text-right w-[150px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -92,63 +98,53 @@ export const ClosedReportsTable = ({
                       </TableCell>
                       <TableCell className="text-right">{formatCurrency(report.totalFreight)}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onEditPaymentDetails(report)}
-                          >
-                            <CreditCard className="h-4 w-4 mr-1" />
-                            Editar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onReopenReport(report.id)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Reabrir
-                          </Button>
+                        <div className="flex justify-end gap-2">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => onViewReport(report.id)}
                           >
-                            <FileText className="h-4 w-4 mr-1" />
-                            Ver
+                            <FileText className="h-4 w-4" />
+                            <span className="sr-only">Ver</span>
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onExportPDF(report)}
-                          >
-                            <FileDown className="h-4 w-4 mr-1" />
-                            PDF
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onExportExcel(report)}
-                          >
-                            <FileUp className="h-4 w-4 mr-1" />
-                            Excel
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onSendToReceivables(report)}
-                          >
-                            <Send className="h-4 w-4 mr-1" />
-                            Contas a Receber
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => onDeleteReport(report.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Excluir
-                          </Button>
+                          
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Ações</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuItem onClick={() => onEditPaymentDetails(report)}>
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Editar detalhes de pagamento
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onReopenReport(report.id)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Reabrir
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onExportPDF(report)}>
+                                <FileDown className="h-4 w-4 mr-2" />
+                                Exportar PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onExportExcel(report)}>
+                                <FileUp className="h-4 w-4 mr-2" />
+                                Exportar Excel
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onSendToReceivables(report)}>
+                                <Send className="h-4 w-4 mr-2" />
+                                Enviar para contas a receber
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => onDeleteReport(report.id)}
+                                className="text-red-500 hover:text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </TableCell>
                     </TableRow>
