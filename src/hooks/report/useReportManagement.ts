@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FinancialReport } from '@/types';
 import { Delivery } from '@/types/delivery';
 import { createPDFReport, createExcelReport, getCompanyInfo } from '@/utils/printUtils';
+import { toLocalDate, toISODateString } from '@/utils/dateUtils';
 
 export function useReportManagement() {
   const location = useLocation();
@@ -75,8 +76,9 @@ export function useReportManagement() {
   // Filter clients with deliveries in the selected period
   useEffect(() => {
     if (startDate && endDate) {
-      const startDateObj = new Date(startDate);
-      const endDateObj = new Date(endDate);
+      // Use toLocalDate helper to ensure proper date comparison
+      const startDateObj = toLocalDate(startDate);
+      const endDateObj = toLocalDate(endDate);
       
       // Set hours to ensure proper date comparison
       startDateObj.setHours(0, 0, 0, 0);
@@ -121,10 +123,17 @@ export function useReportManagement() {
       setIsGenerating(true);
 
       // Filter deliveries for the selected client and date range
+      const startLocalDate = toLocalDate(startDate);
+      const endLocalDate = toLocalDate(endDate);
+      
+      // Set hours for proper comparison
+      startLocalDate.setHours(0, 0, 0, 0);
+      endLocalDate.setHours(23, 59, 59, 999);
+      
       const filteredDeliveries = deliveries.filter(delivery => {
         if (delivery.clientId !== selectedClient) return false;
         const deliveryDate = new Date(delivery.deliveryDate);
-        return deliveryDate >= startDate && deliveryDate <= endDate;
+        return deliveryDate >= startLocalDate && deliveryDate <= endLocalDate;
       });
 
       // Calculate total freight
@@ -133,8 +142,8 @@ export function useReportManagement() {
       // Create the report with explicitly typed status
       const newReport: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'> = {
         clientId: selectedClient,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+        startDate: toISODateString(startDate),
+        endDate: toISODateString(endDate),
         totalDeliveries: filteredDeliveries.length,
         totalFreight: totalFreight,
         status: 'open', // Explicitly using the union type value

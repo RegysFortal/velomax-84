@@ -78,11 +78,13 @@ export function ReportGenerationForm({
                 date={startDate} 
                 onSelect={setStartDate} 
                 placeholder={isGenerating ? "Carregando..." : "Data inicial"} 
+                allowTyping={true}
               />
               <DatePicker 
                 date={endDate} 
                 onSelect={setEndDate} 
                 placeholder={isGenerating ? "Carregando..." : "Data final"} 
+                allowTyping={true}
               />
             </div>
           </div>

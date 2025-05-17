@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from 'lucide-react';
 import { ShipmentStatus } from '@/types';
 import { DatePicker } from '@/components/ui/date-picker';
-import { format } from 'date-fns';
+import { toLocalDate, toISODateString } from '@/utils/dateUtils';
 
 interface ReportFiltersProps {
   startDate: string;
@@ -37,22 +36,22 @@ export function ReportFilters({
 }: ReportFiltersProps) {
   // Convert string dates to Date objects for the DatePicker
   const [startDateObj, setStartDateObj] = useState<Date | undefined>(
-    startDate ? new Date(`${startDate}T12:00:00`) : undefined
+    startDate ? toLocalDate(new Date(`${startDate}T12:00:00`)) : undefined
   );
   const [endDateObj, setEndDateObj] = useState<Date | undefined>(
-    endDate ? new Date(`${endDate}T12:00:00`) : undefined
+    endDate ? toLocalDate(new Date(`${endDate}T12:00:00`)) : undefined
   );
   
   // Update local date objects when props change
   useEffect(() => {
     if (startDate) {
-      setStartDateObj(new Date(`${startDate}T12:00:00`));
+      setStartDateObj(toLocalDate(new Date(`${startDate}T12:00:00`)));
     } else {
       setStartDateObj(undefined);
     }
     
     if (endDate) {
-      setEndDateObj(new Date(`${endDate}T12:00:00`));
+      setEndDateObj(toLocalDate(new Date(`${endDate}T12:00:00`)));
     } else {
       setEndDateObj(undefined);
     }
@@ -62,18 +61,14 @@ export function ReportFilters({
   const handleStartDateSelect = (date: Date | undefined) => {
     setStartDateObj(date);
     if (date) {
-      // Ensure noon to avoid timezone issues
-      date.setHours(12, 0, 0, 0);
-      onStartDateChange(format(date, 'yyyy-MM-dd'));
+      onStartDateChange(toISODateString(date));
     }
   };
   
   const handleEndDateSelect = (date: Date | undefined) => {
     setEndDateObj(date);
     if (date) {
-      // Ensure noon to avoid timezone issues
-      date.setHours(12, 0, 0, 0);
-      onEndDateChange(format(date, 'yyyy-MM-dd'));
+      onEndDateChange(toISODateString(date));
     }
   };
   

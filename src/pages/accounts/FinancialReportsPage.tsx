@@ -11,6 +11,7 @@ import { FileText } from 'lucide-react';
 import { useReportActions } from '../reports/hooks/useReportActions';
 import { ReportFilters } from './components/ReportFilters';
 import { DateRange } from 'react-day-picker';
+import { toLocalDate, toISODateString } from '@/utils/dateUtils';
 
 // Mock data for now
 import { mockPayableAccounts, mockReceivableAccounts } from './data/mockFinancialData';
@@ -25,13 +26,13 @@ export default function FinancialReportsPage() {
   
   const { generatePDF, exportToExcel } = useReportActions([]);
   
-  // Update this handler to match the DateRange interface
+  // Update this handler to use toISODateString for consistent date handling
   const handleDateRangeChange = (range: DateRange) => {
     if (range.from) {
-      setStartDate(format(range.from, 'yyyy-MM-dd'));
+      setStartDate(toISODateString(range.from));
     }
     if (range.to) {
-      setEndDate(format(range.to, 'yyyy-MM-dd'));
+      setEndDate(toISODateString(range.to));
     }
   };
   
@@ -127,8 +128,8 @@ export default function FinancialReportsPage() {
         <div className="flex gap-4">
           <DateRangeFilter
             dateRange={{
-              from: new Date(startDate),
-              to: new Date(endDate)
+              from: toLocalDate(new Date(startDate)),
+              to: toLocalDate(new Date(endDate))
             }}
             onDateRangeChange={handleDateRangeChange}
           />
