@@ -56,29 +56,31 @@ export const useReportStatus = (
     });
   };
 
-  const reopenReport = async (id: string) => {
-    console.log(`Reabrindo relatório com ID: ${id}`);
+  const reopenReport = async (id: string, newStatus: 'open' | 'closed' = 'open') => {
+    console.log(`Alterando status do relatório com ID: ${id} para ${newStatus}`);
     const reportToReopen = financialReports.find(report => report.id === id);
     
     if (!reportToReopen) {
       console.error(`Relatório com ID ${id} não encontrado.`);
       toast({
-        title: "Erro ao reabrir relatório",
+        title: "Erro ao alterar status do relatório",
         description: "Relatório não encontrado.",
         variant: "destructive"
       });
       return;
     }
     
-    await updateFinancialReport(id, { status: 'open' });
+    await updateFinancialReport(id, { status: newStatus });
     
-    console.log("Relatórios após reabertura:", 
+    console.log("Relatórios após mudança de status:", 
       financialReports.map(r => ({id: r.id, status: r.status}))
     );
     
+    const actionMessage = newStatus === 'open' ? "reaberto" : "retornado para fechados";
+    
     toast({
-      title: "Relatório reaberto",
-      description: `O relatório financeiro foi reaberto com sucesso.`,
+      title: `Relatório ${actionMessage}`,
+      description: `O relatório financeiro foi ${actionMessage} com sucesso.`,
     });
   };
 

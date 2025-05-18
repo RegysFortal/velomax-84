@@ -22,7 +22,7 @@ export interface FinancialContextType {
   getFinancialReport: (id: string) => FinancialReport | undefined;
   getReportsByStatus: (status: FinancialReport['status']) => FinancialReport[];
   closeReport: (id: string, paymentMethod?: string, dueDate?: string) => Promise<void>;
-  reopenReport: (id: string) => Promise<void>;
+  reopenReport: (id: string, newStatus?: 'open' | 'closed') => Promise<void>;
   archiveReport: (id: string) => Promise<void>;
   createReport: (report: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FinancialReport | null>;
   updatePaymentDetails: (id: string, paymentMethod: string | null, dueDate: string | null) => Promise<void>;

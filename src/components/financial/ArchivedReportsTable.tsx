@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
+import { DateFilter } from '@/components/dashboard/DateFilter';
 import { useState } from 'react';
 
 interface ArchivedReportsTableProps {
@@ -31,6 +32,7 @@ interface ArchivedReportsTableProps {
   onExportPDF: (report: FinancialReport) => void;
   onExportExcel: (report: FinancialReport) => void;
   getPaymentMethodLabel: (method?: string) => string;
+  onReturnToClosed: (reportId: string) => void;
   startDate: string;
   endDate: string;
   onStartDateChange: (date: string) => void;
@@ -45,6 +47,7 @@ export const ArchivedReportsTable = ({
   onExportPDF,
   onExportExcel,
   getPaymentMethodLabel,
+  onReturnToClosed,
   startDate,
   endDate,
   onStartDateChange,
@@ -52,30 +55,47 @@ export const ArchivedReportsTable = ({
 }: ArchivedReportsTableProps) => {
   const { clients = [] } = useClients();
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [dateFilter, setDateFilter] = useState<'day' | 'month' | 'year' | 'custom'>('month');
 
   // Filter reports by date range and search query
   const filteredReports = reports.filter((report) => {
     const client = clients.find(c => c.id === report.clientId);
     const clientName = client?.name?.toLowerCase() || '';
     const reportDate = new Date(report.createdAt || '');
+    const reportStartDate = new Date(report.startDate);
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
     
     const matchesSearch = clientName.includes(searchQuery.toLowerCase()) || 
                           report.id.toLowerCase().includes(searchQuery.toLowerCase());
                           
+    const matchesDateRange = reportStartDate >= startDateObj && 
+                            reportStartDate <= endDateObj;
+    
     // Always return true for empty search, otherwise check if matches
     const searchMatches = searchQuery === "" || matchesSearch;
+    const dateMatches = matchesDateRange;
 
-    return searchMatches;
+    return searchMatches && dateMatches;
   });
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <SearchWithMagnifier
           value={searchQuery}
           onChange={setSearchQuery}
           placeholder="Buscar por cliente..."
           className="max-w-sm"
+        />
+        
+        <DateFilter
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+          startDate={startDate}
+          endDate={endDate}
+          setStartDate={onStartDateChange}
+          setEndDate={onEndDateChange}
         />
       </div>
       
@@ -141,6 +161,10 @@ export const ArchivedReportsTable = ({
                               <DropdownMenuItem onClick={() => onViewReport(report.id)}>
                                 <FileText className="h-4 w-4 mr-2" />
                                 Visualizar relatório
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onReturnToClosed(report.id)}>
+                                <FileText className="h-4 w-4 mr-2" />
+                                Retornar para Fechados
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => onExportPDF(report)}>
                                 <FileText className="h-4 w-4 mr-2" />

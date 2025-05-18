@@ -11,7 +11,7 @@ import { useFinancial } from '@/contexts/financial';
 export function useFinancialOperations() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { archiveReport } = useFinancial();
+  const { archiveReport, reopenReport } = useFinancial();
   
   // Compose all the hooks
   const { handleViewReport } = useReportView();
@@ -41,6 +41,25 @@ export function useFinancialOperations() {
     }
   };
 
+  // Function to return an archived report back to closed status
+  const handleReturnToClosedReport = async (reportId: string) => {
+    try {
+      // Use the reopenReport function to change status from 'archived' to 'closed'
+      await reopenReport(reportId, 'closed');
+      toast({
+        title: "Relatório retornado",
+        description: "Relatório movido de volta para a seção de fechados com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao retornar relatório:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível retornar o relatório para fechados.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return {
     handleViewReport,
     handleCloseReportWithDetails,
@@ -48,6 +67,7 @@ export function useFinancialOperations() {
     handleReopenReport,
     handleDeleteReport,
     handleSendToReceivables,
-    handleArchiveReport
+    handleArchiveReport,
+    handleReturnToClosedReport
   };
 }

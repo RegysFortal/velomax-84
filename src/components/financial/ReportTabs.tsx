@@ -21,6 +21,7 @@ interface ReportTabsProps {
   onDeleteReport: (reportId: string) => void;
   onReopenReport: (reportId: string) => void;
   onArchiveReport: (reportId: string) => void;
+  onReturnToClosed: (reportId: string) => void;
   onExportPDF: (report: FinancialReport) => void;
   onExportExcel: (report: FinancialReport) => void;
   onEditPaymentDetails: (report: FinancialReport) => void;
@@ -45,6 +46,7 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({
   onDeleteReport,
   onReopenReport,
   onArchiveReport,
+  onReturnToClosed,
   onExportPDF,
   onExportExcel,
   onEditPaymentDetails,
@@ -100,6 +102,7 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({
             onExportPDF={onExportPDF}
             onExportExcel={onExportExcel}
             getPaymentMethodLabel={getPaymentMethodLabel}
+            onReturnToClosed={onReturnToClosed}
             startDate={startDate}
             endDate={endDate}
             onStartDateChange={onStartDateChange}

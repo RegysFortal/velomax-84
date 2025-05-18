@@ -43,7 +43,8 @@ const FinancialPage = () => {
     handleReopenReport,
     handleDeleteReport,
     handleSendToReceivables,
-    handleArchiveReport
+    handleArchiveReport,
+    handleReturnToClosedReport
   } = useFinancialOperations();
   
   // Utilidades para relatórios financeiros
@@ -108,6 +109,7 @@ const FinancialPage = () => {
         onDeleteReport={setReportToDelete}
         onReopenReport={handleReopenReport}
         onArchiveReport={handleArchiveReport}
+        onReturnToClosed={handleReturnToClosedReport}
         onExportPDF={handleExportPDF}
         onExportExcel={handleExportExcel}
         onEditPaymentDetails={setReportToEdit}
