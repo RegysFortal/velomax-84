@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { User } from '@/types';
@@ -84,7 +85,7 @@ export default function Employees() {
             }
           }}
         >
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle>{isCreating ? 'Novo Colaborador' : 'Editar Colaborador'}</DialogTitle>
               <DialogDescription>
@@ -93,13 +94,17 @@ export default function Employees() {
                   : 'Altere as informações do colaborador.'}
               </DialogDescription>
             </DialogHeader>
-            <EmployeeEditForm 
-              employee={selectedEmployee}
-              isCreating={isCreating}
-              onComplete={handleCloseDialog}
-              onSave={handleSaveEmployee}
-              isEmployeeForm={true}
-            />
+            <ScrollArea className="max-h-[calc(80vh-130px)]">
+              <div className="p-2">
+                <EmployeeEditForm 
+                  employee={selectedEmployee}
+                  isCreating={isCreating}
+                  onComplete={handleCloseDialog}
+                  onSave={handleSaveEmployee}
+                  isEmployeeForm={true}
+                />
+              </div>
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>

@@ -45,16 +45,20 @@ export function DateRangeSelector({
   const handleStartDateSelect = (date: Date | undefined) => {
     setStartDateObj(date);
     if (date) {
-      console.log('Selected start date:', date, 'Converting to ISO:', toISODateString(date));
-      onStartDateChange(toISODateString(date));
+      // Use our corrected toISODateString to avoid timezone issues
+      const isoDate = toISODateString(date);
+      console.log('Selected start date:', date, 'Converting to ISO:', isoDate);
+      onStartDateChange(isoDate);
     }
   };
   
   const handleEndDateSelect = (date: Date | undefined) => {
     setEndDateObj(date);
     if (date) {
-      console.log('Selected end date:', date, 'Converting to ISO:', toISODateString(date));
-      onEndDateChange(toISODateString(date));
+      // Use our corrected toISODateString to avoid timezone issues
+      const isoDate = toISODateString(date);
+      console.log('Selected end date:', date, 'Converting to ISO:', isoDate);
+      onEndDateChange(isoDate);
     }
   };
   
