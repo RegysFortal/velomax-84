@@ -1,7 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { DateRange } from 'react-day-picker';
 import { PayableAccount, ReceivableAccount } from '@/types';
 import { mockPayableAccounts, mockReceivableAccounts } from '../data/mockFinancialData';
 
@@ -12,24 +11,6 @@ export function useFinancialReportsState() {
   
   const [payableAccounts, setPayableAccounts] = useState<PayableAccount[]>(mockPayableAccounts);
   const [receivableAccounts, setReceivableAccounts] = useState<ReceivableAccount[]>(mockReceivableAccounts);
-
-  // Update this handler to manually format dates to avoid timezone issues
-  const handleDateRangeChange = (range: DateRange) => {
-    if (range.from) {
-      const from = range.from;
-      const year = from.getFullYear();
-      const month = String(from.getMonth() + 1).padStart(2, '0');
-      const day = String(from.getDate()).padStart(2, '0');
-      setStartDate(`${year}-${month}-${day}`);
-    }
-    if (range.to) {
-      const to = range.to;
-      const year = to.getFullYear();
-      const month = String(to.getMonth() + 1).padStart(2, '0');
-      const day = String(to.getDate()).padStart(2, '0');
-      setEndDate(`${year}-${month}-${day}`);
-    }
-  };
 
   // Filter accounts by date range
   const filteredPayables = payableAccounts.filter(account => {
@@ -56,7 +37,8 @@ export function useFinancialReportsState() {
     endDate,
     activeTab,
     setActiveTab,
-    handleDateRangeChange,
+    setStartDate,
+    setEndDate,
     filteredPayables,
     filteredReceivables,
     totalPayable,

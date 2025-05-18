@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
+import { DateFilter } from '@/components/dashboard/DateFilter';
 import { FileText } from 'lucide-react';
-import { DateRange } from 'react-day-picker';
-import { toLocalDate } from '@/utils/dateUtils';
+import { format } from 'date-fns';
 
 interface FinancialReportHeaderProps {
   startDate: string;
   endDate: string;
-  onDateRangeChange: (range: DateRange) => void;
+  onStartDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
   generatePDF: () => void;
   exportToExcel: () => void;
 }
@@ -17,36 +17,50 @@ interface FinancialReportHeaderProps {
 export function FinancialReportHeader({
   startDate,
   endDate,
-  onDateRangeChange,
+  onStartDateChange,
+  onEndDateChange,
   generatePDF,
   exportToExcel
 }: FinancialReportHeaderProps) {
+  // State for date filter mode
+  const [dateFilter, setDateFilter] = React.useState<'day' | 'month' | 'year' | 'custom'>('month');
+
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Relatórios Financeiros</h1>
-        <p className="text-muted-foreground">
-          Análise de receitas e despesas
-        </p>
-      </div>
-      <div className="flex gap-4">
-        <DateRangeFilter
-          dateRange={{
-            from: toLocalDate(new Date(startDate)),
-            to: toLocalDate(new Date(endDate))
-          }}
-          onDateRangeChange={onDateRangeChange}
-        />
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={generatePDF}>
+    <div className="flex flex-col space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Relatórios Financeiros</h1>
+          <p className="text-muted-foreground">
+            Análise de receitas e despesas
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={generatePDF}
+          >
             <FileText className="mr-2 h-4 w-4" />
             Exportar PDF
           </Button>
-          <Button variant="outline" onClick={exportToExcel}>
+          <Button 
+            variant="outline" 
+            onClick={exportToExcel}
+          >
             <FileText className="mr-2 h-4 w-4" />
             Exportar Excel
           </Button>
         </div>
+      </div>
+
+      <div className="bg-card rounded-md border p-4">
+        <DateFilter
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+          startDate={startDate}
+          setStartDate={onStartDateChange}
+          endDate={endDate}
+          setEndDate={onEndDateChange}
+        />
       </div>
     </div>
   );

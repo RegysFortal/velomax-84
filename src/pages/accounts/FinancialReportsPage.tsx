@@ -15,7 +15,8 @@ export default function FinancialReportsPage() {
     endDate,
     activeTab,
     setActiveTab,
-    handleDateRangeChange,
+    setStartDate,
+    setEndDate,
     filteredPayables,
     filteredReceivables,
     totalPayable,
@@ -45,7 +46,8 @@ export default function FinancialReportsPage() {
       <FinancialReportHeader 
         startDate={startDate}
         endDate={endDate}
-        onDateRangeChange={handleDateRangeChange}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
         generatePDF={generatePDF}
         exportToExcel={exportToExcel}
       />
