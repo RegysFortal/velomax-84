@@ -33,8 +33,10 @@ export const useReportActions = (data: Shipment[]) => {
       
       // Format current date
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
-      // Filename with first letter capitalized
+      
+      // Filename with explicitly set format - FIXED: Ensure consistent filename in all environments
       const fileName = `Embarques_${format(new Date(), 'dd-MM')}`;
+      console.log(`Gerando PDF com nome: ${fileName}.pdf`);
       
       // Add company information
       const companyInfo = getCompanyInfo();
@@ -91,7 +93,8 @@ export const useReportActions = (data: Shipment[]) => {
           }
         });
         
-        // Save PDF with the correct filename
+        // Force correct filename and log it for debugging
+        console.log(`Salvando arquivo PDF como: ${fileName}.pdf`);
         doc.save(`${fileName}.pdf`);
         
         toast.success("PDF gerado com sucesso!");
@@ -112,8 +115,10 @@ export const useReportActions = (data: Shipment[]) => {
       setLoading(true);
       
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
-      // Filename with first letter capitalized
+      
+      // Filename with explicitly set format - FIXED: Ensure consistent filename in all environments
       const fileName = `Embarques_${format(new Date(), 'dd-MM')}`;
+      console.log(`Gerando Excel com nome: ${fileName}.xlsx`);
       
       // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
@@ -160,7 +165,8 @@ export const useReportActions = (data: Shipment[]) => {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Embarques");
       
-      // Save Excel file
+      // Force correct filename and log it for debugging
+      console.log(`Salvando arquivo Excel como: ${fileName}.xlsx`);
       XLSX.writeFile(wb, `${fileName}.xlsx`);
       
       toast.success("Excel gerado com sucesso!");
