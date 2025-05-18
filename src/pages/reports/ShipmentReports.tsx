@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -13,31 +12,18 @@ import { useShipments } from '@/contexts/shipments';
 import { useReportActions } from './hooks/useReportActions';
 import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
 import { Shipment, ShipmentStatus } from '@/types';
-import { useShipmentFiltering } from './hooks/useShipmentFiltering';
+import { ptBR } from 'date-fns/locale';
 
 export default function ShipmentReports() {
-  // Filter state
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [filterStatus, setFilterStatus] = useState<ShipmentStatus | 'all'>('all');
   const [filterCarrier, setFilterCarrier] = useState('all');
   const [filterMode, setFilterMode] = useState<'air' | 'road' | 'all'>('all');
-  
-  // UI state
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const { shipments, loading, refreshShipmentsData } = useShipments();
-  
-  // Use our new hook for filtering shipments
-  const { filteredShipments } = useShipmentFiltering(
-    shipments,
-    startDate,
-    endDate,
-    filterStatus,
-    filterCarrier,
-    filterMode
-  );
   
   // Make sure to refresh shipment data when the component mounts
   useEffect(() => {
@@ -49,6 +35,50 @@ export default function ShipmentReports() {
   useEffect(() => {
     console.log(`ShipmentReports - Received ${shipments.length} shipments`);
   }, [shipments]);
+  
+  const filteredShipments = shipments.filter(shipment => {
+    // Debug logging to check filters
+    console.log(`Filtering shipment ${shipment.trackingNumber}, status: ${shipment.status}, carrier: ${shipment.carrierName}, mode: ${shipment.transportMode}`);
+    
+    // Validate that dates are valid before comparing
+    let startDateObj = new Date(startDate);
+    let endDateObj = new Date(endDate);
+    
+    // Configure endDateObj to end of day
+    endDateObj.setHours(23, 59, 59, 999);
+    
+    const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
+    
+    // If there's no arrival date, include the shipment anyway
+    const matchesDateRange = !shipmentDate || 
+      (shipmentDate >= startDateObj && 
+       shipmentDate <= endDateObj);
+    
+    const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
+    
+    const matchesCarrier = filterCarrier === 'all' || 
+      (shipment.carrierName && shipment.carrierName.toLowerCase() === filterCarrier.toLowerCase());
+      
+    const matchesMode = filterMode === 'all' || shipment.transportMode === filterMode;
+    
+    const isMatched = matchesDateRange && matchesStatus && matchesCarrier && matchesMode;
+    
+    // Debug which filters are failing
+    if (!isMatched) {
+      console.log(`Shipment ${shipment.trackingNumber} filtered out: ` +
+        `dateRange: ${matchesDateRange}, ` + 
+        `status: ${matchesStatus}, ` + 
+        `carrier: ${matchesCarrier}, ` + 
+        `mode: ${matchesMode}`);
+    }
+    
+    return isMatched;
+  });
+  
+  // For debugging - log the filtered shipments
+  useEffect(() => {
+    console.log(`Filtered shipments count: ${filteredShipments.length}`);
+  }, [filteredShipments.length]);
 
   // Extract unique carriers from shipments
   const uniqueCarriers = Array.from(new Set(shipments.map(s => s.carrierName).filter(Boolean)));
