@@ -18,22 +18,18 @@ export const toLocalDate = (date: Date): Date => {
 
 /**
  * Convert a Date to ISO date string (YYYY-MM-DD) without timezone issues
- * Esta função foi corrigida para garantir que a data YYYY-MM-DD seja exata
- * baseada na data local, sem ser afetada pelo fuso horário UTC.
+ * Fixed to ensure the correct date is used regardless of timezone
  */
 export const toISODateString = (date: Date): string => {
   if (!date) return '';
   
-  // Ensure we're using a local date at noon
-  const localDate = toLocalDate(date);
+  // Ensure we're using the date as-is without timezone adjustments
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   
-  // Create a correct date string by manually extracting year, month, day
-  // Usar getUTCFullYear() e getUTCMonth() poderia causar o bug de dia errado
-  const year = localDate.getFullYear();
-  const month = String(localDate.getMonth() + 1).padStart(2, '0');
-  const day = String(localDate.getDate()).padStart(2, '0');
-  
-  console.log(`Data convertida: ${year}-${month}-${day} (Original: ${date.toString()}, Local: ${localDate.toString()})`);
+  console.log(`Original date: ${date.toString()}`);
+  console.log(`Converted to: ${year}-${month}-${day}`);
   
   return `${year}-${month}-${day}`;
 };

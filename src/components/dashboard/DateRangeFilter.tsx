@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/popover";
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { parseDateString, formatPartialDateString, toLocalDate } from "@/utils/dateUtils";
+import { parseDateString, formatPartialDateString } from "@/utils/dateUtils";
 
 interface DateRangeFilterProps {
   dateRange: DateRange;
@@ -96,10 +96,20 @@ export const DateRangeFilter = ({
   // Calendar selection handler
   const handleCalendarSelect = (range: DateRange | undefined) => {
     if (range) {
-      // Fix timezone issues by using our toLocalDate helper
+      // Fix timezone issues by creating exact date copies with noon time
       const adjustedRange: DateRange = {
-        from: range.from ? toLocalDate(range.from) : undefined,
-        to: range.to ? toLocalDate(range.to) : undefined
+        from: range.from ? new Date(
+          range.from.getFullYear(), 
+          range.from.getMonth(), 
+          range.from.getDate(), 
+          12, 0, 0
+        ) : undefined,
+        to: range.to ? new Date(
+          range.to.getFullYear(), 
+          range.to.getMonth(), 
+          range.to.getDate(), 
+          12, 0, 0
+        ) : undefined
       };
       
       onDateRangeChange(adjustedRange);

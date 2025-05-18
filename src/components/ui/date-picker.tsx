@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
-import { parseDateString, formatPartialDateString, toLocalDate } from "@/utils/dateUtils"
+import { parseDateString, formatPartialDateString } from "@/utils/dateUtils"
 
 interface DatePickerProps {
   date?: Date
@@ -55,7 +55,7 @@ export function DatePicker({
     if (formatted.length === 10) {
       const parsedDate = parseDateString(formatted)
       if (parsedDate && !isNaN(parsedDate.getTime())) {
-        console.log('Data digitada:', parsedDate);
+        console.log('Date entered manually:', parsedDate);
         onSelect?.(parsedDate)
       }
     }
@@ -65,15 +65,21 @@ export function DatePicker({
     setOpen(false)
     
     if (newDate) {
-      // Use toLocalDate helper to create a date at noon in the local timezone
-      // This é essencial para evitar problemas com fuso horário
-      const localDate = toLocalDate(newDate);
+      console.log('Date selected from calendar before conversion:', newDate);
       
-      console.log('Data selecionada no calendário:', newDate);
-      console.log('Data local ajustada:', localDate);
+      // Create a new date using the exact values from the selected date
+      // This prevents timezone issues by ensuring we use the exact day, month, year
+      const exactDate = new Date(
+        newDate.getFullYear(),
+        newDate.getMonth(),
+        newDate.getDate(),
+        12, 0, 0
+      );
       
-      onSelect?.(localDate)
-      setInputValue(format(localDate, "dd/MM/yyyy", { locale: ptBR }))
+      console.log('Date after exact conversion:', exactDate);
+      
+      onSelect?.(exactDate)
+      setInputValue(format(exactDate, "dd/MM/yyyy", { locale: ptBR }))
     } else {
       onSelect?.(undefined)
       setInputValue("")

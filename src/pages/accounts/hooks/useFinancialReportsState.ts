@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { DateRange } from 'react-day-picker';
-import { toLocalDate, toISODateString } from '@/utils/dateUtils';
 import { PayableAccount, ReceivableAccount } from '@/types';
 import { mockPayableAccounts, mockReceivableAccounts } from '../data/mockFinancialData';
 
@@ -14,13 +13,21 @@ export function useFinancialReportsState() {
   const [payableAccounts, setPayableAccounts] = useState<PayableAccount[]>(mockPayableAccounts);
   const [receivableAccounts, setReceivableAccounts] = useState<ReceivableAccount[]>(mockReceivableAccounts);
 
-  // Update this handler to use toISODateString for consistent date handling
+  // Update this handler to manually format dates to avoid timezone issues
   const handleDateRangeChange = (range: DateRange) => {
     if (range.from) {
-      setStartDate(toISODateString(range.from));
+      const from = range.from;
+      const year = from.getFullYear();
+      const month = String(from.getMonth() + 1).padStart(2, '0');
+      const day = String(from.getDate()).padStart(2, '0');
+      setStartDate(`${year}-${month}-${day}`);
     }
     if (range.to) {
-      setEndDate(toISODateString(range.to));
+      const to = range.to;
+      const year = to.getFullYear();
+      const month = String(to.getMonth() + 1).padStart(2, '0');
+      const day = String(to.getDate()).padStart(2, '0');
+      setEndDate(`${year}-${month}-${day}`);
     }
   };
 
