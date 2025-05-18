@@ -21,7 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
-import { DateFilter } from '@/components/dashboard/DateFilter';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 
 interface ArchivedReportsTableProps {
@@ -55,7 +56,6 @@ export const ArchivedReportsTable = ({
 }: ArchivedReportsTableProps) => {
   const { clients = [] } = useClients();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [dateFilter, setDateFilter] = useState<'day' | 'month' | 'year' | 'custom'>('month');
 
   // Filter reports by date range and search query
   const filteredReports = reports.filter((report) => {
@@ -89,14 +89,29 @@ export const ArchivedReportsTable = ({
           className="max-w-sm"
         />
         
-        <DateFilter
-          dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
-          startDate={startDate}
-          endDate={endDate}
-          setStartDate={onStartDateChange}
-          setEndDate={onEndDateChange}
-        />
+        <div className="flex gap-2 items-center">
+          <div className="grid gap-1">
+            <Label htmlFor="startDate">Data inicial</Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => onStartDateChange(e.target.value)}
+              className="h-9 w-[130px]"
+            />
+          </div>
+          <span className="text-muted-foreground">até</span>
+          <div className="grid gap-1">
+            <Label htmlFor="endDate">Data final</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => onEndDateChange(e.target.value)}
+              className="h-9 w-[130px]"
+            />
+          </div>
+        </div>
       </div>
       
       <div className="border rounded-md overflow-hidden">
