@@ -5,6 +5,7 @@ import { useClients } from '@/contexts';
 import { useToast } from '@/hooks/use-toast';
 import { useReceivableAccounts } from '@/hooks/financial/useReceivableAccounts';
 import { FinancialReport } from '@/types';
+import { FIXED_CATEGORIES } from '@/hooks/financial/receivables/types';
 
 /**
  * Hook for handling receivables operations
@@ -33,7 +34,7 @@ export function useReceivablesOperations() {
         throw new Error('CLIENT_NOT_FOUND');
       }
       
-      // Create receivable account
+      // Create receivable account with proper UUID for freight category
       await createReceivableAccount({
         clientId: report.clientId,
         clientName: client.name,
@@ -41,7 +42,7 @@ export function useReceivablesOperations() {
         amount: report.totalFreight,
         dueDate: report.dueDate || format(new Date(), 'yyyy-MM-dd'),
         status: 'pending',
-        categoryId: 'fretes',
+        categoryId: FIXED_CATEGORIES.FREIGHT, // Use UUID instead of 'fretes' string
         categoryName: 'Fretes',
         reportId: report.id,
         paymentMethod: report.paymentMethod || 'boleto',
