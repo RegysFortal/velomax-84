@@ -70,8 +70,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/deliveries': { path: 'deliveries', level: 'view' },
         '/shipments': { path: 'shipments', level: 'view' },
         '/shipment-reports': { path: 'shipmentReports', level: 'view' },
-        '/financial': { path: 'financial', level: 'view' },
-        '/reports': { path: 'reports', level: 'view' },
+        '/financial': { path: 'financialDashboard', level: 'view' },  // Fixed - was 'financial' but should be more specific
+        '/reports': { path: 'financialReports', level: 'view' },      // Fixed - was 'reports' but should be more specific
         '/price-tables': { path: 'priceTables', level: 'view' },
         '/cities': { path: 'cities', level: 'view' },
         '/dashboard': { path: 'dashboard', level: 'view' },
@@ -82,12 +82,21 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/vehicles': { path: 'vehicles', level: 'view' },
         '/maintenance': { path: 'maintenance', level: 'view' },
         '/settings': { path: 'settings', level: 'view' },
-        '/budgets': { path: 'budgets', level: 'view' }
+        '/budgets': { path: 'budgets', level: 'view' },
+        '/financial-dashboard': { path: 'financialDashboard', level: 'view' },
+        '/accounts/reports': { path: 'financialReports', level: 'view' },
+        '/accounts/payable': { path: 'payableAccounts', level: 'view' },
+        '/accounts/receivable': { path: 'receivableAccounts', level: 'view' },
+        '/inventory/products': { path: 'products', level: 'view' },
+        '/inventory/entries': { path: 'inventoryEntries', level: 'view' },
+        '/inventory/exits': { path: 'inventoryExits', level: 'view' },
+        '/inventory/dashboard': { path: 'inventoryDashboard', level: 'view' },
+        '/activity-logs': { path: 'activity-logs', level: 'view' }
       };
 
       // Special case for activity logs (admin only)
       if (location.pathname === '/activity-logs' && user.role !== 'admin') {
-        toast("Acesso restrito", {
+        toast.error("Acesso restrito", {
           description: "Você não tem permissão para acessar esta página.",
         });
         navigate('/dashboard');
@@ -100,7 +109,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         const hasAnySettingsPermission = Object.values(settingsPermissions).some(Boolean);
         
         if (!hasAnySettingsPermission) {
-          toast("Acesso restrito", {
+          toast.error("Acesso restrito", {
             description: "Você não tem permissão para acessar as configurações.",
           });
           navigate('/dashboard');
@@ -124,8 +133,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         
         // Check if user has required permission
         if (!hasPermission(permissionConfig.path, permissionConfig.level)) {
-          console.log(`User lacks permission: ${permissionConfig.path} for path: ${location.pathname}`);
-          toast("Acesso restrito", {
+          console.log(`Access denied: User lacks permission '${permissionConfig.path}' for path: ${location.pathname}`);
+          toast.error("Acesso restrito", {
             description: "Você não tem permissão para acessar esta página.",
           });
           
@@ -137,6 +146,8 @@ export function AppLayout({ children }: AppLayoutProps) {
           } else {
             navigate('/profile');
           }
+          
+          return;
         }
       }
     }

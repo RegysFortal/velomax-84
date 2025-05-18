@@ -1,14 +1,25 @@
 
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { toast } from 'sonner';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, hasPermission } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (!loading && !user) {
+      toast.error('Acesso negado', {
+        description: 'Você precisa estar logado para acessar esta página.'
+      });
+    }
+  }, [loading, user]);
   
   if (loading) {
     return (
@@ -19,7 +30,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   }
   
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   return <>{children}</>;

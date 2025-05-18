@@ -92,12 +92,18 @@ export const useAuthentication = (
     }
   }, [user]);
 
-  // Verifica se o usuário tem a permissão especificada
+  // Improved permission checking function with detailed logging for debugging
   const hasPermission = useCallback((feature: string, level: keyof PermissionLevel = 'view'): boolean => {
-    if (!user) return false;
+    if (!user) {
+      console.log(`Permission check failed: No user logged in, feature: ${feature}, level: ${level}`);
+      return false;
+    }
     
     // Administradores têm acesso total a tudo
-    if (user.role === 'admin') return true;
+    if (user.role === 'admin') {
+      console.log(`Permission granted: User is admin, feature: ${feature}, level: ${level}`);
+      return true;
+    }
     
     // Verifica no novo formato de permissões detalhadas
     if (user.permissions && user.permissions[feature]) {
@@ -105,15 +111,20 @@ export const useAuthentication = (
       if (typeof user.permissions[feature] === 'object' && 
           user.permissions[feature] !== null) {
         const permissionObj = user.permissions[feature] as PermissionLevel;
-        return !!permissionObj[level];
+        const hasAccess = !!permissionObj[level];
+        console.log(`Permission check: User ${user.username}, feature: ${feature}, level: ${level}, result: ${hasAccess}, value: ${JSON.stringify(permissionObj)}`);
+        return hasAccess;
       }
       
       // Suporte à retrocompatibilidade - se for booleano, considera apenas para view
       if (typeof user.permissions[feature] === 'boolean') {
-        return level === 'view' ? !!user.permissions[feature] : false;
+        const hasAccess = level === 'view' ? !!user.permissions[feature] : false;
+        console.log(`Permission check (legacy): User ${user.username}, feature: ${feature}, level: ${level}, result: ${hasAccess}`);
+        return hasAccess;
       }
     }
     
+    console.log(`Permission denied: User ${user.username}, feature: ${feature}, level: ${level}`);
     return false;
   }, [user]);
 
