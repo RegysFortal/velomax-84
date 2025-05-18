@@ -98,7 +98,15 @@ export const useReportStatus = (
       return;
     }
     
-    await updateFinancialReport(id, { status: 'archived' });
+    await updateFinancialReport(id, { 
+      status: 'archived',
+      updatedAt: new Date().toISOString()
+    });
+    
+    console.log("Relatório arquivado com sucesso:", id);
+    console.log("Status atual dos relatórios:", 
+      financialReports.map(r => ({id: r.id, status: r.status}))
+    );
     
     toast({
       title: "Relatório arquivado",

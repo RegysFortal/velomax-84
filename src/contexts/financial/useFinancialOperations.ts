@@ -7,10 +7,18 @@ export function useFinancialOperations() {
   const [financialReports, setFinancialReports] = useState<FinancialReport[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Stub implementations to satisfy the interface
-  const addFinancialReport = async (report: FinancialReport) => {
-    setFinancialReports(prev => [...prev, report]);
-    return report.id;
+  // Create a new financial report
+  const addFinancialReport = async (report: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newReport: FinancialReport = {
+      ...report,
+      id: `report_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    setFinancialReports(prev => [...prev, newReport]);
+    console.log('Added new financial report:', newReport);
+    return newReport.id;
   };
   
   const createReport = async (reportData: Partial<FinancialReport>) => {
@@ -21,11 +29,23 @@ export function useFinancialOperations() {
   
   const updateFinancialReport = async (id: string, data: Partial<FinancialReport>) => {
     setFinancialReports(prev => 
-      prev.map(report => report.id === id ? { ...report, ...data } : report)
+      prev.map(report => {
+        if (report.id === id) {
+          const updatedReport = { 
+            ...report, 
+            ...data,
+            updatedAt: new Date().toISOString()
+          };
+          console.log(`Updated report ${id}:`, updatedReport);
+          return updatedReport;
+        }
+        return report;
+      })
     );
   };
   
   const deleteFinancialReport = async (id: string) => {
+    console.log(`Deleting report with ID: ${id}`);
     setFinancialReports(prev => prev.filter(report => report.id !== id));
   };
 

@@ -78,6 +78,13 @@ const FinancialPage = () => {
       });
   };
   
+  // Custom handler for archiving that also changes the active tab
+  const handleArchiveReportAndSwitchTab = async (reportId: string) => {
+    await handleArchiveReport(reportId);
+    // Change to the archived tab after archiving
+    setActiveTab("archived");
+  };
+  
   // Filtragem dos relatórios por status
   const openReports = financialReports.filter(report => report.status === 'open');
   const closedReports = financialReports.filter(report => report.status === 'closed');
@@ -108,7 +115,7 @@ const FinancialPage = () => {
         onCloseReport={setReportToClose}
         onDeleteReport={setReportToDelete}
         onReopenReport={handleReopenReport}
-        onArchiveReport={handleArchiveReport}
+        onArchiveReport={handleArchiveReportAndSwitchTab}
         onReturnToClosed={handleReturnToClosedReport}
         onExportPDF={handleExportPDF}
         onExportExcel={handleExportExcel}

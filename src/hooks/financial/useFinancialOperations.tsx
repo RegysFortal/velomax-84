@@ -26,7 +26,9 @@ export function useFinancialOperations() {
   // Function to archive a report
   const handleArchiveReport = async (reportId: string) => {
     try {
+      console.log("Starting archiving process for report:", reportId);
       await archiveReport(reportId);
+      console.log("Archive function completed for report:", reportId);
       toast({
         title: "Relatório arquivado",
         description: "Relatório movido para a seção de arquivados com sucesso.",
@@ -44,8 +46,10 @@ export function useFinancialOperations() {
   // Function to return an archived report back to closed status
   const handleReturnToClosedReport = async (reportId: string) => {
     try {
+      console.log("Starting return to closed process for report:", reportId);
       // Use the reopenReport function to change status from 'archived' to 'closed'
       await reopenReport(reportId, 'closed');
+      console.log("Return to closed completed for report:", reportId);
       toast({
         title: "Relatório retornado",
         description: "Relatório movido de volta para a seção de fechados com sucesso.",

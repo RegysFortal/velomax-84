@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { FinancialReport } from '@/types';
 import { User } from '@supabase/supabase-js';
@@ -17,12 +18,23 @@ export const useFetchFinancialReports = (
     if (storedReports) {
       try {
         const parsedReports = JSON.parse(storedReports) as FinancialReport[];
+        
+        // Count reports by status
+        const archivedCount = parsedReports.filter(r => r.status === 'archived').length;
+        const closedCount = parsedReports.filter(r => r.status === 'closed').length;
+        const openCount = parsedReports.filter(r => r.status === 'open').length;
+        
         console.log('Loaded financial reports from localStorage:', 
           parsedReports.map(r => ({ id: r.id, status: r.status })));
+        console.log(`Loaded reports counts - Archived: ${archivedCount}, Closed: ${closedCount}, Open: ${openCount}`);
+        
+        // Set the reports in state
         setFinancialReports(parsedReports);
       } catch (error) {
         console.error('Error parsing financial reports from localStorage:', error);
       }
+    } else {
+      console.log('No financial reports found in localStorage');
     }
     
     // In a real implementation, we would fetch data from the database here
