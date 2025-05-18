@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Shipment } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { getCompanyInfo } from '@/utils/companyUtils';
 
 // Add type augmentation for jsPDF to recognize autoTable
 declare module 'jspdf' {
@@ -18,20 +19,6 @@ declare module 'jspdf' {
 
 export const useReportActions = (data: Shipment[]) => {
   const [loading, setLoading] = useState(false);
-  
-  const getCompanyInfo = () => {
-    return {
-      name: 'VeloMax Transportes Ltda',
-      cnpj: '12.345.678/0001-90',
-      address: 'Av. Paulista, 1000',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01310-100',
-      phone: '(11) 3000-1000',
-      email: 'contato@velomax.com.br',
-      website: 'www.velomax.com.br',
-    };
-  };
 
   const generatePDF = async () => {
     try {
@@ -85,28 +72,33 @@ export const useReportActions = (data: Shipment[]) => {
         (item.observations || '').slice(0, 50) + (item.observations && item.observations.length > 50 ? '...' : '')
       ]);
       
-      // Add table to PDF
-      doc.autoTable({
-        startY: 45,
-        head: [headers],
-        body: tableData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [80, 80, 80],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          halign: 'center'
-        },
-        styles: {
-          fontSize: 9,
-          cellPadding: 2,
-        }
-      });
-      
-      // Save PDF with the correct filename
-      doc.save(`${fileName}.pdf`);
-      
-      toast.success("PDF gerado com sucesso!");
+      // Add table to PDF with explicit import of jspdf-autotable
+      try {
+        doc.autoTable({
+          startY: 45,
+          head: [headers],
+          body: tableData,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [80, 80, 80],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            halign: 'center'
+          },
+          styles: {
+            fontSize: 9,
+            cellPadding: 2,
+          }
+        });
+        
+        // Save PDF with the correct filename
+        doc.save(`${fileName}.pdf`);
+        
+        toast.success("PDF gerado com sucesso!");
+      } catch (error) {
+        console.error("Erro específico ao gerar tabela:", error);
+        toast.error("Erro ao gerar tabela no PDF. Verifique o console.");
+      }
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
       toast.error("Erro ao gerar PDF. Tente novamente.");
@@ -160,8 +152,6 @@ export const useReportActions = (data: Shipment[]) => {
       ];
       
       ws['!cols'] = colWidths;
-      
-      // Style the header (title and date) - note: Excel styling might be limited
       
       // Add alignment to center the title
       if (!ws['!merges']) ws['!merges'] = [];
