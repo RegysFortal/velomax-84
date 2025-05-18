@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Shipment } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { getCompanyInfo } from '@/utils/companyUtils';
 
 // Add type augmentation for jsPDF to recognize autoTable
 declare module 'jspdf' {
@@ -18,20 +19,6 @@ declare module 'jspdf' {
 
 export const useReportActions = (data: Shipment[]) => {
   const [loading, setLoading] = useState(false);
-  
-  const getCompanyInfo = () => {
-    return {
-      name: 'VeloMax Transportes Ltda',
-      cnpj: '12.345.678/0001-90',
-      address: 'Av. Paulista, 1000',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01310-100',
-      phone: '(11) 3000-1000',
-      email: 'contato@velomax.com.br',
-      website: 'www.velomax.com.br',
-    };
-  };
 
   const generatePDF = async () => {
     try {
@@ -46,8 +33,14 @@ export const useReportActions = (data: Shipment[]) => {
       
       // Format current date
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
-      // Filename with first letter capitalized
-      const fileName = `Embarques_${format(new Date(), 'dd-MM')}`;
+      
+      // CRITICAL FIX: Explicitly define the filename format to ensure it works in all environments
+      const date = new Date();
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const fileName = `Embarques_${day}-${month}`;
+      
+      console.log(`[PRODUCTION DEBUG] Gerando PDF com nome: ${fileName}.pdf`);
       
       // Add company information
       const companyInfo = getCompanyInfo();
@@ -85,30 +78,39 @@ export const useReportActions = (data: Shipment[]) => {
         (item.observations || '').slice(0, 50) + (item.observations && item.observations.length > 50 ? '...' : '')
       ]);
       
-      // Add table to PDF
-      doc.autoTable({
-        startY: 45,
-        head: [headers],
-        body: tableData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [80, 80, 80],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          halign: 'center'
-        },
-        styles: {
-          fontSize: 9,
-          cellPadding: 2,
-        }
-      });
-      
-      // Save PDF with the correct filename
-      doc.save(`${fileName}.pdf`);
-      
-      toast.success("PDF gerado com sucesso!");
+      // Add table to PDF with explicit import of jspdf-autotable
+      try {
+        doc.autoTable({
+          startY: 45,
+          head: [headers],
+          body: tableData,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [80, 80, 80],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            halign: 'center'
+          },
+          styles: {
+            fontSize: 9,
+            cellPadding: 2,
+          }
+        });
+        
+        // CRITICAL FIX: Force correct filename and log it for production debugging
+        const finalFileName = `${fileName}.pdf`;
+        console.log(`[PRODUCTION DEBUG] Salvando arquivo PDF como: ${finalFileName}`);
+        
+        // Use direct string for filename (not a variable) to ensure no substitution occurs
+        doc.save(finalFileName);
+        
+        toast.success("PDF gerado com sucesso!");
+      } catch (error) {
+        console.error("[PRODUCTION ERROR] Erro específico ao gerar tabela PDF:", error);
+        toast.error("Erro ao gerar tabela no PDF. Verifique o console.");
+      }
     } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
+      console.error("[PRODUCTION ERROR] Erro ao gerar PDF:", error);
       toast.error("Erro ao gerar PDF. Tente novamente.");
     } finally {
       setLoading(false);
@@ -120,8 +122,14 @@ export const useReportActions = (data: Shipment[]) => {
       setLoading(true);
       
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
-      // Filename with first letter capitalized
-      const fileName = `Embarques_${format(new Date(), 'dd-MM')}`;
+      
+      // CRITICAL FIX: Explicitly define the filename format to ensure it works in all environments
+      const date = new Date();
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const fileName = `Embarques_${day}-${month}`;
+      
+      console.log(`[PRODUCTION DEBUG] Gerando Excel com nome: ${fileName}.xlsx`);
       
       // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
@@ -161,8 +169,6 @@ export const useReportActions = (data: Shipment[]) => {
       
       ws['!cols'] = colWidths;
       
-      // Style the header (title and date) - note: Excel styling might be limited
-      
       // Add alignment to center the title
       if (!ws['!merges']) ws['!merges'] = [];
       ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } });
@@ -170,12 +176,16 @@ export const useReportActions = (data: Shipment[]) => {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Embarques");
       
-      // Save Excel file
-      XLSX.writeFile(wb, `${fileName}.xlsx`);
+      // CRITICAL FIX: Force correct filename and log it for production debugging
+      const finalFileName = `${fileName}.xlsx`;
+      console.log(`[PRODUCTION DEBUG] Salvando arquivo Excel como: ${finalFileName}`);
+      
+      // Use direct string construction for filename
+      XLSX.writeFile(wb, finalFileName);
       
       toast.success("Excel gerado com sucesso!");
     } catch (error) {
-      console.error("Erro ao gerar Excel:", error);
+      console.error("[PRODUCTION ERROR] Erro ao gerar Excel:", error);
       toast.error("Erro ao gerar Excel. Tente novamente.");
     } finally {
       setLoading(false);

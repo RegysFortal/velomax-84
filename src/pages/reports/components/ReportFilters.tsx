@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from 'lucide-react';
 import { ShipmentStatus } from '@/types';
-import { DatePicker } from '@/components/ui/date-picker';
-import { toLocalDate, toISODateString } from '@/utils/dateUtils';
+import { DateRangeSelector } from './filters/DateRangeSelector';
+import { StatusSelector } from './filters/StatusSelector';
+import { TransportModeSelector } from './filters/TransportModeSelector';
+import { CarrierSelector } from './filters/CarrierSelector';
+import { useCarrierFiltering } from './filters/useCarrierFiltering';
 
 interface ReportFiltersProps {
   startDate: string;
@@ -35,73 +35,7 @@ export function ReportFilters({
   onCarrierChange,
   uniqueCarriers
 }: ReportFiltersProps) {
-  // Convertemos strings de data para objetos Date para o DatePicker
-  // Important: Usando toLocalDate para criar datas ao meio-dia para evitar problemas de fuso horário
-  const [startDateObj, setStartDateObj] = useState<Date | undefined>(
-    startDate ? toLocalDate(new Date(`${startDate}T12:00:00`)) : undefined
-  );
-  const [endDateObj, setEndDateObj] = useState<Date | undefined>(
-    endDate ? toLocalDate(new Date(`${endDate}T12:00:00`)) : undefined
-  );
-  
-  // Lista de transportadoras filtradas por modo de transporte
-  const [filteredCarriers, setFilteredCarriers] = useState<string[]>([]);
-  
-  // Transportadoras disponíveis por modo de transporte
-  const airCarriers = ["Azul", "Gol", "Latam"];
-  const roadCarriers = ["Concept", "Global", "Jeam", "Outro"];
-  
-  // Atualiza transportadoras quando o modo de transporte muda
-  useEffect(() => {
-    if (filterMode === 'air') {
-      setFilteredCarriers(airCarriers);
-      // Se a transportadora atual não for aérea, redefina para 'all'
-      if (!airCarriers.includes(filterCarrier) && filterCarrier !== 'all') {
-        onCarrierChange('all');
-      }
-    } else if (filterMode === 'road') {
-      setFilteredCarriers(roadCarriers);
-      // Se a transportadora atual não for rodoviária, redefina para 'all'
-      if (!roadCarriers.includes(filterCarrier) && filterCarrier !== 'all') {
-        onCarrierChange('all');
-      }
-    } else {
-      // Modo 'all': mostrar todas as transportadoras disponíveis
-      setFilteredCarriers([...new Set([...airCarriers, ...roadCarriers, ...uniqueCarriers])]);
-    }
-  }, [filterMode, filterCarrier, uniqueCarriers]);
-  
-  // Atualizamos os objetos de data locais quando as props mudam
-  useEffect(() => {
-    if (startDate) {
-      setStartDateObj(toLocalDate(new Date(`${startDate}T12:00:00`)));
-    } else {
-      setStartDateObj(undefined);
-    }
-    
-    if (endDate) {
-      setEndDateObj(toLocalDate(new Date(`${endDate}T12:00:00`)));
-    } else {
-      setEndDateObj(undefined);
-    }
-  }, [startDate, endDate]);
-  
-  // Tratamos a seleção de data do DatePicker
-  const handleStartDateSelect = (date: Date | undefined) => {
-    setStartDateObj(date);
-    if (date) {
-      console.log('Selecionou data inicial:', date, 'Convertendo para ISO:', toISODateString(date));
-      onStartDateChange(toISODateString(date));
-    }
-  };
-  
-  const handleEndDateSelect = (date: Date | undefined) => {
-    setEndDateObj(date);
-    if (date) {
-      console.log('Selecionou data final:', date, 'Convertendo para ISO:', toISODateString(date));
-      onEndDateChange(toISODateString(date));
-    }
-  };
+  const { filteredCarriers } = useCarrierFiltering(filterMode, filterCarrier, uniqueCarriers, onCarrierChange);
   
   return (
     <Card className="col-span-1">
@@ -110,89 +44,29 @@ export function ReportFilters({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <DateRangeSelector 
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={onStartDateChange}
+            onEndDateChange={onEndDateChange}
+          />
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data Inicial</label>
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <DatePicker
-                  date={startDateObj}
-                  onSelect={handleStartDateSelect}
-                  placeholder="Selecione a data inicial"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data Final</label>
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <DatePicker
-                  date={endDateObj}
-                  onSelect={handleEndDateSelect}
-                  placeholder="Selecione a data final"
-                />
-              </div>
-            </div>
+            <StatusSelector 
+              filterStatus={filterStatus} 
+              onStatusChange={onStatusChange} 
+            />
+            <TransportModeSelector 
+              filterMode={filterMode} 
+              onModeChange={onModeChange} 
+            />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <Select 
-                value={filterStatus} 
-                onValueChange={(val) => onStatusChange(val as ShipmentStatus | 'all')}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent className="z-50">
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="in_transit">Em Trânsito</SelectItem>
-                  <SelectItem value="retained">Retida</SelectItem>
-                  <SelectItem value="delivered">Retirada</SelectItem>
-                  <SelectItem value="partially_delivered">Entregue Parcial</SelectItem>
-                  <SelectItem value="delivered_final">Entregue</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Modo de Transporte</label>
-              <Select 
-                value={filterMode} 
-                onValueChange={(val) => onModeChange(val as 'air' | 'road' | 'all')}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o modo" />
-                </SelectTrigger>
-                <SelectContent className="z-50">
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="air">Aéreo</SelectItem>
-                  <SelectItem value="road">Rodoviário</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Transportadora</label>
-            <Select 
-              value={filterCarrier} 
-              onValueChange={onCarrierChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a transportadora" />
-              </SelectTrigger>
-              <SelectContent className="z-50 max-h-60 overflow-y-auto">
-                <SelectItem value="all">Todas</SelectItem>
-                {filteredCarriers.map((carrier) => (
-                  <SelectItem 
-                    key={carrier} 
-                    value={carrier}
-                  >
-                    {carrier}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          
+          <CarrierSelector 
+            filterCarrier={filterCarrier}
+            filteredCarriers={filteredCarriers}
+            onCarrierChange={onCarrierChange}
+          />
         </div>
       </CardContent>
     </Card>
