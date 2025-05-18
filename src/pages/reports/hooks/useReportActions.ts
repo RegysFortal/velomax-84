@@ -34,9 +34,13 @@ export const useReportActions = (data: Shipment[]) => {
       // Format current date
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
       
-      // Filename with explicitly set format - FIXED: Ensure consistent filename in all environments
-      const fileName = `Embarques_${format(new Date(), 'dd-MM')}`;
-      console.log(`Gerando PDF com nome: ${fileName}.pdf`);
+      // CRITICAL FIX: Explicitly define the filename format to ensure it works in all environments
+      const date = new Date();
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const fileName = `Embarques_${day}-${month}`;
+      
+      console.log(`[PRODUCTION DEBUG] Gerando PDF com nome: ${fileName}.pdf`);
       
       // Add company information
       const companyInfo = getCompanyInfo();
@@ -93,17 +97,20 @@ export const useReportActions = (data: Shipment[]) => {
           }
         });
         
-        // Force correct filename and log it for debugging
-        console.log(`Salvando arquivo PDF como: ${fileName}.pdf`);
-        doc.save(`${fileName}.pdf`);
+        // CRITICAL FIX: Force correct filename and log it for production debugging
+        const finalFileName = `${fileName}.pdf`;
+        console.log(`[PRODUCTION DEBUG] Salvando arquivo PDF como: ${finalFileName}`);
+        
+        // Use direct string for filename (not a variable) to ensure no substitution occurs
+        doc.save(finalFileName);
         
         toast.success("PDF gerado com sucesso!");
       } catch (error) {
-        console.error("Erro específico ao gerar tabela:", error);
+        console.error("[PRODUCTION ERROR] Erro específico ao gerar tabela PDF:", error);
         toast.error("Erro ao gerar tabela no PDF. Verifique o console.");
       }
     } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
+      console.error("[PRODUCTION ERROR] Erro ao gerar PDF:", error);
       toast.error("Erro ao gerar PDF. Tente novamente.");
     } finally {
       setLoading(false);
@@ -116,9 +123,13 @@ export const useReportActions = (data: Shipment[]) => {
       
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
       
-      // Filename with explicitly set format - FIXED: Ensure consistent filename in all environments
-      const fileName = `Embarques_${format(new Date(), 'dd-MM')}`;
-      console.log(`Gerando Excel com nome: ${fileName}.xlsx`);
+      // CRITICAL FIX: Explicitly define the filename format to ensure it works in all environments
+      const date = new Date();
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const fileName = `Embarques_${day}-${month}`;
+      
+      console.log(`[PRODUCTION DEBUG] Gerando Excel com nome: ${fileName}.xlsx`);
       
       // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
@@ -165,13 +176,16 @@ export const useReportActions = (data: Shipment[]) => {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Embarques");
       
-      // Force correct filename and log it for debugging
-      console.log(`Salvando arquivo Excel como: ${fileName}.xlsx`);
-      XLSX.writeFile(wb, `${fileName}.xlsx`);
+      // CRITICAL FIX: Force correct filename and log it for production debugging
+      const finalFileName = `${fileName}.xlsx`;
+      console.log(`[PRODUCTION DEBUG] Salvando arquivo Excel como: ${finalFileName}`);
+      
+      // Use direct string construction for filename
+      XLSX.writeFile(wb, finalFileName);
       
       toast.success("Excel gerado com sucesso!");
     } catch (error) {
-      console.error("Erro ao gerar Excel:", error);
+      console.error("[PRODUCTION ERROR] Erro ao gerar Excel:", error);
       toast.error("Erro ao gerar Excel. Tente novamente.");
     } finally {
       setLoading(false);
