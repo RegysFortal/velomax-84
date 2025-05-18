@@ -6,7 +6,7 @@ export interface FinancialReport {
   endDate: string;
   totalDeliveries: number;
   totalFreight: number;
-  status: 'open' | 'closed';
+  status: 'open' | 'closed' | 'archived';
   createdAt?: string;
   updatedAt?: string;
   userId?: string;

@@ -32,6 +32,7 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     getReportsByStatus,
     closeReport,
     reopenReport,
+    archiveReport,
     updatePaymentDetails
   } = useReportStatus(financialReports, updateFinancialReport);
   
@@ -45,6 +46,7 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
       getReportsByStatus,
       closeReport,
       reopenReport,
+      archiveReport,
       createReport,
       updatePaymentDetails,
       loading,

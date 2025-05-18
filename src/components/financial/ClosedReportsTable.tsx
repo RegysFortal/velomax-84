@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FileText, MoreHorizontal, CreditCard, Edit, FileDown, FileUp, Trash2, Send } from 'lucide-react';
+import { FileText, MoreHorizontal, CreditCard, Edit, FileDown, FileUp, Trash2, Send, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -33,6 +33,7 @@ interface ClosedReportsTableProps {
   onEditPaymentDetails: (report: FinancialReport) => void;
   getPaymentMethodLabel: (method?: string) => string;
   onSendToReceivables: (report: FinancialReport) => void;
+  onArchiveReport: (reportId: string) => void;
 }
 
 export const ClosedReportsTable = ({
@@ -46,7 +47,8 @@ export const ClosedReportsTable = ({
   onDeleteReport,
   onEditPaymentDetails,
   getPaymentMethodLabel,
-  onSendToReceivables
+  onSendToReceivables,
+  onArchiveReport
 }: ClosedReportsTableProps) => {
   const { clients = [] } = useClients();
 
@@ -133,6 +135,10 @@ export const ClosedReportsTable = ({
                             <DropdownMenuItem onClick={() => onSendToReceivables(report)}>
                               <Send className="h-4 w-4 mr-2" />
                               Enviar para contas a receber
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onArchiveReport(report.id)}>
+                              <Archive className="h-4 w-4 mr-2" />
+                              Arquivar relatório
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => onDeleteReport(report.id)}

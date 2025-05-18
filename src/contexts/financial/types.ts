@@ -6,7 +6,7 @@ export interface FinancialReport {
   endDate: string;
   totalDeliveries: number;
   totalFreight: number;
-  status: 'open' | 'closed';
+  status: 'open' | 'closed' | 'archived';
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
@@ -23,6 +23,7 @@ export interface FinancialContextType {
   getReportsByStatus: (status: FinancialReport['status']) => FinancialReport[];
   closeReport: (id: string, paymentMethod?: string, dueDate?: string) => Promise<void>;
   reopenReport: (id: string) => Promise<void>;
+  archiveReport: (id: string) => Promise<void>;
   createReport: (report: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>) => Promise<FinancialReport | null>;
   updatePaymentDetails: (id: string, paymentMethod: string | null, dueDate: string | null) => Promise<void>;
   loading: boolean;

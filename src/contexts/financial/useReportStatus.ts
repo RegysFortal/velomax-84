@@ -81,6 +81,28 @@ export const useReportStatus = (
       description: `O relatório financeiro foi reaberto com sucesso.`,
     });
   };
+
+  const archiveReport = async (id: string) => {
+    console.log(`Arquivando relatório com ID: ${id}`);
+    const reportToArchive = financialReports.find(report => report.id === id);
+    
+    if (!reportToArchive) {
+      console.error(`Relatório com ID ${id} não encontrado.`);
+      toast({
+        title: "Erro ao arquivar relatório",
+        description: "Relatório não encontrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    await updateFinancialReport(id, { status: 'archived' });
+    
+    toast({
+      title: "Relatório arquivado",
+      description: `O relatório financeiro foi arquivado com sucesso.`,
+    });
+  };
   
   const updatePaymentDetails = async (id: string, paymentMethod: string | null, dueDate: string | null) => {
     console.log(`Atualizando detalhes de pagamento do relatório com ID: ${id}`);
@@ -116,6 +138,7 @@ export const useReportStatus = (
     getReportsByStatus,
     closeReport,
     reopenReport,
+    archiveReport,
     updatePaymentDetails
   };
 };

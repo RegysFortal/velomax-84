@@ -20,7 +20,11 @@ const FinancialPage = () => {
     reportToClose,
     setReportToClose,
     reportToEdit,
-    setReportToEdit
+    setReportToEdit,
+    startDate,
+    endDate,
+    onStartDateChange,
+    onEndDateChange
   } = useFinancialPageState();
   
   const { toast } = useToast();
@@ -38,7 +42,8 @@ const FinancialPage = () => {
     handleEditPaymentDetails,
     handleReopenReport,
     handleDeleteReport,
-    handleSendToReceivables
+    handleSendToReceivables,
+    handleArchiveReport
   } = useFinancialOperations();
   
   // Utilidades para relatórios financeiros
@@ -75,6 +80,7 @@ const FinancialPage = () => {
   // Filtragem dos relatórios por status
   const openReports = financialReports.filter(report => report.status === 'open');
   const closedReports = financialReports.filter(report => report.status === 'closed');
+  const archivedReports = financialReports.filter(report => report.status === 'archived');
   
   return (
     <div className="flex flex-col gap-6 px-8 py-6">
@@ -93,6 +99,7 @@ const FinancialPage = () => {
         setActiveTab={setActiveTab}
         openReports={openReports}
         closedReports={closedReports}
+        archivedReports={archivedReports}
         isLoading={isLoading}
         formatCurrency={formatCurrency}
         getPaymentMethodLabel={getPaymentMethodLabel}
@@ -100,10 +107,15 @@ const FinancialPage = () => {
         onCloseReport={setReportToClose}
         onDeleteReport={setReportToDelete}
         onReopenReport={handleReopenReport}
+        onArchiveReport={handleArchiveReport}
         onExportPDF={handleExportPDF}
         onExportExcel={handleExportExcel}
         onEditPaymentDetails={setReportToEdit}
         onSendToReceivables={handleSendToReceivablesWithCheck}
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={onStartDateChange}
+        onEndDateChange={onEndDateChange}
       />
       
       <ReportDialogs
