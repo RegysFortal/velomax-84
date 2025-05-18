@@ -34,13 +34,15 @@ export const useReportActions = (data: Shipment[]) => {
       // Format current date
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
       
-      // CRITICAL FIX: Explicitly define the filename format to ensure it works in all environments
+      // PRODUCTION FIX: Force explicit filename format with no variables
       const date = new Date();
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
+      
+      // Hard-code the filename pattern to ensure it works in all environments
       const fileName = `Embarques_${day}-${month}`;
       
-      console.log(`[PRODUCTION DEBUG] Gerando PDF com nome: ${fileName}.pdf`);
+      console.log(`[VERCEL DEBUG] Gerando PDF com nome explícito: "${fileName}.pdf"`);
       
       // Add company information
       const companyInfo = getCompanyInfo();
@@ -97,20 +99,21 @@ export const useReportActions = (data: Shipment[]) => {
           }
         });
         
-        // CRITICAL FIX: Force correct filename and log it for production debugging
+        // VERCEL FIX: Forçar nome de arquivo fixo para garantir que seja sempre "Embarques_DD-MM.pdf"
+        // Remove qualquer referência a formatClientNameForFileName ou outros helpers que podem estar causando problemas
         const finalFileName = `${fileName}.pdf`;
-        console.log(`[PRODUCTION DEBUG] Salvando arquivo PDF como: ${finalFileName}`);
+        console.log(`[VERCEL DEBUG] Salvando arquivo PDF como: "${finalFileName}"`);
         
-        // Use direct string for filename (not a variable) to ensure no substitution occurs
+        // Use a string direta para o nome do arquivo, sem substituições dinâmicas
         doc.save(finalFileName);
         
         toast.success("PDF gerado com sucesso!");
       } catch (error) {
-        console.error("[PRODUCTION ERROR] Erro específico ao gerar tabela PDF:", error);
+        console.error("[VERCEL ERROR] Erro específico ao gerar tabela PDF:", error);
         toast.error("Erro ao gerar tabela no PDF. Verifique o console.");
       }
     } catch (error) {
-      console.error("[PRODUCTION ERROR] Erro ao gerar PDF:", error);
+      console.error("[VERCEL ERROR] Erro ao gerar PDF:", error);
       toast.error("Erro ao gerar PDF. Tente novamente.");
     } finally {
       setLoading(false);
@@ -123,13 +126,13 @@ export const useReportActions = (data: Shipment[]) => {
       
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
       
-      // CRITICAL FIX: Explicitly define the filename format to ensure it works in all environments
+      // VERCEL FIX: Usar a mesma lógica de nome de arquivo do PDF para o Excel
       const date = new Date();
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const fileName = `Embarques_${day}-${month}`;
       
-      console.log(`[PRODUCTION DEBUG] Gerando Excel com nome: ${fileName}.xlsx`);
+      console.log(`[VERCEL DEBUG] Gerando Excel com nome explícito: "${fileName}.xlsx"`);
       
       // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
@@ -176,16 +179,16 @@ export const useReportActions = (data: Shipment[]) => {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Embarques");
       
-      // CRITICAL FIX: Force correct filename and log it for production debugging
+      // VERCEL FIX: Forçar nome de arquivo fixo para garantir que seja sempre "Embarques_DD-MM.xlsx"
       const finalFileName = `${fileName}.xlsx`;
-      console.log(`[PRODUCTION DEBUG] Salvando arquivo Excel como: ${finalFileName}`);
+      console.log(`[VERCEL DEBUG] Salvando arquivo Excel como: "${finalFileName}"`);
       
-      // Use direct string construction for filename
+      // Use a string direta para o nome do arquivo
       XLSX.writeFile(wb, finalFileName);
       
       toast.success("Excel gerado com sucesso!");
     } catch (error) {
-      console.error("[PRODUCTION ERROR] Erro ao gerar Excel:", error);
+      console.error("[VERCEL ERROR] Erro ao gerar Excel:", error);
       toast.error("Erro ao gerar Excel. Tente novamente.");
     } finally {
       setLoading(false);
