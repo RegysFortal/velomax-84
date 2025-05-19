@@ -56,14 +56,28 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
   // When the sheet opens, ensure we have the latest data
   useEffect(() => {
     if (open) {
-      // Refresh shipment data when the dialog opens to ensure latest state
+      // Refresh immediately when the dialog opens
       refreshShipmentsData();
       
-      console.log("RetentionSheetContainer opened with current values:", { 
-        actionNumber, retentionReason, retentionAmount, paymentDate, releaseDate, fiscalNotes
-      });
+      // After a short delay to ensure we have fresh data, check if we need to update local state
+      const timer = setTimeout(() => {
+        const shipment = getShipmentById(shipmentId);
+        if (shipment && shipment.fiscalAction) {
+          console.log("Updating form with latest fiscal action data:", shipment.fiscalAction);
+          setActionNumber(shipment.fiscalAction.actionNumber || '');
+          setRetentionReason(shipment.fiscalAction.reason || '');
+          setRetentionAmount(shipment.fiscalAction.amountToPay?.toString() || '');
+          setPaymentDate(shipment.fiscalAction.paymentDate || '');
+          setReleaseDate(shipment.fiscalAction.releaseDate || '');
+          setFiscalNotes(shipment.fiscalAction.notes || '');
+        }
+      }, 300);
+      
+      return () => clearTimeout(timer);
     }
-  }, [open, actionNumber, retentionReason, retentionAmount, paymentDate, releaseDate, fiscalNotes, refreshShipmentsData]);
+  }, [open, shipmentId, getShipmentById, refreshShipmentsData, 
+      setActionNumber, setRetentionReason, setRetentionAmount, 
+      setPaymentDate, setReleaseDate, setFiscalNotes]);
 
   const handleConfirm = async () => {
     console.log("RetentionSheetContainer - handleConfirm called with isEditing:", isEditing);
@@ -101,7 +115,7 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
         await updateFiscalAction(shipmentId, fiscalActionData);
         
         // Force immediate refresh to ensure we have the latest data
-        refreshShipmentsData();
+        await refreshShipmentsData();
         
         toast.success("Informações de retenção atualizadas com sucesso");
       }

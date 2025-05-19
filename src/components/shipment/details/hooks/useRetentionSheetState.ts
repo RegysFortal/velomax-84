@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +35,42 @@ export const useRetentionSheetState = (
   // Get needed functions from ShipmentsContext
   const { updateFiscalAction, refreshShipmentsData, getShipmentById } = useShipments();
 
+  // Function to load fresh data from the database directly
+  const loadLatestFiscalActionData = useCallback(async () => {
+    if (!shipmentId) return;
+    
+    try {
+      console.log("Loading latest fiscal action data for shipment:", shipmentId);
+      const { data, error } = await supabase
+        .from('fiscal_actions')
+        .select('*')
+        .eq('shipment_id', shipmentId)
+        .maybeSingle();
+        
+      if (error) {
+        console.error("Error loading fiscal action data:", error);
+        return null;
+      }
+      
+      if (data) {
+        console.log("Loaded fresh fiscal action data from database:", data);
+        return {
+          actionNumber: data.action_number || '',
+          reason: data.reason || '',
+          amountToPay: data.amount_to_pay?.toString() || '',
+          paymentDate: data.payment_date || '',
+          releaseDate: data.release_date || '',
+          notes: data.notes || ''
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Error in loadLatestFiscalActionData:", error);
+      return null;
+    }
+  }, [shipmentId]);
+
   // Update states when sheet is opened to get fresh data
   useEffect(() => {
     const refreshRetentionData = async () => {
@@ -42,51 +78,75 @@ export const useRetentionSheetState = (
         console.log("RetentionSheetState - sheet opened, refreshing data for shipment:", shipmentId);
         
         try {
-          // First try to get the latest data from context
-          const shipment = getShipmentById(shipmentId);
+          // Force a data refresh first
+          refreshShipmentsData();
           
-          if (shipment?.fiscalAction) {
-            console.log("Retrieved fiscal action from context:", shipment.fiscalAction);
-            setActionNumber(shipment.fiscalAction.actionNumber || '');
-            setRetentionReason(shipment.fiscalAction.reason || '');
-            setRetentionAmount(shipment.fiscalAction.amountToPay?.toString() || '');
-            setPaymentDate(shipment.fiscalAction.paymentDate || '');
-            setReleaseDate(shipment.fiscalAction.releaseDate || '');
-            setFiscalNotes(shipment.fiscalAction.notes || '');
-          } else {
-            // If not available in context, try to fetch directly from database
-            console.log("No fiscal action in context, fetching from database");
+          // Wait a bit to ensure the refresh has time to complete
+          setTimeout(async () => {
+            // Try multiple approaches to get the latest data
+            
+            // 1. First try to get directly from the database for the most accurate data
+            const latestData = await loadLatestFiscalActionData();
+            if (latestData) {
+              setActionNumber(latestData.actionNumber);
+              setRetentionReason(latestData.reason);
+              setRetentionAmount(latestData.amountToPay);
+              setPaymentDate(latestData.paymentDate);
+              setReleaseDate(latestData.releaseDate);
+              setFiscalNotes(latestData.notes);
+              console.log("Updated form with fresh data from database");
+              return;
+            }
+            
+            // 2. Try to get from the context
+            const shipment = getShipmentById(shipmentId);
+            
+            if (shipment?.fiscalAction) {
+              console.log("Retrieved fiscal action from context:", shipment.fiscalAction);
+              setActionNumber(shipment.fiscalAction.actionNumber || '');
+              setRetentionReason(shipment.fiscalAction.reason || '');
+              setRetentionAmount(shipment.fiscalAction.amountToPay?.toString() || '');
+              setPaymentDate(shipment.fiscalAction.paymentDate || '');
+              setReleaseDate(shipment.fiscalAction.releaseDate || '');
+              setFiscalNotes(shipment.fiscalAction.notes || '');
+              console.log("Updated form with data from context");
+              return;
+            }
+            
+            // 3. Fallback to using the fiscal action service
+            console.log("No fiscal action in context, fetching from service");
             const fiscalAction = await fiscalActionService.getFiscalActionByShipmentId(shipmentId);
             
             if (fiscalAction) {
-              console.log("Retrieved fiscal action from database:", fiscalAction);
+              console.log("Retrieved fiscal action from service:", fiscalAction);
               setActionNumber(fiscalAction.actionNumber || '');
               setRetentionReason(fiscalAction.reason || '');
               setRetentionAmount(fiscalAction.amountToPay?.toString() || '');
               setPaymentDate(fiscalAction.paymentDate || '');
               setReleaseDate(fiscalAction.releaseDate || '');
               setFiscalNotes(fiscalAction.notes || '');
-            } else {
-              // Fall back to initial values
-              console.log("Using initial values:", {
-                initialActionNumber,
-                initialRetentionReason, 
-                initialRetentionAmount,
-                initialPaymentDate,
-                initialReleaseDate,
-                initialFiscalNotes
-              });
-              
-              setActionNumber(initialActionNumber || '');
-              setRetentionReason(initialRetentionReason || '');
-              setRetentionAmount(initialRetentionAmount || '');
-              setPaymentDate(initialPaymentDate || '');
-              setReleaseDate(initialReleaseDate || '');
-              setFiscalNotes(initialFiscalNotes || '');
+              return;
             }
-          }
+            
+            // 4. Final fallback to initial values
+            console.log("Using initial values as fallback");
+            setActionNumber(initialActionNumber || '');
+            setRetentionReason(initialRetentionReason || '');
+            setRetentionAmount(initialRetentionAmount || '');
+            setPaymentDate(initialPaymentDate || '');
+            setReleaseDate(initialReleaseDate || '');
+            setFiscalNotes(initialFiscalNotes || '');
+          }, 300);
         } catch (error) {
           console.error("Error refreshing retention data:", error);
+          
+          // Fallback to initial values if there's an error
+          setActionNumber(initialActionNumber || '');
+          setRetentionReason(initialRetentionReason || '');
+          setRetentionAmount(initialRetentionAmount || '');
+          setPaymentDate(initialPaymentDate || '');
+          setReleaseDate(initialReleaseDate || '');
+          setFiscalNotes(initialFiscalNotes || '');
         }
       }
     };
@@ -95,6 +155,8 @@ export const useRetentionSheetState = (
   }, [
     showRetentionSheet,
     shipmentId,
+    loadLatestFiscalActionData,
+    refreshShipmentsData,
     getShipmentById,
     initialActionNumber,
     initialRetentionReason,
@@ -113,7 +175,7 @@ export const useRetentionSheetState = (
     setTimeout(() => {
       console.log("Opening retention sheet for editing");
       setShowRetentionSheet(true);
-    }, 100);
+    }, 300);
   };
 
   // Format number to ensure correct format
@@ -206,7 +268,7 @@ export const useRetentionSheetState = (
       toast.success("Informações de retenção atualizadas com sucesso");
 
       // Force refresh data from the server
-      refreshShipmentsData();
+      await refreshShipmentsData();
 
       // Call onSuccess callback if provided
       if (onSuccess) {

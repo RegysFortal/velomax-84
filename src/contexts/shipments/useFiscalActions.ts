@@ -62,15 +62,17 @@ export const useFiscalActions = (
         // Ensure data is saved to local storage for additional persistence
         const updatedShipments = shipments.map(s => {
           if (s.id === shipmentId) {
-            return { 
+            // Create a properly typed object with explicit casting
+            const updatedShipment: Shipment = { 
               ...s, 
               fiscalAction: result,
               isRetained: true,
-              status: "retained" as ShipmentStatus  // Explicit cast to ShipmentStatus
+              status: "retained" as ShipmentStatus
             };
+            return updatedShipment;
           }
           return s;
-        }) as Shipment[];  // Explicitly cast the entire array back to Shipment[]
+        });
         
         localStorage.setItem('velomax_shipments', JSON.stringify(updatedShipments));
         setShipments(updatedShipments);
