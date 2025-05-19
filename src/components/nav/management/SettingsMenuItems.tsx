@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { Settings, Building2, Users, Database, Bell } from "lucide-react";
+import { Settings, Building2, Users, Database } from "lucide-react";
 import { getActiveClass } from "../navUtils";
 import { toast } from "sonner";
 
@@ -72,18 +72,6 @@ export function SettingsMenuItems({ location, hasSettingsAccess }: SettingsMenuI
       >
         <Database className="mr-2 h-4 w-4" />
         Backup
-      </Link>
-      
-      <Link
-        to="/settings?tab=notifications"
-        className={cn(
-          "flex items-center p-2 rounded-md hover:bg-accent",
-          getActiveClass(location.pathname, "/settings")
-        )}
-        onClick={(e) => handleSettingsClick('notifications', e)}
-      >
-        <Bell className="mr-2 h-4 w-4" />
-        Notificações
       </Link>
     </>
   );

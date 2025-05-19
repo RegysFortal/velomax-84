@@ -21,8 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     backup: false,
     clients: false,
     employees: false,
-    contractors: false,
-    notifications: true // Default to true as most users can manage their own
+    contractors: false
   });
   
   useEffect(() => {
@@ -42,8 +41,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         backup: user.role === 'admin' || user.role === 'manager',
         clients: user.role === 'admin' || user.role === 'manager',
         employees: user.role === 'admin' || user.role === 'manager',
-        contractors: user.role === 'admin' || user.role === 'manager',
-        notifications: true // Most users can manage their own
+        contractors: user.role === 'admin' || user.role === 'manager'
       });
       
       // If user has permissions object, use that to override role-based permissions
@@ -70,8 +68,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/deliveries': { path: 'deliveries', level: 'view' },
         '/shipments': { path: 'shipments', level: 'view' },
         '/shipment-reports': { path: 'shipmentReports', level: 'view' },
-        '/financial': { path: 'financialDashboard', level: 'view' },  // Fixed - was 'financial' but should be more specific
-        '/reports': { path: 'financialReports', level: 'view' },      // Fixed - was 'reports' but should be more specific
+        '/financial': { path: 'financialDashboard', level: 'view' },  
+        '/reports': { path: 'financialReports', level: 'view' },     
         '/price-tables': { path: 'priceTables', level: 'view' },
         '/cities': { path: 'cities', level: 'view' },
         '/dashboard': { path: 'dashboard', level: 'view' },

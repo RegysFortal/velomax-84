@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSettings } from './SystemSettings';
-import { NotificationSettings } from './NotificationSettings';
 import { BudgetBackupTools } from '@/components/budget/BudgetBackupTools';
 import { SystemBackup } from './SystemBackup';
 import { UserManagement } from './UserManagement';
@@ -21,7 +20,6 @@ interface SettingsTabsProps {
     company: boolean;
     users: boolean;
     backup: boolean;
-    notifications: boolean;
     clients: boolean;
     employees: boolean;
     contractors: boolean;
@@ -75,7 +73,6 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
         {permissions.clients && <TabsTrigger value="clients">Clientes</TabsTrigger>}
         {permissions.employees && <TabsTrigger value="employees">Funcionários</TabsTrigger>}
         {permissions.contractors && <TabsTrigger value="contractors">Terceiros</TabsTrigger>}
-        {permissions.notifications && <TabsTrigger value="notifications">Notificações</TabsTrigger>}
       </TabsList>
       
       {permissions.system && (
@@ -120,12 +117,6 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
       {permissions.contractors && (
         <TabsContent value="contractors" className="space-y-6">
           <ContractorsManagement />
-        </TabsContent>
-      )}
-      
-      {permissions.notifications && (
-        <TabsContent value="notifications" className="space-y-6">
-          <NotificationSettings />
         </TabsContent>
       )}
     </Tabs>

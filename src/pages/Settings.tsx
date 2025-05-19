@@ -70,11 +70,6 @@ const SettingsPage = () => {
       </div>
     );
   }
-
-  // Always show at least notifications if nothing else is accessible
-  if (!Object.values(permissions).some(Boolean)) {
-    setPermissions(prev => ({ ...prev, notifications: true }));
-  }
   
   // Debug permissions for troubleshooting
   console.log("Final permissions for tabs:", permissions);
