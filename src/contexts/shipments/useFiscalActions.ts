@@ -55,13 +55,19 @@ export const useFiscalActions = (
 
       // Call the actual implementation
       const result = await updateAction(shipmentId, fiscalActionData);
+      
       if (result) {
         console.log("Fiscal action updated successfully:", result);
         
         // Ensure data is saved to local storage for additional persistence
         const updatedShipments = shipments.map(s => {
           if (s.id === shipmentId) {
-            return { ...s, fiscalAction: result };
+            return { 
+              ...s, 
+              fiscalAction: result,
+              isRetained: true,
+              status: "retained"
+            };
           }
           return s;
         });
@@ -71,10 +77,8 @@ export const useFiscalActions = (
         // Update the shipment retention status
         await fiscalActionService.updateShipmentRetentionStatus(shipmentId, true);
         
-        // Force refresh data
-        setTimeout(() => {
-          refreshShipmentsData();
-        }, 100);
+        // Force refresh data immediately
+        refreshShipmentsData();
       } else {
         console.warn("No result returned from fiscal action update");
       }
@@ -150,10 +154,8 @@ export const useFiscalActions = (
       const updatedFiscalAction = await updateAction(shipmentId, updateData);
       console.log("Fiscal action details updated successfully:", updatedFiscalAction);
       
-      // Force refresh data
-      setTimeout(() => {
-        refreshShipmentsData();
-      }, 100);
+      // Force refresh data immediately 
+      refreshShipmentsData();
       
       return updatedFiscalAction;
     } catch (error) {
@@ -170,10 +172,11 @@ export const useFiscalActions = (
       await clearAction(shipmentId);
       console.log("Fiscal action cleared successfully");
       
+      // Update the shipment's retention status
+      await fiscalActionService.updateShipmentRetentionStatus(shipmentId, false);
+      
       // Force refresh data
-      setTimeout(() => {
-        refreshShipmentsData();
-      }, 100);
+      refreshShipmentsData();
     } catch (error) {
       console.error("Error clearing fiscal action:", error);
       toast.error("Erro ao remover ação fiscal");

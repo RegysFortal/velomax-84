@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { RetentionSheet } from "../../dialogs/RetentionSheet";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
@@ -50,7 +50,16 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
   shipmentId,
   isEditing = true
 }) => {
-  const { updateFiscalAction } = useShipments();
+  const { updateFiscalAction, refreshShipmentsData } = useShipments();
+
+  // When the sheet opens, ensure we have the latest data
+  useEffect(() => {
+    if (open) {
+      console.log("RetentionSheetContainer opened with current values:", { 
+        actionNumber, retentionReason, retentionAmount, paymentDate, releaseDate, fiscalNotes
+      });
+    }
+  }, [open, actionNumber, retentionReason, retentionAmount, paymentDate, releaseDate, fiscalNotes]);
 
   const handleConfirm = async () => {
     console.log("RetentionSheetContainer - handleConfirm called with isEditing:", isEditing);
@@ -86,6 +95,9 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
         
         await updateFiscalAction(shipmentId, fiscalActionData);
         toast.success("Informações de retenção atualizadas com sucesso");
+        
+        // Immediately refresh shipments data to ensure we have the latest data
+        refreshShipmentsData();
       }
       
       // Close the sheet

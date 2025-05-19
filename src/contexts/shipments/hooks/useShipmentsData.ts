@@ -24,7 +24,7 @@ export function useShipmentsData(user: any) {
       try {
         if (!user) return;
         
-        if (!loading) setLoading(true);
+        if (!loading && !isRefreshing) setLoading(true);
         console.log("Loading shipments data from database...");
         
         const { data: shipmentsData, error: shipmentsError } = await supabase
@@ -53,12 +53,14 @@ export function useShipmentsData(user: any) {
           }
           
           let fiscalAction = undefined;
+          
+          // Explicitly check if the shipment is retained to fetch fiscal action
           if (shipment.is_retained) {
             const { data: fiscalData, error: fiscalError } = await supabase
               .from('fiscal_actions')
               .select('*')
               .eq('shipment_id', shipment.id)
-              .single();
+              .maybeSingle();
             
             if (!fiscalError && fiscalData) {
               fiscalAction = {
@@ -72,6 +74,12 @@ export function useShipmentsData(user: any) {
                 createdAt: fiscalData.created_at,
                 updatedAt: fiscalData.updated_at
               };
+              
+              console.log(`Found fiscal action for retained shipment ${shipment.id}:`, fiscalAction);
+            } else if (fiscalError) {
+              console.error(`Error fetching fiscal action for shipment ${shipment.id}:`, fiscalError);
+            } else {
+              console.warn(`Shipment ${shipment.id} is marked as retained but no fiscal action found`);
             }
           }
           
@@ -83,16 +91,23 @@ export function useShipmentsData(user: any) {
         });
         
         const shipmentsWithDetails = await Promise.all(shipmentsWithDetailsPromises);
+        
+        // Store in localStorage for backup
+        localStorage.setItem('velomax_shipments', JSON.stringify(shipmentsWithDetails));
+        
+        // Update state
         setShipments(shipmentsWithDetails);
       } catch (error) {
         console.error("Error loading shipments data:", error);
         toast.error("Não foi possível carregar os dados de embarques.");
         
+        // Try to load from localStorage if available as fallback
         const storedShipments = localStorage.getItem("velomax_shipments");
         if (storedShipments) {
           try {
             const parsed = JSON.parse(storedShipments);
             setShipments(parsed);
+            console.log("Loaded shipments from local storage as fallback");
           } catch (parseError) {
             console.error("Error parsing stored shipments:", parseError);
             setShipments([]);

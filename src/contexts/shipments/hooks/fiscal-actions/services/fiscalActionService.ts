@@ -86,6 +86,9 @@ export const fiscalActionService = {
       
       console.log("Supabase response after update:", data);
       
+      // Immediately update the shipment's retention status to ensure consistency
+      await this.updateShipmentRetentionStatus(data[0].shipment_id, true);
+      
       // Map response to domain model
       return mapSupabaseToFiscalAction(data[0]);
     } catch (error) {
@@ -159,6 +162,9 @@ export const fiscalActionService = {
       
       console.log("New fiscal action created:", newFiscalAction);
       
+      // Immediately update the shipment status to ensure consistency
+      await this.updateShipmentRetentionStatus(shipmentId, true);
+      
       // Map response to domain model
       return mapSupabaseToFiscalAction(newFiscalAction);
     } catch (error) {
@@ -176,6 +182,8 @@ export const fiscalActionService = {
   ): Promise<void> {
     try {
       console.log(`Updating shipment ${shipmentId} retention status to ${isRetained}`);
+      
+      // First make sure we're updating the status correctly
       const { error } = await supabase
         .from('shipments')
         .update({ 
@@ -194,6 +202,39 @@ export const fiscalActionService = {
     } catch (error) {
       console.warn("Could not update shipment retention status:", error);
       throw error;
+    }
+  },
+  
+  /**
+   * Fetches a fiscal action by shipment ID
+   */
+  async getFiscalActionByShipmentId(
+    shipmentId: string
+  ): Promise<FiscalAction | null> {
+    try {
+      console.log(`Fetching fiscal action for shipment ID: ${shipmentId}`);
+      
+      const { data, error } = await supabase
+        .from('fiscal_actions')
+        .select('*')
+        .eq('shipment_id', shipmentId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching fiscal action:", error);
+        return null;
+      }
+      
+      if (!data) {
+        console.log("No fiscal action found for shipment:", shipmentId);
+        return null;
+      }
+      
+      console.log("Fetched fiscal action:", data);
+      return mapSupabaseToFiscalAction(data);
+    } catch (error) {
+      console.error("Error in getFiscalActionByShipmentId:", error);
+      return null;
     }
   }
 };

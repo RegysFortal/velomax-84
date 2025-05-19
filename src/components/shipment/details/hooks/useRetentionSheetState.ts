@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
+import { fiscalActionService } from "@/contexts/shipments/hooks/fiscal-actions/services/fiscalActionService";
 
 /**
  * Hook for managing retention sheet state and operations
@@ -31,28 +32,70 @@ export const useRetentionSheetState = (
   // Submission state tracking
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update states when initial values change
+  // Get needed functions from ShipmentsContext
+  const { updateFiscalAction, refreshShipmentsData, getShipmentById } = useShipments();
+
+  // Update states when sheet is opened to get fresh data
   useEffect(() => {
-    if (showRetentionSheet) {
-      // Only update when the sheet is opened, to get fresh data
-      setActionNumber(initialActionNumber || '');
-      setRetentionReason(initialRetentionReason || '');
-      setRetentionAmount(initialRetentionAmount || '');
-      setPaymentDate(initialPaymentDate || '');
-      setReleaseDate(initialReleaseDate || '');
-      setFiscalNotes(initialFiscalNotes || '');
-      
-      console.log("Loading initial retention values:", {
-        initialActionNumber,
-        initialRetentionReason,
-        initialRetentionAmount,
-        initialPaymentDate,
-        initialReleaseDate,
-        initialFiscalNotes
-      });
-    }
+    const refreshRetentionData = async () => {
+      if (showRetentionSheet) {
+        console.log("RetentionSheetState - sheet opened, refreshing data for shipment:", shipmentId);
+        
+        try {
+          // First try to get the latest data from context
+          const shipment = getShipmentById(shipmentId);
+          
+          if (shipment?.fiscalAction) {
+            console.log("Retrieved fiscal action from context:", shipment.fiscalAction);
+            setActionNumber(shipment.fiscalAction.actionNumber || '');
+            setRetentionReason(shipment.fiscalAction.reason || '');
+            setRetentionAmount(shipment.fiscalAction.amountToPay?.toString() || '');
+            setPaymentDate(shipment.fiscalAction.paymentDate || '');
+            setReleaseDate(shipment.fiscalAction.releaseDate || '');
+            setFiscalNotes(shipment.fiscalAction.notes || '');
+          } else {
+            // If not available in context, try to fetch directly from database
+            console.log("No fiscal action in context, fetching from database");
+            const fiscalAction = await fiscalActionService.getFiscalActionByShipmentId(shipmentId);
+            
+            if (fiscalAction) {
+              console.log("Retrieved fiscal action from database:", fiscalAction);
+              setActionNumber(fiscalAction.actionNumber || '');
+              setRetentionReason(fiscalAction.reason || '');
+              setRetentionAmount(fiscalAction.amountToPay?.toString() || '');
+              setPaymentDate(fiscalAction.paymentDate || '');
+              setReleaseDate(fiscalAction.releaseDate || '');
+              setFiscalNotes(fiscalAction.notes || '');
+            } else {
+              // Fall back to initial values
+              console.log("Using initial values:", {
+                initialActionNumber,
+                initialRetentionReason, 
+                initialRetentionAmount,
+                initialPaymentDate,
+                initialReleaseDate,
+                initialFiscalNotes
+              });
+              
+              setActionNumber(initialActionNumber || '');
+              setRetentionReason(initialRetentionReason || '');
+              setRetentionAmount(initialRetentionAmount || '');
+              setPaymentDate(initialPaymentDate || '');
+              setReleaseDate(initialReleaseDate || '');
+              setFiscalNotes(initialFiscalNotes || '');
+            }
+          }
+        } catch (error) {
+          console.error("Error refreshing retention data:", error);
+        }
+      }
+    };
+    
+    refreshRetentionData();
   }, [
     showRetentionSheet,
+    shipmentId,
+    getShipmentById,
     initialActionNumber,
     initialRetentionReason,
     initialRetentionAmount,
@@ -60,9 +103,6 @@ export const useRetentionSheetState = (
     initialReleaseDate,
     initialFiscalNotes
   ]);
-
-  // Get updateFiscalAction from ShipmentsContext
-  const { updateFiscalAction, refreshShipmentsData } = useShipments();
 
   // Handler for edit button click
   const handleEditClick = () => {
@@ -138,8 +178,10 @@ export const useRetentionSheetState = (
             updated_at: new Date().toISOString()
           })
           .eq('id', shipmentId);
+          
+        console.log("Successfully updated shipment retention status");
       } catch (shipmentError) {
-        console.warn("Could not update shipment retention status:", shipmentError);
+        console.warn("Could not update shipment retention status directly:", shipmentError);
       }
       
       // Use updateFiscalAction directly from context
