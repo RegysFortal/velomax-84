@@ -7,7 +7,7 @@ export const useFiscalActionClear = (
   shipments: Shipment[],
   setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>
 ) => {
-  const clearFiscalAction = async (shipmentId: string) => {
+  const clearFiscalAction = async (shipmentId: string): Promise<void> => {
     try {
       const shipment = shipments.find(s => s.id === shipmentId);
       
@@ -39,6 +39,7 @@ export const useFiscalActionClear = (
       });
       
       setShipments(updatedShipments);
+      // Don't return anything (void return type)
     } catch (error) {
       console.error("Error clearing fiscal action:", error);
       toast.error("Erro ao remover ação fiscal");

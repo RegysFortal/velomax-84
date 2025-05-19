@@ -201,9 +201,16 @@ export const useFiscalActions = (
     }
   };
   
-  // Clear fiscal action
-  const clearFiscalAction = async (shipmentId: string) => {
-    return await updateFiscalAction(shipmentId, null);
+  // Clear fiscal action - Modified to return void instead of FiscalAction
+  const clearFiscalAction = async (shipmentId: string): Promise<void> => {
+    try {
+      await updateFiscalAction(shipmentId, null);
+      // Don't return anything (void return type)
+    } catch (error) {
+      console.error("Error clearing fiscal action:", error);
+      toast.error("Erro ao remover ação fiscal");
+      throw error;
+    }
   };
 
   return {
