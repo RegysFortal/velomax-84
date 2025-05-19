@@ -17,6 +17,7 @@ interface RetentionFormSectionProps {
   setReleaseDate: (date: string) => void;
   fiscalNotes: string;
   setFiscalNotes: (notes: string) => void;
+  disabled?: boolean;
 }
 
 export function RetentionFormSection({
@@ -31,8 +32,29 @@ export function RetentionFormSection({
   releaseDate,
   setReleaseDate,
   fiscalNotes,
-  setFiscalNotes
+  setFiscalNotes,
+  disabled = false
 }: RetentionFormSectionProps) {
+  // Função auxiliar para formatar valor numérico
+  const formatCurrency = (value: string) => {
+    // Remover caracteres não numéricos, exceto ponto decimal
+    const numericValue = value.replace(/[^\d.]/g, '');
+    
+    // Garantir apenas um ponto decimal
+    const parts = numericValue.split('.');
+    if (parts.length > 2) {
+      return parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    return numericValue;
+  };
+
+  // Handler para alteração do valor com formatação
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatCurrency(e.target.value);
+    setRetentionAmount(formattedValue);
+  };
+
   return (
     <div className="space-y-4 border p-4 rounded-md bg-gray-50">
       <h3 className="font-medium">Detalhes da Retenção</h3>
@@ -44,6 +66,7 @@ export function RetentionFormSection({
           value={retentionReason}
           onChange={(e) => setRetentionReason(e.target.value)}
           placeholder="Motivo da retenção"
+          disabled={disabled}
         />
       </div>
       
@@ -52,11 +75,11 @@ export function RetentionFormSection({
           <Label htmlFor="retentionAmount">Valor a Pagar</Label>
           <Input
             id="retentionAmount"
-            type="number"
+            type="text"
             value={retentionAmount}
-            onChange={(e) => setRetentionAmount(e.target.value)}
+            onChange={handleAmountChange}
             placeholder="Valor em R$"
-            step="0.01"
+            disabled={disabled}
           />
         </div>
         <div className="space-y-2">
@@ -66,6 +89,7 @@ export function RetentionFormSection({
             value={actionNumber}
             onChange={(e) => setActionNumber(e.target.value)}
             placeholder="Número da ação fiscal"
+            disabled={disabled}
           />
         </div>
       </div>
@@ -78,6 +102,7 @@ export function RetentionFormSection({
             type="date"
             value={paymentDate}
             onChange={(e) => setPaymentDate(e.target.value)}
+            disabled={disabled}
           />
         </div>
         <div className="space-y-2">
@@ -87,6 +112,7 @@ export function RetentionFormSection({
             type="date"
             value={releaseDate}
             onChange={(e) => setReleaseDate(e.target.value)}
+            disabled={disabled}
           />
         </div>
       </div>
@@ -99,6 +125,7 @@ export function RetentionFormSection({
           onChange={(e) => setFiscalNotes(e.target.value)}
           placeholder="Observações sobre a retenção"
           rows={3}
+          disabled={disabled}
         />
       </div>
     </div>

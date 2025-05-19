@@ -68,25 +68,42 @@ export const useFiscalActionUpdate = (
         console.log("Atualizando ação fiscal com ID:", shipment.fiscalAction.id);
         console.log("Dados para atualização:", supabaseFiscalAction);
         
+        // Adicionar cabeçalho de rastreamento apenas para debug
+        const requestStart = Date.now();
+        
         const { error, data } = await supabase
           .from('fiscal_actions')
           .update(supabaseFiscalAction)
           .eq('id', shipment.fiscalAction.id)
-          .select('*')
-          .single();
+          .select('*');
           
+        console.log(`Tempo da requisição: ${Date.now() - requestStart}ms`);  
+        
         if (error) {
           console.error("Erro ao atualizar ação fiscal:", error);
           throw error;
         }
         
+        if (!data || data.length === 0) {
+          console.error("Nenhum dado retornado após atualização");
+          throw new Error("Falha ao atualizar ação fiscal: nenhum dado retornado");
+        }
+        
         console.log("Resposta do Supabase após atualização:", data);
+        
+        const updatedData = data[0];
         
         // Combinar os dados existentes com as atualizações
         fiscalAction = {
-          ...shipment.fiscalAction,
-          ...fiscalActionData,
-          updatedAt: now
+          id: updatedData.id,
+          actionNumber: updatedData.action_number,
+          reason: updatedData.reason,
+          amountToPay: updatedData.amount_to_pay,
+          paymentDate: updatedData.payment_date,
+          releaseDate: updatedData.release_date,
+          notes: updatedData.notes,
+          createdAt: updatedData.created_at,
+          updatedAt: updatedData.updated_at
         };
       } else {
         // Criar nova ação fiscal
@@ -119,6 +136,11 @@ export const useFiscalActionUpdate = (
           throw error;
         }
         
+        if (!newFiscalAction) {
+          console.error("Nenhum dado retornado após criação");
+          throw new Error("Falha ao criar ação fiscal: nenhum dado retornado");
+        }
+        
         console.log("Nova ação fiscal criada:", newFiscalAction);
         
         // Mapear a resposta do Supabase para nosso tipo FiscalAction
@@ -148,6 +170,10 @@ export const useFiscalActionUpdate = (
       });
       
       setShipments(updatedShipments);
+      
+      // Forçar um refresh dos dados no localStorage para persistência local
+      localStorage.setItem('velomax_shipments', JSON.stringify(updatedShipments));
+      
       return fiscalAction;
     } catch (error) {
       console.error("Erro ao atualizar ação fiscal:", error);

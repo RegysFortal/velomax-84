@@ -46,17 +46,33 @@ export const useFiscalActions = (
         return;
       }
       
+      // Verificar se há alterações para evitar chamadas desnecessárias à API
+      const currentAction = shipment.fiscalAction;
+      const hasChanges = 
+        (actionNumber !== undefined && actionNumber !== currentAction.actionNumber) ||
+        (releaseDate !== undefined && releaseDate !== currentAction.releaseDate) ||
+        (notes !== undefined && notes !== currentAction.notes);
+        
+      if (!hasChanges) {
+        console.log("Nenhuma alteração detectada nos detalhes da ação fiscal");
+        return currentAction;
+      }
+      
       // Preparar dados para atualização
-      const updateData: Partial<FiscalAction> = {};
+      const updateData: Partial<FiscalAction> = {
+        ...currentAction // Começar com os dados atuais para manter todos os campos
+      };
+      
+      // Sobrescrever apenas os campos que foram fornecidos
       if (actionNumber !== undefined) updateData.actionNumber = actionNumber;
       if (releaseDate !== undefined) updateData.releaseDate = releaseDate;
       if (notes !== undefined) updateData.notes = notes;
       
-      console.log("Dados para atualização:", updateData);
+      console.log("Dados completos para atualização:", updateData);
       
-      // Usar a função updateFiscalAction para atualizar
+      // Usar a função updateFiscalAction para garantir persistência
       const updatedFiscalAction = await updateAction(shipmentId, updateData);
-      console.log("Ação fiscal atualizada:", updatedFiscalAction);
+      console.log("Ação fiscal atualizada com sucesso:", updatedFiscalAction);
       
       return updatedFiscalAction;
     } catch (error) {
