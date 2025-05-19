@@ -3,7 +3,7 @@ import { ShipmentStatus } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
 
-interface RetentionUpdateOptions {
+export interface RetentionUpdateOptions {
   shipmentId: string;
   actionNumber?: string;
   retentionReason?: string;
@@ -35,16 +35,16 @@ export function useRetentionStatusUpdate() {
         isRetained: true
       });
       
-      // Calculate amount to pay
+      // Calculate amount to pay - ensure we have a valid number
       const retentionAmountValue = parseFloat(options.retentionAmount || "0");
       
-      // Update fiscal action with provided data
+      // Update fiscal action with provided data - make sure all fields are properly passed
       await updateFiscalAction(shipmentId, {
         actionNumber: options.actionNumber?.trim() || undefined,
         reason: options.retentionReason?.trim() || "Retenção fiscal",
         amountToPay: retentionAmountValue,
-        paymentDate: options.paymentDate || undefined,
-        releaseDate: options.releaseDate || undefined,
+        paymentDate: options.paymentDate || null,
+        releaseDate: options.releaseDate || null,
         notes: options.fiscalNotes?.trim() || undefined
       });
       

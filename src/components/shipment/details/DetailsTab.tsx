@@ -51,17 +51,16 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
     setFiscalNotes,
     handleSave,
     handleDelete,
-    handleStatusChange
+    handleStatusChange,
+    handleEditClick
   } = useShipmentDetails(shipment, onClose);
 
   // State to control retention sheet visibility for editing
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
 
-  // Determine if we're in retained status and should show edit button
-  const showRetentionEditOption = status === 'retained';
-
   // Handler for edit button click
   const onEditRetentionClick = () => {
+    console.log("Opening retention sheet for editing");
     setShowRetentionSheet(true);
   };
 
@@ -70,6 +69,7 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
     try {
       await handleSave();
       setShowRetentionSheet(false);
+      toast.success("Informações de retenção atualizadas com sucesso");
     } catch (error) {
       console.error("Error updating retention details:", error);
       toast.error("Erro ao atualizar informações de retenção");

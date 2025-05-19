@@ -8,7 +8,7 @@ export const useFiscalActionUpdate = (
   shipments: Shipment[],
   setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>
 ) => {
-  const updateFiscalAction = async (shipmentId: string, fiscalActionData: Partial<FiscalAction>) => {
+  const updateFiscalAction = async (shipmentId: string, fiscalActionData: Partial<FiscalAction> | null) => {
     try {
       const now = new Date().toISOString();
       const shipment = shipments.find(s => s.id === shipmentId);
@@ -17,9 +17,40 @@ export const useFiscalActionUpdate = (
         throw new Error("Shipment not found");
       }
 
+      // If fiscalActionData is null, delete the fiscal action
+      if (fiscalActionData === null) {
+        if (shipment.fiscalAction) {
+          const { error } = await supabase
+            .from('fiscal_actions')
+            .delete()
+            .eq('id', shipment.fiscalAction.id);
+            
+          if (error) {
+            throw error;
+          }
+          
+          // Update state to remove fiscal action
+          const updatedShipments = shipments.map(s => {
+            if (s.id === shipmentId) {
+              return { 
+                ...s, 
+                fiscalAction: undefined,
+                updatedAt: now
+              };
+            }
+            return s;
+          });
+          
+          setShipments(updatedShipments);
+          return null;
+        }
+        return null;
+      }
+
       let fiscalAction: FiscalAction;
       
       if (shipment.fiscalAction) {
+        // Update existing fiscal action
         const supabaseFiscalAction: any = {
           updated_at: now
         };
@@ -30,6 +61,8 @@ export const useFiscalActionUpdate = (
         if (fiscalActionData.paymentDate !== undefined) supabaseFiscalAction.payment_date = fiscalActionData.paymentDate;
         if (fiscalActionData.releaseDate !== undefined) supabaseFiscalAction.release_date = fiscalActionData.releaseDate;
         if (fiscalActionData.notes !== undefined) supabaseFiscalAction.notes = fiscalActionData.notes;
+        
+        console.log("Updating fiscal action with data:", supabaseFiscalAction);
         
         const { error } = await supabase
           .from('fiscal_actions')
@@ -46,7 +79,8 @@ export const useFiscalActionUpdate = (
           updatedAt: now
         };
       } else {
-        // Use the hook directly since we're already in a hook
+        // Create new fiscal action
+        console.log("Creating new fiscal action for shipment:", shipmentId);
         const { createFiscalAction } = useFiscalActionCreate(setShipments);
         fiscalAction = await createFiscalAction(shipmentId, fiscalActionData);
       }
