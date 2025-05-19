@@ -87,6 +87,7 @@ export function useShipmentStatusChange(
       // Handle retention status
       if (newStatus === "retained" && details && details.retentionReason) {
         finalStatus = await updateRetentionStatus(shipment.id, {
+          shipmentId: shipment.id,  // Add shipmentId here
           actionNumber: details.actionNumber,
           retentionReason: details.retentionReason,
           retentionAmount: details.retentionAmount,
