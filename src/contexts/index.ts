@@ -11,7 +11,7 @@ export { DeliveriesProvider } from './deliveries/DeliveriesProvider';
 export { useDeliveries } from './deliveries/useDeliveries';
 
 export { PriceTablesProvider, usePriceTables } from './priceTables';
-export { CitiesProvider, useCities } from './CitiesContext';
+export { CitiesProvider, useCities } from './cities';
 export { ShipmentsProvider, useShipments } from './shipments';
 export { FinancialProvider, useFinancial } from './financial';
 export { LogbookProvider, useLogbook } from './LogbookContext';
