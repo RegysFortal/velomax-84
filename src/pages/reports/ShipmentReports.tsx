@@ -12,6 +12,7 @@ import { ReportShipmentsTable } from './components/ReportShipmentsTable';
 import { useShipments } from '@/contexts/shipments';
 import { useReportActions } from './hooks/useReportActions';
 import { ShipmentDetails } from '@/components/shipment/ShipmentDetails';
+import { ShipmentEditDialog } from '@/components/shipment/ShipmentEditDialog';
 import { Shipment, ShipmentStatus } from '@/types';
 import { useShipmentFiltering } from './hooks/useShipmentFiltering';
 
@@ -25,6 +26,8 @@ export default function ShipmentReports() {
   
   // UI state
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+  const [shipmentToEdit, setShipmentToEdit] = useState<Shipment | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const { shipments, loading, refreshShipmentsData } = useShipments();
@@ -62,6 +65,20 @@ export default function ShipmentReports() {
   const handleShipmentDetailClose = () => {
     setSelectedShipment(null);
     refreshShipmentsData();
+  };
+
+  const handleEditClick = (shipment: Shipment) => {
+    setShipmentToEdit(shipment);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditDialogClose = (open: boolean) => {
+    if (!open) {
+      setIsEditDialogOpen(false);
+      setShipmentToEdit(null);
+      setRefreshTrigger(prev => prev + 1);
+      refreshShipmentsData();
+    }
   };
 
   return (
@@ -126,6 +143,7 @@ export default function ShipmentReports() {
           filteredShipments={filteredShipments}
           onStatusChange={handleStatusChange}
           onRowClick={setSelectedShipment}
+          onEditClick={handleEditClick}
         />
       </Card>
 
@@ -136,6 +154,13 @@ export default function ShipmentReports() {
           onClose={handleShipmentDetailClose}
         />
       )}
+
+      {/* Edit shipment dialog */}
+      <ShipmentEditDialog
+        open={isEditDialogOpen}
+        onOpenChange={handleEditDialogClose}
+        shipment={shipmentToEdit}
+      />
     </div>
   );
 }

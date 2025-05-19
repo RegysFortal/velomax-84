@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Edit } from 'lucide-react';
 import { StatusMenu } from '@/components/shipment/StatusMenu';
 import { Shipment } from '@/types';
 
@@ -13,13 +13,15 @@ interface ReportShipmentsTableProps {
   filteredShipments: Shipment[];
   onStatusChange: () => void;
   onRowClick: (shipment: Shipment) => void;
+  onEditClick?: (shipment: Shipment) => void;
 }
 
 export function ReportShipmentsTable({ 
   loading, 
   filteredShipments, 
   onStatusChange, 
-  onRowClick 
+  onRowClick,
+  onEditClick
 }: ReportShipmentsTableProps) {
   
   // Função para verificar se um embarque tem documentos parcialmente entregues
@@ -91,14 +93,27 @@ export function ReportShipmentsTable({
                   />
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onRowClick(shipment)}
-                  >
-                    <Eye className="h-4 w-4" />
-                    <span className="sr-only">Ver Detalhes</span>
-                  </Button>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onRowClick(shipment)}
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="sr-only">Ver Detalhes</span>
+                    </Button>
+                    
+                    {onEditClick && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEditClick(shipment)}
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             );

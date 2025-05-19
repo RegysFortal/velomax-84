@@ -16,19 +16,23 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useShipmentFiltering } from './hooks/useShipmentFiltering';
+import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
 
 interface ShipmentsTableProps {
   searchTerm: string;
   refreshTrigger: number;
   onRowClick: (shipment: Shipment) => void;
   onStatusChange: () => void;
+  onEditClick: (shipment: Shipment) => void;
 }
 
 export function ShipmentsTable({ 
   searchTerm, 
   refreshTrigger,
   onRowClick, 
-  onStatusChange 
+  onStatusChange,
+  onEditClick
 }: ShipmentsTableProps) {
   const { shipments, loading } = useShipments();
   const [sortedShipments, setSortedShipments] = useState<Shipment[]>([]);
@@ -70,12 +74,13 @@ export function ShipmentsTable({
               <TableHead>Peso</TableHead>
               <TableHead>Chegada</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4">
+                <TableCell colSpan={8} className="text-center py-4">
                   <div className="flex justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                   </div>
@@ -83,7 +88,7 @@ export function ShipmentsTable({
               </TableRow>
             ) : sortedShipments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-6">
+                <TableCell colSpan={8} className="text-center py-6">
                   Nenhum embarque encontrado
                 </TableCell>
               </TableRow>
@@ -95,7 +100,7 @@ export function ShipmentsTable({
                   <TableRow 
                     key={shipment.id} 
                     className={cn(
-                      "hover:bg-muted cursor-pointer",
+                      "cursor-pointer hover:bg-muted",
                       shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
                       isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100"
                     )}
@@ -133,6 +138,16 @@ export function ShipmentsTable({
                         status={shipment.status} 
                         onStatusChange={onStatusChange}
                       />
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => onEditClick(shipment)}
+                        title="Editar embarque"
+                      >
+                        <Edit className="h-4 w-4 text-gray-500" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
