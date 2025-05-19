@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { RetentionSheet } from "../../dialogs/RetentionSheet";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
+import { ShipmentStatus } from "@/types/shipment";
 
 interface RetentionSheetContainerProps {
   open: boolean;

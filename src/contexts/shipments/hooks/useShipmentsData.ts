@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Shipment } from '@/types/shipment';
+import { Shipment, ShipmentStatus } from '@/types/shipment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { mapShipmentFromSupabase, mapDocumentFromSupabase } from '../utils/shipmentMappers';
@@ -96,7 +96,7 @@ export function useShipmentsData(user: any) {
         localStorage.setItem('velomax_shipments', JSON.stringify(shipmentsWithDetails));
         
         // Update state
-        setShipments(shipmentsWithDetails);
+        setShipments(shipmentsWithDetails as Shipment[]);
       } catch (error) {
         console.error("Error loading shipments data:", error);
         toast.error("Não foi possível carregar os dados de embarques.");
@@ -106,7 +106,7 @@ export function useShipmentsData(user: any) {
         if (storedShipments) {
           try {
             const parsed = JSON.parse(storedShipments);
-            setShipments(parsed);
+            setShipments(parsed as Shipment[]);
             console.log("Loaded shipments from local storage as fallback");
           } catch (parseError) {
             console.error("Error parsing stored shipments:", parseError);

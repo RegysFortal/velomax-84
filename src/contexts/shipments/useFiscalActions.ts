@@ -1,5 +1,5 @@
 
-import { Shipment, FiscalAction } from "@/types/shipment";
+import { Shipment, FiscalAction, ShipmentStatus } from "@/types/shipment";
 import { useFiscalActionUpdate } from "./hooks/fiscal-actions/useFiscalActionUpdate";
 import { useFiscalActionClear } from "./hooks/fiscal-actions/useFiscalActionClear";
 import { toast } from "sonner";
@@ -66,11 +66,12 @@ export const useFiscalActions = (
               ...s, 
               fiscalAction: result,
               isRetained: true,
-              status: "retained"
+              status: "retained" as ShipmentStatus  // Explicit cast to ShipmentStatus
             };
           }
           return s;
-        });
+        }) as Shipment[];  // Explicitly cast the entire array back to Shipment[]
+        
         localStorage.setItem('velomax_shipments', JSON.stringify(updatedShipments));
         setShipments(updatedShipments);
         
