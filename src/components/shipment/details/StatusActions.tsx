@@ -10,6 +10,7 @@ import { DocumentSelectionDialog } from "../dialogs/DocumentSelectionDialog";
 import { useStatusAction, DeliveryDetailsType } from "../hooks/useStatusAction";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
+import { useRetentionStatusUpdate } from "../hooks/status/useRetentionStatusUpdate";
 
 interface StatusActionsProps {
   status: ShipmentStatus;
@@ -18,7 +19,8 @@ interface StatusActionsProps {
 }
 
 export function StatusActions({ status, shipmentId, onStatusChange }: StatusActionsProps) {
-  const { getShipmentById, updateFiscalAction } = useShipments();
+  const { getShipmentById } = useShipments();
+  const { updateRetentionInfo } = useRetentionStatusUpdate();
   const shipment = getShipmentById(shipmentId);
   
   const {
@@ -75,21 +77,29 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
     if (!shipmentId) return;
     
     try {
-      // Update fiscal action with the current form values
-      await updateFiscalAction(shipmentId, {
-        actionNumber: actionNumber?.trim() || undefined,
-        reason: retentionReason.trim() || "Retenção fiscal", // Provide a default reason if empty
-        amountToPay: parseFloat(retentionAmount || "0"),
-        paymentDate: paymentDate || null, // Ensure null is passed if empty, not an empty string
-        releaseDate: releaseDate || null, // Ensure null is passed if empty, not an empty string
-        notes: fiscalNotes?.trim() || undefined
+      console.log("Updating retention details with new values:", {
+        shipmentId,
+        actionNumber,
+        retentionReason,
+        retentionAmount,
+        paymentDate,
+        releaseDate,
+        fiscalNotes
+      });
+      
+      // Use the updateRetentionInfo method from the hook
+      await updateRetentionInfo(shipmentId, {
+        shipmentId,
+        actionNumber,
+        retentionReason,
+        retentionAmount,
+        paymentDate,
+        releaseDate,
+        fiscalNotes
       });
       
       // Close the retention sheet
       setShowRetentionSheet(false);
-      
-      // Show success message
-      toast.success("Informações de retenção atualizadas com sucesso");
       
       // Trigger a status change to refresh the UI if needed
       if (onStatusChange) {

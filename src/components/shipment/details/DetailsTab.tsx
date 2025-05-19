@@ -13,6 +13,7 @@ import { RetentionInfoSection } from "./sections/RetentionInfoSection";
 import { DeliveryInfoSection } from "./sections/DeliveryInfoSection";
 import { ObservationsSection } from "./sections/ObservationsSection";
 import { DeleteAlertDialog } from "./sections/DeleteAlertDialog";
+import { useRetentionStatusUpdate } from "../hooks/status/useRetentionStatusUpdate";
 
 interface DetailsTabProps {
   shipment: Shipment;
@@ -20,6 +21,8 @@ interface DetailsTabProps {
 }
 
 export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
+  const { updateRetentionInfo } = useRetentionStatusUpdate();
+  
   const {
     isEditing,
     deleteAlertOpen,
@@ -66,8 +69,30 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
 
   // Handler for retention form submission
   const handleRetentionUpdate = async () => {
+    if (!shipment.id) return;
+    
     try {
-      await handleSave();
+      console.log("Updating retention details with values:", {
+        shipmentId: shipment.id,
+        actionNumber,
+        retentionReason,
+        retentionAmount,
+        paymentDate,
+        releaseDate,
+        fiscalNotes
+      });
+      
+      // Use the updateRetentionInfo method from the hook
+      await updateRetentionInfo(shipment.id, {
+        shipmentId: shipment.id,
+        actionNumber,
+        retentionReason,
+        retentionAmount,
+        paymentDate,
+        releaseDate,
+        fiscalNotes
+      });
+      
       setShowRetentionSheet(false);
       toast.success("Informações de retenção atualizadas com sucesso");
     } catch (error) {

@@ -64,10 +64,12 @@ export const useFiscalActionUpdate = (
         
         console.log("Updating fiscal action with data:", supabaseFiscalAction);
         
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('fiscal_actions')
           .update(supabaseFiscalAction)
-          .eq('id', shipment.fiscalAction.id);
+          .eq('id', shipment.fiscalAction.id)
+          .select()
+          .single();
           
         if (error) {
           throw error;
@@ -78,10 +80,12 @@ export const useFiscalActionUpdate = (
           ...fiscalActionData,
           updatedAt: now
         };
+        
+        console.log("Updated fiscal action:", data);
       } else {
         // Create new fiscal action
         console.log("Creating new fiscal action for shipment:", shipmentId);
-        const { createFiscalAction } = useFiscalActionCreate(setShipments);
+        const { createFiscalAction } = useFiscalActionCreate(shipments, setShipments);
         fiscalAction = await createFiscalAction(shipmentId, fiscalActionData);
       }
       

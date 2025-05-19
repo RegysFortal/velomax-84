@@ -36,9 +36,15 @@ export function useRetentionStatusUpdate() {
       });
       
       // Calculate amount to pay - ensure we have a valid number
-      const retentionAmountValue = parseFloat(options.retentionAmount || "0");
+      let retentionAmountValue = 0;
+      if (options.retentionAmount) {
+        retentionAmountValue = parseFloat(options.retentionAmount);
+        if (isNaN(retentionAmountValue)) {
+          retentionAmountValue = 0;
+        }
+      }
       
-      // Update fiscal action with provided data - make sure all fields are properly passed
+      // Update fiscal action with provided data
       await updateFiscalAction(shipmentId, {
         actionNumber: options.actionNumber?.trim() || undefined,
         reason: options.retentionReason?.trim() || "Retenção fiscal",
@@ -53,6 +59,40 @@ export function useRetentionStatusUpdate() {
     } catch (error) {
       console.error("Error updating retention status:", error);
       toast.error("Erro ao atualizar status de retenção");
+      throw error;
+    }
+  };
+  
+  /**
+   * Updates existing retention information without changing status
+   */
+  const updateRetentionInfo = async (shipmentId: string, options: RetentionUpdateOptions) => {
+    try {
+      console.log(`Updating retention details only:`, options);
+      
+      // Calculate amount to pay - ensure we have a valid number
+      let retentionAmountValue = 0;
+      if (options.retentionAmount) {
+        retentionAmountValue = parseFloat(options.retentionAmount);
+        if (isNaN(retentionAmountValue)) {
+          retentionAmountValue = 0;
+        }
+      }
+      
+      // Update fiscal action with provided data
+      await updateFiscalAction(shipmentId, {
+        actionNumber: options.actionNumber?.trim() || undefined,
+        reason: options.retentionReason?.trim() || "Retenção fiscal",
+        amountToPay: retentionAmountValue,
+        paymentDate: options.paymentDate || null,
+        releaseDate: options.releaseDate || null,
+        notes: options.fiscalNotes?.trim() || undefined
+      });
+      
+      toast.success("Informações de retenção atualizadas com sucesso");
+    } catch (error) {
+      console.error("Error updating retention information:", error);
+      toast.error("Erro ao atualizar informações de retenção");
       throw error;
     }
   };
@@ -73,6 +113,7 @@ export function useRetentionStatusUpdate() {
 
   return {
     updateRetentionStatus,
+    updateRetentionInfo,
     clearRetentionStatus
   };
 }
