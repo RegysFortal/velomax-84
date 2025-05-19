@@ -1,7 +1,8 @@
 
 import React from "react";
 import { RetentionSheet } from "../../dialogs/RetentionSheet";
-import { useRetentionConfirm } from "../../hooks/useRetentionConfirm";
+import { useShipments } from "@/contexts/shipments";
+import { toast } from "sonner";
 
 interface RetentionSheetContainerProps {
   open: boolean;
@@ -49,46 +50,48 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
   shipmentId,
   isEditing = true
 }) => {
-  // Use the retention confirm hook directly
-  const { handleRetentionUpdate } = useRetentionConfirm({
-    shipmentId,
-    retentionReason,
-    retentionAmount,
-    paymentDate,
-    releaseDate,
-    actionNumber,
-    fiscalNotes,
-    resetForm: () => {
-      // This function can be empty or reset form if needed
-    }
-  });
+  const { updateFiscalAction } = useShipments();
 
   const handleConfirm = async () => {
     console.log("RetentionSheetContainer - handleConfirm called with isEditing:", isEditing);
     
-    if (isEditing) {
-      try {
-        // Use the direct update method from the hook
-        const success = await handleRetentionUpdate();
-        
-        if (success) {
-          onOpenChange(false);
-          
-          // Also call the parent's onUpdate to ensure UI is updated
-          onUpdate(
-            actionNumber,
-            retentionReason,
-            retentionAmount,
-            paymentDate,
-            releaseDate,
-            fiscalNotes
-          );
-        }
-      } catch (error) {
-        console.error("Error in RetentionSheetContainer handleConfirm:", error);
+    try {
+      // Validate required fields
+      if (!retentionReason.trim()) {
+        toast.error("O motivo da retenção é obrigatório");
+        return;
       }
-    } else {
-      // For new retentions, call the parent's onUpdate
+      
+      // Parse amount to a number
+      let amountValue = 0;
+      if (retentionAmount) {
+        amountValue = parseFloat(retentionAmount.replace(/[^\d.]/g, ''));
+        if (isNaN(amountValue)) {
+          amountValue = 0;
+        }
+      }
+      
+      if (isEditing) {
+        // Update fiscal action
+        const fiscalActionData = {
+          actionNumber: actionNumber.trim() || undefined,
+          reason: retentionReason.trim(),
+          amountToPay: amountValue,
+          paymentDate: paymentDate || undefined,
+          releaseDate: releaseDate || undefined,
+          notes: fiscalNotes?.trim() || undefined
+        };
+        
+        console.log("Updating fiscal action with data:", fiscalActionData);
+        
+        await updateFiscalAction(shipmentId, fiscalActionData);
+        toast.success("Informações de retenção atualizadas com sucesso");
+      }
+      
+      // Close the sheet
+      onOpenChange(false);
+      
+      // Also call the parent's onUpdate to ensure UI is updated
       onUpdate(
         actionNumber,
         retentionReason,
@@ -97,6 +100,9 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
         releaseDate,
         fiscalNotes
       );
+    } catch (error) {
+      console.error("Error in RetentionSheetContainer handleConfirm:", error);
+      toast.error("Erro ao atualizar informações de retenção");
     }
   };
 
@@ -120,4 +126,4 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
       isEditing={isEditing}
     />
   );
-}
+};

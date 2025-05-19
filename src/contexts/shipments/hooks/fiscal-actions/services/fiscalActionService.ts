@@ -43,7 +43,22 @@ export const fiscalActionService = {
       }
       
       // Map domain model to Supabase format
-      const supabaseData = mapFiscalActionToSupabase(fiscalActionData, undefined, userId);
+      const mappedData = mapFiscalActionToSupabase(fiscalActionData, undefined, userId);
+      
+      // Create properly typed update object for Supabase
+      const supabaseData: Partial<SupabaseFiscalAction> = {
+        updated_at: new Date().toISOString()
+      };
+      
+      // Only include fields that exist in mappedData
+      if (mappedData.action_number !== undefined) supabaseData.action_number = mappedData.action_number;
+      if (mappedData.reason !== undefined) supabaseData.reason = mappedData.reason;
+      if (mappedData.amount_to_pay !== undefined) supabaseData.amount_to_pay = mappedData.amount_to_pay;
+      if (mappedData.payment_date !== undefined) supabaseData.payment_date = mappedData.payment_date;
+      if (mappedData.release_date !== undefined) supabaseData.release_date = mappedData.release_date;
+      if (mappedData.notes !== undefined) supabaseData.notes = mappedData.notes;
+      if (mappedData.user_id !== undefined) supabaseData.user_id = mappedData.user_id;
+      
       console.log("Updating fiscal action with ID:", fiscalActionId);
       console.log("Update data:", supabaseData);
       
@@ -160,7 +175,8 @@ export const fiscalActionService = {
     isRetained: boolean
   ): Promise<void> {
     try {
-      await supabase
+      console.log(`Updating shipment ${shipmentId} retention status to ${isRetained}`);
+      const { error } = await supabase
         .from('shipments')
         .update({ 
           is_retained: isRetained,
@@ -168,8 +184,16 @@ export const fiscalActionService = {
           updated_at: new Date().toISOString()
         })
         .eq('id', shipmentId);
+        
+      if (error) {
+        console.error("Error updating shipment retention status:", error);
+        throw error;
+      }
+      
+      console.log("Shipment retention status updated successfully");
     } catch (error) {
       console.warn("Could not update shipment retention status:", error);
+      throw error;
     }
   }
 };

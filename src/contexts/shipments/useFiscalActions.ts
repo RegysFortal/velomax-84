@@ -14,7 +14,8 @@ import { fiscalActionService } from "./hooks/fiscal-actions/services/fiscalActio
  */
 export const useFiscalActions = (
   shipments: Shipment[],
-  setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>
+  setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>,
+  refreshShipmentsData: () => void
 ) => {
   const { updateFiscalAction: updateAction } = useFiscalActionUpdate(shipments, setShipments);
   const { clearFiscalAction: clearAction } = useFiscalActionClear(shipments, setShipments);
@@ -68,8 +69,12 @@ export const useFiscalActions = (
         setShipments(updatedShipments);
         
         // Update the shipment retention status
-        fiscalActionService.updateShipmentRetentionStatus(shipmentId, true)
-          .catch(error => console.warn("Failed to update shipment retention status:", error));
+        await fiscalActionService.updateShipmentRetentionStatus(shipmentId, true);
+        
+        // Force refresh data
+        setTimeout(() => {
+          refreshShipmentsData();
+        }, 100);
       } else {
         console.warn("No result returned from fiscal action update");
       }
@@ -145,6 +150,11 @@ export const useFiscalActions = (
       const updatedFiscalAction = await updateAction(shipmentId, updateData);
       console.log("Fiscal action details updated successfully:", updatedFiscalAction);
       
+      // Force refresh data
+      setTimeout(() => {
+        refreshShipmentsData();
+      }, 100);
+      
       return updatedFiscalAction;
     } catch (error) {
       console.error("Error in updateFiscalActionDetails:", error);
@@ -159,6 +169,11 @@ export const useFiscalActions = (
       console.log("Clearing fiscal action for shipment:", shipmentId);
       await clearAction(shipmentId);
       console.log("Fiscal action cleared successfully");
+      
+      // Force refresh data
+      setTimeout(() => {
+        refreshShipmentsData();
+      }, 100);
     } catch (error) {
       console.error("Error clearing fiscal action:", error);
       toast.error("Erro ao remover ação fiscal");

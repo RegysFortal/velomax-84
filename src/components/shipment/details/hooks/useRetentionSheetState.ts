@@ -33,13 +33,26 @@ export const useRetentionSheetState = (
 
   // Update states when initial values change
   useEffect(() => {
-    setActionNumber(initialActionNumber || '');
-    setRetentionReason(initialRetentionReason || '');
-    setRetentionAmount(initialRetentionAmount || '');
-    setPaymentDate(initialPaymentDate || '');
-    setReleaseDate(initialReleaseDate || '');
-    setFiscalNotes(initialFiscalNotes || '');
+    if (showRetentionSheet) {
+      // Only update when the sheet is opened, to get fresh data
+      setActionNumber(initialActionNumber || '');
+      setRetentionReason(initialRetentionReason || '');
+      setRetentionAmount(initialRetentionAmount || '');
+      setPaymentDate(initialPaymentDate || '');
+      setReleaseDate(initialReleaseDate || '');
+      setFiscalNotes(initialFiscalNotes || '');
+      
+      console.log("Loading initial retention values:", {
+        initialActionNumber,
+        initialRetentionReason,
+        initialRetentionAmount,
+        initialPaymentDate,
+        initialReleaseDate,
+        initialFiscalNotes
+      });
+    }
   }, [
+    showRetentionSheet,
     initialActionNumber,
     initialRetentionReason,
     initialRetentionAmount,
@@ -49,7 +62,7 @@ export const useRetentionSheetState = (
   ]);
 
   // Get updateFiscalAction from ShipmentsContext
-  const { updateFiscalAction } = useShipments();
+  const { updateFiscalAction, refreshShipmentsData } = useShipments();
 
   // Handler for edit button click
   const handleEditClick = () => {
@@ -70,14 +83,7 @@ export const useRetentionSheetState = (
   };
 
   // Handler for retention form submission
-  const handleRetentionUpdate = async (
-    newActionNumber: string,
-    newRetentionReason: string,
-    newRetentionAmount: string,
-    newPaymentDate: string,
-    newReleaseDate: string,
-    newFiscalNotes: string
-  ) => {
+  const handleRetentionUpdate = async () => {
     if (!shipmentId) {
       console.error("No shipmentId provided for retention update");
       toast.error("ID do embarque não fornecido");
@@ -92,32 +98,32 @@ export const useRetentionSheetState = (
     try {
       console.log("Updating retention details with values:", {
         shipmentId,
-        newActionNumber,
-        newRetentionReason,
-        newRetentionAmount,
-        newPaymentDate,
-        newReleaseDate,
-        newFiscalNotes
+        actionNumber,
+        retentionReason,
+        retentionAmount,
+        paymentDate,
+        releaseDate,
+        fiscalNotes
       });
       
       // Validate required fields
-      if (!newRetentionReason) {
+      if (!retentionReason) {
         toast.error("O motivo da retenção é obrigatório");
         setIsSubmitting(false);
         return;
       }
       
       // Parse retention amount to ensure valid number
-      const amountValue = formatNumber(newRetentionAmount);
+      const amountValue = formatNumber(retentionAmount);
       
       // Create fiscal action data object with all fields explicitly defined
       const fiscalActionData = {
-        actionNumber: newActionNumber ? newActionNumber.trim() : undefined,
-        reason: newRetentionReason.trim(),
+        actionNumber: actionNumber ? actionNumber.trim() : undefined,
+        reason: retentionReason.trim(),
         amountToPay: amountValue,
-        paymentDate: newPaymentDate || undefined,
-        releaseDate: newReleaseDate || undefined,
-        notes: newFiscalNotes?.trim() || undefined
+        paymentDate: paymentDate || undefined,
+        releaseDate: releaseDate || undefined,
+        notes: fiscalNotes?.trim() || undefined
       };
       
       console.log("Sending data to updateFiscalAction:", fiscalActionData);
@@ -141,15 +147,18 @@ export const useRetentionSheetState = (
       console.log("Update result:", result);
       
       // Update form state with the latest values
-      setActionNumber(newActionNumber);
-      setRetentionReason(newRetentionReason);
-      setRetentionAmount(newRetentionAmount);
-      setPaymentDate(newPaymentDate);
-      setReleaseDate(newReleaseDate);
-      setFiscalNotes(newFiscalNotes);
+      setActionNumber(actionNumber);
+      setRetentionReason(retentionReason);
+      setRetentionAmount(retentionAmount);
+      setPaymentDate(paymentDate);
+      setReleaseDate(releaseDate);
+      setFiscalNotes(fiscalNotes);
       
       setShowRetentionSheet(false);
       toast.success("Informações de retenção atualizadas com sucesso");
+
+      // Force refresh data from the server
+      refreshShipmentsData();
 
       // Call onSuccess callback if provided
       if (onSuccess) {

@@ -49,7 +49,7 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     updateFiscalAction,
     clearFiscalAction,
     updateFiscalActionDetails
-  } = useFiscalActions(shipments, setShipments);
+  } = useFiscalActions(shipments, setShipments, refreshShipmentsData);
 
   const checkDuplicateTrackingNumber = (trackingNumber: string): boolean => {
     if (!trackingNumber) return false;
