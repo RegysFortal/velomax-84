@@ -2,7 +2,6 @@
 import { Shipment, FiscalAction } from "@/types/shipment";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
-import { useFiscalActionCreate } from "./useFiscalActionCreate";
 
 export const useFiscalActionUpdate = (
   shipments: Shipment[],
@@ -85,8 +84,43 @@ export const useFiscalActionUpdate = (
       } else {
         // Create new fiscal action
         console.log("Creating new fiscal action for shipment:", shipmentId);
-        const { createFiscalAction } = useFiscalActionCreate(shipments, setShipments);
-        fiscalAction = await createFiscalAction(shipmentId, fiscalActionData);
+        
+        // Create fiscal action directly without using hook
+        const supabaseFiscalAction = {
+          shipment_id: shipmentId,
+          action_number: fiscalActionData.actionNumber,
+          reason: fiscalActionData.reason || 'Não especificado',
+          amount_to_pay: fiscalActionData.amountToPay || 0,
+          payment_date: fiscalActionData.paymentDate,
+          release_date: fiscalActionData.releaseDate,
+          notes: fiscalActionData.notes,
+          created_at: now,
+          updated_at: now
+        };
+        
+        // Insert fiscal action into Supabase
+        const { data: newFiscalAction, error } = await supabase
+          .from('fiscal_actions')
+          .insert(supabaseFiscalAction)
+          .select()
+          .single();
+          
+        if (error) {
+          throw error;
+        }
+        
+        // Map the Supabase data to our FiscalAction type
+        fiscalAction = {
+          id: newFiscalAction.id,
+          actionNumber: newFiscalAction.action_number,
+          reason: newFiscalAction.reason,
+          amountToPay: newFiscalAction.amount_to_pay,
+          paymentDate: newFiscalAction.payment_date,
+          releaseDate: newFiscalAction.release_date,
+          notes: newFiscalAction.notes,
+          createdAt: newFiscalAction.created_at,
+          updatedAt: newFiscalAction.updated_at
+        };
       }
       
       // Update state with the new or updated fiscal action
