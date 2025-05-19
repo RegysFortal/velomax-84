@@ -38,7 +38,7 @@ export const calculateInsurance = (
   return invoiceValue * rate;
 };
 
-// Adding the missing calculateBudgetValue function
+// Export the calculateBudgetValue function
 export const calculateBudgetValue = (
   priceTable: PriceTable,
   deliveryType: string,

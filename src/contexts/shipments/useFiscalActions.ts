@@ -4,6 +4,13 @@ import { useFiscalActionUpdate } from "./hooks/fiscal-actions/useFiscalActionUpd
 import { useFiscalActionClear } from "./hooks/fiscal-actions/useFiscalActionClear";
 import { toast } from "sonner";
 
+/**
+ * Custom hook to manage fiscal actions for shipments
+ * 
+ * @param shipments Array of all shipments
+ * @param setShipments Function to update shipments state
+ * @returns Object with fiscal action functions
+ */
 export const useFiscalActions = (
   shipments: Shipment[],
   setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>
@@ -11,15 +18,15 @@ export const useFiscalActions = (
   const { updateFiscalAction: updateAction } = useFiscalActionUpdate(shipments, setShipments);
   const { clearFiscalAction: clearAction } = useFiscalActionClear(shipments, setShipments);
 
-  // Wrapper para updateFiscalAction para manter a interface consistente
+  // Wrapper for updateFiscalAction to maintain a consistent interface
   const updateFiscalAction = async (shipmentId: string, fiscalActionData: any) => {
-    console.log("Chamando updateFiscalAction com dados:", { shipmentId, fiscalActionData });
+    console.log("Calling updateFiscalAction with data:", { shipmentId, fiscalActionData });
     
     try {
       return await updateAction(shipmentId, fiscalActionData);
     } catch (error) {
-      console.error("Erro em updateFiscalAction:", error);
-      toast.error("Erro ao atualizar ação fiscal");
+      console.error("Error in updateFiscalAction:", error);
+      toast.error("Error updating fiscal action");
       throw error;
     }
   };
@@ -32,7 +39,7 @@ export const useFiscalActions = (
     notes?: string
   ) => {
     try {
-      console.log("Atualizando detalhes da ação fiscal:", {
+      console.log("Updating fiscal action details:", {
         shipmentId,
         actionNumber,
         releaseDate,
@@ -42,11 +49,11 @@ export const useFiscalActions = (
       // Get current shipment to find fiscal action
       const shipment = shipments.find(s => s.id === shipmentId);
       if (!shipment || !shipment.fiscalAction) {
-        console.error("Não foi possível atualizar detalhes: ação fiscal não encontrada");
+        console.error("Unable to update details: fiscal action not found");
         return;
       }
       
-      // Verificar se há alterações para evitar chamadas desnecessárias à API
+      // Check for changes to avoid unnecessary API calls
       const currentAction = shipment.fiscalAction;
       const hasChanges = 
         (actionNumber !== undefined && actionNumber !== currentAction.actionNumber) ||
@@ -54,41 +61,41 @@ export const useFiscalActions = (
         (notes !== undefined && notes !== currentAction.notes);
         
       if (!hasChanges) {
-        console.log("Nenhuma alteração detectada nos detalhes da ação fiscal");
+        console.log("No changes detected in fiscal action details");
         return currentAction;
       }
       
-      // Preparar dados para atualização
+      // Prepare data for update
       const updateData: Partial<FiscalAction> = {
-        ...currentAction // Começar com os dados atuais para manter todos os campos
+        ...currentAction // Start with current data to keep all fields
       };
       
-      // Sobrescrever apenas os campos que foram fornecidos
+      // Only override fields that were provided
       if (actionNumber !== undefined) updateData.actionNumber = actionNumber;
       if (releaseDate !== undefined) updateData.releaseDate = releaseDate;
       if (notes !== undefined) updateData.notes = notes;
       
-      console.log("Dados completos para atualização:", updateData);
+      console.log("Complete data for update:", updateData);
       
-      // Usar a função updateFiscalAction para garantir persistência
+      // Use updateFiscalAction to ensure persistence
       const updatedFiscalAction = await updateAction(shipmentId, updateData);
-      console.log("Ação fiscal atualizada com sucesso:", updatedFiscalAction);
+      console.log("Fiscal action updated successfully:", updatedFiscalAction);
       
       return updatedFiscalAction;
     } catch (error) {
-      console.error("Erro em updateFiscalActionDetails:", error);
-      toast.error("Erro ao atualizar detalhes da ação fiscal");
+      console.error("Error in updateFiscalActionDetails:", error);
+      toast.error("Error updating fiscal action details");
       throw error;
     }
   };
   
-  // Clear fiscal action - retorna void conforme especificado na interface
+  // Clear fiscal action - returns void as specified in the interface
   const clearFiscalAction = async (shipmentId: string): Promise<void> => {
     try {
       await clearAction(shipmentId);
     } catch (error) {
-      console.error("Erro ao limpar ação fiscal:", error);
-      toast.error("Erro ao remover ação fiscal");
+      console.error("Error clearing fiscal action:", error);
+      toast.error("Error removing fiscal action");
       throw error;
     }
   };
