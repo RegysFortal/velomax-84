@@ -62,35 +62,26 @@ export const fiscalActionService = {
       console.log("Updating fiscal action with ID:", fiscalActionId);
       console.log("Update data:", supabaseData);
       
-      // Track request timing for debugging
-      const requestStart = Date.now();
-      
-      // Execute update
+      // Execute update with explicit .single() to enforce and verify update
       const { error, data } = await supabase
         .from('fiscal_actions')
         .update(supabaseData)
         .eq('id', fiscalActionId)
-        .select('*');
+        .select()
+        .single();
         
-      console.log(`Request time: ${Date.now() - requestStart}ms`);  
-      
       if (error) {
         console.error("Error updating fiscal action:", error);
         throw error;
       }
       
-      if (!data || data.length === 0) {
-        console.error("No data returned after update");
-        throw new Error("Failed to update fiscal action: no data returned");
-      }
-      
       console.log("Supabase response after update:", data);
       
       // Immediately update the shipment's retention status to ensure consistency
-      await this.updateShipmentRetentionStatus(data[0].shipment_id, true);
+      await this.updateShipmentRetentionStatus(data.shipment_id, true);
       
       // Map response to domain model
-      return mapSupabaseToFiscalAction(data[0]);
+      return mapSupabaseToFiscalAction(data);
     } catch (error) {
       console.error("Error updating fiscal action:", error);
       throw error;
@@ -143,7 +134,7 @@ export const fiscalActionService = {
       console.log("Creating new fiscal action for shipment:", shipmentId);
       console.log("Creation data:", supabaseData);
       
-      // Insert new fiscal action with properly typed data
+      // Insert new fiscal action and retrieve it immediately
       const { data: newFiscalAction, error } = await supabase
         .from('fiscal_actions')
         .insert(supabaseData)

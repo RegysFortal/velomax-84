@@ -51,16 +51,19 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
   shipmentId,
   isEditing = true
 }) => {
-  const { updateFiscalAction, refreshShipmentsData } = useShipments();
+  const { updateFiscalAction, refreshShipmentsData, getShipmentById } = useShipments();
 
   // When the sheet opens, ensure we have the latest data
   useEffect(() => {
     if (open) {
+      // Refresh shipment data when the dialog opens to ensure latest state
+      refreshShipmentsData();
+      
       console.log("RetentionSheetContainer opened with current values:", { 
         actionNumber, retentionReason, retentionAmount, paymentDate, releaseDate, fiscalNotes
       });
     }
-  }, [open, actionNumber, retentionReason, retentionAmount, paymentDate, releaseDate, fiscalNotes]);
+  }, [open, actionNumber, retentionReason, retentionAmount, paymentDate, releaseDate, fiscalNotes, refreshShipmentsData]);
 
   const handleConfirm = async () => {
     console.log("RetentionSheetContainer - handleConfirm called with isEditing:", isEditing);
@@ -94,15 +97,16 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
         
         console.log("Updating fiscal action with data:", fiscalActionData);
         
-        // Call directly to Supabase to ensure data is properly saved
+        // Direct database update to ensure data is properly saved
         await updateFiscalAction(shipmentId, fiscalActionData);
-        toast.success("Informações de retenção atualizadas com sucesso");
         
         // Force immediate refresh to ensure we have the latest data
         refreshShipmentsData();
+        
+        toast.success("Informações de retenção atualizadas com sucesso");
       }
       
-      // Close the sheet
+      // Only close the sheet after successful save
       onOpenChange(false);
       
       // Also call the parent's onUpdate to ensure UI is updated

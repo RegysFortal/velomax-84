@@ -27,6 +27,7 @@ export function useShipmentsData(user: any) {
         if (!loading && !isRefreshing) setLoading(true);
         console.log("Loading shipments data from database...");
         
+        // Get all shipments with fresh data from the database
         const { data: shipmentsData, error: shipmentsError } = await supabase
           .from('shipments')
           .select('*')
@@ -38,7 +39,9 @@ export function useShipmentsData(user: any) {
         
         console.log(`Retrieved ${shipmentsData.length} shipments from database`);
         
+        // For each shipment, load its documents and fiscal action if retained
         const shipmentsWithDetailsPromises = shipmentsData.map(async (shipment) => {
+          // Get the documents for this shipment
           const { data: documentsData, error: documentsError } = await supabase
             .from('shipment_documents')
             .select('*')
@@ -54,7 +57,7 @@ export function useShipmentsData(user: any) {
           
           let fiscalAction = undefined;
           
-          // Explicitly check if the shipment is retained to fetch fiscal action
+          // Always check if the shipment is retained to fetch fiscal action
           if (shipment.is_retained) {
             const { data: fiscalData, error: fiscalError } = await supabase
               .from('fiscal_actions')
@@ -83,6 +86,7 @@ export function useShipmentsData(user: any) {
             }
           }
           
+          // Return complete shipment with documents and fiscal action
           return {
             ...mapShipmentFromSupabase(shipment),
             documents: documentsData.map(mapDocumentFromSupabase),
@@ -90,12 +94,13 @@ export function useShipmentsData(user: any) {
           };
         });
         
+        // Wait for all shipments to be processed
         const shipmentsWithDetails = await Promise.all(shipmentsWithDetailsPromises);
         
         // Store in localStorage for backup
         localStorage.setItem('velomax_shipments', JSON.stringify(shipmentsWithDetails));
         
-        // Update state
+        // Update state with explicit type casting
         setShipments(shipmentsWithDetails as Shipment[]);
       } catch (error) {
         console.error("Error loading shipments data:", error);

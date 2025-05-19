@@ -75,7 +75,7 @@ export const useFiscalActions = (
         localStorage.setItem('velomax_shipments', JSON.stringify(updatedShipments));
         setShipments(updatedShipments);
         
-        // Update the shipment retention status
+        // Update the shipment retention status in the database for consistency
         await fiscalActionService.updateShipmentRetentionStatus(shipmentId, true);
         
         // Force refresh data immediately

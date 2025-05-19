@@ -106,8 +106,14 @@ export const useRetentionSheetState = (
 
   // Handler for edit button click
   const handleEditClick = () => {
-    console.log("Opening retention sheet for editing");
-    setShowRetentionSheet(true);
+    // Force data refresh before opening sheet
+    refreshShipmentsData();
+    
+    // Short delay to allow refresh to complete
+    setTimeout(() => {
+      console.log("Opening retention sheet for editing");
+      setShowRetentionSheet(true);
+    }, 100);
   };
 
   // Format number to ensure correct format
