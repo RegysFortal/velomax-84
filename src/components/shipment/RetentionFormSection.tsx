@@ -33,6 +33,26 @@ export function RetentionFormSection({
   fiscalNotes,
   setFiscalNotes
 }: RetentionFormSectionProps) {
+  // Função auxiliar para formatar valor numérico
+  const formatCurrency = (value: string) => {
+    // Remover caracteres não numéricos, exceto ponto decimal
+    const numericValue = value.replace(/[^\d.]/g, '');
+    
+    // Garantir apenas um ponto decimal
+    const parts = numericValue.split('.');
+    if (parts.length > 2) {
+      return parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    return numericValue;
+  };
+
+  // Handler para alteração do valor com formatação
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatCurrency(e.target.value);
+    setRetentionAmount(formattedValue);
+  };
+
   return (
     <div className="space-y-4 border p-4 rounded-md bg-red-50 md:col-span-2">
       <h3 className="font-medium">Detalhes da Retenção</h3>
@@ -68,7 +88,7 @@ export function RetentionFormSection({
             min="0"
             step="0.01"
             value={retentionAmount}
-            onChange={(e) => setRetentionAmount(e.target.value)}
+            onChange={handleAmountChange}
             className="pl-8"
             placeholder="0,00"
           />

@@ -7,33 +7,36 @@ export const useFiscalActionUpdate = (
   shipments: Shipment[],
   setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>
 ) => {
-  const updateFiscalAction = async (shipmentId: string, fiscalActionData: Partial<FiscalAction> | null) => {
+  const updateFiscalAction = async (shipmentId: string, fiscalActionData: Partial<FiscalAction> | null): Promise<FiscalAction | null> => {
     try {
       const now = new Date().toISOString();
       const shipment = shipments.find(s => s.id === shipmentId);
       
       if (!shipment) {
-        throw new Error("Shipment not found");
+        throw new Error("Embarque não encontrado");
       }
 
-      // If fiscalActionData is null, delete the fiscal action
+      // Se fiscalActionData for null, excluir a ação fiscal
       if (fiscalActionData === null) {
         if (shipment.fiscalAction) {
+          console.log("Removendo ação fiscal com ID:", shipment.fiscalAction.id);
+          
           const { error } = await supabase
             .from('fiscal_actions')
             .delete()
             .eq('id', shipment.fiscalAction.id);
             
           if (error) {
+            console.error("Erro ao excluir ação fiscal:", error);
             throw error;
           }
           
-          // Update state to remove fiscal action
+          // Atualizar o estado para remover a ação fiscal
           const updatedShipments = shipments.map(s => {
             if (s.id === shipmentId) {
+              const { fiscalAction, ...restShipment } = s;
               return { 
-                ...s, 
-                fiscalAction: undefined,
+                ...restShipment, 
                 updatedAt: now
               };
             }
@@ -49,11 +52,12 @@ export const useFiscalActionUpdate = (
       let fiscalAction: FiscalAction;
       
       if (shipment.fiscalAction) {
-        // Update existing fiscal action
-        const supabaseFiscalAction: any = {
+        // Atualizar ação fiscal existente
+        const supabaseFiscalAction: Record<string, any> = {
           updated_at: now
         };
         
+        // Mapear apenas os campos que foram fornecidos
         if (fiscalActionData.actionNumber !== undefined) supabaseFiscalAction.action_number = fiscalActionData.actionNumber;
         if (fiscalActionData.reason !== undefined) supabaseFiscalAction.reason = fiscalActionData.reason;
         if (fiscalActionData.amountToPay !== undefined) supabaseFiscalAction.amount_to_pay = fiscalActionData.amountToPay;
@@ -61,61 +65,63 @@ export const useFiscalActionUpdate = (
         if (fiscalActionData.releaseDate !== undefined) supabaseFiscalAction.release_date = fiscalActionData.releaseDate;
         if (fiscalActionData.notes !== undefined) supabaseFiscalAction.notes = fiscalActionData.notes;
         
-        console.log("Updating fiscal action with data:", supabaseFiscalAction);
+        console.log("Atualizando ação fiscal com ID:", shipment.fiscalAction.id);
+        console.log("Dados para atualização:", supabaseFiscalAction);
         
         const { error, data } = await supabase
           .from('fiscal_actions')
           .update(supabaseFiscalAction)
           .eq('id', shipment.fiscalAction.id)
-          .select()
+          .select('*')
           .single();
           
         if (error) {
-          console.error("Error updating fiscal action:", error);
+          console.error("Erro ao atualizar ação fiscal:", error);
           throw error;
         }
         
+        console.log("Resposta do Supabase após atualização:", data);
+        
+        // Combinar os dados existentes com as atualizações
         fiscalAction = {
           ...shipment.fiscalAction,
           ...fiscalActionData,
           updatedAt: now
         };
-        
-        console.log("Updated fiscal action:", data);
       } else {
-        // Create new fiscal action
-        console.log("Creating new fiscal action for shipment:", shipmentId);
+        // Criar nova ação fiscal
+        console.log("Criando nova ação fiscal para embarque:", shipmentId);
         
-        // Create fiscal action directly without using hook
+        // Garantir que todos os campos obrigatórios estejam presentes
         const supabaseFiscalAction = {
           shipment_id: shipmentId,
-          action_number: fiscalActionData.actionNumber,
+          action_number: fiscalActionData.actionNumber || null,
           reason: fiscalActionData.reason || 'Não especificado',
-          amount_to_pay: fiscalActionData.amountToPay || 0,
-          payment_date: fiscalActionData.paymentDate,
-          release_date: fiscalActionData.releaseDate,
-          notes: fiscalActionData.notes,
+          amount_to_pay: fiscalActionData.amountToPay !== undefined ? fiscalActionData.amountToPay : 0,
+          payment_date: fiscalActionData.paymentDate || null,
+          release_date: fiscalActionData.releaseDate || null,
+          notes: fiscalActionData.notes || null,
           created_at: now,
           updated_at: now
         };
         
-        console.log("Creating fiscal action with data:", supabaseFiscalAction);
+        console.log("Dados para criação de ação fiscal:", supabaseFiscalAction);
         
-        // Insert fiscal action into Supabase
+        // Inserir ação fiscal no Supabase
         const { data: newFiscalAction, error } = await supabase
           .from('fiscal_actions')
           .insert(supabaseFiscalAction)
-          .select()
+          .select('*')
           .single();
           
         if (error) {
-          console.error("Error creating fiscal action:", error);
+          console.error("Erro ao criar ação fiscal:", error);
           throw error;
         }
         
-        console.log("Created fiscal action:", newFiscalAction);
+        console.log("Nova ação fiscal criada:", newFiscalAction);
         
-        // Map the Supabase data to our FiscalAction type
+        // Mapear a resposta do Supabase para nosso tipo FiscalAction
         fiscalAction = {
           id: newFiscalAction.id,
           actionNumber: newFiscalAction.action_number,
@@ -129,7 +135,7 @@ export const useFiscalActionUpdate = (
         };
       }
       
-      // Update state with the new or updated fiscal action
+      // Atualizar o estado com a ação fiscal nova ou atualizada
       const updatedShipments = shipments.map(s => {
         if (s.id === shipmentId) {
           return { 
@@ -144,7 +150,7 @@ export const useFiscalActionUpdate = (
       setShipments(updatedShipments);
       return fiscalAction;
     } catch (error) {
-      console.error("Error updating fiscal action:", error);
+      console.error("Erro ao atualizar ação fiscal:", error);
       toast.error("Erro ao atualizar ação fiscal");
       throw error;
     }

@@ -1,139 +1,24 @@
 
 import { Shipment, FiscalAction } from "@/types/shipment";
-import { supabase } from '@/integrations/supabase/client';
+import { useFiscalActionUpdate } from "./hooks/fiscal-actions/useFiscalActionUpdate";
+import { useFiscalActionClear } from "./hooks/fiscal-actions/useFiscalActionClear";
 import { toast } from "sonner";
 
 export const useFiscalActions = (
   shipments: Shipment[],
   setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>
 ) => {
+  const { updateFiscalAction: updateAction } = useFiscalActionUpdate(shipments, setShipments);
+  const { clearFiscalAction: clearAction } = useFiscalActionClear(shipments, setShipments);
+
+  // Wrapper para updateFiscalAction para manter a interface consistente
   const updateFiscalAction = async (shipmentId: string, fiscalActionData: any) => {
-    console.log("Updating fiscal action for shipment:", shipmentId, fiscalActionData);
+    console.log("Chamando updateFiscalAction com dados:", { shipmentId, fiscalActionData });
     
     try {
-      const timestamp = new Date().toISOString();
-      
-      if (fiscalActionData === null) {
-        // Clear fiscal action if null is passed
-        const { error } = await supabase
-          .from('fiscal_actions')
-          .delete()
-          .eq('shipment_id', shipmentId);
-        
-        if (error) {
-          console.error("Error clearing fiscal action:", error);
-          throw error;
-        }
-        
-        // Update local state
-        setShipments(prev => prev.map(s => {
-          if (s.id === shipmentId) {
-            // Remove fiscal action from shipment
-            const { fiscalAction, ...rest } = s;
-            return { ...rest, updatedAt: timestamp };
-          }
-          return s;
-        }));
-        
-        console.log("Fiscal action cleared for shipment:", shipmentId);
-        
-        return null;
-      }
-      
-      // Check if a fiscal action already exists for this shipment
-      const { data: existingActions } = await supabase
-        .from('fiscal_actions')
-        .select('id')
-        .eq('shipment_id', shipmentId);
-      
-      let result;
-      
-      if (existingActions && existingActions.length > 0) {
-        // Update existing fiscal action
-        const actionId = existingActions[0].id;
-        
-        // Prepare data for update
-        const updateData = {
-          reason: fiscalActionData.reason || '',
-          amount_to_pay: fiscalActionData.amountToPay || 0,
-          payment_date: fiscalActionData.paymentDate || null,
-          release_date: fiscalActionData.releaseDate || null,
-          notes: fiscalActionData.notes || null,
-          action_number: fiscalActionData.actionNumber || null,
-          updated_at: timestamp
-        };
-        
-        console.log("Updating existing fiscal action:", actionId, updateData);
-        
-        const { data, error } = await supabase
-          .from('fiscal_actions')
-          .update(updateData)
-          .eq('id', actionId)
-          .select('*')
-          .single();
-          
-        if (error) {
-          console.error("Supabase fiscal action update error:", error);
-          throw error;
-        }
-        
-        result = data;
-      } else {
-        // Create new fiscal action
-        const newFiscalAction = {
-          shipment_id: shipmentId,
-          reason: fiscalActionData.reason || '',
-          amount_to_pay: fiscalActionData.amountToPay || 0,
-          payment_date: fiscalActionData.paymentDate || null,
-          release_date: fiscalActionData.releaseDate || null,
-          notes: fiscalActionData.notes || null,
-          action_number: fiscalActionData.actionNumber || null,
-          created_at: timestamp,
-          updated_at: timestamp
-        };
-        
-        console.log("Creating new fiscal action:", newFiscalAction);
-        
-        const { data, error } = await supabase
-          .from('fiscal_actions')
-          .insert(newFiscalAction)
-          .select('*')
-          .single();
-          
-        if (error) {
-          console.error("Supabase fiscal action insert error:", error);
-          throw error;
-        }
-        
-        result = data;
-      }
-      
-      // Map the database response to our FiscalAction type
-      const fiscalAction: FiscalAction = {
-        id: result.id,
-        reason: result.reason,
-        amountToPay: result.amount_to_pay,
-        paymentDate: result.payment_date,
-        releaseDate: result.release_date,
-        notes: result.notes,
-        actionNumber: result.action_number,
-        createdAt: result.created_at,
-        updatedAt: result.updated_at
-      };
-      
-      // Update local state
-      setShipments(prev => prev.map(s => {
-        if (s.id === shipmentId) {
-          return { ...s, fiscalAction, updatedAt: timestamp };
-        }
-        return s;
-      }));
-      
-      console.log("Fiscal action updated successfully:", fiscalAction);
-      
-      return fiscalAction;
+      return await updateAction(shipmentId, fiscalActionData);
     } catch (error) {
-      console.error("Error in updateFiscalAction:", error);
+      console.error("Erro em updateFiscalAction:", error);
       toast.error("Erro ao atualizar ação fiscal");
       throw error;
     }
@@ -147,67 +32,46 @@ export const useFiscalActions = (
     notes?: string
   ) => {
     try {
-      // Get current shipment to find fiscal action ID
+      console.log("Atualizando detalhes da ação fiscal:", {
+        shipmentId,
+        actionNumber,
+        releaseDate,
+        notes
+      });
+      
+      // Get current shipment to find fiscal action
       const shipment = shipments.find(s => s.id === shipmentId);
       if (!shipment || !shipment.fiscalAction) {
-        console.error("Cannot update fiscal action details: action not found");
+        console.error("Não foi possível atualizar detalhes: ação fiscal não encontrada");
         return;
       }
       
-      const timestamp = new Date().toISOString();
+      // Preparar dados para atualização
+      const updateData: Partial<FiscalAction> = {};
+      if (actionNumber !== undefined) updateData.actionNumber = actionNumber;
+      if (releaseDate !== undefined) updateData.releaseDate = releaseDate;
+      if (notes !== undefined) updateData.notes = notes;
       
-      const updateData = {
-        action_number: actionNumber,
-        release_date: releaseDate,
-        notes: notes,
-        updated_at: timestamp
-      };
+      console.log("Dados para atualização:", updateData);
       
-      // Update the fiscal action
-      const { data, error } = await supabase
-        .from('fiscal_actions')
-        .update(updateData)
-        .eq('id', shipment.fiscalAction.id)
-        .select('*')
-        .single();
-        
-      if (error) {
-        console.error("Error updating fiscal action details:", error);
-        throw error;
-      }
-      
-      // Map the database response
-      const updatedFiscalAction: FiscalAction = {
-        ...shipment.fiscalAction,
-        actionNumber: data.action_number,
-        releaseDate: data.release_date,
-        notes: data.notes,
-        updatedAt: data.updated_at
-      };
-      
-      // Update local state
-      setShipments(prev => prev.map(s => {
-        if (s.id === shipmentId) {
-          return { ...s, fiscalAction: updatedFiscalAction };
-        }
-        return s;
-      }));
+      // Usar a função updateFiscalAction para atualizar
+      const updatedFiscalAction = await updateAction(shipmentId, updateData);
+      console.log("Ação fiscal atualizada:", updatedFiscalAction);
       
       return updatedFiscalAction;
     } catch (error) {
-      console.error("Error in updateFiscalActionDetails:", error);
+      console.error("Erro em updateFiscalActionDetails:", error);
       toast.error("Erro ao atualizar detalhes da ação fiscal");
       throw error;
     }
   };
   
-  // Clear fiscal action - Modified to return void instead of FiscalAction
+  // Clear fiscal action - retorna void conforme especificado na interface
   const clearFiscalAction = async (shipmentId: string): Promise<void> => {
     try {
-      await updateFiscalAction(shipmentId, null);
-      // Don't return anything (void return type)
+      await clearAction(shipmentId);
     } catch (error) {
-      console.error("Error clearing fiscal action:", error);
+      console.error("Erro ao limpar ação fiscal:", error);
       toast.error("Erro ao remover ação fiscal");
       throw error;
     }
