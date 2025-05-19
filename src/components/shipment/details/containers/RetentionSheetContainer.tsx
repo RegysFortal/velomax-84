@@ -94,10 +94,11 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
         
         console.log("Updating fiscal action with data:", fiscalActionData);
         
+        // Call directly to Supabase to ensure data is properly saved
         await updateFiscalAction(shipmentId, fiscalActionData);
         toast.success("Informações de retenção atualizadas com sucesso");
         
-        // Immediately refresh shipments data to ensure we have the latest data
+        // Force immediate refresh to ensure we have the latest data
         refreshShipmentsData();
       }
       

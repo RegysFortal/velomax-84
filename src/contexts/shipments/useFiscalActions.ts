@@ -92,6 +92,25 @@ export const useFiscalActions = (
     }
   };
 
+  // Clear fiscal action - returns void as specified in the interface
+  const clearFiscalAction = async (shipmentId: string): Promise<void> => {
+    try {
+      console.log("Clearing fiscal action for shipment:", shipmentId);
+      await clearAction(shipmentId);
+      console.log("Fiscal action cleared successfully");
+      
+      // Update the shipment's retention status
+      await fiscalActionService.updateShipmentRetentionStatus(shipmentId, false);
+      
+      // Force refresh data
+      refreshShipmentsData();
+    } catch (error) {
+      console.error("Error clearing fiscal action:", error);
+      toast.error("Erro ao remover ação fiscal");
+      throw error;
+    }
+  };
+
   // Update fiscal action details without creating a new one
   const updateFiscalActionDetails = async (
     shipmentId: string, 
@@ -162,25 +181,6 @@ export const useFiscalActions = (
     } catch (error) {
       console.error("Error in updateFiscalActionDetails:", error);
       toast.error("Erro ao atualizar detalhes da ação fiscal");
-      throw error;
-    }
-  };
-  
-  // Clear fiscal action - returns void as specified in the interface
-  const clearFiscalAction = async (shipmentId: string): Promise<void> => {
-    try {
-      console.log("Clearing fiscal action for shipment:", shipmentId);
-      await clearAction(shipmentId);
-      console.log("Fiscal action cleared successfully");
-      
-      // Update the shipment's retention status
-      await fiscalActionService.updateShipmentRetentionStatus(shipmentId, false);
-      
-      // Force refresh data
-      refreshShipmentsData();
-    } catch (error) {
-      console.error("Error clearing fiscal action:", error);
-      toast.error("Erro ao remover ação fiscal");
       throw error;
     }
   };
