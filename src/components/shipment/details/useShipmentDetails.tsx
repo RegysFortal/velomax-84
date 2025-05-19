@@ -8,14 +8,13 @@ import { useShipmentDelete } from "./hooks/useShipmentDelete";
 import { useShipmentStatusChange } from "../hooks/useShipmentStatusChange";
 import { useStatusDisplay } from "../hooks/status/useStatusDisplay";
 import { useState } from "react";
-import { toast } from "sonner";
 
 export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   // New state to track if we're editing retention details
   const [isEditing, setIsEditing] = useState(false);
   
   // Get base functions from context
-  const { updateDocument, updateFiscalAction } = useShipments();
+  const { updateDocument } = useShipments();
   const { addDelivery } = useDeliveries();
 
   // Use the state management hook
@@ -49,57 +48,16 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   const handleEditClick = () => {
     setIsEditing(true);
     console.log("Opening retention edit form");
-    
-    // Populate with current values
-    // Opening RetentionSheet is handled in the DetailsTab component
-    // through the showRetentionSheet state variable
   };
   
   // Handler for cancel button click
   const handleCancelEdit = () => {
     setIsEditing(false);
   };
-  
-  // Handler to save fiscal action details
-  const handleSaveFiscalAction = async () => {
-    try {
-      if (!shipment.id) return;
-      
-      console.log("Saving fiscal action details:", {
-        actionNumber: shipmentState.actionNumber,
-        retentionReason: shipmentState.retentionReason,
-        retentionAmount: shipmentState.retentionAmount,
-        paymentDate: shipmentState.paymentDate,
-        releaseDate: shipmentState.releaseDate,
-        fiscalNotes: shipmentState.fiscalNotes,
-      });
-      
-      // Update the fiscal action with the current values
-      await updateFiscalAction(shipment.id, {
-        actionNumber: shipmentState.actionNumber?.trim() || undefined,
-        reason: shipmentState.retentionReason?.trim() || "Retenção fiscal", // Default value if empty
-        amountToPay: parseFloat(shipmentState.retentionAmount || "0"),
-        paymentDate: shipmentState.paymentDate || null, // Use null instead of empty string
-        releaseDate: shipmentState.releaseDate || null, // Use null instead of empty string
-        notes: shipmentState.fiscalNotes?.trim() || undefined,
-      });
-      
-      toast.success("Informações de retenção atualizadas com sucesso");
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error saving fiscal action details:", error);
-      toast.error("Erro ao salvar informações de retenção");
-    }
-  };
 
   // Create wrapper functions to integrate the hooks
   const handleSave = async () => {
-    // If we're editing retention details, save those
-    if (isEditing && shipment.status === 'retained') {
-      return handleSaveFiscalAction();
-    }
-    
-    // Otherwise, save the whole shipment
+    // Save the whole shipment
     const success = await saveHandler({
       companyId: shipmentState.companyId,
       companyName: shipmentState.companyName,

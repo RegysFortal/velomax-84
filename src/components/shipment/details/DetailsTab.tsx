@@ -1,19 +1,17 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Shipment } from "@/types/shipment";
 import { StatusActions } from "./StatusActions";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import { useShipmentDetails } from "./useShipmentDetails";
-import { RetentionSheet } from "../dialogs/RetentionSheet";
-import { toast } from "sonner";
 import { GeneralInfoSection } from "./sections/GeneralInfoSection";
 import { CargoDetailsSection } from "./sections/CargoDetailsSection";
 import { RetentionInfoSection } from "./sections/RetentionInfoSection";
 import { DeliveryInfoSection } from "./sections/DeliveryInfoSection";
 import { ObservationsSection } from "./sections/ObservationsSection";
-import { DeleteAlertDialog } from "./sections/DeleteAlertDialog";
-import { useShipments } from "@/contexts/shipments";
+import { ActionButtonsSection } from "./sections/ActionButtonsSection";
+import { RetentionSheetContainer } from "./containers/RetentionSheetContainer";
+import { useRetentionSheetState } from "./hooks/useRetentionSheetState";
 
 interface DetailsTabProps {
   shipment: Shipment;
@@ -21,11 +19,7 @@ interface DetailsTabProps {
 }
 
 export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
-  // Get updateFiscalAction directly from ShipmentsContext
-  const { updateFiscalAction } = useShipments();
-  
   const {
-    isEditing,
     deleteAlertOpen,
     setDeleteAlertOpen,
     companyName,
@@ -53,56 +47,25 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
     setActionNumber,
     fiscalNotes,
     setFiscalNotes,
-    handleSave,
     handleDelete,
-    handleStatusChange,
-    handleEditClick
+    handleStatusChange
   } = useShipmentDetails(shipment, onClose);
 
-  // State to control retention sheet visibility for editing
-  const [showRetentionSheet, setShowRetentionSheet] = useState(false);
-
-  // Handler for edit button click
-  const onEditRetentionClick = () => {
-    console.log("Opening retention sheet for editing");
-    setShowRetentionSheet(true);
-  };
-
-  // Handler for retention form submission
-  const handleRetentionUpdate = async () => {
-    if (!shipment.id) return;
-    
-    try {
-      console.log("Updating retention details with values:", {
-        shipmentId: shipment.id,
-        actionNumber,
-        retentionReason,
-        retentionAmount,
-        paymentDate,
-        releaseDate,
-        fiscalNotes
-      });
-      
-      // Create fiscal action data object
-      const fiscalActionData = {
-        actionNumber,
-        reason: retentionReason,
-        amountToPay: parseFloat(retentionAmount) || 0,
-        paymentDate,
-        releaseDate,
-        notes: fiscalNotes
-      };
-      
-      // Use the updateFiscalAction directly from context
-      await updateFiscalAction(shipment.id, fiscalActionData);
-      
-      setShowRetentionSheet(false);
-      toast.success("Informações de retenção atualizadas com sucesso");
-    } catch (error) {
-      console.error("Error updating retention details:", error);
-      toast.error("Erro ao atualizar informações de retenção");
-    }
-  };
+  // Use the retention sheet state hook
+  const { 
+    showRetentionSheet, 
+    setShowRetentionSheet, 
+    handleEditClick, 
+    handleRetentionUpdate 
+  } = useRetentionSheetState(
+    shipment.id, 
+    actionNumber, 
+    retentionReason, 
+    retentionAmount, 
+    paymentDate, 
+    releaseDate, 
+    fiscalNotes
+  );
 
   // Convert packages and weight strings to numbers
   const packagesNumber = parseInt(packages, 10);
@@ -144,7 +107,7 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
           paymentDate={paymentDate}
           releaseDate={releaseDate}
           fiscalNotes={fiscalNotes}
-          onEditClick={onEditRetentionClick}
+          onEditClick={handleEditClick}
         />
       )}
       
@@ -162,8 +125,8 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
         <ObservationsSection observations={observations} />
       )}
       
-      {/* Retention Sheet for editing */}
-      <RetentionSheet
+      {/* Retention Sheet Container */}
+      <RetentionSheetContainer
         open={showRetentionSheet}
         onOpenChange={setShowRetentionSheet}
         actionNumber={actionNumber}
@@ -178,21 +141,14 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
         setReleaseDate={setReleaseDate}
         fiscalNotes={fiscalNotes}
         setFiscalNotes={setFiscalNotes}
-        onConfirm={handleRetentionUpdate}
+        onUpdate={(an, rr, ra, pd, rd, fn) => handleRetentionUpdate(an, rr, ra, pd, rd, fn)}
         isEditing={true}
       />
       
-      {/* Ações do Embarque */}
-      <div className="flex justify-end space-x-2">
-        <Button variant="destructive" onClick={() => setDeleteAlertOpen(true)}>
-          Excluir
-        </Button>
-      </div>
-      
-      {/* Diálogo de confirmação para exclusão */}
-      <DeleteAlertDialog
-        open={deleteAlertOpen}
-        onOpenChange={setDeleteAlertOpen}
+      {/* Action Buttons */}
+      <ActionButtonsSection
+        deleteAlertOpen={deleteAlertOpen}
+        setDeleteAlertOpen={setDeleteAlertOpen}
         onDelete={handleDelete}
       />
     </div>
