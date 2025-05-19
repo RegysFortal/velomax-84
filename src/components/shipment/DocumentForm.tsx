@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { InvoiceNumberInput } from './InvoiceNumberInput';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DocumentFormProps {
   editingDocument: boolean;
@@ -58,71 +59,75 @@ export function DocumentForm({
         {editingDocument ? "Editar Documento" : "Adicionar Documento"}
       </h3>
       
-      <div className="space-y-2">
-        <Label htmlFor="minuteNumber">Número da Minuta</Label>
-        <Input 
-          id="minuteNumber" 
-          value={minuteNumber} 
-          onChange={(e) => setMinuteNumber(e.target.value)} 
-          placeholder="12345"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Números de Nota Fiscal</Label>
-        <InvoiceNumberInput 
-          invoiceNumbers={invoiceNumbers || []}
-          setInvoiceNumbers={handleInvoiceNumbersChange}
-        />
-        <p className="text-sm text-muted-foreground">
-          Pressione Enter para adicionar cada número de nota fiscal
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="packages">Volumes</Label>
-          <Input 
-            id="packages" 
-            type="number" 
-            value={packages} 
-            onChange={(e) => setPackages(e.target.value)} 
-            placeholder="0"
-          />
+      <ScrollArea className="h-[400px] pr-4">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="minuteNumber">Número da Minuta</Label>
+            <Input 
+              id="minuteNumber" 
+              value={minuteNumber} 
+              onChange={(e) => setMinuteNumber(e.target.value)} 
+              placeholder="12345"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Números de Nota Fiscal</Label>
+            <InvoiceNumberInput 
+              invoiceNumbers={invoiceNumbers || []}
+              setInvoiceNumbers={handleInvoiceNumbersChange}
+            />
+            <p className="text-sm text-muted-foreground">
+              Pressione Enter para adicionar cada número de nota fiscal
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="packages">Volumes</Label>
+              <Input 
+                id="packages" 
+                type="number" 
+                value={packages} 
+                onChange={(e) => setPackages(e.target.value)} 
+                placeholder="0"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="weight">Peso (kg)</Label>
+              <Input 
+                id="weight" 
+                type="number" 
+                step="0.01" 
+                value={weight} 
+                onChange={(e) => setWeight(e.target.value)} 
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="notes">Observações</Label>
+            <Textarea 
+              id="notes" 
+              value={notes} 
+              onChange={(e) => setNotes(e.target.value)} 
+              placeholder="Informações adicionais"
+              rows={3}
+            />
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="isDelivered" 
+              checked={isDelivered} 
+              onCheckedChange={setIsDelivered} 
+            />
+            <Label htmlFor="isDelivered">Entregue</Label>
+          </div>
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="weight">Peso (kg)</Label>
-          <Input 
-            id="weight" 
-            type="number" 
-            step="0.01" 
-            value={weight} 
-            onChange={(e) => setWeight(e.target.value)} 
-            placeholder="0.00"
-          />
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="notes">Observações</Label>
-        <Textarea 
-          id="notes" 
-          value={notes} 
-          onChange={(e) => setNotes(e.target.value)} 
-          placeholder="Informações adicionais"
-          rows={3}
-        />
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <Switch 
-          id="isDelivered" 
-          checked={isDelivered} 
-          onCheckedChange={setIsDelivered} 
-        />
-        <Label htmlFor="isDelivered">Entregue</Label>
-      </div>
+      </ScrollArea>
       
       <div className="flex justify-end space-x-2 pt-4">
         <Button variant="outline" onClick={onCancel}>Cancelar</Button>
@@ -131,3 +136,4 @@ export function DocumentForm({
     </div>
   );
 }
+
