@@ -80,5 +80,53 @@ export function useRetentionConfirm({
     }
   };
 
-  return { handleRetentionConfirm };
+  /**
+   * Updates an existing retention's fiscal action without changing status
+   */
+  const handleRetentionUpdate = async () => {
+    try {
+      console.log("Updating fiscal action for existing retention");
+      
+      if (!retentionReason.trim()) {
+        toast.error("O motivo da retenção é obrigatório");
+        return false;
+      }
+      
+      // Parse retention amount value
+      const retentionAmountValue = parseFloat(retentionAmount || "0");
+      
+      // Create the fiscal action data object with all fields
+      const fiscalActionData = {
+        actionNumber: actionNumber.trim() || undefined,
+        reason: retentionReason.trim(),
+        amountToPay: retentionAmountValue,
+        paymentDate: paymentDate || undefined,
+        releaseDate: releaseDate || undefined,
+        notes: fiscalNotes.trim() || undefined,
+      };
+      
+      console.log("Updating fiscal action with data:", fiscalActionData);
+      
+      // Update the fiscal action without changing status
+      const result = await updateFiscalAction(shipmentId, fiscalActionData);
+      console.log("Fiscal action update result:", result);
+      
+      toast.success("Informações de retenção atualizadas com sucesso");
+      
+      resetForm();
+      
+      if (onStatusChange) onStatusChange();
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating retention details:", error);
+      toast.error("Erro ao atualizar informações de retenção");
+      return false;
+    }
+  };
+
+  return { 
+    handleRetentionConfirm,
+    handleRetentionUpdate
+  };
 }

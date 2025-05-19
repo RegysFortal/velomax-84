@@ -2,7 +2,7 @@
 import React from "react";
 import { DocumentSelectionDialog } from "../dialogs/DocumentSelectionDialog";
 import { DeliveryDialog } from "../dialogs/DeliveryDialog";
-import { RetentionSheet } from "../dialogs/RetentionSheet";
+import { RetentionSheetContainer } from "./containers/RetentionSheetContainer";
 import { Shipment } from "@/types/shipment";
 
 interface StatusActionDialogsProps {
@@ -37,6 +37,7 @@ interface StatusActionDialogsProps {
   onDocumentSelectionContinue: (documentIds: string[]) => void;
   onDocumentSelectionCancel: () => void;
   isRetentionEditing?: boolean;
+  shipmentId: string;
 }
 
 export function StatusActionDialogs({
@@ -70,7 +71,8 @@ export function StatusActionDialogs({
   onRetentionConfirm,
   onDocumentSelectionContinue,
   onDocumentSelectionCancel,
-  isRetentionEditing = false
+  isRetentionEditing = false,
+  shipmentId
 }: StatusActionDialogsProps) {
   return (
     <>
@@ -96,7 +98,7 @@ export function StatusActionDialogs({
         onConfirm={onDeliveryConfirm}
       />
       
-      <RetentionSheet
+      <RetentionSheetContainer
         open={showRetentionSheet}
         onOpenChange={setShowRetentionSheet}
         actionNumber={actionNumber}
@@ -111,8 +113,9 @@ export function StatusActionDialogs({
         setReleaseDate={setReleaseDate}
         fiscalNotes={fiscalNotes}
         setFiscalNotes={setFiscalNotes}
-        onConfirm={onRetentionConfirm}
+        onUpdate={onRetentionConfirm}
         isEditing={isRetentionEditing}
+        shipmentId={shipmentId}
       />
     </>
   );

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { DeliveryDetailsType } from "@/components/shipment/hooks/useStatusAction";
@@ -115,18 +116,27 @@ export function useStatusActionsHandler({
         fiscalNotes
       });
       
-      // Create the fiscal action data object
+      // Validate required fields
+      if (!retentionReason.trim()) {
+        toast.error("O motivo da retenção é obrigatório");
+        return;
+      }
+      
+      // Create the fiscal action data object with all fields explicitly defined
       const fiscalActionData = {
-        actionNumber,
-        reason: retentionReason,
+        actionNumber: actionNumber ? actionNumber.trim() : undefined,
+        reason: retentionReason.trim(),
         amountToPay: parseFloat(retentionAmount) || 0,
-        paymentDate,
-        releaseDate,
-        notes: fiscalNotes
+        paymentDate: paymentDate || undefined,
+        releaseDate: releaseDate || undefined,
+        notes: fiscalNotes ? fiscalNotes.trim() : undefined
       };
       
+      console.log("Updating fiscal action with data:", fiscalActionData);
+      
       // Use the updateFiscalAction function from the ShipmentsContext
-      await updateFiscalAction(shipmentId, fiscalActionData);
+      const result = await updateFiscalAction(shipmentId, fiscalActionData);
+      console.log("Fiscal action update result:", result);
       
       // Close the retention sheet
       setShowRetentionSheet(false);
@@ -198,6 +208,9 @@ export function useStatusActionsHandler({
     handleRetentionConfirm,
     handleRetentionUpdate,
     handleDocumentSelectionContinue,
-    handleDocumentSelectionCancel
+    handleDocumentSelectionCancel,
+    
+    // Shipment ID
+    shipmentId
   };
 }

@@ -107,6 +107,7 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
         onDocumentSelectionContinue={handleDocumentSelectionContinue}
         onDocumentSelectionCancel={handleDocumentSelectionCancel}
         isRetentionEditing={status === 'retained'}
+        shipmentId={shipmentId}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 
 import React from "react";
 import { RetentionSheet } from "../../dialogs/RetentionSheet";
+import { useRetentionConfirm } from "../../hooks/useRetentionConfirm";
 
 interface RetentionSheetContainerProps {
   open: boolean;
@@ -25,6 +26,7 @@ interface RetentionSheetContainerProps {
     releaseDate: string,
     fiscalNotes: string
   ) => void;
+  shipmentId: string;
   isEditing?: boolean;
 }
 
@@ -44,17 +46,53 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
   fiscalNotes,
   setFiscalNotes,
   onUpdate,
+  shipmentId,
   isEditing = true
 }) => {
-  const handleConfirm = () => {
-    onUpdate(
-      actionNumber,
-      retentionReason,
-      retentionAmount,
-      paymentDate,
-      releaseDate,
-      fiscalNotes
-    );
+  // Use the retention confirm hook directly
+  const { handleRetentionUpdate } = useRetentionConfirm({
+    shipmentId,
+    retentionReason,
+    retentionAmount,
+    paymentDate,
+    releaseDate,
+    actionNumber,
+    fiscalNotes,
+    resetForm: () => {
+      // This function can be empty or reset form if needed
+    }
+  });
+
+  const handleConfirm = async () => {
+    console.log("RetentionSheetContainer - handleConfirm called with isEditing:", isEditing);
+    
+    if (isEditing) {
+      // Use the direct update method from the hook
+      const success = await handleRetentionUpdate();
+      if (success) {
+        onOpenChange(false);
+        
+        // Also call the parent's onUpdate to ensure UI is updated
+        onUpdate(
+          actionNumber,
+          retentionReason,
+          retentionAmount,
+          paymentDate,
+          releaseDate,
+          fiscalNotes
+        );
+      }
+    } else {
+      // For new retentions, call the parent's onUpdate
+      onUpdate(
+        actionNumber,
+        retentionReason,
+        retentionAmount,
+        paymentDate,
+        releaseDate,
+        fiscalNotes
+      );
+    }
   };
 
   return (
@@ -77,4 +115,4 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
       isEditing={isEditing}
     />
   );
-};
+}

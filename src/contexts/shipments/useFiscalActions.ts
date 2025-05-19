@@ -23,18 +23,45 @@ export const useFiscalActions = (
     console.log("Calling updateFiscalAction with data:", { shipmentId, fiscalActionData });
     
     try {
+      // Validate fiscal action data
+      if (!fiscalActionData) {
+        console.error("Missing fiscal action data");
+        toast.error("Dados da ação fiscal não fornecidos");
+        return null;
+      }
+      
       // If we're getting an empty object, ensure we create proper defaults
       if (fiscalActionData && typeof fiscalActionData === 'object' && Object.keys(fiscalActionData).length === 0) {
+        console.log("Empty fiscal action data object provided, using defaults");
         fiscalActionData = {
           reason: "Retenção fiscal",
           amountToPay: 0,
         };
       }
 
+      // Ensure we have at least a reason
+      if (!fiscalActionData.reason) {
+        console.log("No reason provided, setting default");
+        fiscalActionData.reason = "Retenção fiscal";
+      }
+
+      // Call the actual implementation
       const result = await updateAction(shipmentId, fiscalActionData);
       if (result) {
         console.log("Fiscal action updated successfully:", result);
+        
+        // Ensure data is saved to local storage for additional persistence
+        const updatedShipments = shipments.map(s => {
+          if (s.id === shipmentId) {
+            return { ...s, fiscalAction: result };
+          }
+          return s;
+        });
+        localStorage.setItem('velomax_shipments', JSON.stringify(updatedShipments));
+      } else {
+        console.warn("No result returned from fiscal action update");
       }
+      
       return result;
     } catch (error) {
       console.error("Error in updateFiscalAction:", error);

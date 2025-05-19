@@ -105,14 +105,14 @@ export const useRetentionSheetState = (
       // Parse retention amount to ensure valid number
       const amountValue = formatNumber(newRetentionAmount);
       
-      // Create fiscal action data object
+      // Create fiscal action data object with all fields explicitly defined
       const fiscalActionData = {
-        actionNumber: newActionNumber.trim(),
+        actionNumber: newActionNumber ? newActionNumber.trim() : undefined,
         reason: newRetentionReason.trim(),
         amountToPay: amountValue,
-        paymentDate: newPaymentDate || null,
-        releaseDate: newReleaseDate || null,
-        notes: newFiscalNotes?.trim() || null
+        paymentDate: newPaymentDate || undefined,
+        releaseDate: newReleaseDate || undefined,
+        notes: newFiscalNotes?.trim() || undefined
       };
       
       console.log("Sending data to updateFiscalAction:", fiscalActionData);
@@ -120,6 +120,14 @@ export const useRetentionSheetState = (
       // Use updateFiscalAction directly from context
       const result = await updateFiscalAction(shipmentId, fiscalActionData);
       console.log("Update result:", result);
+      
+      // Update form state with the latest values
+      setActionNumber(newActionNumber);
+      setRetentionReason(newRetentionReason);
+      setRetentionAmount(newRetentionAmount);
+      setPaymentDate(newPaymentDate);
+      setReleaseDate(newReleaseDate);
+      setFiscalNotes(newFiscalNotes);
       
       setShowRetentionSheet(false);
       toast.success("Informações de retenção atualizadas com sucesso");
