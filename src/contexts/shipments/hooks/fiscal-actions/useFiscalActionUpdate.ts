@@ -86,7 +86,11 @@ export const useFiscalActionUpdate = (
         // Create new fiscal action
         console.log("Creating new fiscal action for shipment:", shipmentId);
         const { createFiscalAction } = useFiscalActionCreate(shipments, setShipments);
-        fiscalAction = await createFiscalAction(shipmentId, fiscalActionData);
+        // Fix: Pass only the shipmentId and fiscalActionData as a single object
+        fiscalAction = await createFiscalAction({
+          shipmentId,
+          ...fiscalActionData
+        });
       }
       
       // Update state with the new or updated fiscal action
