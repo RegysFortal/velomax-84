@@ -67,20 +67,25 @@ export const RetentionSheetContainer: React.FC<RetentionSheetContainerProps> = (
     console.log("RetentionSheetContainer - handleConfirm called with isEditing:", isEditing);
     
     if (isEditing) {
-      // Use the direct update method from the hook
-      const success = await handleRetentionUpdate();
-      if (success) {
-        onOpenChange(false);
+      try {
+        // Use the direct update method from the hook
+        const success = await handleRetentionUpdate();
         
-        // Also call the parent's onUpdate to ensure UI is updated
-        onUpdate(
-          actionNumber,
-          retentionReason,
-          retentionAmount,
-          paymentDate,
-          releaseDate,
-          fiscalNotes
-        );
+        if (success) {
+          onOpenChange(false);
+          
+          // Also call the parent's onUpdate to ensure UI is updated
+          onUpdate(
+            actionNumber,
+            retentionReason,
+            retentionAmount,
+            paymentDate,
+            releaseDate,
+            fiscalNotes
+          );
+        }
+      } catch (error) {
+        console.error("Error in RetentionSheetContainer handleConfirm:", error);
       }
     } else {
       // For new retentions, call the parent's onUpdate

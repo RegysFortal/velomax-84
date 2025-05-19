@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Hook for managing retention sheet state and operations
@@ -77,7 +78,11 @@ export const useRetentionSheetState = (
     newReleaseDate: string,
     newFiscalNotes: string
   ) => {
-    if (!shipmentId) return;
+    if (!shipmentId) {
+      console.error("No shipmentId provided for retention update");
+      toast.error("ID do embarque não fornecido");
+      return;
+    }
     
     // Prevent multiple submissions
     if (isSubmitting) return;
@@ -116,6 +121,20 @@ export const useRetentionSheetState = (
       };
       
       console.log("Sending data to updateFiscalAction:", fiscalActionData);
+      
+      // Directly update shipment to ensure retention flag is set
+      try {
+        await supabase
+          .from('shipments')
+          .update({ 
+            is_retained: true,
+            status: "retained",
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', shipmentId);
+      } catch (shipmentError) {
+        console.warn("Could not update shipment retention status:", shipmentError);
+      }
       
       // Use updateFiscalAction directly from context
       const result = await updateFiscalAction(shipmentId, fiscalActionData);

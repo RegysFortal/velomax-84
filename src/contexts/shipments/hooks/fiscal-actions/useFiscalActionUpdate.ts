@@ -22,6 +22,12 @@ export const useFiscalActionUpdate = (
   const updateFiscalAction = async (shipmentId: string, fiscalActionData: Partial<FiscalAction> | null): Promise<FiscalAction | null> => {
     try {
       const now = new Date().toISOString();
+      
+      if (!shipmentId) {
+        console.error("No shipmentId provided for fiscal action update");
+        throw new Error("ID do embarque é obrigatório");
+      }
+      
       const shipment = shipments.find(s => s.id === shipmentId);
       
       if (!shipment) {
@@ -82,6 +88,16 @@ export const useFiscalActionUpdate = (
         console.log("Updating fiscal action with ID:", shipment.fiscalAction.id);
         console.log("Update data:", supabaseFiscalAction);
         
+        // Add current user data
+        try {
+          const { data: userData } = await supabase.auth.getUser();
+          if (userData && userData.user) {
+            supabaseFiscalAction.user_id = userData.user.id;
+          }
+        } catch (userError) {
+          console.warn("Could not get current user for fiscal action update:", userError);
+        }
+        
         // Track request timing for debugging
         const requestStart = Date.now();
         
@@ -123,6 +139,17 @@ export const useFiscalActionUpdate = (
         // Create new fiscal action
         console.log("Creating new fiscal action for shipment:", shipmentId);
         
+        // Get current user if available
+        let userId: string | undefined;
+        try {
+          const { data: userData } = await supabase.auth.getUser();
+          if (userData && userData.user) {
+            userId = userData.user.id;
+          }
+        } catch (userError) {
+          console.warn("Could not get current user for fiscal action creation:", userError);
+        }
+        
         // Ensure all required fields are present
         const supabaseFiscalAction = {
           shipment_id: shipmentId,
@@ -133,7 +160,8 @@ export const useFiscalActionUpdate = (
           release_date: fiscalActionData.releaseDate || null,
           notes: fiscalActionData.notes || null,
           created_at: now,
-          updated_at: now
+          updated_at: now,
+          user_id: userId
         };
         
         console.log("Data for fiscal action creation:", supabaseFiscalAction);

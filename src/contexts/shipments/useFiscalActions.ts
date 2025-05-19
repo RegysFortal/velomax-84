@@ -24,6 +24,12 @@ export const useFiscalActions = (
     
     try {
       // Validate fiscal action data
+      if (!shipmentId) {
+        console.error("Missing shipment ID for fiscal action update");
+        toast.error("ID do embarque não fornecido");
+        return null;
+      }
+      
       if (!fiscalActionData) {
         console.error("Missing fiscal action data");
         toast.error("Dados da ação fiscal não fornecidos");
@@ -58,6 +64,7 @@ export const useFiscalActions = (
           return s;
         });
         localStorage.setItem('velomax_shipments', JSON.stringify(updatedShipments));
+        setShipments(updatedShipments);
       } else {
         console.warn("No result returned from fiscal action update");
       }
@@ -84,6 +91,12 @@ export const useFiscalActions = (
         releaseDate,
         notes
       });
+      
+      if (!shipmentId) {
+        console.error("Missing shipment ID for fiscal action details update");
+        toast.error("ID do embarque não fornecido");
+        return null;
+      }
       
       // Get current shipment to find fiscal action
       const shipment = shipments.find(s => s.id === shipmentId);
@@ -125,7 +138,7 @@ export const useFiscalActions = (
       
       // Use updateFiscalAction to ensure persistence
       const updatedFiscalAction = await updateAction(shipmentId, updateData);
-      console.log("Fiscal action updated successfully:", updatedFiscalAction);
+      console.log("Fiscal action details updated successfully:", updatedFiscalAction);
       
       return updatedFiscalAction;
     } catch (error) {
