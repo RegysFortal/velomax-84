@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { EventsCalendar } from '@/components/dashboard/EventsCalendar';
@@ -54,14 +55,24 @@ const Dashboard = () => {
     return deliveryDate >= new Date();
   }).length;
   
-  // Identify delayed shipments (shipments that are in transit for more than 7 days)
+  // Identify delayed shipments using the same rule as DelayedShipmentsAlert (shipments that are 3 or more days past arrival date)
   const delayedShipments = filteredShipments.filter(s => {
-    if (s.status === 'in_transit') {
-      const createdDate = new Date(s.createdAt);
-      const daysDiff = Math.floor((new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24));
-      return daysDiff > 7;
+    // Check only in_transit or retained shipments
+    if (s.status !== 'in_transit' && s.status !== 'retained') {
+      return false;
     }
-    return false;
+    
+    // If no arrival date, not considered delayed
+    if (!s.arrivalDate) {
+      return false;
+    }
+    
+    const arrivalDate = new Date(s.arrivalDate);
+    const now = new Date();
+    const daysDiff = Math.floor((now.getTime() - arrivalDate.getTime()) / (1000 * 3600 * 24));
+    
+    // Delayed if 3 or more days past arrival date (same rule as DelayedShipmentsAlert)
+    return daysDiff >= 3;
   }).length;
   
   // Attention needed shipments (delayed + retained)
