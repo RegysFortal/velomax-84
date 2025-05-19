@@ -37,13 +37,29 @@ export function RetentionFormSection({
 }: RetentionFormSectionProps) {
   // Função auxiliar para formatar valor numérico
   const formatCurrency = (value: string) => {
-    // Remover caracteres não numéricos, exceto ponto decimal
-    const numericValue = value.replace(/[^\d.]/g, '');
+    // Remover caracteres não numéricos, exceto ponto decimal e vírgula
+    const numericValue = value.replace(/[^\d.,]/g, '');
     
-    // Garantir apenas um ponto decimal
-    const parts = numericValue.split('.');
-    if (parts.length > 2) {
-      return parts[0] + '.' + parts.slice(1).join('');
+    // Garantir apenas um separador decimal (ponto ou vírgula)
+    const commaCount = (numericValue.match(/,/g) || []).length;
+    const dotCount = (numericValue.match(/\./g) || []).length;
+    
+    // Se tiver mais de um separador, vamos manter apenas o último
+    if (commaCount + dotCount > 1) {
+      // Remover todos os separadores
+      const withoutSeparators = numericValue.replace(/[.,]/g, '');
+      // Recuperar o último separador e sua posição
+      const lastCommaIndex = numericValue.lastIndexOf(',');
+      const lastDotIndex = numericValue.lastIndexOf('.');
+      const lastSeparatorIndex = Math.max(lastCommaIndex, lastDotIndex);
+      const lastSeparator = numericValue[lastSeparatorIndex];
+      
+      // Adicionar o separador na posição correta
+      if (lastSeparatorIndex >= 0) {
+        const pos = lastSeparatorIndex - (numericValue.substring(0, lastSeparatorIndex).match(/[.,]/g) || []).length;
+        return withoutSeparators.substring(0, pos) + lastSeparator + withoutSeparators.substring(pos);
+      }
+      return withoutSeparators;
     }
     
     return numericValue;

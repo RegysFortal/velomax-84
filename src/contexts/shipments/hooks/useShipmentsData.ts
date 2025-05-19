@@ -19,6 +19,8 @@ export function useShipmentsData(user: any) {
       setIsRefreshing(true);
       setRefreshTrigger(prev => prev + 1);
       setLastRefresh(Date.now());
+    } else {
+      console.log("Refresh request ignored due to debounce");
     }
   }, [isRefreshing, lastRefresh]);
 
@@ -62,53 +64,58 @@ export function useShipmentsData(user: any) {
             let fiscalAction = undefined;
             
             // Always check if there's a fiscal action for this shipment, regardless of retention status
-            // This ensures we have the latest data even if the status flag was incorrect
-            const { data: fiscalData, error: fiscalError } = await supabase
-              .from('fiscal_actions')
-              .select('*')
-              .eq('shipment_id', shipment.id)
-              .maybeSingle();
-            
-            if (!fiscalError && fiscalData) {
-              fiscalAction = {
-                id: fiscalData.id,
-                actionNumber: fiscalData.action_number,
-                reason: fiscalData.reason,
-                amountToPay: fiscalData.amount_to_pay,
-                paymentDate: fiscalData.payment_date,
-                releaseDate: fiscalData.release_date,
-                notes: fiscalData.notes,
-                createdAt: fiscalData.created_at,
-                updatedAt: fiscalData.updated_at
-              };
+            try {
+              // This ensures we have the latest data even if the status flag was incorrect
+              const { data: fiscalData, error: fiscalError } = await supabase
+                .from('fiscal_actions')
+                .select('*')
+                .eq('shipment_id', shipment.id)
+                .maybeSingle();
               
-              console.log(`Found fiscal action for shipment ${shipment.id}:`, fiscalAction);
-              
-              // If we have fiscal action but shipment is not marked as retained,
-              // we should update the shipment's retention status for consistency
-              if (!shipment.is_retained) {
-                console.log(`Shipment ${shipment.id} has fiscal action but isn't marked as retained. Updating status.`);
-                try {
-                  await supabase
-                    .from('shipments')
-                    .update({ 
-                      is_retained: true, 
-                      status: 'retained',
-                      updated_at: new Date().toISOString() 
-                    })
-                    .eq('id', shipment.id);
-                } catch (updateError) {
-                  console.error('Error updating shipment retention status:', updateError);
-                }
+              if (!fiscalError && fiscalData) {
+                fiscalAction = {
+                  id: fiscalData.id,
+                  actionNumber: fiscalData.action_number,
+                  reason: fiscalData.reason,
+                  amountToPay: fiscalData.amount_to_pay,
+                  paymentDate: fiscalData.payment_date,
+                  releaseDate: fiscalData.release_date,
+                  notes: fiscalData.notes,
+                  createdAt: fiscalData.created_at,
+                  updatedAt: fiscalData.updated_at
+                };
                 
-                // Update the local shipment object to reflect this change
-                shipment.is_retained = true;
-                shipment.status = 'retained';
+                console.log(`Found fiscal action for shipment ${shipment.id}:`, fiscalAction);
+                
+                // If we have fiscal action but shipment is not marked as retained,
+                // we should update the shipment's retention status for consistency
+                if (!shipment.is_retained) {
+                  console.log(`Shipment ${shipment.id} has fiscal action but isn't marked as retained. Updating status.`);
+                  try {
+                    await supabase
+                      .from('shipments')
+                      .update({ 
+                        is_retained: true, 
+                        status: 'retained',
+                        updated_at: new Date().toISOString() 
+                      })
+                      .eq('id', shipment.id);
+                  } catch (updateError) {
+                    console.error('Error updating shipment retention status:', updateError);
+                  }
+                  
+                  // Update the local shipment object to reflect this change
+                  shipment.is_retained = true;
+                  shipment.status = 'retained';
+                }
+              } else if (fiscalError && fiscalError.code !== 'PGRST116') {
+                // Only log as error if it's not just "no rows returned"
+                console.error(`Error fetching fiscal action for shipment ${shipment.id}:`, fiscalError);
+              } else if (shipment.is_retained && (!fiscalData || fiscalData.length === 0)) {
+                console.warn(`Shipment ${shipment.id} is marked as retained but no fiscal action found`);
               }
-            } else if (fiscalError) {
-              console.error(`Error fetching fiscal action for shipment ${shipment.id}:`, fiscalError);
-            } else if (shipment.is_retained) {
-              console.warn(`Shipment ${shipment.id} is marked as retained but no fiscal action found`);
+            } catch (fiscalError) {
+              console.error(`Error processing fiscal action for shipment ${shipment.id}:`, fiscalError);
             }
             
             // Return complete shipment with documents and fiscal action

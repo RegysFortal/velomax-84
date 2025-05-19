@@ -34,30 +34,36 @@ export const useShipmentUpdate = (
       
       console.log("Supabase update object:", supabaseShipment);
       
-      const { data, error } = await supabase
-        .from('shipments')
-        .update(supabaseShipment)
-        .eq('id', id)
-        .select('*')
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('shipments')
+          .update(supabaseShipment)
+          .eq('id', id)
+          .select('*')
+          .single();
+          
+        if (error) {
+          console.error("Supabase update error:", error);
+          throw error;
+        }
         
-      if (error) {
-        console.error("Supabase update error:", error);
+        console.log("Supabase update response:", data);
+        
+        // Update local state
+        const updatedShipments = shipments.map(s => {
+          if (s.id === id) {
+            return { ...s, ...shipmentData, updatedAt: supabaseShipment.updated_at };
+          }
+          return s;
+        });
+        
+        setShipments(updatedShipments);
+        return updatedShipments.find(s => s.id === id);
+      } catch (error) {
+        console.error("Supabase operation error:", error);
+        toast.error("Erro na operação com o banco de dados");
         throw error;
       }
-      
-      console.log("Supabase update response:", data);
-      
-      // Update local state
-      const updatedShipments = shipments.map(s => {
-        if (s.id === id) {
-          return { ...s, ...shipmentData, updatedAt: supabaseShipment.updated_at };
-        }
-        return s;
-      });
-      
-      setShipments(updatedShipments);
-      return updatedShipments.find(s => s.id === id);
     } catch (error) {
       console.error("Error updating shipment:", error);
       toast.error("Erro ao atualizar embarque");

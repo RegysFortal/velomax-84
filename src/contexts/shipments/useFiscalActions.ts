@@ -24,7 +24,18 @@ export function useFiscalActions(
       };
       
       if (fiscalActionData.reason !== undefined) supabaseFiscalAction.reason = fiscalActionData.reason;
-      if (fiscalActionData.amountToPay !== undefined) supabaseFiscalAction.amount_to_pay = fiscalActionData.amountToPay;
+      
+      // Handle amount with comma as decimal separator
+      if (fiscalActionData.amountToPay !== undefined) {
+        // If it's a string that might contain a comma, convert it
+        if (typeof fiscalActionData.amountToPay === 'string') {
+          const normalizedAmount = (fiscalActionData.amountToPay as string).replace(',', '.');
+          supabaseFiscalAction.amount_to_pay = parseFloat(normalizedAmount);
+        } else {
+          supabaseFiscalAction.amount_to_pay = fiscalActionData.amountToPay;
+        }
+      }
+      
       if (fiscalActionData.paymentDate !== undefined) supabaseFiscalAction.payment_date = fiscalActionData.paymentDate;
       if (fiscalActionData.releaseDate !== undefined) supabaseFiscalAction.release_date = fiscalActionData.releaseDate;
       if (fiscalActionData.notes !== undefined) supabaseFiscalAction.notes = fiscalActionData.notes;
@@ -59,7 +70,9 @@ export function useFiscalActions(
             ...supabaseFiscalAction,
             shipment_id: shipmentId,
             reason: fiscalActionData.reason || "Retenção",
-            amount_to_pay: fiscalActionData.amountToPay || 0,
+            amount_to_pay: typeof fiscalActionData.amountToPay === 'string' 
+              ? parseFloat((fiscalActionData.amountToPay as string).replace(',', '.')) 
+              : (fiscalActionData.amountToPay || 0),
             payment_date: fiscalActionData.paymentDate,
             release_date: fiscalActionData.releaseDate,
             action_number: fiscalActionData.actionNumber,
