@@ -1,11 +1,12 @@
+
 import { useShipments } from "@/contexts/shipments";
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { Shipment } from "@/types/shipment";
 import { useShipmentState } from "./hooks/useShipmentState";
 import { useShipmentSave } from "./hooks/useShipmentSave";
 import { useShipmentDelete } from "./hooks/useShipmentDelete";
-import { useShipmentStatusChange } from "./hooks/useShipmentStatusChange";
-import { useStatusManagement } from "./hooks/useStatusManagement";
+import { useShipmentStatusChange } from "../hooks/useShipmentStatusChange";
+import { useStatusDisplay } from "../hooks/status/useStatusDisplay";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -26,8 +27,8 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   // Use the delete functionality
   const { handleDelete: deleteHandler } = useShipmentDelete();
 
-  // Use the status management
-  const { getStatusLabel } = useStatusManagement();
+  // Use the status display hook
+  const { getStatusLabel } = useStatusDisplay();
 
   // Use the status change hook
   const { handleStatusChange } = useShipmentStatusChange(
