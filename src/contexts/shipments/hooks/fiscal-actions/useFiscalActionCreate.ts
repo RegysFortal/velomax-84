@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 
 export const useFiscalActionCreate = (
+  shipments: Shipment[],
   setShipments: React.Dispatch<React.SetStateAction<any[]>>
 ) => {
   const createFiscalAction = async (shipmentId: string, fiscalActionData: Partial<FiscalAction>) => {
