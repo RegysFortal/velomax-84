@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { RetentionFormSection } from "../RetentionFormSection";
@@ -21,6 +21,7 @@ interface RetentionSheetProps {
   fiscalNotes: string;
   setFiscalNotes: (notes: string) => void;
   onConfirm: () => void;
+  isEditing?: boolean;
 }
 
 export function RetentionSheet({
@@ -38,7 +39,8 @@ export function RetentionSheet({
   setReleaseDate,
   fiscalNotes,
   setFiscalNotes,
-  onConfirm
+  onConfirm,
+  isEditing = false
 }: RetentionSheetProps) {
   const handleConfirm = () => {
     if (!retentionReason.trim()) {
@@ -49,11 +51,17 @@ export function RetentionSheet({
     onConfirm();
   };
 
+  useEffect(() => {
+    console.log("RetentionSheet opened with isEditing:", isEditing);
+  }, [open, isEditing]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full md:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Informações de Retenção</SheetTitle>
+          <SheetTitle>
+            {isEditing ? "Editar Informações de Retenção" : "Informações de Retenção"}
+          </SheetTitle>
         </SheetHeader>
         <div className="py-6">
           <RetentionFormSection
@@ -75,7 +83,7 @@ export function RetentionSheet({
               Cancelar
             </Button>
             <Button onClick={handleConfirm}>
-              Confirmar
+              {isEditing ? "Atualizar" : "Confirmar"}
             </Button>
           </div>
         </div>

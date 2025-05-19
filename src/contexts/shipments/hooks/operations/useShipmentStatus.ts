@@ -10,7 +10,7 @@ export const useShipmentStatus = (
     try {
       console.log(`Updating shipment status to ${status} for ID: ${shipmentId}`);
       
-      // Here we simply update the status but keep the isRetained flag separate
+      // Here we update both status and isRetained, but keep them separate
       // This allows editing even when the shipment is retained
       const { error } = await supabase
         .from('shipments')

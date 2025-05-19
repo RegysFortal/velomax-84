@@ -17,7 +17,7 @@ interface StatusActionsProps {
 }
 
 export function StatusActions({ status, shipmentId, onStatusChange }: StatusActionsProps) {
-  const { getShipmentById } = useShipments();
+  const { getShipmentById, updateFiscalAction } = useShipments();
   const shipment = getShipmentById(shipmentId);
   
   const {
@@ -50,7 +50,11 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
     handleStatusChangeClick,
     handleDeliveryConfirm,
     handleRetentionConfirm
-  } = useStatusAction({ status, shipmentId, onStatusChange });
+  } = useStatusAction({ 
+    status, 
+    shipmentId, 
+    onStatusChange 
+  });
 
   // Handler for document selection confirmation
   const handleDocumentSelectionContinue = (documentIds: string[]) => {
@@ -63,6 +67,33 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
   const handleDocumentSelectionCancel = () => {
     setSelectedDocumentIds([]);
     setShowDocumentSelection(false);
+  };
+
+  // Handler specifically for retention details updates
+  const handleRetentionUpdate = async () => {
+    if (!shipmentId) return;
+    
+    try {
+      // Update fiscal action with the current form values
+      await updateFiscalAction(shipmentId, {
+        actionNumber,
+        reason: retentionReason,
+        amountToPay: parseFloat(retentionAmount || "0"),
+        paymentDate,
+        releaseDate,
+        notes: fiscalNotes
+      });
+      
+      // Close the retention sheet
+      setShowRetentionSheet(false);
+      
+      // Trigger a status change to refresh the UI
+      if (onStatusChange) {
+        onStatusChange('retained');
+      }
+    } catch (error) {
+      console.error("Error updating retention details:", error);
+    }
   };
 
   return (
@@ -115,7 +146,8 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
         setReleaseDate={setReleaseDate}
         fiscalNotes={fiscalNotes}
         setFiscalNotes={setFiscalNotes}
-        onConfirm={handleRetentionConfirm}
+        onConfirm={status === 'retained' ? handleRetentionUpdate : handleRetentionConfirm}
+        isEditing={status === 'retained'}
       />
     </div>
   );
