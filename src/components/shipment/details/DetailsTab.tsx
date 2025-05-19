@@ -76,6 +76,10 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
     }
   };
 
+  // Convert packages and weight strings to numbers
+  const packagesNumber = parseInt(packages, 10);
+  const weightNumber = parseFloat(weight);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -87,8 +91,8 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
         />
         
         <CargoDetailsSection
-          packages={packages}
-          weight={weight}
+          packages={packagesNumber}
+          weight={weightNumber}
           transportMode={transportMode}
           arrivalFlight={arrivalFlight}
           arrivalDate={arrivalDate}
