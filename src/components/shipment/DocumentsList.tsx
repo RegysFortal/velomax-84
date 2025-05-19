@@ -62,18 +62,20 @@ export function DocumentsList({ shipmentId, documents = [] }: DocumentsListProps
           Nenhum documento encontrado
         </div>
       ) : (
-        <ScrollArea className="h-[300px]">
-          <div className="space-y-2">
-            {safeDocuments.map((doc) => (
-              <DocumentItem 
-                key={doc.id}
-                document={doc}
-                onEdit={() => handleOpenDialog(doc)}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        </ScrollArea>
+        <div className="border rounded-md">
+          <ScrollArea className="h-[300px] p-2">
+            <div className="space-y-2">
+              {safeDocuments.map((doc) => (
+                <DocumentItem 
+                  key={doc.id}
+                  document={doc}
+                  onEdit={() => handleOpenDialog(doc)}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       )}
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
