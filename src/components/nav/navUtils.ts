@@ -41,9 +41,13 @@ export const hasFinancialAccess = (
   user: User | null, 
   hasPermission: (permission: string) => boolean
 ): boolean => {
-  return checkPermissionAccess(user, hasPermission, 'financial') || 
-         checkPermissionAccess(user, hasPermission, 'dashboard') ||
-         checkPermissionAccess(user, hasPermission, 'reports') || 
+  // Limite o acesso financeiro a apenas admin e manager
+  if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+    return false;
+  }
+  
+  return checkPermissionAccess(user, hasPermission, 'financialDashboard') || 
+         checkPermissionAccess(user, hasPermission, 'financialReports') || 
          checkPermissionAccess(user, hasPermission, 'priceTables') ||
          checkPermissionAccess(user, hasPermission, 'cities');
 };

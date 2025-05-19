@@ -64,14 +64,30 @@ export function AppLayout({ children }: AppLayoutProps) {
     // Only check permissions when user data is loaded
     if (user && !loading) {
       // Define permission rules for each path
-      const pathPermissions: Record<string, { path: string; level: keyof PermissionLevel }> = {
+      const pathPermissions: Record<string, { path: string; level: keyof PermissionLevel; roleRestrictions?: string[] }> = {
         '/deliveries': { path: 'deliveries', level: 'view' },
         '/shipments': { path: 'shipments', level: 'view' },
         '/shipment-reports': { path: 'shipmentReports', level: 'view' },
-        '/financial': { path: 'financialDashboard', level: 'view' },  
-        '/reports': { path: 'financialReports', level: 'view' },     
-        '/price-tables': { path: 'priceTables', level: 'view' },
-        '/cities': { path: 'cities', level: 'view' },
+        '/financial': { 
+          path: 'financialDashboard', 
+          level: 'view',
+          roleRestrictions: ['admin', 'manager'] 
+        },  
+        '/reports': { 
+          path: 'financialReports', 
+          level: 'view',
+          roleRestrictions: ['admin', 'manager']
+        },     
+        '/price-tables': { 
+          path: 'priceTables', 
+          level: 'view',
+          roleRestrictions: ['admin', 'manager']
+        },
+        '/cities': { 
+          path: 'cities', 
+          level: 'view',
+          roleRestrictions: ['admin', 'manager']
+        },
         '/dashboard': { path: 'dashboard', level: 'view' },
         '/logbook': { path: 'logbook', level: 'view' },
         '/clients': { path: 'clients', level: 'view' },
@@ -81,10 +97,26 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/maintenance': { path: 'maintenance', level: 'view' },
         '/settings': { path: 'settings', level: 'view' },
         '/budgets': { path: 'budgets', level: 'view' },
-        '/financial-dashboard': { path: 'financialDashboard', level: 'view' },
-        '/accounts/reports': { path: 'financialReports', level: 'view' },
-        '/accounts/payable': { path: 'payableAccounts', level: 'view' },
-        '/accounts/receivable': { path: 'receivableAccounts', level: 'view' },
+        '/financial-dashboard': { 
+          path: 'financialDashboard', 
+          level: 'view',
+          roleRestrictions: ['admin', 'manager']
+        },
+        '/accounts/reports': { 
+          path: 'financialReports', 
+          level: 'view',
+          roleRestrictions: ['admin', 'manager']
+        },
+        '/accounts/payable': { 
+          path: 'payableAccounts', 
+          level: 'view',
+          roleRestrictions: ['admin', 'manager']
+        },
+        '/accounts/receivable': { 
+          path: 'receivableAccounts', 
+          level: 'view',
+          roleRestrictions: ['admin', 'manager']
+        },
         '/inventory/products': { path: 'products', level: 'view' },
         '/inventory/entries': { path: 'inventoryEntries', level: 'view' },
         '/inventory/exits': { path: 'inventoryExits', level: 'view' },
@@ -126,6 +158,18 @@ export function AppLayout({ children }: AppLayoutProps) {
       if (permissionConfig) {
         // Admin users bypass permission checks
         if (user.role === 'admin') {
+          return;
+        }
+        
+        // Check role restrictions first (this is new!)
+        if (permissionConfig.roleRestrictions && 
+            !permissionConfig.roleRestrictions.includes(user.role || '')) {
+          console.log(`Access denied: User role ${user.role} not in allowed roles for path: ${location.pathname}`);
+          toast.error("Acesso restrito", {
+            description: "Você não tem permissão para acessar esta página.",
+          });
+          
+          navigate('/dashboard');
           return;
         }
         

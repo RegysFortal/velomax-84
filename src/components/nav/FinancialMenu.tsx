@@ -20,8 +20,9 @@ import {
   NavigationMenuContent,
 } from "@/components/ui/navigation-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getActiveClass } from "./navUtils";
+import { getActiveClass, hasFinancialAccess } from "./navUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 interface FinancialMenuProps {
   user: User | null;
@@ -39,7 +40,10 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
   const location = useLocation();
   const { isMobile } = useIsMobile();
 
-  if (!user || !hasPermission("financial")) {
+  // Verificação rigorosa de permissões financeiras
+  const hasAccess = hasFinancialAccess(user, hasPermission);
+
+  if (!user || !hasAccess) {
     return null;
   }
 
