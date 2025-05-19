@@ -1,7 +1,7 @@
 
 import { Shipment } from "@/types/shipment";
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { fiscalActionDeleteService } from "./services/fiscalActionDeleteService";
 
 export const useFiscalActionClear = (
   shipments: Shipment[],
@@ -15,15 +15,8 @@ export const useFiscalActionClear = (
         return;
       }
       
-      // Delete fiscal action from Supabase
-      const { error } = await supabase
-        .from('fiscal_actions')
-        .delete()
-        .eq('id', shipment.fiscalAction.id);
-        
-      if (error) {
-        throw error;
-      }
+      // Delete fiscal action using the service
+      await fiscalActionDeleteService.deleteFiscalAction(shipment.fiscalAction.id);
       
       // Update state to remove the fiscal action
       const now = new Date().toISOString();

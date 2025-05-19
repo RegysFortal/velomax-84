@@ -3,6 +3,7 @@ import { Shipment, FiscalAction } from "@/types/shipment";
 import { useFiscalActionUpdate } from "./hooks/fiscal-actions/useFiscalActionUpdate";
 import { useFiscalActionClear } from "./hooks/fiscal-actions/useFiscalActionClear";
 import { toast } from "sonner";
+import { fiscalActionService } from "./hooks/fiscal-actions/services/fiscalActionService";
 
 /**
  * Custom hook to manage fiscal actions for shipments
@@ -65,6 +66,10 @@ export const useFiscalActions = (
         });
         localStorage.setItem('velomax_shipments', JSON.stringify(updatedShipments));
         setShipments(updatedShipments);
+        
+        // Update the shipment retention status
+        fiscalActionService.updateShipmentRetentionStatus(shipmentId, true)
+          .catch(error => console.warn("Failed to update shipment retention status:", error));
       } else {
         console.warn("No result returned from fiscal action update");
       }

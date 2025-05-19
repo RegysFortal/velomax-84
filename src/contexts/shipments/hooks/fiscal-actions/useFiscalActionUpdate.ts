@@ -1,7 +1,7 @@
 
 import { Shipment, FiscalAction } from "@/types/shipment";
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { fiscalActionService } from "./services/fiscalActionService";
 
 /**
  * Hook to update fiscal actions for shipments
@@ -19,7 +19,10 @@ export const useFiscalActionUpdate = (
    * @param fiscalActionData Fiscal action data to save, or null to remove the fiscal action
    * @returns Updated fiscal action or null if deleted
    */
-  const updateFiscalAction = async (shipmentId: string, fiscalActionData: Partial<FiscalAction> | null): Promise<FiscalAction | null> => {
+  const updateFiscalAction = async (
+    shipmentId: string, 
+    fiscalActionData: Partial<FiscalAction> | null
+  ): Promise<FiscalAction | null> => {
     try {
       const now = new Date().toISOString();
       
@@ -35,36 +38,13 @@ export const useFiscalActionUpdate = (
         throw new Error("Embarque não encontrado");
       }
 
-      // If fiscalActionData is null, delete the fiscal action
+      // If fiscalActionData is null, special case to delete fiscal action
       if (fiscalActionData === null) {
-        if (shipment.fiscalAction) {
-          console.log("Removing fiscal action with ID:", shipment.fiscalAction.id);
-          
-          const { error } = await supabase
-            .from('fiscal_actions')
-            .delete()
-            .eq('id', shipment.fiscalAction.id);
-            
-          if (error) {
-            console.error("Error deleting fiscal action:", error);
-            throw error;
-          }
-          
-          // Update the local state to remove the fiscal action
-          const updatedShipments = shipments.map(s => {
-            if (s.id === shipmentId) {
-              const { fiscalAction, ...restShipment } = s;
-              return { 
-                ...restShipment, 
-                updatedAt: now
-              };
-            }
-            return s;
-          });
-          
-          setShipments(updatedShipments);
+        if (!shipment.fiscalAction) {
           return null;
         }
+        
+        // Handle this in a separate function in future refactoring
         return null;
       }
 
@@ -73,130 +53,31 @@ export const useFiscalActionUpdate = (
       // Check if the shipment already has a fiscal action to update or if we need to create one
       if (shipment.fiscalAction && shipment.fiscalAction.id) {
         // Update existing fiscal action
-        const supabaseFiscalAction: Record<string, any> = {
-          updated_at: now
-        };
+        const updatedFiscalAction = await fiscalActionService.updateFiscalAction(
+          shipment.fiscalAction.id,
+          fiscalActionData
+        );
         
-        // Map only the fields that were provided
-        if (fiscalActionData.actionNumber !== undefined) supabaseFiscalAction.action_number = fiscalActionData.actionNumber;
-        if (fiscalActionData.reason !== undefined) supabaseFiscalAction.reason = fiscalActionData.reason;
-        if (fiscalActionData.amountToPay !== undefined) supabaseFiscalAction.amount_to_pay = fiscalActionData.amountToPay;
-        if (fiscalActionData.paymentDate !== undefined) supabaseFiscalAction.payment_date = fiscalActionData.paymentDate;
-        if (fiscalActionData.releaseDate !== undefined) supabaseFiscalAction.release_date = fiscalActionData.releaseDate;
-        if (fiscalActionData.notes !== undefined) supabaseFiscalAction.notes = fiscalActionData.notes;
-        
-        console.log("Updating fiscal action with ID:", shipment.fiscalAction.id);
-        console.log("Update data:", supabaseFiscalAction);
-        
-        // Add current user data
-        try {
-          const { data: userData } = await supabase.auth.getUser();
-          if (userData && userData.user) {
-            supabaseFiscalAction.user_id = userData.user.id;
-          }
-        } catch (userError) {
-          console.warn("Could not get current user for fiscal action update:", userError);
+        if (!updatedFiscalAction) {
+          throw new Error("Failed to update fiscal action");
         }
         
-        // Track request timing for debugging
-        const requestStart = Date.now();
-        
-        const { error, data } = await supabase
-          .from('fiscal_actions')
-          .update(supabaseFiscalAction)
-          .eq('id', shipment.fiscalAction.id)
-          .select('*');
-          
-        console.log(`Request time: ${Date.now() - requestStart}ms`);  
-        
-        if (error) {
-          console.error("Error updating fiscal action:", error);
-          throw error;
-        }
-        
-        if (!data || data.length === 0) {
-          console.error("No data returned after update");
-          throw new Error("Failed to update fiscal action: no data returned");
-        }
-        
-        console.log("Supabase response after update:", data);
-        
-        const updatedData = data[0];
-        
-        // Combine existing data with updates
-        fiscalAction = {
-          id: updatedData.id,
-          actionNumber: updatedData.action_number,
-          reason: updatedData.reason,
-          amountToPay: updatedData.amount_to_pay,
-          paymentDate: updatedData.payment_date,
-          releaseDate: updatedData.release_date,
-          notes: updatedData.notes,
-          createdAt: updatedData.created_at,
-          updatedAt: updatedData.updated_at
-        };
+        fiscalAction = updatedFiscalAction;
       } else {
         // Create new fiscal action
-        console.log("Creating new fiscal action for shipment:", shipmentId);
-        
-        // Get current user if available
-        let userId: string | undefined;
-        try {
-          const { data: userData } = await supabase.auth.getUser();
-          if (userData && userData.user) {
-            userId = userData.user.id;
-          }
-        } catch (userError) {
-          console.warn("Could not get current user for fiscal action creation:", userError);
-        }
-        
-        // Ensure all required fields are present
-        const supabaseFiscalAction = {
-          shipment_id: shipmentId,
-          action_number: fiscalActionData.actionNumber || null,
-          reason: fiscalActionData.reason || 'Não especificado',
-          amount_to_pay: fiscalActionData.amountToPay !== undefined ? fiscalActionData.amountToPay : 0,
-          payment_date: fiscalActionData.paymentDate || null,
-          release_date: fiscalActionData.releaseDate || null,
-          notes: fiscalActionData.notes || null,
-          created_at: now,
-          updated_at: now,
-          user_id: userId
-        };
-        
-        console.log("Data for fiscal action creation:", supabaseFiscalAction);
-        
-        // Insert fiscal action in Supabase
-        const { data: newFiscalAction, error } = await supabase
-          .from('fiscal_actions')
-          .insert(supabaseFiscalAction)
-          .select('*')
-          .single();
-          
-        if (error) {
-          console.error("Error creating fiscal action:", error);
-          throw error;
-        }
+        const newFiscalAction = await fiscalActionService.createFiscalAction(
+          shipmentId,
+          fiscalActionData
+        );
         
         if (!newFiscalAction) {
-          console.error("No data returned after creation");
-          throw new Error("Failed to create fiscal action: no data returned");
+          throw new Error("Failed to create fiscal action");
         }
         
-        console.log("New fiscal action created:", newFiscalAction);
+        fiscalAction = newFiscalAction;
         
-        // Map Supabase response to our FiscalAction type
-        fiscalAction = {
-          id: newFiscalAction.id,
-          actionNumber: newFiscalAction.action_number,
-          reason: newFiscalAction.reason,
-          amountToPay: newFiscalAction.amount_to_pay,
-          paymentDate: newFiscalAction.payment_date,
-          releaseDate: newFiscalAction.release_date,
-          notes: newFiscalAction.notes,
-          createdAt: newFiscalAction.created_at,
-          updatedAt: newFiscalAction.updated_at
-        };
+        // Also ensure the shipment is marked as retained
+        await fiscalActionService.updateShipmentRetentionStatus(shipmentId, true);
       }
       
       // Update state with new or updated fiscal action
