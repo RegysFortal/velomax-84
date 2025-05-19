@@ -141,7 +141,8 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
         setReleaseDate={setReleaseDate}
         fiscalNotes={fiscalNotes}
         setFiscalNotes={setFiscalNotes}
-        onUpdate={(an, rr, ra, pd, rd, fn) => handleRetentionUpdate(an, rr, ra, pd, rd, fn)}
+        onUpdate={handleRetentionUpdate}
+        shipmentId={shipment.id}
         isEditing={true}
       />
       
