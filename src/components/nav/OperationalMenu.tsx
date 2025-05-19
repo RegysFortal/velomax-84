@@ -34,14 +34,12 @@ export const OperationalMenu: React.FC<OperationalMenuProps> = ({
   const hasShipmentsPermission = hasPermission('shipments');
   const hasShipmentReportsPermission = hasPermission('shipmentReports');
   const hasBudgetsPermission = hasPermission('budgets');
-  const hasCitiesPermission = hasPermission('cities');
   
   const hasOperationalAccess = 
     hasDeliveriesPermission || 
     hasShipmentsPermission || 
     hasShipmentReportsPermission ||
-    hasBudgetsPermission ||
-    hasCitiesPermission;
+    hasBudgetsPermission;
 
   if (!user || !hasOperationalAccess) {
     return null;
@@ -108,19 +106,6 @@ export const OperationalMenu: React.FC<OperationalMenuProps> = ({
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Orçamentos
-              </Link>
-            )}
-            
-            {hasCitiesPermission && (
-              <Link
-                to="/cities"
-                className={cn(
-                  "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/cities")
-                )}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                Cidades
               </Link>
             )}
           </div>
