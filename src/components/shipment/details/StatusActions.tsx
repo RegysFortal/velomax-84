@@ -20,7 +20,6 @@ interface StatusActionsProps {
 
 export function StatusActions({ status, shipmentId, onStatusChange }: StatusActionsProps) {
   const { getShipmentById, updateFiscalAction } = useShipments();
-  const { updateRetentionInfo } = useRetentionStatusUpdate();
   const shipment = getShipmentById(shipmentId);
   
   const {
@@ -97,21 +96,8 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
         notes: fiscalNotes
       };
       
-      // Use the direct updateFiscalAction from context if available
-      if (updateFiscalAction) {
-        await updateFiscalAction(shipmentId, fiscalActionData);
-      } else {
-        // Fallback to the hook method
-        await updateRetentionInfo(shipmentId, {
-          shipmentId,
-          actionNumber,
-          retentionReason,
-          retentionAmount,
-          paymentDate,
-          releaseDate,
-          fiscalNotes
-        });
-      }
+      // Use the updateFiscalAction function from the ShipmentsContext
+      await updateFiscalAction(shipmentId, fiscalActionData);
       
       // Close the retention sheet
       setShowRetentionSheet(false);

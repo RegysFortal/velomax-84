@@ -71,6 +71,7 @@ export const useFiscalActionUpdate = (
           .single();
           
         if (error) {
+          console.error("Error updating fiscal action:", error);
           throw error;
         }
         
@@ -98,6 +99,8 @@ export const useFiscalActionUpdate = (
           updated_at: now
         };
         
+        console.log("Creating fiscal action with data:", supabaseFiscalAction);
+        
         // Insert fiscal action into Supabase
         const { data: newFiscalAction, error } = await supabase
           .from('fiscal_actions')
@@ -106,8 +109,11 @@ export const useFiscalActionUpdate = (
           .single();
           
         if (error) {
+          console.error("Error creating fiscal action:", error);
           throw error;
         }
+        
+        console.log("Created fiscal action:", newFiscalAction);
         
         // Map the Supabase data to our FiscalAction type
         fiscalAction = {
