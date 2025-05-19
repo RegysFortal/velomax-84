@@ -48,8 +48,6 @@ export function useManagementPermissions(
             employees: true,
             contractors: true
           });
-          setIsLoadingPermissions(false);
-          return;
         } else if (user.role === 'manager') {
           setSettingsPermissions({
             system: false,
@@ -60,21 +58,31 @@ export function useManagementPermissions(
             employees: true,
             contractors: true
           });
-          setIsLoadingPermissions(false);
-          return;
+        } else {
+          // Regular user permissions based on the new rules
+          setSettingsPermissions({
+            system: false,
+            company: false,
+            users: false,
+            backup: false,
+            clients: true,
+            employees: true,
+            contractors: true
+          });
         }
         
         // Check permissions from the user object directly
         if (user.permissions) {
-          setSettingsPermissions({
-            system: !!user.permissions.system?.view,
-            company: !!user.permissions.company?.view,
-            users: !!user.permissions.users?.view,
-            backup: !!user.permissions.backup?.view,
-            clients: !!user.permissions.clients?.view,
-            employees: !!user.permissions.employees?.view,
-            contractors: !!user.permissions.contractors?.view
-          });
+          setSettingsPermissions(prev => ({
+            ...prev,
+            system: (user.role === 'admin') ? true : false,
+            company: (user.role === 'admin') ? true : false,
+            users: (user.role === 'admin') ? true : false,
+            backup: (user.role === 'admin' || user.role === 'manager') ? true : false,
+            clients: !!user.permissions.clients?.view || prev.clients,
+            employees: !!user.permissions.employees?.view || prev.employees,
+            contractors: !!user.permissions.contractors?.view || prev.contractors
+          }));
         }
         
       } catch (error) {
@@ -95,11 +103,11 @@ export function useManagementPermissions(
                            settingsPermissions.backup || 
                            settingsPermissions.clients ||
                            settingsPermissions.employees ||
-                           settingsPermissions.contractors ||
-                           hasPermission('notifications');
+                           settingsPermissions.contractors;
   
-  const hasManagementAccess = hasPermission('employees') || 
-                             hasPermission('clients') ||
+  const hasManagementAccess = (user?.role === 'admin' || user?.role === 'manager') ||
+                             hasPermission('clients') || 
+                             hasPermission('employees') ||
                              hasPermission('contractors');
 
   return {

@@ -29,7 +29,14 @@ export const FleetMenu: React.FC<FleetMenuProps> = ({
   const location = useLocation();
   const { isMobile } = useIsMobile();
 
-  if (!user || !hasPermission('fleet')) {
+  // Check if user has access to fleet based on permissions
+  const hasVehiclePermission = hasPermission('vehicles');
+  const hasLogbookPermission = hasPermission('logbook');
+  const hasMaintenancePermission = hasPermission('maintenance');
+  
+  const hasFleetAccess = hasVehiclePermission || hasLogbookPermission || hasMaintenancePermission;
+
+  if (!user || !hasFleetAccess) {
     return null;
   }
 
@@ -45,36 +52,44 @@ export const FleetMenu: React.FC<FleetMenuProps> = ({
       <NavigationMenuContent>
         <ScrollArea className={`${isMobile ? "h-[200px] w-full" : "h-[300px] w-[400px]"}`}>
           <div className="grid gap-3 p-4">
-            <Link
-              to="/vehicles"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/vehicles")
-              )}
-            >
-              <Car className="mr-2 h-4 w-4" />
-              Veículos
-            </Link>
-            <Link
-              to="/logbooks"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/logbooks")
-              )}
-            >
-              <CalendarRange className="mr-2 h-4 w-4" />
-              Diários de Bordo
-            </Link>
-            <Link
-              to="/maintenance"
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-accent",
-                getActiveClass(location.pathname, "/maintenance")
-              )}
-            >
-              <Wrench className="mr-2 h-4 w-4" />
-              Manutenções
-            </Link>
+            {hasVehiclePermission && (
+              <Link
+                to="/vehicles"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/vehicles")
+                )}
+              >
+                <Car className="mr-2 h-4 w-4" />
+                Veículos
+              </Link>
+            )}
+            
+            {hasLogbookPermission && (
+              <Link
+                to="/logbooks"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/logbooks")
+                )}
+              >
+                <CalendarRange className="mr-2 h-4 w-4" />
+                Diários de Bordo
+              </Link>
+            )}
+            
+            {hasMaintenancePermission && (
+              <Link
+                to="/maintenance"
+                className={cn(
+                  "flex items-center p-2 rounded-md hover:bg-accent",
+                  getActiveClass(location.pathname, "/maintenance")
+                )}
+              >
+                <Wrench className="mr-2 h-4 w-4" />
+                Manutenções
+              </Link>
+            )}
           </div>
         </ScrollArea>
       </NavigationMenuContent>

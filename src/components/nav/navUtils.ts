@@ -32,17 +32,29 @@ export const hasOperationalAccess = (
   user: User | null, 
   hasPermission: (permission: string) => boolean
 ): boolean => {
-  return checkPermissionAccess(user, hasPermission, 'deliveries') || 
-         checkPermissionAccess(user, hasPermission, 'shipments') || 
-         checkPermissionAccess(user, hasPermission, 'reports');
+  // For regular users, check their specific operational permissions
+  if (!user) return false;
+  
+  if (user.role === 'admin' || user.role === 'manager') {
+    return true;
+  }
+  
+  return hasPermission('deliveries') || 
+         hasPermission('shipments') || 
+         hasPermission('shipmentReports') ||
+         hasPermission('budgets') ||
+         hasPermission('cities');
 };
 
 export const hasFinancialAccess = (
   user: User | null, 
   hasPermission: (permission: string) => boolean
 ): boolean => {
-  // Limite o acesso financeiro a apenas admin e manager
-  if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+  // Restrict financial access to only admin and manager
+  if (!user) return false;
+  
+  // Only admin and manager roles can access financial areas
+  if (user.role !== 'admin' && user.role !== 'manager') {
     return false;
   }
   
@@ -56,16 +68,33 @@ export const hasManagementAccess = (
   user: User | null, 
   hasPermission: (permission: string) => boolean
 ): boolean => {
-  return checkPermissionAccess(user, hasPermission, 'clients') || 
-         checkPermissionAccess(user, hasPermission, 'employees') || 
-         checkPermissionAccess(user, hasPermission, 'settings');
+  if (!user) return false;
+  
+  // Admin and manager have full access
+  if (user.role === 'admin' || user.role === 'manager') {
+    return true;
+  }
+  
+  // For regular users, they can only access clients, employees, and contractors
+  return hasPermission('clients') || 
+         hasPermission('employees') || 
+         hasPermission('contractors');
 };
 
 export const hasFleetAccess = (
   user: User | null, 
   hasPermission: (permission: string) => boolean
 ): boolean => {
-  return checkPermissionAccess(user, hasPermission, 'logbook') || 
-         checkPermissionAccess(user, hasPermission, 'vehicles') || 
-         checkPermissionAccess(user, hasPermission, 'maintenance');
+  if (!user) return false;
+  
+  // Admin and manager have full access
+  if (user.role === 'admin' || user.role === 'manager') {
+    return true;
+  }
+  
+  // For regular users, check their fleet-related permissions
+  return hasPermission('vehicles') || 
+         hasPermission('logbook') || 
+         hasPermission('maintenance');
 };
+

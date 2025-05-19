@@ -28,7 +28,16 @@ export const InventoryMenu: React.FC<InventoryMenuProps> = ({
   const location = useLocation();
   const { isMobile } = useIsMobile();
 
-  if (!user || !hasPermission("inventory")) {
+  // Check if user has any inventory-related permissions
+  const hasProductsPermission = hasPermission("products");
+  const hasEntriesPermission = hasPermission("inventoryEntries");
+  const hasExitsPermission = hasPermission("inventoryExits");
+  const hasDashboardPermission = hasPermission("inventoryDashboard");
+  
+  const hasInventoryAccess = hasProductsPermission || hasEntriesPermission || 
+                            hasExitsPermission || hasDashboardPermission;
+
+  if (!user || !hasInventoryAccess) {
     return null;
   }
 
@@ -43,46 +52,57 @@ export const InventoryMenu: React.FC<InventoryMenuProps> = ({
       </NavigationMenuTrigger>
       <NavigationMenuContent>
         <div className="grid gap-3 p-4 md:w-[400px] lg:w-[500px]">
-          <Link
-            to="/inventory/products"
-            className={cn(
-              "flex items-center p-2 rounded-md hover:bg-accent",
-              getActiveClass(location.pathname, "/inventory/products")
-            )}
-          >
-            <Package className="mr-2 h-4 w-4" />
-            Produtos
-          </Link>
-          <Link
-            to="/inventory/entries"
-            className={cn(
-              "flex items-center p-2 rounded-md hover:bg-accent",
-              getActiveClass(location.pathname, "/inventory/entries")
-            )}
-          >
-            <PackagePlus className="mr-2 h-4 w-4" />
-            Entradas
-          </Link>
-          <Link
-            to="/inventory/exits"
-            className={cn(
-              "flex items-center p-2 rounded-md hover:bg-accent",
-              getActiveClass(location.pathname, "/inventory/exits")
-            )}
-          >
-            <PackageMinus className="mr-2 h-4 w-4" />
-            Saídas
-          </Link>
-          <Link
-            to="/inventory/dashboard"
-            className={cn(
-              "flex items-center p-2 rounded-md hover:bg-accent",
-              getActiveClass(location.pathname, "/inventory/dashboard")
-            )}
-          >
-            <BarChart className="mr-2 h-4 w-4" />
-            Dashboard Estoque
-          </Link>
+          {hasProductsPermission && (
+            <Link
+              to="/inventory/products"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/inventory/products")
+              )}
+            >
+              <Package className="mr-2 h-4 w-4" />
+              Produtos
+            </Link>
+          )}
+          
+          {hasEntriesPermission && (
+            <Link
+              to="/inventory/entries"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/inventory/entries")
+              )}
+            >
+              <PackagePlus className="mr-2 h-4 w-4" />
+              Entradas
+            </Link>
+          )}
+          
+          {hasExitsPermission && (
+            <Link
+              to="/inventory/exits"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/inventory/exits")
+              )}
+            >
+              <PackageMinus className="mr-2 h-4 w-4" />
+              Saídas
+            </Link>
+          )}
+          
+          {hasDashboardPermission && (
+            <Link
+              to="/inventory/dashboard"
+              className={cn(
+                "flex items-center p-2 rounded-md hover:bg-accent",
+                getActiveClass(location.pathname, "/inventory/dashboard")
+              )}
+            >
+              <BarChart className="mr-2 h-4 w-4" />
+              Dashboard Estoque
+            </Link>
+          )}
         </div>
       </NavigationMenuContent>
     </NavigationMenuItem>

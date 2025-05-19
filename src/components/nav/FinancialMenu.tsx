@@ -40,10 +40,11 @@ export const FinancialMenu: React.FC<FinancialMenuProps> = ({
   const location = useLocation();
   const { isMobile } = useIsMobile();
 
-  // Verificação rigorosa de permissões financeiras
+  // Strict financial access verification
   const hasAccess = hasFinancialAccess(user, hasPermission);
-
-  if (!user || !hasAccess) {
+  
+  // Only admins and managers can access financial menus
+  if (!user || !hasAccess || (user.role !== 'admin' && user.role !== 'manager')) {
     return null;
   }
 

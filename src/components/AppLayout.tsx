@@ -34,15 +34,38 @@ export function AppLayout({ children }: AppLayoutProps) {
     // Set permissions based on role
     if (user && !loading) {
       // Fall back to client-side permission checks
-      setSettingsPermissions({
-        system: user.role === 'admin',
-        company: user.role === 'admin',
-        users: user.role === 'admin',
-        backup: user.role === 'admin' || user.role === 'manager',
-        clients: user.role === 'admin' || user.role === 'manager',
-        employees: user.role === 'admin' || user.role === 'manager',
-        contractors: user.role === 'admin' || user.role === 'manager'
-      });
+      if (user.role === 'admin') {
+        setSettingsPermissions({
+          system: true,
+          company: true,
+          users: true,
+          backup: true,
+          clients: true,
+          employees: true,
+          contractors: true
+        });
+      } else if (user.role === 'manager') {
+        setSettingsPermissions({
+          system: false,
+          company: false,
+          users: false,
+          backup: true,
+          clients: true,
+          employees: true,
+          contractors: true
+        });
+      } else {
+        // Regular user permissions
+        setSettingsPermissions({
+          system: false,
+          company: false,
+          users: false,
+          backup: false,
+          clients: true,
+          employees: true,
+          contractors: true
+        });
+      }
       
       // If user has permissions object, use that to override role-based permissions
       if (user.permissions) {
@@ -64,10 +87,15 @@ export function AppLayout({ children }: AppLayoutProps) {
     // Only check permissions when user data is loaded
     if (user && !loading) {
       // Define permission rules for each path
-      const pathPermissions: Record<string, { path: string; level: keyof PermissionLevel; roleRestrictions?: string[] }> = {
-        '/deliveries': { path: 'deliveries', level: 'view' },
-        '/shipments': { path: 'shipments', level: 'view' },
-        '/shipment-reports': { path: 'shipmentReports', level: 'view' },
+      const pathPermissions: Record<string, { 
+        path: string; 
+        level: keyof PermissionLevel; 
+        roleRestrictions?: string[];
+        allowRegularUser?: boolean;
+      }> = {
+        '/deliveries': { path: 'deliveries', level: 'view', allowRegularUser: true },
+        '/shipments': { path: 'shipments', level: 'view', allowRegularUser: true },
+        '/shipment-reports': { path: 'shipmentReports', level: 'view', allowRegularUser: true },
         '/financial': { 
           path: 'financialDashboard', 
           level: 'view',
@@ -86,17 +114,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/cities': { 
           path: 'cities', 
           level: 'view',
-          roleRestrictions: ['admin', 'manager']
+          allowRegularUser: true // Regular users can view cities
         },
-        '/dashboard': { path: 'dashboard', level: 'view' },
-        '/logbook': { path: 'logbook', level: 'view' },
-        '/clients': { path: 'clients', level: 'view' },
-        '/employees': { path: 'employees', level: 'view' },
-        '/contractors': { path: 'contractors', level: 'view' },
-        '/vehicles': { path: 'vehicles', level: 'view' },
-        '/maintenance': { path: 'maintenance', level: 'view' },
+        '/dashboard': { path: 'dashboard', level: 'view', allowRegularUser: true },
+        '/logbook': { path: 'logbook', level: 'view', allowRegularUser: true },
+        '/clients': { path: 'clients', level: 'view', allowRegularUser: true },
+        '/employees': { path: 'employees', level: 'view', allowRegularUser: true },
+        '/contractors': { path: 'contractors', level: 'view', allowRegularUser: true },
+        '/vehicles': { path: 'vehicles', level: 'view', allowRegularUser: true },
+        '/maintenance': { path: 'maintenance', level: 'view', allowRegularUser: true },
         '/settings': { path: 'settings', level: 'view' },
-        '/budgets': { path: 'budgets', level: 'view' },
+        '/budgets': { path: 'budgets', level: 'view', allowRegularUser: true },
         '/financial-dashboard': { 
           path: 'financialDashboard', 
           level: 'view',
@@ -117,10 +145,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           level: 'view',
           roleRestrictions: ['admin', 'manager']
         },
-        '/inventory/products': { path: 'products', level: 'view' },
-        '/inventory/entries': { path: 'inventoryEntries', level: 'view' },
-        '/inventory/exits': { path: 'inventoryExits', level: 'view' },
-        '/inventory/dashboard': { path: 'inventoryDashboard', level: 'view' },
+        '/inventory/products': { path: 'products', level: 'view', allowRegularUser: true },
+        '/inventory/entries': { path: 'inventoryEntries', level: 'view', allowRegularUser: true },
+        '/inventory/exits': { path: 'inventoryExits', level: 'view', allowRegularUser: true },
+        '/inventory/dashboard': { path: 'inventoryDashboard', level: 'view', allowRegularUser: true },
         '/activity-logs': { path: 'activity-logs', level: 'view' }
       };
 
@@ -161,10 +189,21 @@ export function AppLayout({ children }: AppLayoutProps) {
           return;
         }
         
-        // Check role restrictions first (this is new!)
+        // Check role restrictions first
         if (permissionConfig.roleRestrictions && 
             !permissionConfig.roleRestrictions.includes(user.role || '')) {
           console.log(`Access denied: User role ${user.role} not in allowed roles for path: ${location.pathname}`);
+          toast.error("Acesso restrito", {
+            description: "Você não tem permissão para acessar esta página.",
+          });
+          
+          navigate('/dashboard');
+          return;
+        }
+
+        // For regular users, check if the path is explicitly allowed
+        if (user.role === 'user' && !permissionConfig.allowRegularUser) {
+          console.log(`Access denied: Regular users cannot access path: ${location.pathname}`);
           toast.error("Acesso restrito", {
             description: "Você não tem permissão para acessar esta página.",
           });
