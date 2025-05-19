@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Shipment } from "@/types/shipment";
 import { StatusActions } from "./StatusActions";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useShipmentDetails } from "./useShipmentDetails";
+import { RetentionSheet } from "../dialogs/RetentionSheet";
+import { toast } from "sonner";
 
 interface DetailsTabProps {
   shipment: Shipment;
@@ -50,8 +52,27 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
     handleStatusChange
   } = useShipmentDetails(shipment, onClose);
 
+  // State to control retention sheet visibility for editing
+  const [showRetentionSheet, setShowRetentionSheet] = useState(false);
+
   // Determine if we're in retained status and should show edit button
   const showRetentionEditOption = status === 'retained';
+
+  // Handler for edit button click
+  const onEditRetentionClick = () => {
+    setShowRetentionSheet(true);
+  };
+
+  // Handler for retention form submission
+  const handleRetentionUpdate = async () => {
+    try {
+      await handleSave();
+      setShowRetentionSheet(false);
+    } catch (error) {
+      console.error("Error updating retention details:", error);
+      toast.error("Erro ao atualizar informações de retenção");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -130,7 +151,7 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={handleEditClick}
+                onClick={onEditRetentionClick}
               >
                 Editar Informações de Retenção
               </Button>
@@ -174,6 +195,26 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
               </div>
             )}
           </div>
+          
+          {/* Sheet for editing retention information */}
+          <RetentionSheet
+            open={showRetentionSheet}
+            onOpenChange={setShowRetentionSheet}
+            actionNumber={actionNumber}
+            setActionNumber={setActionNumber}
+            retentionReason={retentionReason}
+            setRetentionReason={setRetentionReason}
+            retentionAmount={retentionAmount}
+            setRetentionAmount={setRetentionAmount}
+            paymentDate={paymentDate}
+            setPaymentDate={setPaymentDate}
+            releaseDate={releaseDate}
+            setReleaseDate={setReleaseDate}
+            fiscalNotes={fiscalNotes}
+            setFiscalNotes={setFiscalNotes}
+            onConfirm={handleRetentionUpdate}
+            isEditing={true}
+          />
           
           <Separator />
         </div>

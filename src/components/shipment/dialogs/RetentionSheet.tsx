@@ -43,7 +43,7 @@ export function RetentionSheet({
   isEditing = false
 }: RetentionSheetProps) {
   const handleConfirm = () => {
-    if (!retentionReason.trim()) {
+    if (!retentionReason.trim() && !isEditing) {
       toast.error("Por favor, informe o motivo da retenção");
       return;
     }

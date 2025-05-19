@@ -47,28 +47,11 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
   // Handler for edit button click
   const handleEditClick = () => {
     setIsEditing(true);
-    // Open the retention sheet with current values
-    // Show a retention form dialog or sheet here
     console.log("Opening retention edit form");
     
-    // We'll create a retention sheet that allows editing the retention information
-    const retentionSheetData = {
-      actionNumber: shipmentState.actionNumber,
-      retentionReason: shipmentState.retentionReason,
-      retentionAmount: shipmentState.retentionAmount,
-      paymentDate: shipmentState.paymentDate,
-      releaseDate: shipmentState.releaseDate,
-      fiscalNotes: shipmentState.fiscalNotes,
-    };
-    
-    // Show the retention sheet/modal
-    const retentionSheet = document.getElementById('retention-edit-form');
-    if (retentionSheet) {
-      retentionSheet.classList.add('show');
-    } else {
-      // If the sheet doesn't exist in the DOM, we use the fiscal action update directly
-      handleSaveFiscalAction();
-    }
+    // Populate with current values
+    // Opening RetentionSheet is handled in the DetailsTab component
+    // through the showRetentionSheet state variable
   };
   
   // Handler for cancel button click
@@ -92,12 +75,12 @@ export function useShipmentDetails(shipment: Shipment, onClose: () => void) {
       
       // Update the fiscal action with the current values
       await updateFiscalAction(shipment.id, {
-        actionNumber: shipmentState.actionNumber,
-        reason: shipmentState.retentionReason,
+        actionNumber: shipmentState.actionNumber?.trim() || undefined,
+        reason: shipmentState.retentionReason?.trim() || "Retenção fiscal", // Default value if empty
         amountToPay: parseFloat(shipmentState.retentionAmount || "0"),
-        paymentDate: shipmentState.paymentDate,
-        releaseDate: shipmentState.releaseDate,
-        notes: shipmentState.fiscalNotes,
+        paymentDate: shipmentState.paymentDate || null, // Use null instead of empty string
+        releaseDate: shipmentState.releaseDate || null, // Use null instead of empty string
+        notes: shipmentState.fiscalNotes?.trim() || undefined,
       });
       
       toast.success("Informações de retenção atualizadas com sucesso");

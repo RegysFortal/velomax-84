@@ -76,23 +76,27 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
     try {
       // Update fiscal action with the current form values
       await updateFiscalAction(shipmentId, {
-        actionNumber,
-        reason: retentionReason,
+        actionNumber: actionNumber?.trim() || undefined,
+        reason: retentionReason.trim() || "Retenção fiscal", // Provide a default reason if empty
         amountToPay: parseFloat(retentionAmount || "0"),
-        paymentDate,
-        releaseDate,
-        notes: fiscalNotes
+        paymentDate: paymentDate || null, // Ensure null is passed if empty, not an empty string
+        releaseDate: releaseDate || null, // Ensure null is passed if empty, not an empty string
+        notes: fiscalNotes?.trim() || undefined
       });
       
       // Close the retention sheet
       setShowRetentionSheet(false);
       
-      // Trigger a status change to refresh the UI
+      // Show success message
+      toast.success("Informações de retenção atualizadas com sucesso");
+      
+      // Trigger a status change to refresh the UI if needed
       if (onStatusChange) {
         onStatusChange('retained');
       }
     } catch (error) {
       console.error("Error updating retention details:", error);
+      toast.error("Erro ao atualizar informações de retenção");
     }
   };
 
