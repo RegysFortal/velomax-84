@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -9,7 +8,7 @@ import { DeliveriesProvider } from './contexts/deliveries/DeliveriesProvider';
 import { ShipmentsProvider } from './contexts/shipments';
 import { ClientsProvider } from './contexts';
 import { PriceTablesProvider } from './contexts/priceTables';
-import { CitiesProvider } from './contexts/CitiesContext';
+import { CitiesProvider } from './contexts/cities';
 import { FinancialProvider } from './contexts/financial'; 
 import { BudgetProvider } from './contexts/budget';
 import { LogbookProvider } from './contexts/LogbookContext';

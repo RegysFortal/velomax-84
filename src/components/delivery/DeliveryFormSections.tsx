@@ -5,7 +5,7 @@ import { DeliveryFormBasicFields } from './DeliveryFormBasicFields';
 import { DeliveryFormTypeFields } from './DeliveryFormTypeFields';
 import { DeliveryFormNotes } from './DeliveryFormNotes';
 import { useDeliveryFormContext } from './context/DeliveryFormContext';
-import { useCities } from '@/contexts/CitiesContext';
+import { useCities } from '@/contexts/cities';
 import { Separator } from '@/components/ui/separator';
 import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
 import { FreightSection } from './FreightSection';

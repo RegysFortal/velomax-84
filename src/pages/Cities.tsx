@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { City } from '@/types';
-import { useCities } from '@/contexts/CitiesContext';
+import { useCities } from '@/contexts/cities';
 import { CitiesHeader } from '@/components/cities/CitiesHeader';
 import { CityTable } from '@/components/cities/CityTable';
 import { CityEditDialog } from '@/components/cities/CityEditDialog';

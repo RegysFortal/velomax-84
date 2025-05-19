@@ -1,11 +1,10 @@
-
 import { usePriceTablesCRUD } from './usePriceTablesCRUD';
 import { usePriceTableFormState } from './usePriceTableFormState';
 import { usePriceTableFormHandlers } from './usePriceTableFormHandlers';
 import { useMetropolitanCities } from './useMetropolitanCities';
 import { useCustomServices } from './useCustomServices';
 import { usePriceTableSubmit } from './usePriceTableSubmit';
-import { useCities } from '@/contexts/CitiesContext';
+import { useCities } from '@/contexts/cities';
 
 export function usePriceTablesForm() {
   const { 
