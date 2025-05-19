@@ -32,16 +32,23 @@ export const useShipmentUpdate = (
       if (shipmentData.receiverName !== undefined) supabaseShipment.receiver_name = shipmentData.receiverName;
       if (shipmentData.receiverId !== undefined) supabaseShipment.receiver_id = shipmentData.receiverId;
       
-      const { error } = await supabase
+      console.log("Supabase update object:", supabaseShipment);
+      
+      const { data, error } = await supabase
         .from('shipments')
         .update(supabaseShipment)
-        .eq('id', id);
+        .eq('id', id)
+        .select('*')
+        .single();
         
       if (error) {
         console.error("Supabase update error:", error);
         throw error;
       }
       
+      console.log("Supabase update response:", data);
+      
+      // Update local state
       const updatedShipments = shipments.map(s => {
         if (s.id === id) {
           return { ...s, ...shipmentData, updatedAt: supabaseShipment.updated_at };

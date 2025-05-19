@@ -46,6 +46,7 @@ export function ShipmentEditDialog({
   // Load shipment data when opened
   useEffect(() => {
     if (open && shipment) {
+      console.log("ShipmentEditDialog - Loading shipment data:", shipment);
       setCompanyId(shipment.companyId);
       setCompanyName(shipment.companyName);
       setTransportMode(shipment.transportMode);
@@ -83,11 +84,23 @@ export function ShipmentEditDialog({
     if (!shipment) return;
     
     try {
+      console.log("ShipmentEditDialog - Submitting form");
+      
       const packageCount = parseInt(packages || "0");
       const weightValue = parseFloat(weight || "0");
       
+      if (!companyId.trim() || !carrierName.trim() || !trackingNumber.trim()) {
+        toast.error("Preencha todos os campos obrigatórios");
+        return;
+      }
+      
+      if (isNaN(packageCount) || isNaN(weightValue) || packageCount < 0 || weightValue < 0) {
+        toast.error("Volumes e peso devem ser valores numéricos válidos");
+        return;
+      }
+      
       // Update shipment
-      await updateShipment(shipment.id, {
+      const shipmentUpdate = {
         companyId: companyId.trim(),
         companyName,
         transportMode,
@@ -100,20 +113,31 @@ export function ShipmentEditDialog({
         observations: observations.trim() || undefined,
         status,
         isRetained: status === "retained"
-      });
+      };
+      
+      console.log("ShipmentEditDialog - Updating shipment with:", shipmentUpdate);
+      await updateShipment(shipment.id, shipmentUpdate);
       
       // If retained, update or create fiscal action
       if (status === "retained") {
         const retentionAmountValue = parseFloat(retentionAmount || "0");
         
-        await updateFiscalAction(shipment.id, {
+        if (!retentionReason.trim()) {
+          toast.error("Informe o motivo da retenção");
+          return;
+        }
+        
+        const fiscalActionUpdate = {
           actionNumber: actionNumber.trim() || undefined,
           reason: retentionReason.trim(),
           amountToPay: retentionAmountValue,
           paymentDate: paymentDate || undefined,
           releaseDate: releaseDate || undefined,
           notes: fiscalNotes.trim() || undefined
-        });
+        };
+        
+        console.log("ShipmentEditDialog - Updating fiscal action with:", fiscalActionUpdate);
+        await updateFiscalAction(shipment.id, fiscalActionUpdate);
       }
       
       toast.success("Embarque atualizado com sucesso");
