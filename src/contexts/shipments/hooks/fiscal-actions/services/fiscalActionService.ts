@@ -95,6 +95,10 @@ export const fiscalActionService = {
       console.log("Creating new fiscal action for shipment:", shipmentId);
       console.log("Creation data:", supabaseData);
       
+      // Make sure required fields are present for database insert
+      if (!supabaseData.reason) supabaseData.reason = 'Não especificado';
+      if (supabaseData.amount_to_pay === undefined) supabaseData.amount_to_pay = 0;
+      
       // Insert new fiscal action
       const { data: newFiscalAction, error } = await supabase
         .from('fiscal_actions')
