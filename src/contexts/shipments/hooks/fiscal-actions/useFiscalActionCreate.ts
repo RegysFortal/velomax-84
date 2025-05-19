@@ -1,5 +1,6 @@
 
 import { FiscalAction } from "@/types/shipment";
+import { Shipment } from "@/types/shipment";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 
