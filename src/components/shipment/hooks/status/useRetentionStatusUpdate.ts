@@ -46,12 +46,12 @@ export function useRetentionStatusUpdate() {
       
       // Update fiscal action with provided data
       await updateFiscalAction(shipmentId, {
-        actionNumber: options.actionNumber?.trim() || undefined,
+        actionNumber: options.actionNumber?.trim(),
         reason: options.retentionReason?.trim() || "Retenção fiscal",
         amountToPay: retentionAmountValue,
         paymentDate: options.paymentDate || null,
         releaseDate: options.releaseDate || null,
-        notes: options.fiscalNotes?.trim() || undefined
+        notes: options.fiscalNotes?.trim()
       });
       
       toast.success("Status alterado para Retida e informações de retenção atualizadas");
@@ -81,12 +81,12 @@ export function useRetentionStatusUpdate() {
       
       // Update fiscal action with provided data
       await updateFiscalAction(shipmentId, {
-        actionNumber: options.actionNumber?.trim() || undefined,
+        actionNumber: options.actionNumber?.trim(),
         reason: options.retentionReason?.trim() || "Retenção fiscal",
         amountToPay: retentionAmountValue,
         paymentDate: options.paymentDate || null,
         releaseDate: options.releaseDate || null,
-        notes: options.fiscalNotes?.trim() || undefined
+        notes: options.fiscalNotes?.trim()
       });
       
       toast.success("Informações de retenção atualizadas com sucesso");

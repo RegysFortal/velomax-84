@@ -47,14 +47,17 @@ export const useRetentionSheetState = (
         fiscalNotes
       });
       
+      // Parse retention amount to ensure it's a valid number
+      const amountValue = parseFloat(retentionAmount) || 0;
+      
       // Create fiscal action data object
       const fiscalActionData = {
         actionNumber,
         reason: retentionReason,
-        amountToPay: parseFloat(retentionAmount) || 0,
-        paymentDate,
-        releaseDate,
-        notes: fiscalNotes
+        amountToPay: amountValue,
+        paymentDate: paymentDate || null,
+        releaseDate: releaseDate || null,
+        notes: fiscalNotes || null
       };
       
       // Use the updateFiscalAction directly from context
