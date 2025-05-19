@@ -4,6 +4,21 @@ import { FiscalAction } from '@/types/shipment';
 import { mapFiscalActionToSupabase, mapSupabaseToFiscalAction } from '../utils/fiscalActionMappers';
 import { toast } from "sonner";
 
+// Define interface for Supabase Fiscal Action to match the database schema
+interface SupabaseFiscalAction {
+  id?: string;
+  shipment_id: string;
+  reason: string;
+  amount_to_pay: number;
+  action_number?: string;
+  payment_date?: string;
+  release_date?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
+}
+
 /**
  * Service for fiscal action operations with Supabase
  */
@@ -91,15 +106,26 @@ export const fiscalActionService = {
       };
       
       // Map domain model to Supabase format
-      const supabaseData = mapFiscalActionToSupabase(completeData, shipmentId, userId);
+      const mappedData = mapFiscalActionToSupabase(completeData, shipmentId, userId);
+      
+      // Create a properly typed object for Supabase
+      const supabaseData: SupabaseFiscalAction = {
+        shipment_id: shipmentId,
+        reason: mappedData.reason || 'Não especificado',
+        amount_to_pay: mappedData.amount_to_pay !== undefined ? mappedData.amount_to_pay : 0,
+        action_number: mappedData.action_number,
+        payment_date: mappedData.payment_date,
+        release_date: mappedData.release_date,
+        notes: mappedData.notes,
+        created_at: mappedData.created_at,
+        updated_at: mappedData.updated_at,
+        user_id: mappedData.user_id
+      };
+      
       console.log("Creating new fiscal action for shipment:", shipmentId);
       console.log("Creation data:", supabaseData);
       
-      // Make sure required fields are present for database insert
-      if (!supabaseData.reason) supabaseData.reason = 'Não especificado';
-      if (supabaseData.amount_to_pay === undefined) supabaseData.amount_to_pay = 0;
-      
-      // Insert new fiscal action
+      // Insert new fiscal action with properly typed data
       const { data: newFiscalAction, error } = await supabase
         .from('fiscal_actions')
         .insert(supabaseData)
