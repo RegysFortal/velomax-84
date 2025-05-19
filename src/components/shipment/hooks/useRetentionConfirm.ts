@@ -37,6 +37,11 @@ export function useRetentionConfirm({
     try {
       console.log("Setting status to retained and updating fiscal action");
       
+      if (!retentionReason.trim()) {
+        toast.error("O motivo da retenção é obrigatório");
+        return;
+      }
+      
       // First update the status
       await updateStatus(shipmentId, "retained");
       
@@ -49,14 +54,20 @@ export function useRetentionConfirm({
       // Then create/update the fiscal action
       const retentionAmountValue = parseFloat(retentionAmount || "0");
       
-      await updateFiscalAction(shipmentId, {
+      // Create detailed fiscal action object with explicit fields
+      const fiscalActionData = {
         actionNumber: actionNumber.trim() || undefined,
         reason: retentionReason.trim(),
         amountToPay: retentionAmountValue,
         paymentDate: paymentDate || undefined,
         releaseDate: releaseDate || undefined,
         notes: fiscalNotes.trim() || undefined,
-      });
+      };
+      
+      console.log("Creating fiscal action with data:", fiscalActionData);
+      
+      const result = await updateFiscalAction(shipmentId, fiscalActionData);
+      console.log("Fiscal action creation result:", result);
       
       toast.success("Status alterado para Retida e informações de retenção atualizadas");
       

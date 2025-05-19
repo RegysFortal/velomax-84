@@ -3,6 +3,9 @@ import { useState, useEffect } from "react";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
 
+/**
+ * Hook for managing retention sheet state and operations
+ */
 export const useRetentionSheetState = (
   shipmentId: string,
   initialActionNumber: string,
@@ -13,21 +16,21 @@ export const useRetentionSheetState = (
   initialFiscalNotes: string,
   onSuccess?: () => void
 ) => {
-  // Estado para visibilidade da folha de retenção
+  // Retention sheet visibility state
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
   
-  // Estados locais para rastrear se os valores foram alterados
-  const [actionNumber, setActionNumber] = useState(initialActionNumber);
-  const [retentionReason, setRetentionReason] = useState(initialRetentionReason);
-  const [retentionAmount, setRetentionAmount] = useState(initialRetentionAmount);
-  const [paymentDate, setPaymentDate] = useState(initialPaymentDate);
-  const [releaseDate, setReleaseDate] = useState(initialReleaseDate);
-  const [fiscalNotes, setFiscalNotes] = useState(initialFiscalNotes);
+  // Local states to track field values
+  const [actionNumber, setActionNumber] = useState(initialActionNumber || '');
+  const [retentionReason, setRetentionReason] = useState(initialRetentionReason || '');
+  const [retentionAmount, setRetentionAmount] = useState(initialRetentionAmount || '');
+  const [paymentDate, setPaymentDate] = useState(initialPaymentDate || '');
+  const [releaseDate, setReleaseDate] = useState(initialReleaseDate || '');
+  const [fiscalNotes, setFiscalNotes] = useState(initialFiscalNotes || '');
   
-  // Estado para rastrear se os formulários foram submetidos
+  // Submission state tracking
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Atualizar os estados quando os valores iniciais mudarem
+  // Update states when initial values change
   useEffect(() => {
     setActionNumber(initialActionNumber || '');
     setRetentionReason(initialRetentionReason || '');
@@ -44,28 +47,28 @@ export const useRetentionSheetState = (
     initialFiscalNotes
   ]);
 
-  // Obter updateFiscalAction do contexto de ShipmentsContext
+  // Get updateFiscalAction from ShipmentsContext
   const { updateFiscalAction } = useShipments();
 
-  // Handler para clique no botão de edição
+  // Handler for edit button click
   const handleEditClick = () => {
-    console.log("Abrindo folha de retenção para edição");
+    console.log("Opening retention sheet for editing");
     setShowRetentionSheet(true);
   };
 
-  // Formatar número para garantir formato correto
+  // Format number to ensure correct format
   const formatNumber = (value: string): number => {
-    // Remover caracteres não numéricos, exceto ponto decimal
+    // Remove non-numeric characters except decimal point
     const cleanValue = value.replace(/[^\d.]/g, '');
     
-    // Converter para número
+    // Convert to number
     const numValue = parseFloat(cleanValue);
     
-    // Retornar 0 se for NaN
+    // Return 0 if NaN
     return isNaN(numValue) ? 0 : numValue;
   };
 
-  // Handler para submissão do formulário de retenção
+  // Handler for retention form submission
   const handleRetentionUpdate = async (
     newActionNumber: string,
     newRetentionReason: string,
@@ -76,13 +79,13 @@ export const useRetentionSheetState = (
   ) => {
     if (!shipmentId) return;
     
-    // Prevenir submissões múltiplas
+    // Prevent multiple submissions
     if (isSubmitting) return;
     
     setIsSubmitting(true);
     
     try {
-      console.log("Atualizando detalhes de retenção com valores:", {
+      console.log("Updating retention details with values:", {
         shipmentId,
         newActionNumber,
         newRetentionReason,
@@ -92,17 +95,17 @@ export const useRetentionSheetState = (
         newFiscalNotes
       });
       
-      // Validar campos obrigatórios
+      // Validate required fields
       if (!newRetentionReason) {
         toast.error("O motivo da retenção é obrigatório");
         setIsSubmitting(false);
         return;
       }
       
-      // Analisar o valor de retenção para garantir que seja um número válido
+      // Parse retention amount to ensure valid number
       const amountValue = formatNumber(newRetentionAmount);
       
-      // Criar objeto de dados da ação fiscal
+      // Create fiscal action data object
       const fiscalActionData = {
         actionNumber: newActionNumber.trim(),
         reason: newRetentionReason.trim(),
@@ -112,21 +115,21 @@ export const useRetentionSheetState = (
         notes: newFiscalNotes?.trim() || null
       };
       
-      console.log("Enviando dados para updateFiscalAction:", fiscalActionData);
+      console.log("Sending data to updateFiscalAction:", fiscalActionData);
       
-      // Usar updateFiscalAction diretamente do contexto
+      // Use updateFiscalAction directly from context
       const result = await updateFiscalAction(shipmentId, fiscalActionData);
-      console.log("Resultado da atualização:", result);
+      console.log("Update result:", result);
       
       setShowRetentionSheet(false);
       toast.success("Informações de retenção atualizadas com sucesso");
 
-      // Chamar callback onSuccess se fornecido
+      // Call onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      console.error("Erro ao atualizar detalhes de retenção:", error);
+      console.error("Error updating retention details:", error);
       toast.error("Erro ao atualizar informações de retenção");
     } finally {
       setIsSubmitting(false);

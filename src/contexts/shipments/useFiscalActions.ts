@@ -23,10 +23,22 @@ export const useFiscalActions = (
     console.log("Calling updateFiscalAction with data:", { shipmentId, fiscalActionData });
     
     try {
-      return await updateAction(shipmentId, fiscalActionData);
+      // If we're getting an empty object, ensure we create proper defaults
+      if (fiscalActionData && typeof fiscalActionData === 'object' && Object.keys(fiscalActionData).length === 0) {
+        fiscalActionData = {
+          reason: "Retenção fiscal",
+          amountToPay: 0,
+        };
+      }
+
+      const result = await updateAction(shipmentId, fiscalActionData);
+      if (result) {
+        console.log("Fiscal action updated successfully:", result);
+      }
+      return result;
     } catch (error) {
       console.error("Error in updateFiscalAction:", error);
-      toast.error("Error updating fiscal action");
+      toast.error("Erro ao atualizar ação fiscal");
       throw error;
     }
   };
@@ -48,8 +60,15 @@ export const useFiscalActions = (
       
       // Get current shipment to find fiscal action
       const shipment = shipments.find(s => s.id === shipmentId);
-      if (!shipment || !shipment.fiscalAction) {
+      if (!shipment) {
+        console.error("Shipment not found for fiscal action update");
+        toast.error("Embarque não encontrado para atualização");
+        return;
+      }
+      
+      if (!shipment.fiscalAction) {
         console.error("Unable to update details: fiscal action not found");
+        toast.error("Ação fiscal não encontrada");
         return;
       }
       
@@ -84,7 +103,7 @@ export const useFiscalActions = (
       return updatedFiscalAction;
     } catch (error) {
       console.error("Error in updateFiscalActionDetails:", error);
-      toast.error("Error updating fiscal action details");
+      toast.error("Erro ao atualizar detalhes da ação fiscal");
       throw error;
     }
   };
@@ -92,10 +111,12 @@ export const useFiscalActions = (
   // Clear fiscal action - returns void as specified in the interface
   const clearFiscalAction = async (shipmentId: string): Promise<void> => {
     try {
+      console.log("Clearing fiscal action for shipment:", shipmentId);
       await clearAction(shipmentId);
+      console.log("Fiscal action cleared successfully");
     } catch (error) {
       console.error("Error clearing fiscal action:", error);
-      toast.error("Error removing fiscal action");
+      toast.error("Erro ao remover ação fiscal");
       throw error;
     }
   };
