@@ -19,7 +19,7 @@ interface StatusActionsProps {
 }
 
 export function StatusActions({ status, shipmentId, onStatusChange }: StatusActionsProps) {
-  const { getShipmentById } = useShipments();
+  const { getShipmentById, updateFiscalAction } = useShipments();
   const { updateRetentionInfo } = useRetentionStatusUpdate();
   const shipment = getShipmentById(shipmentId);
   
@@ -87,19 +87,37 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
         fiscalNotes
       });
       
-      // Use the updateRetentionInfo method from the hook
-      await updateRetentionInfo(shipmentId, {
-        shipmentId,
+      // Create the fiscal action data object
+      const fiscalActionData = {
         actionNumber,
-        retentionReason,
-        retentionAmount,
+        reason: retentionReason,
+        amountToPay: parseFloat(retentionAmount) || 0,
         paymentDate,
         releaseDate,
-        fiscalNotes
-      });
+        notes: fiscalNotes
+      };
+      
+      // Use the direct updateFiscalAction from context if available
+      if (updateFiscalAction) {
+        await updateFiscalAction(shipmentId, fiscalActionData);
+      } else {
+        // Fallback to the hook method
+        await updateRetentionInfo(shipmentId, {
+          shipmentId,
+          actionNumber,
+          retentionReason,
+          retentionAmount,
+          paymentDate,
+          releaseDate,
+          fiscalNotes
+        });
+      }
       
       // Close the retention sheet
       setShowRetentionSheet(false);
+      
+      // Show success message
+      toast.success("Informações de retenção atualizadas com sucesso");
       
       // Trigger a status change to refresh the UI if needed
       if (onStatusChange) {

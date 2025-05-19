@@ -13,7 +13,7 @@ import { RetentionInfoSection } from "./sections/RetentionInfoSection";
 import { DeliveryInfoSection } from "./sections/DeliveryInfoSection";
 import { ObservationsSection } from "./sections/ObservationsSection";
 import { DeleteAlertDialog } from "./sections/DeleteAlertDialog";
-import { useRetentionStatusUpdate } from "../hooks/status/useRetentionStatusUpdate";
+import { useShipments } from "@/contexts/shipments";
 
 interface DetailsTabProps {
   shipment: Shipment;
@@ -21,7 +21,8 @@ interface DetailsTabProps {
 }
 
 export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
-  const { updateRetentionInfo } = useRetentionStatusUpdate();
+  // Get updateFiscalAction directly from ShipmentsContext
+  const { updateFiscalAction } = useShipments();
   
   const {
     isEditing,
@@ -82,16 +83,18 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
         fiscalNotes
       });
       
-      // Use the updateRetentionInfo method from the hook
-      await updateRetentionInfo(shipment.id, {
-        shipmentId: shipment.id,
+      // Create fiscal action data object
+      const fiscalActionData = {
         actionNumber,
-        retentionReason,
-        retentionAmount,
+        reason: retentionReason,
+        amountToPay: parseFloat(retentionAmount) || 0,
         paymentDate,
         releaseDate,
-        fiscalNotes
-      });
+        notes: fiscalNotes
+      };
+      
+      // Use the updateFiscalAction directly from context
+      await updateFiscalAction(shipment.id, fiscalActionData);
       
       setShowRetentionSheet(false);
       toast.success("Informações de retenção atualizadas com sucesso");
