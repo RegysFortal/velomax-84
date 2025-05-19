@@ -111,7 +111,7 @@ export function useShipmentsData(user: any) {
               } else if (fiscalError && fiscalError.code !== 'PGRST116') {
                 // Only log as error if it's not just "no rows returned"
                 console.error(`Error fetching fiscal action for shipment ${shipment.id}:`, fiscalError);
-              } else if (shipment.is_retained && (!fiscalData || fiscalData.length === 0)) {
+              } else if (shipment.is_retained && !fiscalData) {
                 console.warn(`Shipment ${shipment.id} is marked as retained but no fiscal action found`);
               }
             } catch (fiscalError) {

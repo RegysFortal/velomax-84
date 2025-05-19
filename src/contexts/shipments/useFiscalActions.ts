@@ -1,3 +1,4 @@
+
 import { Shipment, FiscalAction } from "@/types/shipment";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ export function useFiscalActions(
         if (typeof fiscalActionData.amountToPay === 'string') {
           const normalizedAmount = (fiscalActionData.amountToPay as string).replace(',', '.');
           supabaseFiscalAction.amount_to_pay = parseFloat(normalizedAmount);
+          console.log("Normalized amount:", normalizedAmount, "->", supabaseFiscalAction.amount_to_pay);
         } else {
           supabaseFiscalAction.amount_to_pay = fiscalActionData.amountToPay;
         }
