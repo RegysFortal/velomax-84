@@ -32,17 +32,26 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
     deliveryTime,
     receiverName,
     retentionReason,
+    setRetentionReason,
     retentionAmount,
+    setRetentionAmount,
     paymentDate,
+    setPaymentDate,
     releaseDate,
+    setReleaseDate,
     actionNumber,
+    setActionNumber,
     fiscalNotes,
+    setFiscalNotes,
     handleEditClick,
     handleCancelEdit,
     handleSave,
     handleDelete,
     handleStatusChange
   } = useShipmentDetails(shipment, onClose);
+
+  // Determine if we're in retained status and should show edit button
+  const showRetentionEditOption = status === 'retained';
 
   return (
     <div className="space-y-6">
@@ -115,7 +124,18 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
       {/* Retenção Fiscal (se aplicável) */}
       {status === "retained" && (
         <div className="space-y-2">
-          <h3 className="text-lg font-medium">Informações da Retenção</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium">Informações da Retenção</h3>
+            {showRetentionEditOption && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleEditClick}
+              >
+                Editar Informações de Retenção
+              </Button>
+            )}
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

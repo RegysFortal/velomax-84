@@ -10,6 +10,7 @@ import {
 import { DocumentItem } from './DocumentItem';
 import { DocumentForm } from './DocumentForm';
 import { useDocumentOperations } from './hooks/useDocumentOperations';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DocumentsListProps {
   shipmentId: string;
@@ -61,16 +62,18 @@ export function DocumentsList({ shipmentId, documents = [] }: DocumentsListProps
           Nenhum documento encontrado
         </div>
       ) : (
-        <div className="space-y-2">
-          {safeDocuments.map((doc) => (
-            <DocumentItem 
-              key={doc.id}
-              document={doc}
-              onEdit={() => handleOpenDialog(doc)}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
+        <ScrollArea className="h-[300px]">
+          <div className="space-y-2">
+            {safeDocuments.map((doc) => (
+              <DocumentItem 
+                key={doc.id}
+                document={doc}
+                onEdit={() => handleOpenDialog(doc)}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </ScrollArea>
       )}
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
