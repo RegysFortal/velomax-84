@@ -26,6 +26,19 @@ export const useRetentionDataLoader = (
   // Get needed functions from ShipmentsContext
   const { refreshShipmentsData, getShipmentById } = useShipments();
 
+  /**
+   * Format a number value to display as currency with comma separator
+   */
+  const formatAmountForDisplay = (amount: number | null | undefined): string => {
+    if (amount === null || amount === undefined) return '';
+    
+    // Convert to string and ensure we have 2 decimal places
+    const valueStr = amount.toFixed(2);
+    
+    // Replace dot with comma for Brazilian format
+    return valueStr.replace('.', ',');
+  };
+
   // Load data when sheet is opened
   useEffect(() => {
     const refreshRetentionData = async () => {
@@ -61,21 +74,8 @@ export const useRetentionDataLoader = (
             if (shipment?.fiscalAction) {
               console.log("Retrieved fiscal action from context:", shipment.fiscalAction);
               
-              // Format amount with comma as decimal separator for display
-              let formattedAmount = '';
-              if (shipment.fiscalAction.amountToPay) {
-                formattedAmount = shipment.fiscalAction.amountToPay.toString().replace('.', ',');
-                
-                // Ensure we have 2 decimal places
-                if (!formattedAmount.includes(',')) {
-                  formattedAmount += ',00';
-                } else {
-                  const parts = formattedAmount.split(',');
-                  if (parts[1].length === 1) {
-                    formattedAmount += '0';
-                  }
-                }
-              }
+              // Format amount with comma as decimal separator
+              const formattedAmount = formatAmountForDisplay(shipment.fiscalAction.amountToPay);
               
               updateFormFields(
                 shipment.fiscalAction.actionNumber || '',
@@ -97,20 +97,7 @@ export const useRetentionDataLoader = (
               console.log("Retrieved fiscal action from service:", fiscalAction);
               
               // Format amount with comma as decimal separator
-              let formattedAmount = '';
-              if (fiscalAction.amountToPay) {
-                formattedAmount = fiscalAction.amountToPay.toString().replace('.', ',');
-                
-                // Ensure we have 2 decimal places
-                if (!formattedAmount.includes(',')) {
-                  formattedAmount += ',00';
-                } else {
-                  const parts = formattedAmount.split(',');
-                  if (parts[1].length === 1) {
-                    formattedAmount += '0';
-                  }
-                }
-              }
+              const formattedAmount = formatAmountForDisplay(fiscalAction.amountToPay);
               
               updateFormFields(
                 fiscalAction.actionNumber || '',

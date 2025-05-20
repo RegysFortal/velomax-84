@@ -37,31 +37,29 @@ export function RetentionFormSection({
 }: RetentionFormSectionProps) {
   // Função auxiliar para formatar valor numérico
   const formatCurrency = (value: string) => {
-    // Remover caracteres não numéricos, exceto ponto decimal e vírgula
-    const numericValue = value.replace(/[^\d.,]/g, '');
+    // Remover caracteres não numéricos, exceto vírgula
+    let numericValue = value.replace(/[^\d,]/g, '');
     
-    // Garantir apenas um separador decimal (ponto ou vírgula)
+    // Verificar se tem mais de uma vírgula
     const commaCount = (numericValue.match(/,/g) || []).length;
-    const dotCount = (numericValue.match(/\./g) || []).length;
-    
-    // Se tiver mais de um separador, vamos manter apenas o último
-    if (commaCount + dotCount > 1) {
-      // Remover todos os separadores
-      const withoutSeparators = numericValue.replace(/[.,]/g, '');
-      
-      // Recuperar o último separador e sua posição
-      const lastCommaIndex = numericValue.lastIndexOf(',');
-      const lastDotIndex = numericValue.lastIndexOf('.');
-      const lastSeparatorIndex = Math.max(lastCommaIndex, lastDotIndex);
-      const lastSeparator = numericValue[lastSeparatorIndex];
-      
-      // Adicionar o separador na posição correta
-      if (lastSeparatorIndex >= 0) {
-        const pos = lastSeparatorIndex - (numericValue.substring(0, lastSeparatorIndex).match(/[.,]/g) || []).length;
-        return withoutSeparators.substring(0, pos) + lastSeparator + withoutSeparators.substring(pos);
+    if (commaCount > 1) {
+      // Manter apenas a última vírgula
+      const parts = numericValue.split(',');
+      numericValue = parts[0];
+      for (let i = 1; i < parts.length - 1; i++) {
+        numericValue += parts[i];
       }
-      
-      return withoutSeparators;
+      if (parts.length > 1) {
+        numericValue += ',' + parts[parts.length - 1];
+      }
+    }
+    
+    // Garantir que só há dois dígitos após a vírgula
+    if (numericValue.includes(',')) {
+      const [integerPart, decimalPart] = numericValue.split(',');
+      if (decimalPart.length > 2) {
+        return `${integerPart},${decimalPart.substring(0, 2)}`;
+      }
     }
     
     return numericValue;

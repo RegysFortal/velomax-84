@@ -7,6 +7,19 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const useFiscalActionLoader = () => {
   /**
+   * Format a number value to display as currency with comma separator
+   */
+  const formatAmountForDisplay = (amount: number | null | undefined): string => {
+    if (amount === null || amount === undefined) return '';
+    
+    // Convert to string and ensure we have 2 decimal places
+    const valueStr = amount.toFixed(2);
+    
+    // Replace dot with comma for Brazilian format
+    return valueStr.replace('.', ',');
+  };
+
+  /**
    * Load fiscal action data directly from the database
    */
   const loadLatestFiscalActionData = useCallback(async (shipmentId: string) => {
@@ -29,21 +42,7 @@ export const useFiscalActionLoader = () => {
         console.log("Loaded fresh fiscal action data from database:", data);
         
         // Format amount with comma as decimal separator for display
-        let formattedAmount = '';
-        if (data.amount_to_pay) {
-          // Convert to string with 2 decimal places and replace period with comma
-          formattedAmount = data.amount_to_pay.toString().replace('.', ',');
-          
-          // Ensure we have 2 decimal places
-          if (!formattedAmount.includes(',')) {
-            formattedAmount += ',00';
-          } else {
-            const parts = formattedAmount.split(',');
-            if (parts[1].length === 1) {
-              formattedAmount += '0';
-            }
-          }
-        }
+        const formattedAmount = formatAmountForDisplay(data.amount_to_pay);
         
         return {
           actionNumber: data.action_number || '',

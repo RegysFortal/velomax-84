@@ -13,6 +13,7 @@ export const useRetentionSheetUpdate = (shipmentId: string, onSuccess?: () => vo
 
   /**
    * Format number to ensure correct format for database
+   * Handles comma as decimal separator
    */
   const formatNumber = (value: string): number => {
     if (!value || value.trim() === '') return 0;
