@@ -43,10 +43,13 @@ export function DocumentForm({
   onSubmit,
   onCancel
 }: DocumentFormProps) {
+  // Use a safe array for invoice numbers, defaulting to an empty array if undefined
+  const safeInvoiceNumbers = Array.isArray(invoiceNumbers) ? invoiceNumbers : [];
+  
   // Log the current invoice numbers for debugging
   useEffect(() => {
-    console.log("DocumentForm - Current invoice numbers:", invoiceNumbers);
-  }, [invoiceNumbers]);
+    console.log("DocumentForm - Current invoice numbers:", safeInvoiceNumbers);
+  }, [safeInvoiceNumbers]);
 
   const handleInvoiceNumbersChange = (newInvoiceNumbers: string[]) => {
     console.log("Setting invoice numbers to:", newInvoiceNumbers);
@@ -74,7 +77,7 @@ export function DocumentForm({
           <div className="space-y-2">
             <Label>Números de Nota Fiscal</Label>
             <InvoiceNumberInput 
-              invoiceNumbers={invoiceNumbers || []}
+              invoiceNumbers={safeInvoiceNumbers}
               setInvoiceNumbers={handleInvoiceNumbersChange}
             />
             <p className="text-sm text-muted-foreground">
@@ -136,4 +139,3 @@ export function DocumentForm({
     </div>
   );
 }
-

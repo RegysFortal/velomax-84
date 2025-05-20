@@ -35,21 +35,28 @@ export function RetentionFormSection({
   setFiscalNotes,
   disabled = false
 }: RetentionFormSectionProps) {
-  // Handler para alteração do valor com formatação
+  // Improved handler for amount change with better decimal support
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Limita a entrada para apenas dígitos e vírgula
-    let value = e.target.value.replace(/[^\d,]/g, '');
+    let value = e.target.value;
     
-    // Se tiver mais de uma vírgula, mantém apenas a primeira
-    const commas = value.split(',');
-    if (commas.length > 2) {
-      value = commas[0] + ',' + commas.slice(1).join('');
+    // Remove any character that is not a digit or a comma
+    value = value.replace(/[^\d,]/g, '');
+    
+    // Ensure there's only one comma
+    const parts = value.split(',');
+    if (parts.length > 2) {
+      value = parts[0] + ',' + parts.slice(1).join('');
+    }
+    
+    // Limit decimal places to 2
+    if (parts.length === 2 && parts[1].length > 2) {
+      value = parts[0] + ',' + parts[1].substring(0, 2);
     }
     
     setRetentionAmount(value);
   };
 
-  // Converter string de data para objeto Date
+  // Parse date for DatePicker
   const parseDate = (dateString: string): Date | undefined => {
     if (!dateString) return undefined;
     const date = new Date(dateString);

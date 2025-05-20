@@ -19,17 +19,28 @@ export function InvoiceNumberInput({ invoiceNumbers, setInvoiceNumbers }: Invoic
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && currentInput.trim()) {
       e.preventDefault();
+      
+      // Clone the array to ensure we're not directly mutating state
+      const updatedInvoices = Array.isArray(invoiceNumbers) ? [...invoiceNumbers] : [];
+      
       // Add invoice number if it doesn't already exist
-      if (!invoiceNumbers.includes(currentInput.trim())) {
-        const updatedInvoices = [...invoiceNumbers, currentInput.trim()];
+      if (!updatedInvoices.includes(currentInput.trim())) {
+        updatedInvoices.push(currentInput.trim());
         console.log("Updated invoice numbers:", updatedInvoices);
         setInvoiceNumbers(updatedInvoices);
       }
+      
       setCurrentInput('');
     }
   };
   
   const removeInvoiceNumber = (index: number) => {
+    // Make sure invoiceNumbers is an array before operating on it
+    if (!Array.isArray(invoiceNumbers)) {
+      console.warn("invoiceNumbers is not an array:", invoiceNumbers);
+      return;
+    }
+    
     const newInvoiceNumbers = [...invoiceNumbers];
     newInvoiceNumbers.splice(index, 1);
     console.log("After removal invoice numbers:", newInvoiceNumbers);
@@ -46,7 +57,7 @@ export function InvoiceNumberInput({ invoiceNumbers, setInvoiceNumbers }: Invoic
       />
       
       <div className="flex flex-wrap gap-2 mt-2">
-        {invoiceNumbers && invoiceNumbers.length > 0 ? (
+        {Array.isArray(invoiceNumbers) && invoiceNumbers.length > 0 ? (
           invoiceNumbers.map((number, index) => (
             <Badge key={index} variant="secondary" className="px-2 py-1">
               {number}

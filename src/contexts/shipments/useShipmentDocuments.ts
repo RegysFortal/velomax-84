@@ -15,8 +15,13 @@ export const useShipmentDocuments = (
       // Ensure document.type is a valid value
       const documentType = document.type as "cte" | "invoice" | "delivery_location" | "other";
       
+      // Ensure invoiceNumbers is an array
+      const invoiceNumbersArray = Array.isArray(document.invoiceNumbers) 
+        ? document.invoiceNumbers 
+        : (document.invoiceNumbers ? [document.invoiceNumbers] : []);
+      
       // Debug invoice numbers
-      console.log("Adding document with invoice numbers:", document.invoiceNumbers);
+      console.log("Adding document with invoice numbers:", invoiceNumbersArray);
       
       // Prepare data for Supabase insert
       const supabaseDocument = {
@@ -26,7 +31,7 @@ export const useShipmentDocuments = (
         url: document.url,
         notes: document.notes,
         minute_number: document.minuteNumber,
-        invoice_numbers: document.invoiceNumbers || [],
+        invoice_numbers: invoiceNumbersArray,
         weight: document.weight,
         packages: document.packages,
         is_delivered: document.isDelivered || false,
@@ -100,7 +105,13 @@ export const useShipmentDocuments = (
       }
       
       console.log("Document to update:", documentToUpdate);
-      console.log("Invoice numbers to save:", documentToUpdate.invoiceNumbers);
+      
+      // Ensure invoiceNumbers is an array
+      const invoiceNumbersArray = Array.isArray(documentToUpdate.invoiceNumbers) 
+        ? documentToUpdate.invoiceNumbers 
+        : (documentToUpdate.invoiceNumbers ? [documentToUpdate.invoiceNumbers] : []);
+      
+      console.log("Invoice numbers to save:", invoiceNumbersArray);
       
       // Prepare data for Supabase update
       const supabaseDocument = {
@@ -109,9 +120,7 @@ export const useShipmentDocuments = (
         url: documentToUpdate.url,
         notes: documentToUpdate.notes,
         minute_number: documentToUpdate.minuteNumber,
-        invoice_numbers: Array.isArray(documentToUpdate.invoiceNumbers) 
-          ? documentToUpdate.invoiceNumbers 
-          : [],
+        invoice_numbers: invoiceNumbersArray,
         weight: documentToUpdate.weight,
         packages: documentToUpdate.packages,
         is_delivered: documentToUpdate.isDelivered || false,

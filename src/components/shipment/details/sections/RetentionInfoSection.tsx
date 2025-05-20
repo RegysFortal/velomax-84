@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/utils";
 
 interface RetentionInfoSectionProps {
   actionNumber?: string;
@@ -33,11 +32,11 @@ export function RetentionInfoSection({
     }
     
     // If it's a numeric string or number, convert to float and format
-    const numValue = parseFloat(amount);
+    const numValue = parseFloat(amount.replace(',', '.'));
     if (isNaN(numValue)) return "-";
     
     // Format with comma as decimal separator
-    return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (

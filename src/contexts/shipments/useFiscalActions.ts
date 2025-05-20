@@ -7,11 +7,14 @@ export function useFiscalActions(
   setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>,
   refreshShipmentsData: () => void
 ) {
+  /**
+   * Updates or creates a fiscal action for a shipment
+   */
   const updateFiscalAction = async (shipmentId: string, fiscalActionData: Partial<FiscalAction>) => {
     try {
       console.log("Updating fiscal action for shipment:", shipmentId, fiscalActionData);
       
-      // Check if shipment exists and has fiscal action
+      // Check if shipment exists
       const shipment = shipments.find(s => s.id === shipmentId);
       if (!shipment) {
         console.error("Shipment not found");
@@ -144,6 +147,7 @@ export function useFiscalActions(
     }
   };
 
+  // Keep existing methods (clearFiscalAction and updateFiscalActionDetails)
   const clearFiscalAction = async (shipmentId: string) => {
     try {
       const { error } = await supabase
