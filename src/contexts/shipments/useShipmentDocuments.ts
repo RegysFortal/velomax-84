@@ -142,12 +142,17 @@ export const useShipmentDocuments = (
       
       console.log("Document updated successfully in Supabase");
       
-      // Update the shipments state with the updated documents
+      // Update the shipments state with the updated document
       const updatedShipmentsList = shipments.map(s => {
         if (s.id === shipmentId) {
+          // Get all other documents that weren't updated
+          const otherDocuments = s.documents.filter(d => d.id !== documentId);
+          // Combine with the updated document
+          const newDocuments = [...otherDocuments, documentToUpdate];
+          
           return { 
             ...s, 
-            documents: updatedDocuments,
+            documents: newDocuments,
             updatedAt: now
           };
         }

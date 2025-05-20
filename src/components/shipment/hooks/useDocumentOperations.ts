@@ -83,23 +83,9 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
           isDelivered
         };
         
-        // Get the current shipment
-        const shipment = shipments.find(s => s.id === shipmentId);
-        
-        if (!shipment) {
-          toast.error("Embarque não encontrado");
-          return;
-        }
-        
-        // Create a new array of documents with the updated one
-        const updatedDocuments = shipment.documents.map(doc => 
-          doc.id === editingDocument.id ? updatedDocument : doc
-        );
-        
         console.log("Updating document:", updatedDocument);
-        console.log("Updated documents array:", updatedDocuments);
         
-        await updateDocument(shipmentId, editingDocument.id, updatedDocuments);
+        await updateDocument(shipmentId, editingDocument.id, [updatedDocument]);
         toast.success("Documento atualizado com sucesso");
         setIsDialogOpen(false);
       } else {
