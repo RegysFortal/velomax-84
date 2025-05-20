@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { formatCurrency } from "@/lib/utils";
 
 interface RetentionInfoSectionProps {
   actionNumber?: string;
@@ -22,6 +23,23 @@ export function RetentionInfoSection({
   fiscalNotes,
   onEditClick 
 }: RetentionInfoSectionProps) {
+  // Format amount for display, handling comma decimal separator
+  const formatAmount = (amount: string) => {
+    if (!amount) return "-";
+    
+    // If already has comma, format as is
+    if (amount.includes(',')) {
+      return `R$ ${amount}`;
+    }
+    
+    // If it's a numeric string or number, convert to float and format
+    const numValue = parseFloat(amount);
+    if (isNaN(numValue)) return "-";
+    
+    // Format with comma as decimal separator
+    return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
@@ -48,11 +66,7 @@ export function RetentionInfoSection({
         
         <div>
           <p className="text-sm text-muted-foreground">Valor a Pagar</p>
-          <p className="font-medium">
-            {retentionAmount 
-              ? `R$ ${parseFloat(retentionAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` 
-              : "-"}
-          </p>
+          <p className="font-medium">{formatAmount(retentionAmount)}</p>
         </div>
         
         <div>

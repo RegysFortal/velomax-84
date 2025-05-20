@@ -35,34 +35,18 @@ export function RetentionFormSection({
   setFiscalNotes,
   disabled = false
 }: RetentionFormSectionProps) {
-  // Função auxiliar para formatar valor numérico
-  const formatCurrency = (value: string) => {
-    // Remover caracteres não numéricos, exceto vírgula
-    let numericValue = value.replace(/[^\d,]/g, '');
-    
-    // Verificar se tem mais de uma vírgula
-    const commaCount = (numericValue.match(/,/g) || []).length;
-    if (commaCount > 1) {
-      // Manter apenas a última vírgula
-      const parts = numericValue.split(',');
-      numericValue = parts.slice(0, -1).join('') + ',' + parts[parts.length - 1];
-    }
-    
-    // Permitir até dois dígitos após a vírgula
-    if (numericValue.includes(',')) {
-      const [integerPart, decimalPart] = numericValue.split(',');
-      if (decimalPart && decimalPart.length > 2) {
-        return `${integerPart},${decimalPart.substring(0, 2)}`;
-      }
-    }
-    
-    return numericValue;
-  };
-
   // Handler para alteração do valor com formatação
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedValue = formatCurrency(e.target.value);
-    setRetentionAmount(formattedValue);
+    // Limita a entrada para apenas dígitos e vírgula
+    let value = e.target.value.replace(/[^\d,]/g, '');
+    
+    // Se tiver mais de uma vírgula, mantém apenas a primeira
+    const commas = value.split(',');
+    if (commas.length > 2) {
+      value = commas[0] + ',' + commas.slice(1).join('');
+    }
+    
+    setRetentionAmount(value);
   };
 
   return (
@@ -83,14 +67,18 @@ export function RetentionFormSection({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="retentionAmount">Valor a Pagar</Label>
-          <Input
-            id="retentionAmount"
-            type="text"
-            value={retentionAmount}
-            onChange={handleAmountChange}
-            placeholder="Valor em R$"
-            disabled={disabled}
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2">R$</span>
+            <Input
+              id="retentionAmount"
+              type="text"
+              value={retentionAmount}
+              onChange={handleAmountChange}
+              className="pl-8"
+              placeholder="0,00"
+              disabled={disabled}
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="actionNumber">Número da Ação</Label>
