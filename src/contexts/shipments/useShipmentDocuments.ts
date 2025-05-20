@@ -72,7 +72,7 @@ export const useShipmentDocuments = (
         if (s.id === shipmentId) {
           return { 
             ...s, 
-            documents: [...s.documents, newDocument],
+            documents: [...(s.documents || []), newDocument],
             updatedAt: now
           };
         }
@@ -100,6 +100,7 @@ export const useShipmentDocuments = (
       }
       
       console.log("Document to update:", documentToUpdate);
+      console.log("Invoice numbers to save:", documentToUpdate.invoiceNumbers);
       
       // Prepare data for Supabase update
       const supabaseDocument = {
@@ -108,7 +109,9 @@ export const useShipmentDocuments = (
         url: documentToUpdate.url,
         notes: documentToUpdate.notes,
         minute_number: documentToUpdate.minuteNumber,
-        invoice_numbers: documentToUpdate.invoiceNumbers || [],
+        invoice_numbers: Array.isArray(documentToUpdate.invoiceNumbers) 
+          ? documentToUpdate.invoiceNumbers 
+          : [],
         weight: documentToUpdate.weight,
         packages: documentToUpdate.packages,
         is_delivered: documentToUpdate.isDelivered || false,
@@ -173,7 +176,7 @@ export const useShipmentDocuments = (
         if (s.id === shipmentId) {
           return { 
             ...s, 
-            documents: s.documents.filter(d => d.id !== documentId),
+            documents: (s.documents || []).filter(d => d.id !== documentId),
             updatedAt: now
           };
         }

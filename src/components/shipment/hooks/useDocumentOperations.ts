@@ -29,7 +29,8 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
       // Editing existing document
       setEditingDocument(document);
       setMinuteNumber(document.minuteNumber || '');
-      setInvoiceNumbers(document.invoiceNumbers || []);
+      // Ensure invoiceNumbers is always an array
+      setInvoiceNumbers(Array.isArray(document.invoiceNumbers) ? [...document.invoiceNumbers] : []);
       setPackages(document.packages !== undefined ? String(document.packages) : '');
       setWeight(document.weight !== undefined ? String(document.weight) : '');
       setNotes(document.notes || '');
@@ -67,6 +68,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
         return;
       }
       
+      // Log invoice numbers for debugging
       console.log("Submitting document with invoice numbers:", invoiceNumbers);
       
       if (editingDocument) {
@@ -74,7 +76,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
         const updatedDocument = {
           ...editingDocument,
           minuteNumber: minuteNumber.trim() || undefined,
-          invoiceNumbers: invoiceNumbers,
+          invoiceNumbers: [...invoiceNumbers], // Make a copy to ensure array is preserved
           packages: packageCount,
           weight: weightValue,
           notes: notes.trim() || undefined,
@@ -89,7 +91,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
           return;
         }
         
-        // Update the document in the array
+        // Create a new array of documents with the updated one
         const updatedDocuments = shipment.documents.map(doc => 
           doc.id === editingDocument.id ? updatedDocument : doc
         );
@@ -99,6 +101,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
         
         await updateDocument(shipmentId, editingDocument.id, updatedDocuments);
         toast.success("Documento atualizado com sucesso");
+        setIsDialogOpen(false);
       } else {
         // Add new document
         // Generate a document name if none provided
@@ -108,7 +111,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
           name: docName,
           type: "invoice", // Default type
           minuteNumber: minuteNumber.trim() || undefined,
-          invoiceNumbers: invoiceNumbers,
+          invoiceNumbers: [...invoiceNumbers], // Make a copy to ensure array is preserved
           packages: packageCount,
           weight: weightValue,
           notes: notes.trim() || undefined,
@@ -116,9 +119,8 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
         });
         
         toast.success("Documento adicionado com sucesso");
+        setIsDialogOpen(false);
       }
-      
-      setIsDialogOpen(false);
     } catch (error) {
       console.error("Error submitting document:", error);
       toast.error("Erro ao salvar documento");

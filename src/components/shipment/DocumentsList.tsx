@@ -6,6 +6,8 @@ import { PlusCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { DocumentItem } from './DocumentItem';
 import { DocumentForm } from './DocumentForm';
@@ -80,6 +82,9 @@ export function DocumentsList({ shipmentId, documents = [] }: DocumentsListProps
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingDocument ? 'Editar Documento' : 'Adicionar Documento'}</DialogTitle>
+          </DialogHeader>
           <DocumentForm
             editingDocument={!!editingDocument}
             minuteNumber={minuteNumber}
