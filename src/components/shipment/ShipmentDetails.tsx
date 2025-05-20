@@ -91,6 +91,9 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
     }
   };
   
+  // Filtrar documentos retidos para mostrar na aba de detalhes
+  const retainedDocuments = currentShipment?.documents?.filter(doc => doc.isRetained) || [];
+
   if (!currentShipment) {
     return null;
   }

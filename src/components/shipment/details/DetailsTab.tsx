@@ -13,6 +13,9 @@ import { ActionButtonsSection } from "./sections/ActionButtonsSection";
 import { RetentionSheetContainer } from "./containers/RetentionSheetContainer";
 import { useRetentionSheetState } from "./hooks/useRetentionSheetState";
 import { DocumentsList } from "../DocumentsList";
+import { Card } from "@/components/ui/card";
+import { AlertTriangle, FileText } from "lucide-react";
+import { DocumentItem } from "../DocumentItem";
 
 interface DetailsTabProps {
   shipment: Shipment;
@@ -72,6 +75,9 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
   const retainedDocsCount = shipment.documents ? shipment.documents.filter(doc => !doc.isDelivered).length : 0;
   const deliveredDocsCount = shipment.documents ? shipment.documents.filter(doc => doc.isDelivered).length : 0;
   const totalDocsCount = shipment.documents ? shipment.documents.length : 0;
+  
+  // Filtrar documentos retidos
+  const retainedDocuments = shipment.documents ? shipment.documents.filter(doc => doc.isRetained) : [];
   
   // Handle document status change
   const handleDocumentStatusChange = () => {
@@ -136,6 +142,25 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
             {deliveredDocsCount > 0 && retainedDocsCount > 0 && 
               ` ${deliveredDocsCount} ${deliveredDocsCount === 1 ? 'documento já foi entregue' : 'documentos já foram entregues'}.`}
           </p>
+        </div>
+      )}
+      
+      {/* Documentos Retidos (se houver) */}
+      {retainedDocuments.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-amber-800">Documentos Retidos</h3>
+          <div className="space-y-2">
+            {retainedDocuments.map(doc => (
+              <DocumentItem
+                key={doc.id}
+                document={doc}
+                shipmentId={shipment.id}
+                onEdit={() => {}}
+                onDelete={() => {}}
+                onStatusChange={handleDocumentStatusChange}
+              />
+            ))}
+          </div>
         </div>
       )}
       
