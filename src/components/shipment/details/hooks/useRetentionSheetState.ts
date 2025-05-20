@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
@@ -53,10 +54,28 @@ export const useRetentionSheetState = (
       
       if (data) {
         console.log("Loaded fresh fiscal action data from database:", data);
+        
+        // Format amount with comma as decimal separator for display
+        let formattedAmount = '';
+        if (data.amount_to_pay) {
+          // Convert to string with 2 decimal places and replace period with comma
+          formattedAmount = data.amount_to_pay.toString().replace('.', ',');
+          
+          // Ensure we have 2 decimal places
+          if (!formattedAmount.includes(',')) {
+            formattedAmount += ',00';
+          } else {
+            const parts = formattedAmount.split(',');
+            if (parts[1].length === 1) {
+              formattedAmount += '0';
+            }
+          }
+        }
+        
         return {
           actionNumber: data.action_number || '',
           reason: data.reason || '',
-          amountToPay: data.amount_to_pay?.toString() || '',
+          amountToPay: formattedAmount || '',
           paymentDate: data.payment_date || '',
           releaseDate: data.release_date || '',
           notes: data.notes || ''
@@ -104,7 +123,24 @@ export const useRetentionSheetState = (
               console.log("Retrieved fiscal action from context:", shipment.fiscalAction);
               setActionNumber(shipment.fiscalAction.actionNumber || '');
               setRetentionReason(shipment.fiscalAction.reason || '');
-              setRetentionAmount(shipment.fiscalAction.amountToPay?.toString() || '');
+              
+              // Format amount with comma as decimal separator for display
+              let formattedAmount = '';
+              if (shipment.fiscalAction.amountToPay) {
+                formattedAmount = shipment.fiscalAction.amountToPay.toString().replace('.', ',');
+                
+                // Ensure we have 2 decimal places
+                if (!formattedAmount.includes(',')) {
+                  formattedAmount += ',00';
+                } else {
+                  const parts = formattedAmount.split(',');
+                  if (parts[1].length === 1) {
+                    formattedAmount += '0';
+                  }
+                }
+              }
+              
+              setRetentionAmount(formattedAmount);
               setPaymentDate(shipment.fiscalAction.paymentDate || '');
               setReleaseDate(shipment.fiscalAction.releaseDate || '');
               setFiscalNotes(shipment.fiscalAction.notes || '');
@@ -120,7 +156,24 @@ export const useRetentionSheetState = (
               console.log("Retrieved fiscal action from service:", fiscalAction);
               setActionNumber(fiscalAction.actionNumber || '');
               setRetentionReason(fiscalAction.reason || '');
-              setRetentionAmount(fiscalAction.amountToPay?.toString() || '');
+              
+              // Format amount with comma as decimal separator
+              let formattedAmount = '';
+              if (fiscalAction.amountToPay) {
+                formattedAmount = fiscalAction.amountToPay.toString().replace('.', ',');
+                
+                // Ensure we have 2 decimal places
+                if (!formattedAmount.includes(',')) {
+                  formattedAmount += ',00';
+                } else {
+                  const parts = formattedAmount.split(',');
+                  if (parts[1].length === 1) {
+                    formattedAmount += '0';
+                  }
+                }
+              }
+              
+              setRetentionAmount(formattedAmount);
               setPaymentDate(fiscalAction.paymentDate || '');
               setReleaseDate(fiscalAction.releaseDate || '');
               setFiscalNotes(fiscalAction.notes || '');

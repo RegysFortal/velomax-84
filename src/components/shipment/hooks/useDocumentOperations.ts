@@ -30,8 +30,8 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
       setEditingDocument(document);
       setMinuteNumber(document.minuteNumber || '');
       setInvoiceNumbers(document.invoiceNumbers || []);
-      setPackages(document.packages !== undefined ? document.packages.toString() : '');
-      setWeight(document.weight !== undefined ? document.weight.toString() : '');
+      setPackages(document.packages !== undefined ? String(document.packages) : '');
+      setWeight(document.weight !== undefined ? String(document.weight) : '');
       setNotes(document.notes || '');
       setIsDelivered(document.isDelivered || false);
     } else {
