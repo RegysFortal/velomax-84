@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { InvoiceNumberInput } from './InvoiceNumberInput';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FormActions } from './form-sections/FormActions';
 
 interface DocumentFormProps {
   editingDocument: boolean;
@@ -54,6 +55,12 @@ export function DocumentForm({
   const handleInvoiceNumbersChange = (newInvoiceNumbers: string[]) => {
     console.log("Setting invoice numbers to:", newInvoiceNumbers);
     setInvoiceNumbers(newInvoiceNumbers);
+  };
+
+  // Função de submit explícita para garantir que o evento seja processado corretamente
+  const handleSubmit = () => {
+    console.log("DocumentForm - Submit button clicked");
+    onSubmit();
   };
 
   return (
@@ -133,9 +140,10 @@ export function DocumentForm({
       </ScrollArea>
       
       <div className="flex justify-end space-x-2 pt-4">
-        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button onClick={onSubmit}>Salvar</Button>
+        <Button variant="outline" onClick={onCancel} type="button">Cancelar</Button>
+        <Button onClick={handleSubmit} type="button">Salvar</Button>
       </div>
     </div>
   );
 }
+
