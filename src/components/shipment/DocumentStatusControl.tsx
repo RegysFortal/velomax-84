@@ -81,7 +81,7 @@ export function DocumentStatusControl({
         if (doc.id === document.id) {
           // Set boolean flags based on the status
           const isDelivered = status === "delivered";
-          const isRetained = status === "retained";
+          const isRetained = false; // Since we're not handling "retained" here (it's handled separately)
           const isPickedUp = status === "picked_up";
           
           return {
@@ -100,7 +100,7 @@ export function DocumentStatusControl({
       // Mostrar mensagem de sucesso
       let statusText = "Pendente";
       if (status === "delivered") statusText = "Entregue";
-      else if (status === "retained") statusText = "Retido";
+      else if (status === "retained") statusText = "Retido"; // This is handled separately but keeping for completeness
       else if (status === "picked_up") statusText = "Retirado";
       
       toast.success(`Documento marcado como ${statusText}`);
