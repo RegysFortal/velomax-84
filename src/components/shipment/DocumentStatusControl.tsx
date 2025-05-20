@@ -79,16 +79,12 @@ export function DocumentStatusControl({
       // Criar lista de documentos atualizada
       const updatedDocuments = shipment.documents.map(doc => {
         if (doc.id === document.id) {
-          // Usar uma abordagem mais explícita para evitar problemas de comparação de tipos
-          const isDelivered = status === "delivered";
-          const isRetained = status === "retained";
-          const isPickedUp = status === "picked_up";
-          
+          // Use boolean flags directly instead of comparing string types
           return {
             ...doc,
-            isDelivered,
-            isRetained,
-            isPickedUp
+            isDelivered: status === "delivered",
+            isRetained: status === "retained",
+            isPickedUp: status === "picked_up"
           };
         }
         return doc;
