@@ -1,151 +1,70 @@
 
-import { useState } from 'react';
-import { useShipments } from '@/contexts/shipments';
+import { useEffect } from 'react';
 import { Document } from '@/types/shipment';
-import { toast } from 'sonner';
+import { 
+  useDocumentDialogState, 
+  useDocumentFormState,
+  useDocumentSubmission,
+  useDocumentDeletion
+} from './document-operations';
 
 interface UseDocumentOperationsProps {
   shipmentId: string;
 }
 
 export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps) {
-  const { addDocument, updateDocument, deleteDocument, shipments } = useShipments();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  // Use the refactored hooks
+  const dialogState = useDocumentDialogState();
+  const formState = useDocumentFormState(dialogState.editingDocument);
+  const submission = useDocumentSubmission({ 
+    shipmentId, 
+    setIsDialogOpen: dialogState.setIsDialogOpen 
+  });
+  const deletion = useDocumentDeletion({ shipmentId });
   
-  // Form state
-  const [minuteNumber, setMinuteNumber] = useState('');
-  const [invoiceNumbers, setInvoiceNumbers] = useState<string[]>([]);
-  const [packages, setPackages] = useState('');
-  const [weight, setWeight] = useState('');
-  const [notes, setNotes] = useState('');
-  const [isDelivered, setIsDelivered] = useState(false);
-  
-  /**
-   * Opens the dialog for adding or editing a document
-   */
-  const handleOpenDialog = (document?: Document) => {
-    if (document) {
-      // Editing existing document
-      setEditingDocument(document);
-      setMinuteNumber(document.minuteNumber || '');
-      // Ensure invoiceNumbers is always an array
-      setInvoiceNumbers(Array.isArray(document.invoiceNumbers) ? [...document.invoiceNumbers] : []);
-      setPackages(document.packages !== undefined ? String(document.packages) : '');
-      setWeight(document.weight !== undefined ? String(document.weight) : '');
-      setNotes(document.notes || '');
-      setIsDelivered(document.isDelivered || false);
+  // Effect to load document data when editing
+  useEffect(() => {
+    if (dialogState.editingDocument) {
+      formState.loadDocumentData(dialogState.editingDocument);
     } else {
-      // Adding new document
-      setEditingDocument(null);
-      setMinuteNumber('');
-      setInvoiceNumbers([]);
-      setPackages('');
-      setWeight('');
-      setNotes('');
-      setIsDelivered(false);
+      formState.resetFormData();
     }
-    
-    setIsDialogOpen(true);
-  };
+  }, [dialogState.editingDocument]);
   
   /**
    * Submits the document form for adding or editing
    */
   const handleSubmit = async () => {
-    try {
-      const packageCount = packages ? parseInt(packages) : undefined;
-      const weightValue = weight ? parseFloat(weight) : undefined;
-      
-      // Validate
-      if (packageCount !== undefined && isNaN(packageCount)) {
-        toast.error("Número de volumes deve ser um valor numérico válido");
-        return;
-      }
-      
-      if (weightValue !== undefined && isNaN(weightValue)) {
-        toast.error("Peso deve ser um valor numérico válido");
-        return;
-      }
-      
-      // Log invoice numbers for debugging
-      console.log("Submitting document with invoice numbers:", invoiceNumbers);
-      
-      if (editingDocument) {
-        // Update existing document
-        const updatedDocument = {
-          ...editingDocument,
-          minuteNumber: minuteNumber.trim() || undefined,
-          invoiceNumbers: [...invoiceNumbers], // Make a copy to ensure array is preserved
-          packages: packageCount,
-          weight: weightValue,
-          notes: notes.trim() || undefined,
-          isDelivered
-        };
-        
-        console.log("Updating document:", updatedDocument);
-        
-        await updateDocument(shipmentId, editingDocument.id, [updatedDocument]);
-        toast.success("Documento atualizado com sucesso");
-        setIsDialogOpen(false);
-      } else {
-        // Add new document
-        // Generate a document name if none provided
-        const docName = `Documento ${Date.now()}`;
-        
-        await addDocument(shipmentId, {
-          name: docName,
-          type: "invoice", // Default type
-          minuteNumber: minuteNumber.trim() || undefined,
-          invoiceNumbers: [...invoiceNumbers], // Make a copy to ensure array is preserved
-          packages: packageCount,
-          weight: weightValue,
-          notes: notes.trim() || undefined,
-          isDelivered
-        });
-        
-        toast.success("Documento adicionado com sucesso");
-        setIsDialogOpen(false);
-      }
-    } catch (error) {
-      console.error("Error submitting document:", error);
-      toast.error("Erro ao salvar documento");
+    // Log invoice numbers for debugging
+    console.log("Submitting document with invoice numbers:", formState.invoiceNumbers);
+    
+    if (dialogState.editingDocument) {
+      await submission.handleUpdateDocument(
+        dialogState.editingDocument,
+        formState.minuteNumber,
+        formState.invoiceNumbers,
+        formState.packages,
+        formState.weight,
+        formState.notes,
+        formState.isDelivered
+      );
+    } else {
+      await submission.handleCreateDocument(
+        formState.minuteNumber,
+        formState.invoiceNumbers,
+        formState.packages,
+        formState.weight,
+        formState.notes,
+        formState.isDelivered
+      );
     }
   };
   
-  /**
-   * Deletes a document
-   */
-  const handleDelete = async (documentId: string) => {
-    if (window.confirm("Tem certeza que deseja excluir este documento?")) {
-      try {
-        await deleteDocument(shipmentId, documentId);
-        toast.success("Documento excluído com sucesso");
-      } catch (error) {
-        console.error("Error deleting document:", error);
-        toast.error("Erro ao excluir documento");
-      }
-    }
-  };
-  
+  // Combine all hooks into a single interface
   return {
-    isDialogOpen,
-    setIsDialogOpen,
-    editingDocument,
-    minuteNumber,
-    setMinuteNumber,
-    invoiceNumbers,
-    setInvoiceNumbers,
-    packages,
-    setPackages,
-    weight,
-    setWeight,
-    notes,
-    setNotes,
-    isDelivered,
-    setIsDelivered,
-    handleOpenDialog,
+    ...dialogState,
+    ...formState,
     handleSubmit,
-    handleDelete
+    handleDelete: deletion.handleDelete
   };
 }
