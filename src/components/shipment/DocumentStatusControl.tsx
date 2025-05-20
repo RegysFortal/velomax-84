@@ -100,8 +100,10 @@ export function DocumentStatusControl({
       // Mostrar mensagem de sucesso
       let statusText = "Pendente";
       if (status === "delivered") statusText = "Entregue";
-      else if (status === "retained") statusText = "Retido"; // This is handled separately but keeping for completeness
+      // Don't use direct comparison with "retained" here since it's a different type path
+      // Instead use a safer approach with a conditional assignment
       else if (status === "picked_up") statusText = "Retirado";
+      else statusText = "Pendente"; // Default to Pendente for any other status
       
       toast.success(`Documento marcado como ${statusText}`);
       
