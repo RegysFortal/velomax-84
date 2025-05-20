@@ -5,7 +5,7 @@ import { useShipments } from "@/contexts/shipments";
 import { DocumentStatus } from "@/types/shipment";
 
 export function useDocumentRetention(shipmentId: string, documentId: string, onSuccess?: () => void) {
-  // State for retention form
+  // Estado para o formulário de retenção
   const [showRetentionSheet, setShowRetentionSheet] = useState(false);
   const [retentionReason, setRetentionReason] = useState('');
   const [retentionAmount, setRetentionAmount] = useState('');
@@ -17,19 +17,19 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
   
   const { getShipmentById, updateDocument, updateFiscalAction, updateShipment, refreshShipmentsData } = useShipments();
   
-  // Handler for when retention form is confirmed
+  // Manipulador para quando o formulário de retenção é confirmado
   const handleRetentionConfirm = async () => {
     try {
       setIsSubmitting(true);
       
-      // Validate fields
+      // Validar campos
       if (!retentionReason.trim()) {
         toast.error("O motivo da retenção é obrigatório");
         setIsSubmitting(false);
         return;
       }
       
-      // First update document status to retained
+      // Primeiro atualizar o status do documento para retido
       const shipment = getShipmentById(shipmentId);
       
       if (!shipment || !shipment.documents) {
@@ -38,7 +38,7 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
         return;
       }
       
-      // Create updated document list with the retained status
+      // Criar lista de documentos atualizada com o status de retenção
       const updatedDocuments = shipment.documents.map(doc => {
         if (doc.id === documentId) {
           return {
@@ -51,10 +51,10 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
         return doc;
       });
       
-      // Update the document
+      // Atualizar o documento
       await updateDocument(shipmentId, documentId, updatedDocuments);
 
-      // Calculate amount value
+      // Calcular valor de retenção
       let amountValue = 0;
       if (retentionAmount) {
         const cleanedAmount = retentionAmount.replace(',', '.');
@@ -62,7 +62,7 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
         if (isNaN(amountValue)) amountValue = 0;
       }
       
-      // Now update the fiscal action with retention information
+      // Atualizar a ação fiscal com informações de retenção
       const fiscalActionData = {
         actionNumber: actionNumber.trim() || undefined,
         reason: retentionReason.trim() || "Retenção fiscal",
@@ -72,28 +72,28 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
         notes: fiscalNotes?.trim() || undefined
       };
       
-      // Update fiscal action
+      // Atualizar ação fiscal
       await updateFiscalAction(shipmentId, fiscalActionData);
       
-      // Update the shipment's retention status
+      // Atualizar o status de retenção do embarque - importante para que o embarque seja exibido corretamente
       await updateShipment(shipmentId, { 
         isRetained: true,
         status: "retained" as const
       });
       
-      // Close the retention form
+      // Fechar o formulário de retenção
       setShowRetentionSheet(false);
       
-      // Reset form fields
+      // Resetar campos do formulário
       resetFormFields();
       
-      // Force refresh data
+      // Forçar atualização dos dados
       refreshShipmentsData();
       
-      // Show success message
+      // Exibir mensagem de sucesso
       toast.success("Documento marcado como Retido e informações salvas");
       
-      // Call the success callback if provided
+      // Chamar o callback de sucesso se fornecido
       if (onSuccess) {
         onSuccess();
       }
@@ -105,7 +105,7 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
     }
   };
   
-  // Reset form fields
+  // Resetar campos do formulário
   const resetFormFields = () => {
     setRetentionReason('');
     setRetentionAmount('');

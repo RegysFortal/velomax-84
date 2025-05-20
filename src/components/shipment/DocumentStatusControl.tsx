@@ -62,13 +62,13 @@ export function DocumentStatusControl({
     try {
       console.log(`Changing document status to: ${status}`, document.id);
       
-      // If we're changing to retained status, show the retention form first
+      // Se estamos mudando para status retido, mostrar o formulário de retenção primeiro
       if (status === "retained") {
         retentionState.setShowRetentionSheet(true);
         return;
       }
       
-      // Get the current documents for this shipment
+      // Obter os documentos atuais para este embarque
       const shipment = getShipmentById(shipmentId);
       
       if (!shipment || !shipment.documents) {
@@ -76,28 +76,24 @@ export function DocumentStatusControl({
         return;
       }
       
-      // Create updated document list
+      // Criar lista de documentos atualizada
       const updatedDocuments = shipment.documents.map(doc => {
         if (doc.id === document.id) {
-          // Use a more explicit approach to avoid type comparison issues
-          const isDelivered = status === "delivered";
-          const isRetained = status === "retained";
-          const isPickedUp = status === "picked_up";
-          
+          // Usar uma abordagem mais explícita para evitar problemas de comparação de tipos
           return {
             ...doc,
-            isDelivered,
-            isRetained,
-            isPickedUp
+            isDelivered: status === "delivered",
+            isRetained: status === "retained",
+            isPickedUp: status === "picked_up"
           };
         }
         return doc;
       });
       
-      // Update the document
+      // Atualizar o documento
       await updateDocument(shipmentId, document.id, updatedDocuments);
       
-      // Show success message
+      // Mostrar mensagem de sucesso
       let statusText = "Pendente";
       if (status === "delivered") statusText = "Entregue";
       else if (status === "retained") statusText = "Retido";
@@ -105,7 +101,7 @@ export function DocumentStatusControl({
       
       toast.success(`Documento marcado como ${statusText}`);
       
-      // Call the callback if provided
+      // Chamar o callback se fornecido
       if (onStatusChange) {
         onStatusChange();
       }

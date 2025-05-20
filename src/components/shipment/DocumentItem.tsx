@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { Document } from "@/types/shipment";
+import { Document, FiscalAction } from "@/types/shipment";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, FileText, Package } from "lucide-react";
+import { Edit, Trash2, FileText, Package, AlertTriangle } from "lucide-react";
 import { DocumentStatusControl } from "./DocumentStatusControl";
+import { useShipments } from "@/contexts/shipments";
 
 interface DocumentItemProps {
   document: Document;
@@ -21,6 +22,22 @@ export function DocumentItem({
   onDelete,
   onStatusChange
 }: DocumentItemProps) {
+  const { getShipmentById } = useShipments();
+  const shipment = getShipmentById(shipmentId);
+  
+  // Verifica se o documento está retido e se existem informações fiscais
+  const isRetained = document.isRetained;
+  const retentionInfo = isRetained && shipment?.fiscalAction ? shipment.fiscalAction : null;
+  
+  // Formatação do valor da retenção
+  const formatCurrency = (value?: number) => {
+    if (value === undefined) return "R$ 0,00";
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between">
@@ -72,6 +89,34 @@ export function DocumentItem({
               </div>
             )}
           </div>
+          
+          {/* Informações de Retenção (quando aplicável) */}
+          {isRetained && retentionInfo && (
+            <div className="mt-3 border-t border-amber-200 pt-2">
+              <div className="bg-amber-50 p-2 rounded text-sm">
+                <div className="flex items-center text-amber-800 font-medium mb-1">
+                  <AlertTriangle className="h-4 w-4 mr-1 text-amber-600" />
+                  Retenção Fiscal
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-amber-700">
+                  {retentionInfo.actionNumber && (
+                    <div>Nº Ação: {retentionInfo.actionNumber}</div>
+                  )}
+                  <div>Motivo: {retentionInfo.reason}</div>
+                  <div>Valor: {formatCurrency(retentionInfo.amountToPay)}</div>
+                  {retentionInfo.paymentDate && (
+                    <div>Pgto: {retentionInfo.paymentDate}</div>
+                  )}
+                  {retentionInfo.releaseDate && (
+                    <div>Liberação: {retentionInfo.releaseDate}</div>
+                  )}
+                  {retentionInfo.notes && (
+                    <div className="col-span-2">Obs: {retentionInfo.notes}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="flex space-x-1">
