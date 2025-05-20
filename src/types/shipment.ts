@@ -9,9 +9,10 @@ export type ShipmentStatus =
 
 export type TransportMode = "air" | "road";
 
-// Add a new type for document status
+// Define a consistent DocumentStatus type
 export type DocumentStatus = "retained" | "delivered" | "picked_up" | "pending";
 
+// Add a new type for document status
 export interface FiscalAction {
   id: string;
   actionNumber?: string; // Adding the fiscal action number field

@@ -79,11 +79,16 @@ export function DocumentStatusControl({
       // Create updated document list
       const updatedDocuments = shipment.documents.map(doc => {
         if (doc.id === document.id) {
+          // Use a more explicit approach to avoid type comparison issues
+          const isDelivered = status === "delivered";
+          const isRetained = status === "retained";
+          const isPickedUp = status === "picked_up";
+          
           return {
             ...doc,
-            isDelivered: status === "delivered",
-            isRetained: status === "retained",
-            isPickedUp: status === "picked_up"
+            isDelivered,
+            isRetained,
+            isPickedUp
           };
         }
         return doc;
@@ -93,10 +98,10 @@ export function DocumentStatusControl({
       await updateDocument(shipmentId, document.id, updatedDocuments);
       
       // Show success message
-      const statusText = 
-        status === "delivered" ? 'Entregue' :
-        status === "retained" ? 'Retido' :
-        status === "picked_up" ? 'Retirado' : 'Pendente';
+      let statusText = "Pendente";
+      if (status === "delivered") statusText = "Entregue";
+      else if (status === "retained") statusText = "Retido";
+      else if (status === "picked_up") statusText = "Retirado";
       
       toast.success(`Documento marcado como ${statusText}`);
       
