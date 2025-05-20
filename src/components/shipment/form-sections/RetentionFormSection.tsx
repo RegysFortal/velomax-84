@@ -35,20 +35,20 @@ export function RetentionFormSection({
   setFiscalNotes,
   disabled = false
 }: RetentionFormSectionProps) {
-  // Improved handler for amount change with better decimal support
+  // Manipulador melhorado para mudança de valor com suporte a decimais
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
     
-    // Remove any character that is not a digit or a comma
+    // Remove qualquer caractere que não seja dígito ou vírgula
     value = value.replace(/[^\d,]/g, '');
     
-    // Ensure there's only one comma
+    // Garante que haja apenas uma vírgula
     const parts = value.split(',');
     if (parts.length > 2) {
       value = parts[0] + ',' + parts.slice(1).join('');
     }
     
-    // Limit decimal places to 2
+    // Limita os decimais a 2 dígitos
     if (parts.length === 2 && parts[1].length > 2) {
       value = parts[0] + ',' + parts[1].substring(0, 2);
     }
@@ -84,6 +84,7 @@ export function RetentionFormSection({
               className="pl-8"
               placeholder="0,00"
               disabled={disabled}
+              inputMode="decimal"
             />
           </div>
         </div>
