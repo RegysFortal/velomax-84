@@ -124,19 +124,19 @@ export function DocumentStatusControl({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuItem onClick={() => handleStatusChange("pending")}>
+          <DropdownMenuItem onClick={() => handleStatusChange("pending" as DocumentStatus)}>
             <Clock className="mr-2 h-4 w-4" />
             <span>Pendente</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleStatusChange("retained")}>
+          <DropdownMenuItem onClick={() => handleStatusChange("retained" as DocumentStatus)}>
             <AlertTriangle className="mr-2 h-4 w-4" />
             <span>Retido</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleStatusChange("picked_up")}>
+          <DropdownMenuItem onClick={() => handleStatusChange("picked_up" as DocumentStatus)}>
             <Truck className="mr-2 h-4 w-4" />
             <span>Retirado</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleStatusChange("delivered")}>
+          <DropdownMenuItem onClick={() => handleStatusChange("delivered" as DocumentStatus)}>
             <Check className="mr-2 h-4 w-4" />
             <span>Entregue</span>
           </DropdownMenuItem>
