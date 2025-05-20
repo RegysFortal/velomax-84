@@ -17,9 +17,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface DocumentsListProps {
   shipmentId: string;
   documents: Document[];
+  onStatusChange?: () => void;
 }
 
-export function DocumentsList({ shipmentId, documents = [] }: DocumentsListProps) {
+export function DocumentsList({ shipmentId, documents = [], onStatusChange }: DocumentsListProps) {
   const {
     isDialogOpen,
     setIsDialogOpen,
@@ -49,6 +50,13 @@ export function DocumentsList({ shipmentId, documents = [] }: DocumentsListProps
   // Ensure that documents is always an array, even if it's undefined
   const safeDocuments = Array.isArray(documents) ? documents : [];
 
+  // Handler for document update success
+  const handleDocumentStatusChange = () => {
+    if (onStatusChange) {
+      onStatusChange();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -71,8 +79,10 @@ export function DocumentsList({ shipmentId, documents = [] }: DocumentsListProps
                 <DocumentItem 
                   key={doc.id}
                   document={doc}
+                  shipmentId={shipmentId}
                   onEdit={() => handleOpenDialog(doc)}
                   onDelete={handleDelete}
+                  onStatusChange={handleDocumentStatusChange}
                 />
               ))}
             </div>

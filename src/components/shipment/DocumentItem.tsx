@@ -3,17 +3,24 @@ import React from 'react';
 import { Document } from "@/types/shipment";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, FileText, Package, CheckCircle2, XCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { Edit, Trash2, FileText, Package } from "lucide-react";
+import { DocumentStatusControl } from "./DocumentStatusControl";
 
 interface DocumentItemProps {
   document: Document;
+  shipmentId: string;
   onEdit: (document: Document) => void;
   onDelete: (id: string) => void;
+  onStatusChange?: () => void;
 }
 
-export function DocumentItem({ document, onEdit, onDelete }: DocumentItemProps) {
+export function DocumentItem({ 
+  document, 
+  shipmentId, 
+  onEdit, 
+  onDelete,
+  onStatusChange
+}: DocumentItemProps) {
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between">
@@ -21,11 +28,13 @@ export function DocumentItem({ document, onEdit, onDelete }: DocumentItemProps) 
           <div className="flex items-center">
             <FileText className="h-4 w-4 mr-2 text-blue-500" />
             <h4 className="font-medium">{document.name}</h4>
-            {document.isDelivered ? (
-              <Badge className="ml-2 bg-green-500">Entregue</Badge>
-            ) : (
-              <Badge className="ml-2 bg-yellow-500">Pendente</Badge>
-            )}
+            <div className="ml-2">
+              <DocumentStatusControl 
+                shipmentId={shipmentId} 
+                document={document} 
+                onStatusChange={onStatusChange}
+              />
+            </div>
           </div>
           
           {document.minuteNumber && (

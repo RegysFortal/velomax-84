@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Check, CircleDashed, AlertTriangle, Truck, PackageCheck, TruckIcon } from "lucide-react";
 import { ShipmentStatus } from "@/types/shipment";

@@ -12,6 +12,7 @@ import { ObservationsSection } from "./sections/ObservationsSection";
 import { ActionButtonsSection } from "./sections/ActionButtonsSection";
 import { RetentionSheetContainer } from "./containers/RetentionSheetContainer";
 import { useRetentionSheetState } from "./hooks/useRetentionSheetState";
+import { DocumentsList } from "../DocumentsList";
 
 interface DetailsTabProps {
   shipment: Shipment;
@@ -67,21 +68,18 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
     fiscalNotes
   );
 
-  // Calculate retained documents - new functionality
+  // Calculate document stats
   const retainedDocsCount = shipment.documents ? shipment.documents.filter(doc => !doc.isDelivered).length : 0;
   const deliveredDocsCount = shipment.documents ? shipment.documents.filter(doc => doc.isDelivered).length : 0;
   const totalDocsCount = shipment.documents ? shipment.documents.length : 0;
   
-  // Effect to log document retention status for debugging
-  useEffect(() => {
-    if (shipment.documents && shipment.documents.length > 0) {
-      console.log("Documents status:", {
-        total: totalDocsCount,
-        retained: retainedDocsCount,
-        delivered: deliveredDocsCount
-      });
-    }
-  }, [shipment.documents]);
+  // Handle document status change
+  const handleDocumentStatusChange = () => {
+    // We need to refresh the shipment data to see the updated document statuses
+    setTimeout(() => {
+      window.dispatchEvent(new Event('deliveries-updated'));
+    }, 500);
+  };
 
   // Convert packages and weight strings to numbers
   const packagesNumber = parseInt(packages, 10);
@@ -114,13 +112,29 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
       
       <Separator />
       
-      {/* Document Retention Status - new section */}
-      {retainedDocsCount > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
-          <h3 className="text-amber-800 font-medium mb-1">Documentos Retidos</h3>
-          <p className="text-amber-700">
-            Este embarque possui {retainedDocsCount} {retainedDocsCount === 1 ? 'documento retido' : 'documentos retidos'} de um total de {totalDocsCount}.
-            {deliveredDocsCount > 0 && ` ${deliveredDocsCount} ${deliveredDocsCount === 1 ? 'documento já foi entregue' : 'documentos já foram entregues'}.`}
+      {/* Document Status Section */}
+      <div>
+        <DocumentsList
+          shipmentId={shipment.id}
+          documents={shipment.documents || []}
+          onStatusChange={handleDocumentStatusChange}
+        />
+      </div>
+      
+      <Separator />
+      
+      {/* Document Retention Summary */}
+      {totalDocsCount > 0 && (
+        <div className={`${retainedDocsCount > 0 ? "bg-amber-50 border border-amber-200" : "bg-green-50 border border-green-200"} rounded-md p-4`}>
+          <h3 className={`${retainedDocsCount > 0 ? "text-amber-800" : "text-green-800"} font-medium mb-1`}>
+            Status dos Documentos
+          </h3>
+          <p className={`${retainedDocsCount > 0 ? "text-amber-700" : "text-green-700"}`}>
+            {retainedDocsCount > 0 
+              ? `Este embarque possui ${retainedDocsCount} ${retainedDocsCount === 1 ? 'documento pendente' : 'documentos pendentes'} de um total de ${totalDocsCount}.`
+              : `Todos os ${totalDocsCount} documentos deste embarque foram entregues.`}
+            {deliveredDocsCount > 0 && retainedDocsCount > 0 && 
+              ` ${deliveredDocsCount} ${deliveredDocsCount === 1 ? 'documento já foi entregue' : 'documentos já foram entregues'}.`}
           </p>
         </div>
       )}
