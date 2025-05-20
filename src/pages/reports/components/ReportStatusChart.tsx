@@ -64,15 +64,21 @@ export function ReportStatusChart({ filteredShipments }: ReportStatusChartProps)
               <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis fontSize={12} tickLine={false} axisLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} 
-                   fill="var(--primary)" 
-                   fillOpacity={0.9} 
-                   isAnimationActive={true} 
-                   animationDuration={1000}
-                   barSize={30}
+              <Bar 
+                dataKey="value" 
+                radius={[4, 4, 0, 0]} 
+                fill="var(--primary)" 
+                fillOpacity={0.9} 
+                isAnimationActive={true} 
+                animationDuration={1000}
+                barSize={30}
               >
                 {chartData.map((entry, index) => (
-                  <Bar key={`bar-${index}`} fill={entry.color} />
+                  <rect 
+                    key={`bar-${index}`} 
+                    fill={entry.color}
+                    // The rect attributes will be automatically applied by recharts
+                  />
                 ))}
               </Bar>
             </BarChart>

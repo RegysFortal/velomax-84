@@ -5,23 +5,52 @@ import { Badge } from "@/components/ui/badge";
 
 interface StatusBadgeProps {
   status: ShipmentStatus;
+  showLabel?: boolean;
+  className?: string;
 }
 
-export function StatusBadge({ status }: StatusBadgeProps) {
-  switch (status) {
-    case "in_transit":
-      return <Badge className="bg-blue-500 hover:bg-blue-600">Em Trânsito</Badge>;
-    case "at_carrier":
-      return <Badge className="bg-purple-500 hover:bg-purple-600">Na Transportadora</Badge>;
-    case "retained":
-      return <Badge className="bg-red-500 hover:bg-red-600">Retida</Badge>;
-    case "delivered":
-      return <Badge className="bg-amber-500 hover:bg-amber-600">Retirada</Badge>;
-    case "partially_delivered":
-      return <Badge className="bg-yellow-500 hover:bg-yellow-600">Entregue Parcial</Badge>;
-    case "delivered_final":
-      return <Badge className="bg-green-500 hover:bg-green-600">Entregue</Badge>;
-    default:
-      return <Badge>Desconhecido</Badge>;
-  }
+export function StatusBadge({ status, showLabel = true, className }: StatusBadgeProps) {
+  const getStatusLabel = () => {
+    switch (status) {
+      case "in_transit":
+        return "Em Trânsito";
+      case "at_carrier":
+        return "Na Transportadora";
+      case "retained":
+        return "Retida";
+      case "delivered":
+        return "Retirada";
+      case "partially_delivered":
+        return "Entregue Parcial";
+      case "delivered_final":
+        return "Entregue";
+      default:
+        return "Desconhecido";
+    }
+  };
+
+  const getBadgeClasses = () => {
+    switch (status) {
+      case "in_transit":
+        return "bg-blue-500 hover:bg-blue-600";
+      case "at_carrier":
+        return "bg-purple-500 hover:bg-purple-600";
+      case "retained":
+        return "bg-red-500 hover:bg-red-600";
+      case "delivered":
+        return "bg-amber-500 hover:bg-amber-600";
+      case "partially_delivered":
+        return "bg-yellow-500 hover:bg-yellow-600";
+      case "delivered_final":
+        return "bg-green-500 hover:bg-green-600";
+      default:
+        return "";
+    }
+  };
+
+  return (
+    <Badge className={`${getBadgeClasses()} ${className || ''}`}>
+      {showLabel ? getStatusLabel() : null}
+    </Badge>
+  );
 }
