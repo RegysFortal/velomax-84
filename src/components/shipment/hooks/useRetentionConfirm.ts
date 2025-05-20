@@ -31,6 +31,20 @@ export function useRetentionConfirm({
   const { updateStatus, updateShipment, updateFiscalAction } = useShipments();
 
   /**
+   * Helper function to properly parse decimal values with comma separator
+   */
+  const parseAmountValue = (amount: string): number => {
+    if (!amount || amount.trim() === '') return 0;
+    
+    // Replace comma with dot for proper decimal parsing
+    const normalizedAmount = amount.replace(',', '.');
+    const value = parseFloat(normalizedAmount);
+    
+    // Validate the result is a number
+    return isNaN(value) ? 0 : value;
+  };
+
+  /**
    * Confirms retention and creates a fiscal action
    */
   const handleRetentionConfirm = async () => {
@@ -51,8 +65,8 @@ export function useRetentionConfirm({
         isRetained: true 
       });
       
-      // Then create/update the fiscal action
-      const retentionAmountValue = parseFloat(retentionAmount || "0");
+      // Parse amount value with proper handling of comma as decimal separator
+      const retentionAmountValue = parseAmountValue(retentionAmount);
       
       // Create detailed fiscal action object with explicit fields
       const fiscalActionData = {
@@ -92,8 +106,8 @@ export function useRetentionConfirm({
         return false;
       }
       
-      // Parse retention amount value
-      const retentionAmountValue = parseFloat(retentionAmount || "0");
+      // Parse retention amount with proper comma handling
+      const retentionAmountValue = parseAmountValue(retentionAmount);
       
       // Create the fiscal action data object with all fields
       const fiscalActionData = {

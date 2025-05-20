@@ -48,6 +48,7 @@ export function RetentionFormSection({
     if (commaCount + dotCount > 1) {
       // Remover todos os separadores
       const withoutSeparators = numericValue.replace(/[.,]/g, '');
+      
       // Recuperar o último separador e sua posição
       const lastCommaIndex = numericValue.lastIndexOf(',');
       const lastDotIndex = numericValue.lastIndexOf('.');
@@ -59,6 +60,7 @@ export function RetentionFormSection({
         const pos = lastSeparatorIndex - (numericValue.substring(0, lastSeparatorIndex).match(/[.,]/g) || []).length;
         return withoutSeparators.substring(0, pos) + lastSeparator + withoutSeparators.substring(pos);
       }
+      
       return withoutSeparators;
     }
     

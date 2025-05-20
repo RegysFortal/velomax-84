@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
@@ -180,11 +179,11 @@ export const useRetentionSheetState = (
 
   // Format number to ensure correct format
   const formatNumber = (value: string): number => {
-    // Remove non-numeric characters except decimal point
-    const cleanValue = value.replace(/[^\d.]/g, '');
+    if (!value || value.trim() === '') return 0;
     
-    // Convert to number
-    const numValue = parseFloat(cleanValue);
+    // Replace comma with dot for proper decimal parsing
+    const normalizedValue = value.replace(',', '.');
+    const numValue = parseFloat(normalizedValue);
     
     // Return 0 if NaN
     return isNaN(numValue) ? 0 : numValue;
@@ -221,7 +220,7 @@ export const useRetentionSheetState = (
         return;
       }
       
-      // Parse retention amount to ensure valid number
+      // Parse retention amount to ensure valid number with proper decimal handling
       const amountValue = formatNumber(retentionAmount);
       
       // Create fiscal action data object with all fields explicitly defined

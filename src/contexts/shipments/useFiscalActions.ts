@@ -1,4 +1,3 @@
-
 import { Shipment, FiscalAction } from "@/types/shipment";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
@@ -30,11 +29,14 @@ export function useFiscalActions(
       if (fiscalActionData.amountToPay !== undefined) {
         // If it's a string that might contain a comma, convert it
         if (typeof fiscalActionData.amountToPay === 'string') {
+          // Replace comma with period for proper decimal parsing
           const normalizedAmount = (fiscalActionData.amountToPay as string).replace(',', '.');
-          supabaseFiscalAction.amount_to_pay = parseFloat(normalizedAmount);
+          // Parse as float with 2 decimal places precision
+          supabaseFiscalAction.amount_to_pay = parseFloat(parseFloat(normalizedAmount).toFixed(2));
           console.log("Normalized amount:", normalizedAmount, "->", supabaseFiscalAction.amount_to_pay);
         } else {
-          supabaseFiscalAction.amount_to_pay = fiscalActionData.amountToPay;
+          // Already a number, but ensure we keep 2 decimal places
+          supabaseFiscalAction.amount_to_pay = parseFloat(fiscalActionData.amountToPay.toFixed(2));
         }
       }
       
@@ -66,20 +68,33 @@ export function useFiscalActions(
       } 
       // Otherwise create new fiscal action
       else {
+        // For new fiscal actions, ensure we handle the amount properly
+        let amountValue = 0;
+        if (fiscalActionData.amountToPay !== undefined) {
+          if (typeof fiscalActionData.amountToPay === 'string') {
+            // Replace comma with period and parse as float
+            amountValue = parseFloat((fiscalActionData.amountToPay as string).replace(',', '.'));
+            // Ensure it's a valid number
+            if (isNaN(amountValue)) amountValue = 0;
+            // Keep 2 decimal places
+            amountValue = parseFloat(amountValue.toFixed(2));
+          } else {
+            amountValue = parseFloat(fiscalActionData.amountToPay.toFixed(2));
+          }
+        }
+
         const { data, error } = await supabase
           .from('fiscal_actions')
           .insert({
-            ...supabaseFiscalAction,
             shipment_id: shipmentId,
             reason: fiscalActionData.reason || "Retenção",
-            amount_to_pay: typeof fiscalActionData.amountToPay === 'string' 
-              ? parseFloat((fiscalActionData.amountToPay as string).replace(',', '.')) 
-              : (fiscalActionData.amountToPay || 0),
+            amount_to_pay: amountValue,
             payment_date: fiscalActionData.paymentDate,
             release_date: fiscalActionData.releaseDate,
             action_number: fiscalActionData.actionNumber,
             notes: fiscalActionData.notes,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .select('*')
           .single();
