@@ -45,19 +45,13 @@ export function RetentionFormSection({
     if (commaCount > 1) {
       // Manter apenas a última vírgula
       const parts = numericValue.split(',');
-      numericValue = parts[0];
-      for (let i = 1; i < parts.length - 1; i++) {
-        numericValue += parts[i];
-      }
-      if (parts.length > 1) {
-        numericValue += ',' + parts[parts.length - 1];
-      }
+      numericValue = parts.slice(0, -1).join('') + ',' + parts[parts.length - 1];
     }
     
-    // Garantir que só há dois dígitos após a vírgula
+    // Permitir até dois dígitos após a vírgula
     if (numericValue.includes(',')) {
       const [integerPart, decimalPart] = numericValue.split(',');
-      if (decimalPart.length > 2) {
+      if (decimalPart && decimalPart.length > 2) {
         return `${integerPart},${decimalPart.substring(0, 2)}`;
       }
     }
