@@ -92,7 +92,14 @@ export function StatusMenu({
   const handleDocumentSelectionContinue = (documentIds: string[]) => {
     setSelectedDocumentIds(documentIds);
     setShowDocumentSelection(false);
-    setShowDeliveryDialog(true);
+    
+    // If we're changing to retained status, show retention sheet
+    if (status === "in_transit" || status === "at_carrier" || status === "delivered") {
+      setShowRetentionSheet(true);
+    } else {
+      // For other statuses like delivery, show delivery dialog
+      setShowDeliveryDialog(true);
+    }
   };
   
   // Handler for cancellation of document selection

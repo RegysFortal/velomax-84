@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Check, Package, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,13 @@ export function DocumentStatusControl({
   const { getShipmentById } = useShipments();
   
   const getStatusBadge = () => {
-    if (document.isDelivered) {
+    if (document.isRetained) {
+      return (
+        <Badge className="bg-red-500 hover:bg-red-600">
+          Retido
+        </Badge>
+      );
+    } else if (document.isDelivered) {
       return (
         <Badge className="bg-green-500 hover:bg-green-600">
           Entregue
@@ -57,7 +63,7 @@ export function DocumentStatusControl({
           return {
             ...doc,
             isDelivered: status === 'delivered',
-            // If we want to track retained status separately, we could add a new field here
+            isRetained: status === 'retained'
           };
         }
         return doc;

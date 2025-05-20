@@ -1,4 +1,3 @@
-
 import { ShipmentStatus } from "@/types/shipment";
 import { useStatusChange } from './useStatusChange';
 
@@ -34,9 +33,9 @@ export function useStatusTransition({
       return;
     }
     
-    // If changing to "retained", show the retention sheet
+    // If changing to "retained", show document selection first
     if (newStatus === "retained") {
-      setShowRetentionSheet(true);
+      setShowDocumentSelection(true);
       return;
     }
     

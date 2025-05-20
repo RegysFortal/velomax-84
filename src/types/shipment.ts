@@ -32,6 +32,7 @@ export interface Document {
   weight?: number;
   packages?: number;
   isDelivered?: boolean;
+  isRetained?: boolean;
   createdAt: string;
   updatedAt: string;
 }
