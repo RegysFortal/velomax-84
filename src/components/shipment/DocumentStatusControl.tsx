@@ -79,7 +79,7 @@ export function DocumentStatusControl({
       // Criar lista de documentos atualizada
       const updatedDocuments = shipment.documents.map(doc => {
         if (doc.id === document.id) {
-          // Use boolean flags directly instead of comparing string types
+          // Set boolean flags based on the status
           return {
             ...doc,
             isDelivered: status === "delivered",
