@@ -49,6 +49,8 @@ export function useDocumentSubmission({
     isDelivered: boolean
   ) => {
     try {
+      console.log("Creating document with values:", { minuteNumber, invoiceNumbers, packages, weight, notes, isDelivered });
+      
       const packageCount = packages ? parseInt(packages) : undefined;
       const weightValue = weight ? parseFloat(weight) : undefined;
       
@@ -90,6 +92,9 @@ export function useDocumentSubmission({
     isDelivered: boolean
   ) => {
     try {
+      console.log("Updating document with ID:", editingDocument.id);
+      console.log("Updated values:", { minuteNumber, invoiceNumbers, packages, weight, notes, isDelivered });
+      
       const packageCount = packages ? parseInt(packages) : undefined;
       const weightValue = weight ? parseFloat(weight) : undefined;
       
@@ -107,7 +112,7 @@ export function useDocumentSubmission({
         isDelivered
       };
       
-      console.log("Updating document:", updatedDocument);
+      console.log("Final document to update:", updatedDocument);
       
       await updateDocument(shipmentId, editingDocument.id, [updatedDocument]);
       toast.success("Documento atualizado com sucesso");

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Check, CircleDashed, AlertTriangle, Truck, PackageCheck } from "lucide-react";
+import { Check, CircleDashed, AlertTriangle, Truck, PackageCheck, TruckIcon } from "lucide-react";
 import { ShipmentStatus } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
 
@@ -15,6 +15,40 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
     switch (status) {
       case "in_transit":
         return [
+          { 
+            value: "at_carrier", 
+            label: "Na Transportadora",
+            icon: <TruckIcon className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "delivered", 
+            label: "Retirada",
+            icon: <Truck className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "retained", 
+            label: "Retida",
+            icon: <AlertTriangle className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "delivered_final", 
+            label: "Entregue",
+            icon: <Check className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "partially_delivered", 
+            label: "Entregue Parcial",
+            icon: <PackageCheck className="mr-2 h-4 w-4" />
+          }
+        ];
+        
+      case "at_carrier":
+        return [
+          { 
+            value: "in_transit", 
+            label: "Em Trânsito",
+            icon: <CircleDashed className="mr-2 h-4 w-4" />
+          },
           { 
             value: "delivered", 
             label: "Retirada",
@@ -45,6 +79,11 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
             icon: <CircleDashed className="mr-2 h-4 w-4" />
           },
           { 
+            value: "at_carrier", 
+            label: "Na Transportadora",
+            icon: <TruckIcon className="mr-2 h-4 w-4" />
+          },
+          { 
             value: "delivered", 
             label: "Retirada",
             icon: <Truck className="mr-2 h-4 w-4" />
@@ -67,6 +106,11 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
             value: "in_transit", 
             label: "Em Trânsito",
             icon: <CircleDashed className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "at_carrier", 
+            label: "Na Transportadora",
+            icon: <TruckIcon className="mr-2 h-4 w-4" />
           },
           { 
             value: "retained", 
@@ -93,6 +137,11 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
             icon: <CircleDashed className="mr-2 h-4 w-4" />
           },
           { 
+            value: "at_carrier", 
+            label: "Na Transportadora",
+            icon: <TruckIcon className="mr-2 h-4 w-4" />
+          },
+          { 
             value: "retained", 
             label: "Retida",
             icon: <AlertTriangle className="mr-2 h-4 w-4" />
@@ -115,6 +164,11 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
             value: "in_transit", 
             label: "Em Trânsito",
             icon: <CircleDashed className="mr-2 h-4 w-4" />
+          },
+          { 
+            value: "at_carrier", 
+            label: "Na Transportadora",
+            icon: <TruckIcon className="mr-2 h-4 w-4" />
           },
           { 
             value: "retained", 

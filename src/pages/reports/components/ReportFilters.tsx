@@ -1,12 +1,16 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ShipmentStatus } from '@/types';
-import { DateRangeSelector } from './filters/DateRangeSelector';
-import { StatusSelector } from './filters/StatusSelector';
-import { TransportModeSelector } from './filters/TransportModeSelector';
-import { CarrierSelector } from './filters/CarrierSelector';
-import { useCarrierFiltering } from './filters/useCarrierFiltering';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { ShipmentStatus } from "@/types";
 
 interface ReportFiltersProps {
   startDate: string;
@@ -35,38 +39,78 @@ export function ReportFilters({
   onCarrierChange,
   uniqueCarriers
 }: ReportFiltersProps) {
-  const { filteredCarriers } = useCarrierFiltering(filterMode, filterCarrier, uniqueCarriers, onCarrierChange);
-  
   return (
-    <Card className="col-span-1">
+    <Card>
       <CardHeader>
-        <CardTitle>Filtros de Relatório</CardTitle>
+        <CardTitle>Filtros</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <DateRangeSelector 
-            startDate={startDate}
-            endDate={endDate}
-            onStartDateChange={onStartDateChange}
-            onEndDateChange={onEndDateChange}
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StatusSelector 
-              filterStatus={filterStatus} 
-              onStatusChange={onStatusChange} 
-            />
-            <TransportModeSelector 
-              filterMode={filterMode} 
-              onModeChange={onModeChange} 
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="startDate">Data Inicial</Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => onStartDateChange(e.target.value)}
             />
           </div>
-          
-          <CarrierSelector 
-            filterCarrier={filterCarrier}
-            filteredCarriers={filteredCarriers}
-            onCarrierChange={onCarrierChange}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="endDate">Data Final</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => onEndDateChange(e.target.value)}
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <Select value={filterStatus} onValueChange={(value) => onStatusChange(value as ShipmentStatus | 'all')}>
+            <SelectTrigger id="status">
+              <SelectValue placeholder="Todos os status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="in_transit">Em Trânsito</SelectItem>
+              <SelectItem value="at_carrier">Na Transportadora</SelectItem>
+              <SelectItem value="retained">Retida</SelectItem>
+              <SelectItem value="delivered">Retirada</SelectItem>
+              <SelectItem value="partially_delivered">Entregue Parcial</SelectItem>
+              <SelectItem value="delivered_final">Entregue</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="mode">Modo</Label>
+          <Select value={filterMode} onValueChange={(value) => onModeChange(value as 'air' | 'road' | 'all')}>
+            <SelectTrigger id="mode">
+              <SelectValue placeholder="Todos os modos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="air">Aéreo</SelectItem>
+              <SelectItem value="road">Rodoviário</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="carrier">Transportadora</Label>
+          <Select value={filterCarrier} onValueChange={(value) => onCarrierChange(value)}>
+            <SelectTrigger id="carrier">
+              <SelectValue placeholder="Todas as transportadoras" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {uniqueCarriers.map((carrier) => (
+                <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </CardContent>
     </Card>

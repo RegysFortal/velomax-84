@@ -1,62 +1,66 @@
 
 import { useState, useEffect } from 'react';
-import { Shipment, ShipmentStatus } from '@/types';
+import { Shipment, ShipmentStatus } from '@/types/shipment';
 
-export const useShipmentFiltering = (
+export function useShipmentFiltering(
   shipments: Shipment[],
   startDate: string,
   endDate: string,
   filterStatus: ShipmentStatus | 'all',
   filterCarrier: string,
   filterMode: 'air' | 'road' | 'all'
-) => {
+) {
   const [filteredShipments, setFilteredShipments] = useState<Shipment[]>([]);
   
-  // Apply filters whenever any filter or shipments change
   useEffect(() => {
-    // Debug logging to check filters
-    console.log(`Filtering with: startDate=${startDate}, endDate=${endDate}, status=${filterStatus}, carrier=${filterCarrier}, mode=${filterMode}`);
-    console.log(`Number of shipments before filtering: ${shipments.length}`);
+    // Apply filters
+    let filtered = [...shipments];
     
-    const filtered = shipments.filter(shipment => {
-      // Validate that dates are valid before comparing
-      let startDateObj = new Date(startDate);
-      let endDateObj = new Date(endDate);
+    // Filter by date range
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // Include the full end date
       
-      // Configure endDateObj to end of day
-      endDateObj.setHours(23, 59, 59, 999);
-      
-      const shipmentDate = shipment.arrivalDate ? new Date(shipment.arrivalDate) : null;
-      
-      // If there's no arrival date, include the shipment anyway
-      const matchesDateRange = !shipmentDate || 
-        (shipmentDate >= startDateObj && 
-         shipmentDate <= endDateObj);
-      
-      const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
-      
-      const matchesCarrier = filterCarrier === 'all' || 
-        (shipment.carrierName && shipment.carrierName.toLowerCase() === filterCarrier.toLowerCase());
-        
-      const matchesMode = filterMode === 'all' || shipment.transportMode === filterMode;
-      
-      const isMatched = matchesDateRange && matchesStatus && matchesCarrier && matchesMode;
-      
-      // Debug which filters are failing
-      if (!isMatched) {
-        console.log(`Shipment ${shipment.trackingNumber} filtered out: ` +
-          `dateRange: ${matchesDateRange}, ` + 
-          `status: ${matchesStatus}, ` + 
-          `carrier: ${matchesCarrier}, ` + 
-          `mode: ${matchesMode}`);
-      }
-      
-      return isMatched;
-    });
+      filtered = filtered.filter(shipment => {
+        const createdAt = new Date(shipment.createdAt);
+        return createdAt >= start && createdAt <= end;
+      });
+    }
     
-    console.log(`Filtered shipments count: ${filtered.length}`);
+    // Filter by status
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(shipment => shipment.status === filterStatus);
+    }
+    
+    // Filter by carrier
+    if (filterCarrier !== 'all') {
+      filtered = filtered.filter(shipment => shipment.carrierName === filterCarrier);
+    }
+    
+    // Filter by transport mode
+    if (filterMode !== 'all') {
+      filtered = filtered.filter(shipment => shipment.transportMode === filterMode);
+    }
+    
     setFilteredShipments(filtered);
   }, [shipments, startDate, endDate, filterStatus, filterCarrier, filterMode]);
-
-  return { filteredShipments };
-};
+  
+  // Function to identify overdue shipments
+  const isShipmentOverdue = (shipment: Shipment): boolean => {
+    // For this example, we'll consider a shipment overdue if:
+    // 1. It's "in_transit" or "at_carrier" AND
+    // 2. Its arrival date is in the past
+    if (['in_transit', 'at_carrier'].includes(shipment.status) && shipment.arrivalDate) {
+      const arrivalDate = new Date(shipment.arrivalDate);
+      const today = new Date();
+      return arrivalDate < today;
+    }
+    return false;
+  };
+  
+  return {
+    filteredShipments,
+    isShipmentOverdue
+  };
+}

@@ -3,24 +3,24 @@ import { useState } from 'react';
 import { Document } from '@/types/shipment';
 
 /**
- * Hook for managing the document dialog state
+ * Hook for managing document dialog state
  */
 export function useDocumentDialogState() {
+  // Dialog state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
-  
+
   /**
-   * Opens the dialog for adding or editing a document
+   * Opens the document dialog in add or edit mode
    */
   const handleOpenDialog = (document?: Document) => {
+    console.log("Opening document dialog", document ? "for editing" : "for creation");
     if (document) {
-      // Editing existing document
+      console.log("Document to edit:", document);
       setEditingDocument(document);
     } else {
-      // Adding new document
       setEditingDocument(null);
     }
-    
     setIsDialogOpen(true);
   };
 

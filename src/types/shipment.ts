@@ -1,6 +1,7 @@
 
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
+  | "at_carrier"  // Na Transportadora (new status)
   | "retained"    // Retida
   | "delivered"   // Retirada
   | "delivered_final" // Entregue

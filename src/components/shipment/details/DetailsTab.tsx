@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Shipment } from "@/types/shipment";
 import { StatusActions } from "./StatusActions";
 import { Separator } from "@/components/ui/separator";
@@ -67,6 +67,22 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
     fiscalNotes
   );
 
+  // Calculate retained documents - new functionality
+  const retainedDocsCount = shipment.documents ? shipment.documents.filter(doc => !doc.isDelivered).length : 0;
+  const deliveredDocsCount = shipment.documents ? shipment.documents.filter(doc => doc.isDelivered).length : 0;
+  const totalDocsCount = shipment.documents ? shipment.documents.length : 0;
+  
+  // Effect to log document retention status for debugging
+  useEffect(() => {
+    if (shipment.documents && shipment.documents.length > 0) {
+      console.log("Documents status:", {
+        total: totalDocsCount,
+        retained: retainedDocsCount,
+        delivered: deliveredDocsCount
+      });
+    }
+  }, [shipment.documents]);
+
   // Convert packages and weight strings to numbers
   const packagesNumber = parseInt(packages, 10);
   const weightNumber = parseFloat(weight);
@@ -97,6 +113,17 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
       </div>
       
       <Separator />
+      
+      {/* Document Retention Status - new section */}
+      {retainedDocsCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
+          <h3 className="text-amber-800 font-medium mb-1">Documentos Retidos</h3>
+          <p className="text-amber-700">
+            Este embarque possui {retainedDocsCount} {retainedDocsCount === 1 ? 'documento retido' : 'documentos retidos'} de um total de {totalDocsCount}.
+            {deliveredDocsCount > 0 && ` ${deliveredDocsCount} ${deliveredDocsCount === 1 ? 'documento já foi entregue' : 'documentos já foram entregues'}.`}
+          </p>
+        </div>
+      )}
       
       {/* Retenção Fiscal (se aplicável) */}
       {status === "retained" && (

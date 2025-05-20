@@ -1,50 +1,83 @@
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Shipment } from '@/types';
-import { useStatusLabel } from '@/components/shipment/hooks/useStatusLabel';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Shipment } from "@/types";
+
+interface ChartData {
+  name: string;
+  value: number;
+  color: string;
+}
 
 interface ReportStatusChartProps {
   filteredShipments: Shipment[];
 }
 
 export function ReportStatusChart({ filteredShipments }: ReportStatusChartProps) {
-  const { getStatusLabel } = useStatusLabel();
+  const [chartData, setChartData] = useState<ChartData[]>([]);
   
-  const statusCounts = {
-    in_transit: filteredShipments.filter(s => s.status === 'in_transit').length,
-    retained: filteredShipments.filter(s => s.status === 'retained').length,
-    delivered: filteredShipments.filter(s => s.status === 'delivered').length,
-    partially_delivered: filteredShipments.filter(s => s.status === 'partially_delivered').length,
-    delivered_final: filteredShipments.filter(s => s.status === 'delivered_final').length,
+  useEffect(() => {
+    // Count shipments by status
+    const inTransit = filteredShipments.filter(s => s.status === 'in_transit').length;
+    const atCarrier = filteredShipments.filter(s => s.status === 'at_carrier').length;
+    const retained = filteredShipments.filter(s => s.status === 'retained').length;
+    const delivered = filteredShipments.filter(s => s.status === 'delivered').length;
+    const partialDelivered = filteredShipments.filter(s => s.status === 'partially_delivered').length;
+    const finalDelivered = filteredShipments.filter(s => s.status === 'delivered_final').length;
+    
+    // Create chart data
+    const data: ChartData[] = [
+      { name: 'Em Trânsito', value: inTransit, color: 'hsl(216, 100%, 50%)' },
+      { name: 'Na Transportadora', value: atCarrier, color: 'hsl(280, 80%, 60%)' },
+      { name: 'Retida', value: retained, color: 'hsl(360, 100%, 50%)' },
+      { name: 'Retirado', value: delivered, color: 'hsl(30, 100%, 50%)' },
+      { name: 'Entregue Parcial', value: partialDelivered, color: 'hsl(50, 100%, 50%)' },
+      { name: 'Entregue', value: finalDelivered, color: 'hsl(123, 100%, 40%)' }
+    ];
+    
+    setChartData(data);
+  }, [filteredShipments]);
+  
+  // Custom tooltip for the bar chart
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border rounded shadow text-sm">
+          <p className="font-bold">{`${payload[0].name}: ${payload[0].value}`}</p>
+        </div>
+      );
+    }
+    
+    return null;
   };
-
-  // Get status labels using the useStatusLabel hook
-  const chartData = [
-    { name: getStatusLabel('in_transit'), value: statusCounts.in_transit },
-    { name: getStatusLabel('retained'), value: statusCounts.retained },
-    { name: getStatusLabel('delivered'), value: statusCounts.delivered },
-    { name: getStatusLabel('partially_delivered'), value: statusCounts.partially_delivered },
-    { name: getStatusLabel('delivered_final'), value: statusCounts.delivered_final },
-  ];
-
+  
   return (
-    <Card className="col-span-1">
+    <Card>
       <CardHeader>
         <CardTitle>Status dos Embarques</CardTitle>
       </CardHeader>
-      <CardContent className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="value" fill="#3b82f6" name="Quantidade" />
-          </BarChart>
-        </ResponsiveContainer>
+      <CardContent>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis fontSize={12} tickLine={false} axisLine={false} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} 
+                   fill="var(--primary)" 
+                   fillOpacity={0.9} 
+                   isAnimationActive={true} 
+                   animationDuration={1000}
+                   barSize={30}
+              >
+                {chartData.map((entry, index) => (
+                  <Bar key={`bar-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );
