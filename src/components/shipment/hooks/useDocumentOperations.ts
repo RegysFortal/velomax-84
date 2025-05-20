@@ -94,8 +94,10 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
           doc.id === editingDocument.id ? updatedDocument : doc
         );
         
-        await updateDocument(shipmentId, editingDocument.id, updatedDocuments);
+        console.log("Updating document:", updatedDocument);
+        console.log("Updated documents array:", updatedDocuments);
         
+        await updateDocument(shipmentId, editingDocument.id, updatedDocuments);
         toast.success("Documento atualizado com sucesso");
       } else {
         // Add new document

@@ -99,21 +99,23 @@ export const useShipmentDocuments = (
         throw new Error("Document not found in the updated documents array");
       }
       
+      console.log("Document to update:", documentToUpdate);
+      
       // Prepare data for Supabase update
-      const supabaseDocument: any = {
+      const supabaseDocument = {
+        name: documentToUpdate.name,
+        type: documentToUpdate.type,
+        url: documentToUpdate.url,
+        notes: documentToUpdate.notes,
+        minute_number: documentToUpdate.minuteNumber,
+        invoice_numbers: documentToUpdate.invoiceNumbers || [],
+        weight: documentToUpdate.weight,
+        packages: documentToUpdate.packages,
+        is_delivered: documentToUpdate.isDelivered || false,
         updated_at: now
       };
       
-      // Map fields from our model to Supabase column names
-      if (documentToUpdate.name !== undefined) supabaseDocument.name = documentToUpdate.name;
-      if (documentToUpdate.type !== undefined) supabaseDocument.type = documentToUpdate.type;
-      if (documentToUpdate.url !== undefined) supabaseDocument.url = documentToUpdate.url;
-      if (documentToUpdate.notes !== undefined) supabaseDocument.notes = documentToUpdate.notes;
-      if (documentToUpdate.minuteNumber !== undefined) supabaseDocument.minute_number = documentToUpdate.minuteNumber;
-      if (documentToUpdate.invoiceNumbers !== undefined) supabaseDocument.invoice_numbers = documentToUpdate.invoiceNumbers;
-      if (documentToUpdate.weight !== undefined) supabaseDocument.weight = documentToUpdate.weight;
-      if (documentToUpdate.packages !== undefined) supabaseDocument.packages = documentToUpdate.packages;
-      if (documentToUpdate.isDelivered !== undefined) supabaseDocument.is_delivered = documentToUpdate.isDelivered;
+      console.log("Supabase document update:", supabaseDocument);
       
       // Update document in Supabase
       const { error } = await supabase
@@ -122,8 +124,11 @@ export const useShipmentDocuments = (
         .eq('id', documentId);
         
       if (error) {
+        console.error("Error updating document in Supabase:", error);
         throw error;
       }
+      
+      console.log("Document updated successfully in Supabase");
       
       // Update the shipments state with the updated documents
       const updatedShipmentsList = shipments.map(s => {
@@ -136,6 +141,8 @@ export const useShipmentDocuments = (
         }
         return s;
       });
+      
+      console.log("Updated shipments state:", updatedShipmentsList.find(s => s.id === shipmentId)?.documents);
       
       setShipments(updatedShipmentsList);
       
