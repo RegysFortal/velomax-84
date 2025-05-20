@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useShipments } from "@/contexts/shipments";
-import { Document } from "@/types/shipment";
+import { Document, DocumentStatus } from "@/types/shipment";
 import { RetentionSheet } from "./dialogs/RetentionSheet";
 import { useDocumentRetention } from "./hooks/useDocumentRetention";
 
@@ -58,12 +58,12 @@ export function DocumentStatusControl({
     }
   };
   
-  const handleStatusChange = async (status: 'retained' | 'delivered' | 'picked_up' | 'pending') => {
+  const handleStatusChange = async (status: DocumentStatus) => {
     try {
       console.log(`Changing document status to: ${status}`, document.id);
       
       // If we're changing to retained status, show the retention form first
-      if (status === 'retained') {
+      if (status === "retained") {
         retentionState.setShowRetentionSheet(true);
         return;
       }
@@ -81,9 +81,9 @@ export function DocumentStatusControl({
         if (doc.id === document.id) {
           return {
             ...doc,
-            isDelivered: status === 'delivered',
-            isRetained: status === 'retained',
-            isPickedUp: status === 'picked_up'
+            isDelivered: status === "delivered",
+            isRetained: status === "retained",
+            isPickedUp: status === "picked_up"
           };
         }
         return doc;
@@ -94,9 +94,9 @@ export function DocumentStatusControl({
       
       // Show success message
       const statusText = 
-        status === 'delivered' ? 'Entregue' :
-        status === 'retained' ? 'Retido' :
-        status === 'picked_up' ? 'Retirado' : 'Pendente';
+        status === "delivered" ? 'Entregue' :
+        status === "retained" ? 'Retido' :
+        status === "picked_up" ? 'Retirado' : 'Pendente';
       
       toast.success(`Documento marcado como ${statusText}`);
       
@@ -119,19 +119,19 @@ export function DocumentStatusControl({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuItem onClick={() => handleStatusChange('pending')}>
+          <DropdownMenuItem onClick={() => handleStatusChange("pending")}>
             <Clock className="mr-2 h-4 w-4" />
             <span>Pendente</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleStatusChange('retained')}>
+          <DropdownMenuItem onClick={() => handleStatusChange("retained")}>
             <AlertTriangle className="mr-2 h-4 w-4" />
             <span>Retido</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleStatusChange('picked_up')}>
+          <DropdownMenuItem onClick={() => handleStatusChange("picked_up")}>
             <Truck className="mr-2 h-4 w-4" />
             <span>Retirado</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleStatusChange('delivered')}>
+          <DropdownMenuItem onClick={() => handleStatusChange("delivered")}>
             <Check className="mr-2 h-4 w-4" />
             <span>Entregue</span>
           </DropdownMenuItem>

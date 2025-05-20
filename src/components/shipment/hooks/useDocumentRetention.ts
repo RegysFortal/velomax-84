@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { toast } from "sonner";
 import { useShipments } from "@/contexts/shipments";
+import { DocumentStatus } from "@/types/shipment";
 
 export function useDocumentRetention(shipmentId: string, documentId: string, onSuccess?: () => void) {
   // State for retention form

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { toast } from "sonner";
 import { useShipments } from "@/contexts/shipments";
-import { ShipmentStatus } from "@/types/shipment";
+import { ShipmentStatus, DocumentStatus } from "@/types/shipment";
 
 interface UseRetentionStatusHandlerProps {
   shipmentId: string;

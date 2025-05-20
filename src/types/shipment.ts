@@ -1,3 +1,4 @@
+
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
   | "at_carrier"  // Na Transportadora (new status)
@@ -7,6 +8,9 @@ export type ShipmentStatus =
   | "partially_delivered"; // Entregue Parcial
 
 export type TransportMode = "air" | "road";
+
+// Add a new type for document status
+export type DocumentStatus = "retained" | "delivered" | "picked_up" | "pending";
 
 export interface FiscalAction {
   id: string;
