@@ -9,7 +9,7 @@ export type ShipmentStatus =
 
 export type TransportMode = "air" | "road";
 
-// Define a consistent DocumentStatus type - make sure this includes "retained"
+// Define a consistent DocumentStatus type
 export type DocumentStatus = "retained" | "delivered" | "picked_up" | "pending";
 
 export interface FiscalAction {
