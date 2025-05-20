@@ -83,7 +83,12 @@ export function useRetentionStatusHandler({
           const updatedDocuments = shipment.documents.map(doc => {
             if (selectedDocumentIds.includes(doc.id)) {
               // Mark selected documents with a "retained" status indicator
-              return { ...doc, isRetained: true, isDelivered: false };
+              return { 
+                ...doc, 
+                isRetained: true, 
+                isDelivered: false,
+                isPickedUp: false
+              };
             }
             return doc;
           });

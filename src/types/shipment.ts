@@ -1,4 +1,3 @@
-
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
   | "at_carrier"  // Na Transportadora (new status)
@@ -33,6 +32,7 @@ export interface Document {
   packages?: number;
   isDelivered?: boolean;
   isRetained?: boolean;
+  isPickedUp?: boolean; // New flag for "Retirado" status
   createdAt: string;
   updatedAt: string;
 }
