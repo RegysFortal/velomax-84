@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, Package, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ export function DocumentStatusControl({
   onStatusChange 
 }: DocumentStatusControlProps) {
   const { updateDocument } = useShipments();
+  // Cache the shipment context outside the handler to avoid hooks in callbacks
+  const { getShipmentById } = useShipments();
   
   const getStatusBadge = () => {
     if (document.isDelivered) {
@@ -42,7 +44,6 @@ export function DocumentStatusControl({
       console.log(`Changing document status to: ${status}`, document.id);
       
       // Get the current documents for this shipment
-      const { getShipmentById } = useShipments();
       const shipment = getShipmentById(shipmentId);
       
       if (!shipment || !shipment.documents) {

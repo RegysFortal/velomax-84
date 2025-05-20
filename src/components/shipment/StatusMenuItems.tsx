@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Check, CircleDashed, AlertTriangle, Truck, PackageCheck, TruckIcon } from "lucide-react";
 import { ShipmentStatus } from "@/types/shipment";
-import { useShipments } from "@/contexts/shipments";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 interface StatusMenuItemsProps {
   status: ShipmentStatus;
@@ -196,14 +197,15 @@ export function StatusMenuItems({ status, onStatusChange }: StatusMenuItemsProps
   return (
     <>
       {statusOptions.map((option) => (
-        <div
+        <DropdownMenuItem
           key={option.value}
-          className="flex items-center px-3 py-2 cursor-pointer hover:bg-accent"
           onClick={() => onStatusChange(option.value as ShipmentStatus)}
         >
-          {option.icon}
-          <span>{option.label}</span>
-        </div>
+          <div className="flex items-center">
+            {option.icon}
+            <span>{option.label}</span>
+          </div>
+        </DropdownMenuItem>
       ))}
     </>
   );

@@ -6,7 +6,6 @@ import { ShipmentStatus } from "@/types/shipment";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeliveryDialog } from "./dialogs/DeliveryDialog";
