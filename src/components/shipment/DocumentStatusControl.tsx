@@ -80,11 +80,15 @@ export function DocumentStatusControl({
       const updatedDocuments = shipment.documents.map(doc => {
         if (doc.id === document.id) {
           // Set boolean flags based on the status
+          const isDelivered = status === "delivered";
+          const isRetained = status === "retained";
+          const isPickedUp = status === "picked_up";
+          
           return {
             ...doc,
-            isDelivered: status === "delivered",
-            isRetained: status === "retained",
-            isPickedUp: status === "picked_up"
+            isDelivered,
+            isRetained,
+            isPickedUp
           };
         }
         return doc;
