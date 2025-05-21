@@ -116,7 +116,7 @@ export function StatusMenu({
             <StatusBadge status={displayStatus} showLabel={showLabel} className={className} />
           </div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-48 bg-white">
           <StatusMenuItems 
             status={displayStatus}
             onStatusChange={handleStatusChange} 
