@@ -47,6 +47,7 @@ export interface Document {
   isDelivered?: boolean;
   isRetained?: boolean;
   isPickedUp?: boolean; // New flag for "Retirado" status
+  isPriority?: boolean; // New flag for prioritized documents
   retentionInfo?: DocumentRetentionInfo; // Document-specific retention info
   createdAt: string;
   updatedAt: string;

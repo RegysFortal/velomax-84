@@ -3,9 +3,10 @@ import React from 'react';
 import { Document, FiscalAction } from "@/types/shipment";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, FileText, Package, AlertTriangle } from "lucide-react";
+import { Edit, Trash2, FileText, Package, AlertTriangle, Siren } from "lucide-react";
 import { DocumentStatusControl } from "./DocumentStatusControl";
 import { useShipments } from "@/contexts/shipments";
+import { toast } from "sonner";
 
 interface DocumentItemProps {
   document: Document;
@@ -22,7 +23,7 @@ export function DocumentItem({
   onDelete,
   onStatusChange
 }: DocumentItemProps) {
-  const { getShipmentById } = useShipments();
+  const { getShipmentById, updateDocument } = useShipments();
   
   // Format the document information for display
   const formatDocumentInfo = () => {
@@ -45,6 +46,48 @@ export function DocumentItem({
     }).format(value);
   };
 
+  // Toggle priority flag
+  const handleTogglePriority = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const shipment = getShipmentById(shipmentId);
+      
+      if (!shipment || !shipment.documents) {
+        toast.error("Não foi possível encontrar os documentos do embarque");
+        return;
+      }
+      
+      // Update documents with priority flag toggled
+      const updatedDocuments = shipment.documents.map(doc => {
+        if (doc.id === document.id) {
+          return {
+            ...doc,
+            isPriority: !doc.isPriority
+          };
+        }
+        return doc;
+      });
+      
+      // Update the document
+      await updateDocument(shipmentId, document.id, updatedDocuments);
+      
+      // Show notification
+      if (!document.isPriority) {
+        toast.success("Documento marcado como prioritário");
+      } else {
+        toast.success("Prioridade removida do documento");
+      }
+      
+      // Callback if provided
+      if (onStatusChange) {
+        onStatusChange();
+      }
+    } catch (error) {
+      console.error("Error toggling priority:", error);
+      toast.error("Erro ao alterar a prioridade do documento");
+    }
+  };
+
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between">
@@ -54,6 +97,15 @@ export function DocumentItem({
             <h4 className="font-medium">
               {document.minuteNumber ? `Minuta: ${document.minuteNumber}` : document.name}
             </h4>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={`ml-1 h-6 w-6 p-0 ${document.isPriority ? 'text-red-500' : 'text-muted-foreground'}`}
+              onClick={handleTogglePriority}
+              title={document.isPriority ? "Remover prioridade" : "Marcar como prioritário"}
+            >
+              <Siren className="h-4 w-4" />
+            </Button>
             <div className="ml-2">
               <DocumentStatusControl 
                 shipmentId={shipmentId} 

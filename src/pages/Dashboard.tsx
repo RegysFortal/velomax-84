@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { EventsCalendar } from '@/components/dashboard/EventsCalendar';
 import { DelayedShipmentsAlert } from '@/components/dashboard/DelayedShipmentsAlert';
+import { PriorityDocumentsAlert } from '@/components/dashboard/PriorityDocumentsAlert';
 import { useShipments } from '@/contexts/shipments';
 import { useDeliveriesStorage } from '@/hooks/useDeliveriesStorage';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -13,7 +13,8 @@ import {
   PackageX, 
   Timer, 
   Check, 
-  Bell
+  Bell,
+  Siren
 } from 'lucide-react';
 import { sub } from 'date-fns';
 import { formatToLocaleDate } from '@/utils/dateUtils';
@@ -44,6 +45,11 @@ const Dashboard = () => {
     return deliveryDate >= (dateRange.from || new Date()) && 
            deliveryDate <= (dateRange.to || new Date());
   });
+
+  // Count priority documents
+  const priorityDocuments = shipments.reduce((count, shipment) => {
+    return count + shipment.documents.filter(doc => doc.isPriority).length;
+  }, 0);
   
   // Calculate metrics
   const totalShipments = filteredShipments.length;
@@ -76,7 +82,7 @@ const Dashboard = () => {
   }).length;
   
   // Attention needed shipments (delayed + retained)
-  const attentionNeededShipments = delayedShipments + retainedShipments;
+  const attentionNeededShipments = delayedShipments + retainedShipments + priorityDocuments;
 
   // Handle date range change
   const handleDateRangeChange = (range: DateRange) => {
@@ -94,6 +100,9 @@ const Dashboard = () => {
           Painel de controle principal
         </p>
       </div>
+      
+      {/* Priority Documents Alert */}
+      <PriorityDocumentsAlert />
       
       {/* Alerta de embarques atrasados */}
       <DelayedShipmentsAlert />
@@ -200,7 +209,26 @@ const Dashboard = () => {
           </CardContent>
         </Card>
         
-        <Card className="col-span-2">
+        {/* New card for priority documents */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Documentos Prioritários
+            </CardTitle>
+            <Siren className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{priorityDocuments}</div>
+            <p className="text-xs text-muted-foreground">
+              {priorityDocuments > 0 
+                ? 'Documentos com prioridade alta'
+                : 'Nenhum documento prioritário'}
+            </p>
+          </CardContent>
+        </Card>
+        
+        {/* Keep Attention Needed card with updated count */}
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Embarques que Precisam Atenção
@@ -209,7 +237,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{attentionNeededShipments}</div>
-            <div className="flex gap-4 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               <span className="text-sm">
                 <PackageX className="h-4 w-4 text-orange-500 inline mr-1" />
                 {retainedShipments} retidos
@@ -217,6 +245,10 @@ const Dashboard = () => {
               <span className="text-sm">
                 <Timer className="h-4 w-4 text-red-500 inline mr-1" />
                 {delayedShipments} atrasados
+              </span>
+              <span className="text-sm">
+                <Siren className="h-4 w-4 text-red-500 inline mr-1" />
+                {priorityDocuments} prioritários
               </span>
             </div>
           </CardContent>
