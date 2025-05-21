@@ -53,11 +53,11 @@ export function useDialogConfirmHandlers({
   };
   
   // Handler for retention sheet confirmation
-  const handleRetentionConfirm = (retentionData: any) => {
+  const handleRetentionConfirm = () => {
     setShowRetentionSheet(false);
     
     // Call parent handler with retention details
-    onStatusChange("retained", retentionData);
+    onStatusChange("retained");
   };
 
   return {

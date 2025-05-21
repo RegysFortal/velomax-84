@@ -103,7 +103,7 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
         fiscalNotes={fiscalNotes}
         setFiscalNotes={setFiscalNotes}
         onDeliveryConfirm={handleDeliveryConfirm}
-        onRetentionConfirm={status === 'retained' ? handleRetentionUpdate : handleRetentionConfirm}
+        onRetentionConfirm={status === 'retained' ? () => handleRetentionUpdate() : handleRetentionConfirm}
         onDocumentSelectionContinue={handleDocumentSelectionContinue}
         onDocumentSelectionCancel={handleDocumentSelectionCancel}
         isRetentionEditing={status === 'retained'}
