@@ -12,6 +12,7 @@ export interface PriorityDocument {
   shipmentId: string;
   companyName: string;
   invoiceNumbers?: string[];
+  notes?: string; // Added notes field
 }
 
 export const PriorityDocumentsAlert = () => {
@@ -31,7 +32,8 @@ export const PriorityDocumentsAlert = () => {
             minuteNumber: doc.minuteNumber || 'Sem número',
             shipmentId: shipment.id,
             companyName: shipment.companyName,
-            invoiceNumbers: doc.invoiceNumbers
+            invoiceNumbers: doc.invoiceNumbers,
+            notes: doc.notes // Include the document notes
           });
         }
       });
@@ -64,6 +66,11 @@ export const PriorityDocumentsAlert = () => {
                   Minuta: {doc.minuteNumber}
                   {doc.invoiceNumbers && doc.invoiceNumbers.length > 0 && (
                     <span> - NF: {doc.invoiceNumbers.join(', ')}</span>
+                  )}
+                  {doc.notes && (
+                    <div className="ml-4 text-sm italic">
+                      Obs: {doc.notes}
+                    </div>
                   )}
                 </Link>
               </div>
