@@ -2,7 +2,7 @@
 import React from 'react';
 import { Shipment, Document } from "@/types/shipment";
 import { DocumentsList } from "../../DocumentsList";
-import { DocumentItem } from "../../DocumentItem";
+import { DocumentItem } from "../../document";
 import { Card } from "@/components/ui/card";
 
 interface DocumentsSectionProps {
