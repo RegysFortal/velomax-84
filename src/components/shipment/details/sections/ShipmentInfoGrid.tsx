@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { StatusActions } from "../StatusActions";
-import { GeneralInfoSection } from "./GeneralInfoSection";
-import { CargoDetailsSection } from "./CargoDetailsSection";
 import { ShipmentStatus } from "@/types/shipment";
+import { GeneralInfoWrapper } from "./InfoSections/GeneralInfoWrapper";
+import { CargoDetailsWrapper } from "./InfoSections/CargoDetailsWrapper";
+import { StatusActionsWrapper } from "./InfoSections/StatusActionsWrapper";
 
 interface ShipmentInfoGridProps {
   companyName: string;
@@ -34,14 +34,14 @@ export function ShipmentInfoGrid({
 }: ShipmentInfoGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <GeneralInfoSection
+      <GeneralInfoWrapper
         companyName={companyName}
         transportMode={transportMode}
         carrierName={carrierName}
         trackingNumber={trackingNumber}
       />
       
-      <CargoDetailsSection
+      <CargoDetailsWrapper
         packages={packages}
         weight={weight}
         transportMode={transportMode}
@@ -49,7 +49,7 @@ export function ShipmentInfoGrid({
         arrivalDate={arrivalDate}
       />
       
-      <StatusActions 
+      <StatusActionsWrapper 
         status={status} 
         shipmentId={shipmentId} 
         onStatusChange={onStatusChange}

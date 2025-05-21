@@ -1,11 +1,11 @@
 
 import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
-import { toast } from "sonner";
-import { useStatusDisplay } from "./status/useStatusDisplay";
-import { useDeliveryStatusUpdate } from "./status/useDeliveryStatusUpdate";
-import { useRetentionStatusUpdate } from "./status/useRetentionStatusUpdate";
-import { useDocumentStatusUpdate } from "./status/useDocumentStatusUpdate";
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
+import { useStatusNotifications } from "./status/useStatusNotifications";
+import { useDeliveryDocumentUpdate } from "./status/useDeliveryDocumentUpdate";
+import { usePartialDeliveryStatus } from "./status/usePartialDeliveryStatus";
+import { useFiscalActionHandling } from "./status/useFiscalActionHandling";
 
 export function useShipmentStatusChange(
   shipment: Shipment, 
@@ -20,45 +20,46 @@ export function useShipmentStatusChange(
   setDeliveryDate: (date: string) => void,
   setDeliveryTime: (time: string) => void
 ) {
-  const { updateShipment } = useShipments();
-  const { getStatusLabel } = useStatusDisplay();
-  const { updateDeliveryStatus } = useDeliveryStatusUpdate();
-  const { updateRetentionStatus, clearRetentionStatus } = useRetentionStatusUpdate();
-  const { determineStatusFromDocuments } = useDocumentStatusUpdate();
+  const { updateShipment, updateStatus, updateFiscalAction, updateDocument } = useShipments();
+  const { addDelivery } = useDeliveries();
+  
+  const { getStatusLabel, showStatusChangeNotification, showErrorNotification } = useStatusNotifications();
+  
+  const { updateDeliveryDocuments } = useDeliveryDocumentUpdate({ 
+    shipmentId: shipment.id, 
+    updateShipment, 
+    updateDocument, 
+    addDelivery 
+  });
+  
+  const { determinePartialDeliveryStatus } = usePartialDeliveryStatus();
+  const { handleFiscalAction, clearFiscalActionIfNeeded } = useFiscalActionHandling();
 
   const handleStatusChange = async (newStatus: ShipmentStatus, details?: any) => {
     try {
       console.log(`Changing status to: ${newStatus}`, details);
       
-      let finalStatus = newStatus;
       let updateData = {
         status: newStatus,
         isRetained: newStatus === "retained"
       };
-
+      
       // Handle document delivery
       if ((newStatus === "delivered_final" || newStatus === "partially_delivered") && 
           details && details.selectedDocumentIds) {
         
-        const updatedStatus = await updateDeliveryStatus({
-          shipmentId: shipment.id,
-          documents: shipment.documents,
-          selectedDocumentIds: details.selectedDocumentIds,
-          receiverName: details.receiverName,
-          deliveryDate: details.deliveryDate,
-          deliveryTime: details.deliveryTime,
-          newStatus
-        });
+        const finalStatus = await updateDeliveryDocuments(shipment, details, updateData, newStatus);
         
-        finalStatus = updatedStatus;
-        
-        // Update UI state
+        // Update UI state with delivery details
         setStatus(finalStatus);
         setReceiverName(details.receiverName);
         setDeliveryDate(details.deliveryDate);
         setDeliveryTime(details.deliveryTime);
         
-        toast.success(`Status alterado para ${getStatusLabel(finalStatus)} e entregas criadas`);
+        showStatusChangeNotification(finalStatus);
+        
+        // Trigger refresh
+        refreshDeliveriesList();
         return;
       }
       
@@ -73,72 +74,64 @@ export function useShipmentStatusChange(
           deliveryDate,
           deliveryTime
         });
-        
-        // Update UI state
-        setStatus(newStatus);
-        setReceiverName(receiverName);
-        setDeliveryDate(deliveryDate);
-        setDeliveryTime(deliveryTime);
-        
-        toast.success(`Status alterado para ${getStatusLabel(newStatus)}`);
-        return;
       }
       
       // Handle retention status
       if (newStatus === "retained" && details && details.retentionReason) {
-        // Make sure to include the shipmentId in the call to updateRetentionStatus
-        finalStatus = await updateRetentionStatus(shipment.id, {
-          shipmentId: shipment.id,
-          actionNumber: details.actionNumber,
-          retentionReason: details.retentionReason,
-          retentionAmount: details.retentionAmount,
-          paymentDate: details.paymentDate,
-          releaseDate: details.releaseDate,
-          fiscalNotes: details.fiscalNotes
-        });
+        await updateStatus(shipment.id, newStatus);
+        await updateShipment(shipment.id, updateData);
         
-        // Update UI state
-        setStatus(finalStatus);
+        await handleFiscalAction(shipment.id, updateFiscalAction, details);
+        
+        // Update UI state with retention details
+        setStatus("retained");
         setRetentionReason(details.retentionReason);
         setRetentionAmount(details.retentionAmount);
         setPaymentDate(details.paymentDate || '');
         setReleaseDate(details.releaseDate || '');
         setActionNumber(details.actionNumber || '');
         setFiscalNotes(details.fiscalNotes || '');
+        
+        showStatusChangeNotification(newStatus);
         return;
       }
       
-      // Check for partially delivered status based on document state
-      finalStatus = determineStatusFromDocuments(shipment, newStatus);
-      updateData.status = finalStatus;
+      // Check for partial delivery status
+      updateData = determinePartialDeliveryStatus(shipment, newStatus, updateData);
       
       // Update shipment with new status
       await updateShipment(shipment.id, updateData);
       
-      // Clean up fiscal action if status is no longer retained
-      await clearRetentionStatus(shipment.id, shipment.status);
+      // Clean up fiscal action if needed
+      await clearFiscalActionIfNeeded(
+        shipment.id, 
+        shipment.status, 
+        updateData.status || newStatus, 
+        updateFiscalAction
+      );
       
-      // Refresh deliveries list if needed
-      setTimeout(() => {
-        window.dispatchEvent(new Event('deliveries-updated'));
-      }, 1000);
+      // Show notification
+      showStatusChangeNotification(updateData.status || newStatus);
       
-      // Show appropriate toast message
-      toast.success(`Status alterado para ${getStatusLabel(finalStatus)}`);
-      
-      // Update UI state
-      setStatus(finalStatus);
-      
-      // Update delivery details if provided
-      if (details && (finalStatus === "delivered_final" || finalStatus === "partially_delivered")) {
+      // Update local state
+      setStatus(updateData.status || newStatus);
+      if (details && (newStatus === "delivered_final" || newStatus === "partially_delivered")) {
         setReceiverName(details.receiverName || '');
         setDeliveryDate(details.deliveryDate || '');
         setDeliveryTime(details.deliveryTime || '');
       }
+      
+      // Refresh deliveries list
+      refreshDeliveriesList();
     } catch (error) {
-      toast.error("Erro ao alterar status");
-      console.error(error);
+      showErrorNotification(error);
     }
+  };
+
+  const refreshDeliveriesList = () => {
+    setTimeout(() => {
+      window.dispatchEvent(new Event('deliveries-updated'));
+    }, 1000);
   };
 
   return { handleStatusChange, getStatusLabel };
