@@ -3,7 +3,6 @@ import { Delivery } from '@/types';
 import { useState } from 'react';
 
 export function useDuplicateDeliveryCheck(deliveries: Delivery[]) {
-  const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
   const [duplicateMinuteNumber, setDuplicateMinuteNumber] = useState<string>('');
 
   const checkDuplicateDelivery = (minuteNumber: string): boolean => {
@@ -17,7 +16,6 @@ export function useDuplicateDeliveryCheck(deliveries: Delivery[]) {
 
     if (isDuplicate) {
       setDuplicateMinuteNumber(minuteNumber);
-      setShowDuplicateAlert(true);
       return true;
     }
 
@@ -25,8 +23,6 @@ export function useDuplicateDeliveryCheck(deliveries: Delivery[]) {
   };
 
   return {
-    showDuplicateAlert,
-    setShowDuplicateAlert,
     duplicateMinuteNumber,
     checkDuplicateDelivery
   };

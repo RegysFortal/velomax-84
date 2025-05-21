@@ -30,12 +30,11 @@ export function DeliveryFormDialog({
   const { addDelivery } = useDeliveriesCRUD(deliveries, setDeliveries);
   
   const [currentFormData, setCurrentFormData] = useState<DeliveryFormData | null>(null);
+  const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
   
   const {
     submitting,
     handleSubmit,
-    showDuplicateAlert,
-    setShowDuplicateAlert,
     duplicateMinuteNumber,
     handleConfirmDuplicate
   } = useDeliveryFormSubmit({

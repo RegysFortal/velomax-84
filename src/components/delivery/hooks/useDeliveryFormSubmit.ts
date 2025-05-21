@@ -25,8 +25,6 @@ export function useDeliveryFormSubmit({
 }: UseDeliveryFormSubmitProps) {
   const [submitting, setSubmitting] = useState(false);
   const { 
-    showDuplicateAlert, 
-    setShowDuplicateAlert: setDuplicateAlert,
     duplicateMinuteNumber, 
     checkDuplicateDelivery 
   } = useDuplicateDeliveryCheck(deliveries);
@@ -38,6 +36,7 @@ export function useDeliveryFormSubmit({
       // Check for duplicate minute number
       if (formData.minuteNumber && checkDuplicateDelivery(formData.minuteNumber)) {
         setFormData(formData);
+        setShowDuplicateAlert(true);
         return;
       }
 
@@ -54,7 +53,6 @@ export function useDeliveryFormSubmit({
     try {
       setSubmitting(true);
       await addDelivery(formData);
-      setDuplicateAlert(false);
       setShowDuplicateAlert(false);
       onSuccess();
     } catch (error) {
@@ -67,8 +65,6 @@ export function useDeliveryFormSubmit({
   return {
     submitting,
     handleSubmit,
-    showDuplicateAlert,
-    setShowDuplicateAlert: setDuplicateAlert,
     duplicateMinuteNumber,
     handleConfirmDuplicate
   };
