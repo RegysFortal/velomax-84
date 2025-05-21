@@ -51,7 +51,9 @@ export function DocumentItem({
         <div className="flex-1">
           <div className="flex items-center">
             <FileText className="h-4 w-4 mr-2 text-blue-500" />
-            <h4 className="font-medium">{document.name}</h4>
+            <h4 className="font-medium">
+              {document.minuteNumber ? `Minuta: ${document.minuteNumber}` : document.name}
+            </h4>
             <div className="ml-2">
               <DocumentStatusControl 
                 shipmentId={shipmentId} 
@@ -61,9 +63,9 @@ export function DocumentItem({
             </div>
           </div>
           
-          {document.minuteNumber && (
+          {document.minuteNumber && document.name !== `Minuta: ${document.minuteNumber}` && (
             <div className="text-sm text-muted-foreground mt-1 font-medium">
-              Minuta: {document.minuteNumber}
+              {document.name}
             </div>
           )}
           
