@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { DocumentItem } from './DocumentItem';
+import { DocumentItem } from './document'; // Updated import path
 import { DocumentForm } from './DocumentForm';
 import { useDocumentOperations } from './hooks/useDocumentOperations';
 import { ScrollArea } from "@/components/ui/scroll-area";
