@@ -10,12 +10,20 @@ interface RetentionInfoProps {
 
 export function RetentionInfo({ document, shouldShowPriorityBackground }: RetentionInfoProps) {
   // Formatação do valor da retenção
-  const formatCurrency = (value?: number) => {
-    if (value === undefined) return "R$ 0,00";
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+  const formatCurrency = (value?: string) => {
+    if (!value) return "R$ 0,00";
+    
+    // If already has comma, format as is
+    if (value.includes(',')) {
+      return `R$ ${value}`;
+    }
+    
+    // If it's a numeric string or number, convert to float and format
+    const numValue = parseFloat(value.replace(',', '.'));
+    if (isNaN(numValue)) return "R$ 0,00";
+    
+    // Format with comma as decimal separator
+    return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (
@@ -33,7 +41,7 @@ export function RetentionInfo({ document, shouldShowPriorityBackground }: Retent
             <div>Motivo: {document.retentionInfo.reason}</div>
           )}
           {document.retentionInfo?.amount && (
-            <div>Valor: {formatCurrency(parseFloat(document.retentionInfo.amount))}</div>
+            <div>Valor: {formatCurrency(document.retentionInfo.amount)}</div>
           )}
           {document.retentionInfo?.paymentDate && (
             <div>Pgto: {document.retentionInfo.paymentDate}</div>
