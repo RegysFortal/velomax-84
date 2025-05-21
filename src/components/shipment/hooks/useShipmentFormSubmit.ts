@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Client } from '@/types';
 import { ShipmentStatus, TransportMode, Shipment } from '@/types/shipment';
@@ -112,7 +111,7 @@ export function useShipmentFormSubmit({
         status,
         isRetained: status === 'retained',
         ...(status === 'retained' && retentionReason && {
-          fiscalAction: {
+          fiscalActionData: {
             reason: retentionReason,
             amountToPay: retentionAmount ? parseFloat(retentionAmount) : 0,
             paymentDate,

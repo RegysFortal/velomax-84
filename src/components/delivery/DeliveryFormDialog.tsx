@@ -1,104 +1,75 @@
-
-import React from 'react';
-import { Delivery } from '@/types';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, X } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DeliveryForm } from './DeliveryForm';
+import { DuplicateDeliveryAlert } from './DuplicateDeliveryAlert';
+import { useDeliveriesCRUD } from '@/hooks/useDeliveriesCRUD';
+import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
+import { DeliveryFormData } from '@/types/delivery';
 
 interface DeliveryFormDialogProps {
-  isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
-  editingDelivery: Delivery | null;
-  setEditingDelivery: (delivery: Delivery | null) => void;
-  onComplete: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  deliveries: any[];
+  setDeliveries: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 export function DeliveryFormDialog({
-  isOpen,
-  setIsOpen,
-  editingDelivery,
-  setEditingDelivery,
-  onComplete,
+  open,
+  onOpenChange,
+  deliveries,
+  setDeliveries
 }: DeliveryFormDialogProps) {
-  const handleOpenNewDelivery = () => {
-    setEditingDelivery(null);
-    setIsOpen(true);
+  // Add the form submission hook with duplicate checking
+  const { addDelivery } = useDeliveriesCRUD(deliveries, setDeliveries);
+  
+  const [currentFormData, setCurrentFormData] = useState<DeliveryFormData | null>(null);
+  
+  const {
+    submitting,
+    handleSubmit,
+    showDuplicateAlert,
+    setShowDuplicateAlert,
+    duplicateMinuteNumber,
+    handleConfirmDuplicate
+  } = useDeliveryFormSubmit({
+    deliveries,
+    addDelivery,
+    onSuccess: () => onOpenChange(false)
+  });
+
+  const handleFormSubmit = (formData: DeliveryFormData) => {
+    setCurrentFormData(formData);
+    handleSubmit(formData);
   };
 
-  const handleCancel = () => {
-    setIsOpen(false);
-    
-    // Reset editing state with a small delay
-    setTimeout(() => {
-      setEditingDelivery(null);
-      onComplete();
-    }, 100);
-  };
-
-  const handleFormComplete = () => {
-    setIsOpen(false);
-    
-    // Reset editing state with a small delay
-    setTimeout(() => {
-      setEditingDelivery(null);
-      onComplete();
-    }, 100);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      handleCancel();
+  const confirmDuplicate = () => {
+    if (currentFormData) {
+      handleConfirmDuplicate(currentFormData);
     }
   };
-
+  
   return (
     <>
-      <Button onClick={handleOpenNewDelivery}>
-        <PlusCircle className="mr-2 h-4 w-4" />
-        Nova Entrega
-      </Button>
-      
-      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent 
-          className="sm:max-w-[800px] max-h-[90vh]" 
-          onInteractOutside={(e) => e.preventDefault()}
-        >
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>
-              {editingDelivery ? 'Editar Entrega' : 'Nova Entrega'}
-            </DialogTitle>
-            <DialogClose asChild>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                className="absolute right-4 top-4"
-                onClick={handleCancel}
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Fechar</span>
-              </Button>
-            </DialogClose>
+            <DialogTitle>Nova Entrega</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="max-h-[calc(90vh-130px)]">
-            <div className="pr-4">
-              <DeliveryForm 
-                delivery={editingDelivery} 
-                onComplete={handleFormComplete}
-                onCancel={handleCancel}
-              />
-            </div>
-          </ScrollArea>
+          
+          <DeliveryForm 
+            onSubmit={handleFormSubmit}
+            submitting={submitting}
+          />
         </DialogContent>
       </Dialog>
+
+      {/* Add the duplicate alert */}
+      <DuplicateDeliveryAlert
+        open={showDuplicateAlert}
+        onOpenChange={setShowDuplicateAlert}
+        minuteNumber={duplicateMinuteNumber}
+        onConfirm={confirmDuplicate}
+      />
     </>
   );
 }

@@ -11,26 +11,26 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface DuplicateTrackingAlertProps {
+interface DuplicateDeliveryAlertProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  trackingNumber: string;
+  minuteNumber: string;
   onConfirm: () => void;
 }
 
-export function DuplicateTrackingAlert({
+export function DuplicateDeliveryAlert({
   open,
   onOpenChange,
-  trackingNumber,
+  minuteNumber,
   onConfirm
-}: DuplicateTrackingAlertProps) {
+}: DuplicateDeliveryAlertProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Embarque já existente</AlertDialogTitle>
+          <AlertDialogTitle>Entrega já existente</AlertDialogTitle>
           <AlertDialogDescription>
-            Esse embarque com o número de conhecimento <span className="font-semibold">{trackingNumber}</span> já foi incluído.
+            Essa entrega com a minuta <span className="font-semibold">{minuteNumber}</span> já foi incluída.
             Deseja incluir novamente?
           </AlertDialogDescription>
         </AlertDialogHeader>
