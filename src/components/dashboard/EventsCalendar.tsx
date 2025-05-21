@@ -1,7 +1,5 @@
-
 import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
 import { Delivery, Shipment } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { format, parseISO, isValid } from 'date-fns';
@@ -16,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCalendarEvents, EVENT_TYPES, CalendarEvent, EventType } from '@/hooks/useCalendarEvents';
 import { Plus, Edit, Trash, PackageCheck } from 'lucide-react';
 import { EventsList } from './calendar/EventsList';
+import { EventCalendarView } from './calendar/EventCalendarView';
 
 interface EventsCalendarProps {
   deliveries: Delivery[];
@@ -58,10 +57,7 @@ export const EventsCalendar = ({
     return eventsMap;
   }, [events]);
   
-  const modifierDates = useMemo(() => {
-    return {};
-  }, []);
-  
+  // Handle selecting a date on the calendar
   const handleSelect = (date: Date | undefined) => {
     if (!date) return;
     
@@ -207,33 +203,18 @@ export const EventsCalendar = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
-              <Calendar
-                mode="single"
-                onSelect={handleSelect}
-                className="w-full rounded-md border p-2"
-                locale={ptBR}
+              <EventCalendarView
+                selectedDate={selectedDate}
+                onSelectDate={handleSelect}
+                events={events}
               />
               <div className="mt-4 flex items-center justify-center gap-4 text-sm flex-wrap">
-                <div className="flex items-center">
-                  <div className="mr-1 h-3 w-3 rounded-full bg-red-500" />
-                  <span>Aniversário</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="mr-1 h-3 w-3 rounded-full bg-blue-500" />
-                  <span>Feriado</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="mr-1 h-3 w-3 rounded-full bg-orange-500" />
-                  <span>Reunião</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="mr-1 h-3 w-3 rounded-full bg-green-500" />
-                  <span>Entrega Agendada</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="mr-1 h-3 w-3 rounded-full bg-yellow-400" />
-                  <span>Outro</span>
-                </div>
+                {Object.entries(EVENT_TYPES).map(([key, value]) => (
+                  <div key={key} className="flex items-center">
+                    <div className={`mr-1 h-3 w-3 rounded-full ${value.color}`} />
+                    <span>{value.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="border rounded-md p-4">
