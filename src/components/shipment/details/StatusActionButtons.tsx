@@ -30,6 +30,15 @@ export function StatusActionButtons({
           Marcar como Em Trânsito
         </Button>
       )}
+      {status !== "at_carrier" && (
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => onStatusChangeClick("at_carrier")}
+        >
+          Marcar como Na Transportadora
+        </Button>
+      )}
       {status !== "retained" && (
         <Button 
           variant="outline" 
