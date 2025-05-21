@@ -3,6 +3,7 @@ import React from 'react';
 import { StatusActions } from "../StatusActions";
 import { GeneralInfoSection } from "./GeneralInfoSection";
 import { CargoDetailsSection } from "./CargoDetailsSection";
+import { ShipmentStatus } from "@/types/shipment";
 
 interface ShipmentInfoGridProps {
   companyName: string;
@@ -13,7 +14,7 @@ interface ShipmentInfoGridProps {
   weight: number;
   arrivalFlight?: string;
   arrivalDate?: string;
-  status: string;
+  status: ShipmentStatus;
   shipmentId: string;
   onStatusChange: () => void;
 }

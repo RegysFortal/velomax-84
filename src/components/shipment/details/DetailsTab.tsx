@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Shipment } from "@/types/shipment";
+import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { Separator } from "@/components/ui/separator";
 import { useShipmentDetails } from "./useShipmentDetails";
 import { RetentionSheetContainer } from "./containers/RetentionSheetContainer";
@@ -80,6 +80,12 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
   const packagesNumber = parseInt(packages, 10);
   const weightNumber = parseFloat(weight);
 
+  // Wrap the original handleStatusChange function to match the expected signature
+  const handleStatusChangeWrapper = () => {
+    // Call the original function with the current status as default
+    handleStatusChange(status);
+  };
+
   return (
     <div className="space-y-6">
       <ShipmentInfoGrid
@@ -93,7 +99,7 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
         arrivalDate={arrivalDate}
         status={status}
         shipmentId={shipment.id}
-        onStatusChange={handleStatusChange}
+        onStatusChange={handleStatusChangeWrapper}
       />
       
       <Separator />
