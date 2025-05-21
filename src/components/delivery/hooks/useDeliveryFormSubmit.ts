@@ -8,17 +8,25 @@ interface UseDeliveryFormSubmitProps {
   deliveries: Delivery[];
   addDelivery: (delivery: DeliveryFormData) => Promise<Delivery>;
   onSuccess: () => void;
+  isEditMode?: boolean;
+  delivery?: Delivery | null;
+  setFormData?: (data: DeliveryFormData) => void;
+  setShowDuplicateAlert?: (show: boolean) => void;
 }
 
 export function useDeliveryFormSubmit({
   deliveries,
   addDelivery,
-  onSuccess
+  onSuccess,
+  isEditMode = false,
+  delivery = null,
+  setFormData = () => {},
+  setShowDuplicateAlert = () => {}
 }: UseDeliveryFormSubmitProps) {
   const [submitting, setSubmitting] = useState(false);
   const { 
     showDuplicateAlert, 
-    setShowDuplicateAlert,
+    setShowDuplicateAlert: setDuplicateAlert,
     duplicateMinuteNumber, 
     checkDuplicateDelivery 
   } = useDuplicateDeliveryCheck(deliveries);
@@ -29,6 +37,7 @@ export function useDeliveryFormSubmit({
 
       // Check for duplicate minute number
       if (formData.minuteNumber && checkDuplicateDelivery(formData.minuteNumber)) {
+        setFormData(formData);
         return;
       }
 
@@ -45,6 +54,7 @@ export function useDeliveryFormSubmit({
     try {
       setSubmitting(true);
       await addDelivery(formData);
+      setDuplicateAlert(false);
       setShowDuplicateAlert(false);
       onSuccess();
     } catch (error) {
@@ -58,7 +68,7 @@ export function useDeliveryFormSubmit({
     submitting,
     handleSubmit,
     showDuplicateAlert,
-    setShowDuplicateAlert,
+    setShowDuplicateAlert: setDuplicateAlert,
     duplicateMinuteNumber,
     handleConfirmDuplicate
   };

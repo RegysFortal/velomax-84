@@ -21,6 +21,10 @@ export const DeliveriesHeader: React.FC<DeliveriesHeaderProps> = ({
   onRefreshDeliveries,
   onDialogComplete
 }) => {
+  // Mock empty arrays for deliveries since we're not using them in the header
+  const mockDeliveries: any[] = [];
+  const setMockDeliveries = () => {};
+
   return (
     <div className="flex justify-between items-center mb-6">
       <h1 className="text-3xl font-bold">Entregas</h1>
@@ -34,11 +38,13 @@ export const DeliveriesHeader: React.FC<DeliveriesHeaderProps> = ({
           Atualizar
         </Button>
         <DeliveryFormDialog
-          isOpen={isDialogOpen}
-          setIsOpen={setIsDialogOpen}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
           editingDelivery={editingDelivery}
           setEditingDelivery={setEditingDelivery}
           onComplete={onDialogComplete}
+          deliveries={mockDeliveries}
+          setDeliveries={setMockDeliveries}
         />
       </div>
     </div>

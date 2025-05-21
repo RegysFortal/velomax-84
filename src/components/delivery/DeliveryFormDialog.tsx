@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DeliveryForm } from './DeliveryForm';
@@ -11,13 +12,19 @@ interface DeliveryFormDialogProps {
   onOpenChange: (open: boolean) => void;
   deliveries: any[];
   setDeliveries: React.Dispatch<React.SetStateAction<any[]>>;
+  editingDelivery?: any | null;
+  setEditingDelivery?: (delivery: any | null) => void;
+  onComplete?: () => void;
 }
 
 export function DeliveryFormDialog({
   open,
   onOpenChange,
   deliveries,
-  setDeliveries
+  setDeliveries,
+  editingDelivery = null,
+  setEditingDelivery = () => {},
+  onComplete = () => {}
 }: DeliveryFormDialogProps) {
   // Add the form submission hook with duplicate checking
   const { addDelivery } = useDeliveriesCRUD(deliveries, setDeliveries);
@@ -57,8 +64,11 @@ export function DeliveryFormDialog({
           </DialogHeader>
           
           <DeliveryForm 
-            onSubmit={handleFormSubmit}
-            submitting={submitting}
+            delivery={editingDelivery}
+            onComplete={() => {
+              onComplete();
+              onOpenChange(false);
+            }}
           />
         </DialogContent>
       </Dialog>
