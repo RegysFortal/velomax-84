@@ -63,19 +63,19 @@ export function DocumentItem({
             </div>
           </div>
           
-          {document.minuteNumber && document.name !== `Minuta: ${document.minuteNumber}` && (
+          {/* Display invoice numbers if available, otherwise show document name */}
+          {document.invoiceNumbers && document.invoiceNumbers.length > 0 ? (
+            <div className="text-sm text-muted-foreground mt-1 font-medium">
+              Nota(s) Fiscal(is): {document.invoiceNumbers.join(', ')}
+            </div>
+          ) : document.minuteNumber && document.name !== `Minuta: ${document.minuteNumber}` && (
             <div className="text-sm text-muted-foreground mt-1 font-medium">
               {document.name}
             </div>
           )}
           
           <div className="mt-2 space-y-1">
-            {document.invoiceNumbers && document.invoiceNumbers.length > 0 && (
-              <div className="text-sm">
-                <span className="font-medium">Notas Fiscais:</span>{' '}
-                {document.invoiceNumbers.join(', ')}
-              </div>
-            )}
+            {/* Remove the duplicate invoice numbers display from here since we now show it above */}
             
             <div className="flex items-center space-x-4 text-sm">
               {document.packages !== undefined && (
