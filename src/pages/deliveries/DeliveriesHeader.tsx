@@ -3,12 +3,13 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
 import { DeliveryFormDialog } from '@/components/delivery/DeliveryFormDialog';
+import { Delivery } from '@/types';
 
 interface DeliveriesHeaderProps {
   isDialogOpen: boolean;
   setIsDialogOpen: (open: boolean) => void;
-  editingDelivery: any | null;
-  setEditingDelivery: (delivery: any | null) => void;
+  editingDelivery: Delivery | null;
+  setEditingDelivery: (delivery: Delivery | null) => void;
   onRefreshDeliveries: () => void;
   onDialogComplete: () => void;
 }
@@ -22,7 +23,7 @@ export const DeliveriesHeader: React.FC<DeliveriesHeaderProps> = ({
   onDialogComplete
 }) => {
   // Mock empty arrays for deliveries since we're not using them in the header
-  const mockDeliveries: any[] = [];
+  const mockDeliveries: Delivery[] = [];
   const setMockDeliveries = () => {};
 
   return (

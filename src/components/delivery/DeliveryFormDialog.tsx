@@ -5,15 +5,15 @@ import { DeliveryForm } from './DeliveryForm';
 import { DuplicateDeliveryAlert } from './DuplicateDeliveryAlert';
 import { useDeliveriesCRUD } from '@/hooks/useDeliveriesCRUD';
 import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
-import { DeliveryFormData } from '@/types/delivery';
+import { DeliveryFormData, Delivery } from '@/types';
 
 interface DeliveryFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  deliveries: any[];
-  setDeliveries: React.Dispatch<React.SetStateAction<any[]>>;
-  editingDelivery?: any | null;
-  setEditingDelivery?: (delivery: any | null) => void;
+  deliveries: Delivery[];
+  setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>;
+  editingDelivery?: Delivery | null;
+  setEditingDelivery?: (delivery: Delivery | null) => void;
   onComplete?: () => void;
 }
 
@@ -41,26 +41,24 @@ export function DeliveryFormDialog({
   } = useDeliveryFormSubmit({
     deliveries,
     addDelivery,
-    onSuccess: () => onOpenChange(false)
+    onSuccess: () => {
+      onComplete();
+      onOpenChange(false);
+    },
+    isEditMode: !!editingDelivery,
+    delivery: editingDelivery,
+    setFormData: setCurrentFormData,
+    setShowDuplicateAlert
   });
-
-  const handleFormSubmit = (formData: DeliveryFormData) => {
-    setCurrentFormData(formData);
-    handleSubmit(formData);
-  };
-
-  const confirmDuplicate = () => {
-    if (currentFormData) {
-      handleConfirmDuplicate(currentFormData);
-    }
-  };
   
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Nova Entrega</DialogTitle>
+            <DialogTitle>
+              {editingDelivery ? 'Editar Entrega' : 'Nova Entrega'}
+            </DialogTitle>
           </DialogHeader>
           
           <DeliveryForm 
@@ -78,7 +76,11 @@ export function DeliveryFormDialog({
         open={showDuplicateAlert}
         onOpenChange={setShowDuplicateAlert}
         minuteNumber={duplicateMinuteNumber}
-        onConfirm={confirmDuplicate}
+        onConfirm={() => {
+          if (currentFormData) {
+            handleConfirmDuplicate(currentFormData);
+          }
+        }}
       />
     </>
   );
