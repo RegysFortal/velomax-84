@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { toast } from "sonner";
 import { useShipments } from "@/contexts/shipments";
-import { DocumentStatus } from "@/types/shipment";
 
 export function useDocumentRetention(shipmentId: string, documentId: string, onSuccess?: () => void) {
   // Estado para o formulário de retenção
@@ -15,7 +14,7 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
   const [fiscalNotes, setFiscalNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { getShipmentById, updateDocument, updateFiscalAction, updateShipment, refreshShipmentsData } = useShipments();
+  const { getShipmentById, updateDocument, refreshShipmentsData } = useShipments();
   
   // Manipulador para quando o formulário de retenção é confirmado
   const handleRetentionConfirm = async () => {
@@ -41,11 +40,22 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
       // Criar lista de documentos atualizada com o status de retenção
       const updatedDocuments = shipment.documents.map(doc => {
         if (doc.id === documentId) {
+          // Create document-specific retention info
+          const docRetentionInfo = {
+            actionNumber: actionNumber.trim() || undefined,
+            reason: retentionReason.trim() || "Retenção fiscal",
+            amount: retentionAmount || "0",
+            paymentDate: paymentDate || undefined,
+            releaseDate: releaseDate || undefined,
+            notes: fiscalNotes?.trim() || undefined
+          };
+          
           return {
             ...doc,
             isDelivered: false,
             isRetained: true,
-            isPickedUp: false
+            isPickedUp: false,
+            retentionInfo: docRetentionInfo
           };
         }
         return doc;
@@ -53,49 +63,26 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
       
       // Atualizar o documento
       await updateDocument(shipmentId, documentId, updatedDocuments);
-
-      // Calcular valor de retenção
-      let amountValue = 0;
-      if (retentionAmount) {
-        const cleanedAmount = retentionAmount.replace(',', '.');
-        amountValue = parseFloat(cleanedAmount);
-        if (isNaN(amountValue)) amountValue = 0;
-      }
       
-      // Atualizar a ação fiscal com informações de retenção
-      const fiscalActionData = {
-        actionNumber: actionNumber.trim() || undefined,
-        reason: retentionReason.trim() || "Retenção fiscal",
-        amountToPay: amountValue,
-        paymentDate: paymentDate || undefined,
-        releaseDate: releaseDate || undefined,
-        notes: fiscalNotes?.trim() || undefined
-      };
-      
-      // Atualizar ação fiscal
-      await updateFiscalAction(shipmentId, fiscalActionData);
-      
-      // Atualizar o status de retenção do embarque - importante para que o embarque seja exibido corretamente
-      await updateShipment(shipmentId, { 
-        isRetained: true,
-        status: "retained" as const
-      });
-      
-      // Fechar o formulário de retenção
-      setShowRetentionSheet(false);
-      
-      // Resetar campos do formulário
-      resetFormFields();
-      
-      // Forçar atualização dos dados
-      refreshShipmentsData();
-      
-      // Exibir mensagem de sucesso
-      toast.success("Documento marcado como Retido e informações salvas");
-      
-      // Chamar o callback de sucesso se fornecido
-      if (onSuccess) {
-        onSuccess();
+      // Verificar se qualquer documento está retido para atualizar o status do embarque
+      const hasRetainedDocs = updatedDocuments.some(doc => doc.isRetained);
+      if (hasRetainedDocs) {
+        // Fechar o formulário de retenção
+        setShowRetentionSheet(false);
+        
+        // Resetar campos do formulário
+        resetFormFields();
+        
+        // Forçar atualização dos dados
+        refreshShipmentsData();
+        
+        // Exibir mensagem de sucesso
+        toast.success("Documento marcado como Retido e informações salvas");
+        
+        // Chamar o callback de sucesso se fornecido
+        if (onSuccess) {
+          onSuccess();
+        }
       }
     } catch (error) {
       console.error("Error confirming retention:", error);

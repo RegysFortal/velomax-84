@@ -84,11 +84,15 @@ export function DocumentStatusControl({
           const isRetained = false; // Since we're not handling "retained" here (it's handled separately)
           const isPickedUp = status === "picked_up";
           
+          // Remove retention info if we're changing from retained to another status
+          const retentionInfo = doc.isRetained ? undefined : doc.retentionInfo;
+          
           return {
             ...doc,
             isDelivered,
             isRetained,
-            isPickedUp
+            isPickedUp,
+            retentionInfo
           };
         }
         return doc;
@@ -100,8 +104,6 @@ export function DocumentStatusControl({
       // Mostrar mensagem de sucesso
       let statusText = "Pendente";
       if (status === "delivered") statusText = "Entregue";
-      // Don't use direct comparison with "retained" here since it's a different type path
-      // Instead use a safer approach with a conditional assignment
       else if (status === "picked_up") statusText = "Retirado";
       else statusText = "Pendente"; // Default to Pendente for any other status
       

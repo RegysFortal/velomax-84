@@ -24,6 +24,16 @@ export interface FiscalAction {
   updatedAt: string;
 }
 
+// Document-specific retention information
+export interface DocumentRetentionInfo {
+  actionNumber?: string;
+  reason?: string;
+  amount?: string;
+  paymentDate?: string;
+  releaseDate?: string;
+  notes?: string;
+}
+
 export interface Document {
   id: string;
   name: string;
@@ -37,6 +47,7 @@ export interface Document {
   isDelivered?: boolean;
   isRetained?: boolean;
   isPickedUp?: boolean; // New flag for "Retirado" status
+  retentionInfo?: DocumentRetentionInfo; // Document-specific retention info
   createdAt: string;
   updatedAt: string;
 }

@@ -72,7 +72,7 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
   );
 
   // Calculate document stats
-  const retainedDocsCount = shipment.documents ? shipment.documents.filter(doc => !doc.isDelivered).length : 0;
+  const retainedDocsCount = shipment.documents ? shipment.documents.filter(doc => doc.isRetained).length : 0;
   const deliveredDocsCount = shipment.documents ? shipment.documents.filter(doc => doc.isDelivered).length : 0;
   const totalDocsCount = shipment.documents ? shipment.documents.length : 0;
   
@@ -129,7 +129,7 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
       
       <Separator />
       
-      {/* Document Retention Summary */}
+      {/* Document Status Summary */}
       {totalDocsCount > 0 && (
         <div className={`${retainedDocsCount > 0 ? "bg-amber-50 border border-amber-200" : "bg-green-50 border border-green-200"} rounded-md p-4`}>
           <h3 className={`${retainedDocsCount > 0 ? "text-amber-800" : "text-green-800"} font-medium mb-1`}>
@@ -164,8 +164,8 @@ export default function DetailsTab({ shipment, onClose }: DetailsTabProps) {
         </div>
       )}
       
-      {/* Retenção Fiscal (se aplicável) */}
-      {status === "retained" && (
+      {/* Retenção Fiscal (se aplicável para o embarque como um todo - legado) */}
+      {status === "retained" && retainedDocuments.length === 0 && (
         <RetentionInfoSection
           actionNumber={actionNumber}
           retentionReason={retentionReason}

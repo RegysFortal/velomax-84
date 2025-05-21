@@ -23,11 +23,18 @@ export function DocumentItem({
   onStatusChange
 }: DocumentItemProps) {
   const { getShipmentById } = useShipments();
-  const shipment = getShipmentById(shipmentId);
   
-  // Verifica se o documento está retido e se existem informações fiscais
-  const isRetained = document.isRetained;
-  const retentionInfo = isRetained && shipment?.fiscalAction ? shipment.fiscalAction : null;
+  // Format the document information for display
+  const formatDocumentInfo = () => {
+    const parts = [];
+    
+    // Always show minute number if it exists
+    if (document.minuteNumber) {
+      parts.push(`Minuta: ${document.minuteNumber}`);
+    }
+    
+    return parts.join(' | ');
+  };
   
   // Formatação do valor da retenção
   const formatCurrency = (value?: number) => {
@@ -55,7 +62,7 @@ export function DocumentItem({
           </div>
           
           {document.minuteNumber && (
-            <div className="text-sm text-muted-foreground mt-1">
+            <div className="text-sm text-muted-foreground mt-1 font-medium">
               Minuta: {document.minuteNumber}
             </div>
           )}
@@ -91,7 +98,7 @@ export function DocumentItem({
           </div>
           
           {/* Informações de Retenção (quando aplicável) */}
-          {isRetained && retentionInfo && (
+          {document.isRetained && (
             <div className="mt-3 border-t border-amber-200 pt-2">
               <div className="bg-amber-50 p-2 rounded text-sm">
                 <div className="flex items-center text-amber-800 font-medium mb-1">
@@ -99,19 +106,23 @@ export function DocumentItem({
                   Retenção Fiscal
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-amber-700">
-                  {retentionInfo.actionNumber && (
-                    <div>Nº Ação: {retentionInfo.actionNumber}</div>
+                  {document.retentionInfo?.actionNumber && (
+                    <div>Nº Ação: {document.retentionInfo.actionNumber}</div>
                   )}
-                  <div>Motivo: {retentionInfo.reason}</div>
-                  <div>Valor: {formatCurrency(retentionInfo.amountToPay)}</div>
-                  {retentionInfo.paymentDate && (
-                    <div>Pgto: {retentionInfo.paymentDate}</div>
+                  {document.retentionInfo?.reason && (
+                    <div>Motivo: {document.retentionInfo.reason}</div>
                   )}
-                  {retentionInfo.releaseDate && (
-                    <div>Liberação: {retentionInfo.releaseDate}</div>
+                  {document.retentionInfo?.amount && (
+                    <div>Valor: {formatCurrency(parseFloat(document.retentionInfo.amount))}</div>
                   )}
-                  {retentionInfo.notes && (
-                    <div className="col-span-2">Obs: {retentionInfo.notes}</div>
+                  {document.retentionInfo?.paymentDate && (
+                    <div>Pgto: {document.retentionInfo.paymentDate}</div>
+                  )}
+                  {document.retentionInfo?.releaseDate && (
+                    <div>Liberação: {document.retentionInfo.releaseDate}</div>
+                  )}
+                  {document.retentionInfo?.notes && (
+                    <div className="col-span-2">Obs: {document.retentionInfo.notes}</div>
                   )}
                 </div>
               </div>
