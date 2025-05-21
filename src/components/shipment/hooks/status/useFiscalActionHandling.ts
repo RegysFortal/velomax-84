@@ -1,4 +1,6 @@
 
+import { ShipmentStatus } from "@/types/shipment";
+
 export function useFiscalActionHandling() {
   const handleFiscalAction = async (
     shipmentId: string,
