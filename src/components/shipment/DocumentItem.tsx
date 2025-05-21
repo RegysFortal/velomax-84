@@ -88,13 +88,16 @@ export function DocumentItem({
     }
   };
 
+  // Determine if we should show priority background
+  const shouldShowPriorityBackground = document.isPriority && !document.isDelivered;
+
   return (
-    <Card className="p-4">
+    <Card className={`p-4 ${shouldShowPriorityBackground ? 'bg-red-50 border-red-200' : ''}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center">
-            <FileText className="h-4 w-4 mr-2 text-blue-500" />
-            <h4 className="font-medium">
+            <FileText className={`h-4 w-4 mr-2 ${shouldShowPriorityBackground ? 'text-red-500' : 'text-blue-500'}`} />
+            <h4 className={`font-medium ${shouldShowPriorityBackground ? 'text-red-700' : ''}`}>
               {document.minuteNumber ? `Minuta: ${document.minuteNumber}` : document.name}
             </h4>
             <Button 
@@ -117,11 +120,11 @@ export function DocumentItem({
           
           {/* Display invoice numbers if available, otherwise show document name */}
           {document.invoiceNumbers && document.invoiceNumbers.length > 0 ? (
-            <div className="text-sm text-muted-foreground mt-1 font-medium">
+            <div className={`text-sm ${shouldShowPriorityBackground ? 'text-red-600' : 'text-muted-foreground'} mt-1 font-medium`}>
               Nota(s) Fiscal(is): {document.invoiceNumbers.join(', ')}
             </div>
           ) : document.minuteNumber && document.name !== `Minuta: ${document.minuteNumber}` && (
-            <div className="text-sm text-muted-foreground mt-1 font-medium">
+            <div className={`text-sm ${shouldShowPriorityBackground ? 'text-red-600' : 'text-muted-foreground'} mt-1 font-medium`}>
               {document.name}
             </div>
           )}
@@ -129,7 +132,7 @@ export function DocumentItem({
           <div className="mt-2 space-y-1">
             {/* Remove the duplicate invoice numbers display from here since we now show it above */}
             
-            <div className="flex items-center space-x-4 text-sm">
+            <div className={`flex items-center space-x-4 text-sm ${shouldShowPriorityBackground ? 'text-red-600' : ''}`}>
               {document.packages !== undefined && (
                 <div className="flex items-center">
                   <Package className="h-3 w-3 mr-1" />
@@ -145,7 +148,7 @@ export function DocumentItem({
             </div>
             
             {document.notes && (
-              <div className="text-sm text-muted-foreground">
+              <div className={`text-sm ${shouldShowPriorityBackground ? 'text-red-600' : 'text-muted-foreground'}`}>
                 {document.notes}
               </div>
             )}
@@ -153,13 +156,13 @@ export function DocumentItem({
           
           {/* Informações de Retenção (quando aplicável) */}
           {document.isRetained && (
-            <div className="mt-3 border-t border-amber-200 pt-2">
-              <div className="bg-amber-50 p-2 rounded text-sm">
-                <div className="flex items-center text-amber-800 font-medium mb-1">
-                  <AlertTriangle className="h-4 w-4 mr-1 text-amber-600" />
+            <div className={`mt-3 border-t ${shouldShowPriorityBackground ? 'border-red-300' : 'border-amber-200'} pt-2`}>
+              <div className={`${shouldShowPriorityBackground ? 'bg-red-100' : 'bg-amber-50'} p-2 rounded text-sm`}>
+                <div className={`flex items-center ${shouldShowPriorityBackground ? 'text-red-800' : 'text-amber-800'} font-medium mb-1`}>
+                  <AlertTriangle className={`h-4 w-4 mr-1 ${shouldShowPriorityBackground ? 'text-red-600' : 'text-amber-600'}`} />
                   Retenção Fiscal
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-amber-700">
+                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 ${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
                   {document.retentionInfo?.actionNumber && (
                     <div>Nº Ação: {document.retentionInfo.actionNumber}</div>
                   )}
