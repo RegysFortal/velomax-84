@@ -1,26 +1,10 @@
 
 import { toast } from "sonner";
 import { ShipmentStatus } from "@/types/shipment";
+import { useShipmentStatusLabel } from './useShipmentStatusLabel';
 
 export function useStatusNotifications() {
-  const getStatusLabel = (status: ShipmentStatus): string => {
-    switch (status) {
-      case "in_transit":
-        return "Em Trânsito";
-      case "retained":
-        return "Retida";
-      case "delivered":
-        return "Retirada";
-      case "partially_delivered":
-        return "Entregue Parcial";
-      case "delivered_final":
-        return "Entregue";
-      case "at_carrier":
-        return "Na Transportadora";
-      default:
-        return status;
-    }
-  };
+  const { getShipmentStatusLabel } = useShipmentStatusLabel();
   
   const showStatusChangeNotification = (status: ShipmentStatus) => {
     if (status === "delivered_final") {
@@ -30,7 +14,7 @@ export function useStatusNotifications() {
     } else if (status === "retained") {
       toast.success("Status alterado para Retida e informações de retenção atualizadas");
     } else {
-      toast.success(`Status alterado para ${getStatusLabel(status)}`);
+      toast.success(`Status alterado para ${getShipmentStatusLabel(status)}`);
     }
   };
   
@@ -40,7 +24,7 @@ export function useStatusNotifications() {
   };
   
   return {
-    getStatusLabel,
+    getStatusLabel: getShipmentStatusLabel,
     showStatusChangeNotification,
     showErrorNotification
   };
