@@ -5,6 +5,7 @@ import { ptBR } from 'date-fns/locale';
 import { CalendarEvent } from '@/hooks/useCalendarEvents';
 import { format } from 'date-fns';
 import { EVENT_TYPES } from '@/hooks/calendar/event-types';
+import { DayContentProps } from 'react-day-picker';
 
 interface EventCalendarViewProps {
   selectedDate: Date | undefined;
@@ -52,8 +53,10 @@ export function EventCalendarView({
   };
 
   // Custom day rendering to show colored dots for events
-  const renderDay = (day: Date, modifiers: Record<string, boolean>) => {
-    const eventTypes = getEventTypesForDay(day);
+  const renderDayContent = (props: DayContentProps) => {
+    const { date } = props;
+    const eventTypes = getEventTypesForDay(date);
+    
     if (eventTypes.length === 0) return null;
     
     return (
@@ -61,7 +64,7 @@ export function EventCalendarView({
         <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-0.5 mb-1">
           {eventTypes.slice(0, 3).map((type, i) => (
             <span 
-              key={`${format(day, 'yyyy-MM-dd')}-${i}`} 
+              key={`${format(date, 'yyyy-MM-dd')}-${i}`} 
               className={`w-1.5 h-1.5 rounded-full ${EVENT_TYPES[type as keyof typeof EVENT_TYPES]?.color || 'bg-gray-400'}`}
             />
           ))}
@@ -96,7 +99,7 @@ export function EventCalendarView({
           }
         }}
         components={{
-          Day: (props) => renderDay(props.date, props.modifiers)
+          DayContent: renderDayContent
         }}
       />
     </div>
