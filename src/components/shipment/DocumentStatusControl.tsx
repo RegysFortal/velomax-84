@@ -199,16 +199,25 @@ export function DocumentStatusControl({
       // Update the shipment directly instead of the document
       const shipment = getShipmentById(shipmentId);
       if (shipment) {
-        await updateStatus(shipmentId, "delivered_final", {
+        // First create a payload with the delivery information
+        const deliveryPayload = {
+          ...shipment,
           receiverName,
           deliveryDate,
           deliveryTime
-        });
+        };
+        
+        // Then update the shipment using only the allowed parameters
+        await updateStatus(shipmentId, "delivered_final");
+        await updateShipment(shipmentId, deliveryPayload);
       }
     } catch (error) {
       console.error("Error updating shipment delivery info:", error);
     }
   };
+  
+  // Use updateShipment from the context
+  const { updateShipment } = useShipments();
   
   return (
     <>
