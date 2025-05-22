@@ -126,7 +126,6 @@ export function DocumentStatusControl({
       if (status === "delivered") statusText = "Entregue";
       else if (status === "picked_up") statusText = "Retirado";
       else if (status === "retained") statusText = "Retido";
-      else statusText = "Pendente"; // Default to Pendente for any other status
       
       toast.success(`Documento marcado como ${statusText}`);
       
