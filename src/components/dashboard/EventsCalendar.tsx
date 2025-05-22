@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Delivery, Shipment } from '@/types';
@@ -30,7 +31,7 @@ export const EventsCalendar = ({
   const { events, loading, addEvent, updateEvent, deleteEvent } = useCalendarEvents();
   
   const [showEventDialog, setShowEventDialog] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | undefined>(undefined);
   const [eventTitle, setEventTitle] = useState('');
   const [eventType, setEventType] = useState<EventType>('other');
@@ -82,7 +83,6 @@ export const EventsCalendar = ({
       setEventDescription('');
       setIsScheduledDelivery(false);
       setScheduledShipmentId('');
-      setShowEventDialog(true);
     }
   };
   
@@ -167,8 +167,6 @@ export const EventsCalendar = ({
     setIsScheduledDelivery(false);
     setScheduledShipmentId('');
   };
-  
-  const modifierStyles = {};
   
   const eventsForSelectedDate = selectedDate 
     ? events.filter(event => {

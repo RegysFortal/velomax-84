@@ -17,6 +17,7 @@ interface EventsListProps {
 export function EventsList({
   selectedDate,
   eventsForSelectedDate,
+  handleNewEvent,
   handleEditEvent,
   handleDeleteEvent
 }: EventsListProps) {
@@ -27,12 +28,13 @@ export function EventsList({
     const end = endOfWeek(date, { locale: ptBR });
     
     // Return events that fall within the week
-    return events.filter(event => 
-      isWithinInterval(new Date(event.date), { 
+    return events.filter(event => {
+      const eventDate = new Date(event.date);
+      return isWithinInterval(eventDate, { 
         start, 
         end 
-      })
-    );
+      });
+    });
   };
 
   // Group events by day for the selected week
@@ -75,7 +77,7 @@ export function EventsList({
   const groupedWeekEvents = groupEventsByDay(weekEvents, selectedDate);
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto p-2">
       <div className="space-y-4">
         <div>
           <h3 className="font-medium text-sm">
