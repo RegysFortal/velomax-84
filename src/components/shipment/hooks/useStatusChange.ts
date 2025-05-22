@@ -77,16 +77,6 @@ export function useStatusChange({ onStatusChange }: UseStatusChangeProps) {
         // Clear fiscal action if changing from retained
         await clearRetentionStatus(shipmentId, previousStatus);
       }
-      else if (newStatus === "at_carrier") {
-        // Make sure we correctly handle "at_carrier" status
-        await updateStatus(shipmentId, "at_carrier");
-        
-        // If moving from retained status, we need to clear the retention flag
-        if (previousStatus === "retained") {
-          await updateShipment(shipmentId, { isRetained: false });
-          await clearRetentionStatus(shipmentId, previousStatus);
-        }
-      } 
       else {
         // Default status update
         await updateStatus(shipmentId, newStatus);
@@ -105,7 +95,6 @@ export function useStatusChange({ onStatusChange }: UseStatusChangeProps) {
       
       const statusLabels: Record<ShipmentStatus, string> = {
         in_transit: "Em Trânsito",
-        at_carrier: "Na Transportadora",
         retained: "Retida",
         delivered: "Retirada",
         delivered_final: "Entregue",

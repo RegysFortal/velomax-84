@@ -12,8 +12,6 @@ export function useStatusClasses() {
     switch (status) {
       case "in_transit":
         return "bg-blue-500 hover:bg-blue-600";
-      case "at_carrier":
-        return "bg-purple-500 hover:bg-purple-600";
       case "retained":
         return "bg-red-500 hover:bg-red-600";
       case "delivered":
@@ -40,8 +38,6 @@ export function useStatusClasses() {
         return "text-yellow-600";
       case "in_transit":
         return "text-blue-600";
-      case "at_carrier":
-        return "text-purple-600";
       case "delivered":
         return "text-amber-600";
       default:

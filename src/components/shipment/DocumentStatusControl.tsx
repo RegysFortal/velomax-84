@@ -62,13 +62,13 @@ export function DocumentStatusControl({
     try {
       console.log(`Changing document status to: ${status}`, document.id);
       
-      // Se estamos mudando para status retido, mostrar o formulário de retenção primeiro
+      // If changing to retained status, show retention form first
       if (status === "retained") {
         retentionState.setShowRetentionSheet(true);
         return;
       }
       
-      // Obter os documentos atuais para este embarque
+      // Get current documents for this shipment
       const shipment = getShipmentById(shipmentId);
       
       if (!shipment || !shipment.documents) {
@@ -76,7 +76,7 @@ export function DocumentStatusControl({
         return;
       }
       
-      // Criar lista de documentos atualizada
+      // Create updated documents list
       const updatedDocuments = shipment.documents.map(doc => {
         if (doc.id === document.id) {
           // Set boolean flags based on the status
@@ -98,7 +98,7 @@ export function DocumentStatusControl({
         return doc;
       });
       
-      // Atualizar o documento
+      // Update the document
       await updateDocument(shipmentId, document.id, updatedDocuments);
       
       // Update shipment status based on document status changes
@@ -116,15 +116,16 @@ export function DocumentStatusControl({
         await updateStatus(shipmentId, shipmentStatus);
       }
       
-      // Mostrar mensagem de sucesso
+      // Show success message
       let statusText = "Pendente";
       if (status === "delivered") statusText = "Entregue";
       else if (status === "picked_up") statusText = "Retirado";
+      else if (status === "retained") statusText = "Retido";
       else statusText = "Pendente"; // Default to Pendente for any other status
       
       toast.success(`Documento marcado como ${statusText}`);
       
-      // Chamar o callback se fornecido
+      // Call callback if provided
       if (onStatusChange) {
         onStatusChange();
       }

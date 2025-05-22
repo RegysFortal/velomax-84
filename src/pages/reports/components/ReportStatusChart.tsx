@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -20,7 +19,6 @@ export function ReportStatusChart({ filteredShipments }: ReportStatusChartProps)
   useEffect(() => {
     // Count shipments by status
     const inTransit = filteredShipments.filter(s => s.status === 'in_transit').length;
-    const atCarrier = filteredShipments.filter(s => s.status === 'at_carrier').length;
     const retained = filteredShipments.filter(s => s.status === 'retained').length;
     const delivered = filteredShipments.filter(s => s.status === 'delivered').length;
     const partialDelivered = filteredShipments.filter(s => s.status === 'partially_delivered').length;
@@ -29,7 +27,6 @@ export function ReportStatusChart({ filteredShipments }: ReportStatusChartProps)
     // Create chart data
     const data: ChartData[] = [
       { name: 'Em Trânsito', value: inTransit, color: 'hsl(216, 100%, 50%)' },
-      { name: 'Na Transportadora', value: atCarrier, color: 'hsl(280, 80%, 60%)' },
       { name: 'Retida', value: retained, color: 'hsl(360, 100%, 50%)' },
       { name: 'Retirado', value: delivered, color: 'hsl(30, 100%, 50%)' },
       { name: 'Entregue Parcial', value: partialDelivered, color: 'hsl(50, 100%, 50%)' },

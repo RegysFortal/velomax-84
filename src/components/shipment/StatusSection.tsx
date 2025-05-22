@@ -40,7 +40,6 @@ export function StatusSection({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="in_transit">Em Trânsito</SelectItem>
-          <SelectItem value="at_carrier">Na Transportadora</SelectItem>
           <SelectItem value="retained">Retido</SelectItem>
           <SelectItem value="delivered">Retirado</SelectItem>
           <SelectItem value="partially_delivered">Entregue Parcial</SelectItem>

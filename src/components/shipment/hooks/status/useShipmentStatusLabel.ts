@@ -20,8 +20,6 @@ export function useShipmentStatusLabel() {
         return "Entregue Parcial";
       case 'delivered_final':
         return "Entregue";
-      case 'at_carrier':
-        return "Na Transportadora";
       default:
         return status;
     }

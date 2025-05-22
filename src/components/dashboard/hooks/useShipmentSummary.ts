@@ -6,7 +6,6 @@ import { Shipment } from '@/types/shipment';
 interface ShipmentSummary {
   totalShipments: number;
   inTransitShipments: number;
-  atCarrierShipments: number;
   retainedShipments: number;
   deliveredShipments: number;
   partiallyDeliveredShipments: number;
@@ -19,7 +18,6 @@ export function useShipmentSummary(startDate: string, endDate: string) {
   const [summary, setSummary] = useState<ShipmentSummary>({
     totalShipments: 0,
     inTransitShipments: 0,
-    atCarrierShipments: 0,
     retainedShipments: 0,
     deliveredShipments: 0,
     partiallyDeliveredShipments: 0,
@@ -54,7 +52,6 @@ export function useShipmentSummary(startDate: string, endDate: string) {
     const summaryData = {
       totalShipments: filteredShipments.length,
       inTransitShipments: filteredShipments.filter(s => s.status === 'in_transit').length,
-      atCarrierShipments: filteredShipments.filter(s => s.status === 'at_carrier').length,
       retainedShipments: filteredShipments.filter(s => s.status === 'retained').length,
       deliveredShipments: filteredShipments.filter(s => s.status === 'delivered').length,
       partiallyDeliveredShipments: filteredShipments.filter(s => s.status === 'partially_delivered').length,

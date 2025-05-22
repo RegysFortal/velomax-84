@@ -94,7 +94,7 @@ export function StatusMenu({
     setShowDocumentSelection(false);
     
     // If we're changing to retained status, show retention sheet
-    if (status === "in_transit" || status === "at_carrier" || status === "delivered") {
+    if (status === "in_transit" || status === "delivered") {
       setShowRetentionSheet(true);
     } else {
       // For other statuses like delivery, show delivery dialog

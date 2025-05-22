@@ -15,7 +15,6 @@ export function useStatusLabel() {
       case "delivered": return "Retirada";
       case "partially_delivered": return "Entregue Parcial";
       case "delivered_final": return "Entregue";
-      case "at_carrier": return "Na Transportadora";
       default: return statusValue;
     }
   };

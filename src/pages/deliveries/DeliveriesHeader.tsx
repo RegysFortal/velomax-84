@@ -12,6 +12,8 @@ interface DeliveriesHeaderProps {
   setEditingDelivery: React.Dispatch<React.SetStateAction<Delivery | null>>;
   onRefreshDeliveries: () => void;
   onDialogComplete: () => void;
+  deliveries: Delivery[];
+  setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>;
 }
 
 export function DeliveriesHeader({
@@ -20,7 +22,9 @@ export function DeliveriesHeader({
   editingDelivery,
   setEditingDelivery,
   onRefreshDeliveries,
-  onDialogComplete
+  onDialogComplete,
+  deliveries,
+  setDeliveries
 }: DeliveriesHeaderProps) {
   return (
     <div className="flex items-center justify-between pb-4">
@@ -46,8 +50,11 @@ export function DeliveriesHeader({
           setIsDialogOpen(open);
           if (!open) setEditingDelivery(null);
         }}
-        delivery={editingDelivery}
+        editingDelivery={editingDelivery}
+        setEditingDelivery={setEditingDelivery}
         onComplete={onDialogComplete}
+        deliveries={deliveries}
+        setDeliveries={setDeliveries}
       />
     </div>
   );
