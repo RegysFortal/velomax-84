@@ -60,7 +60,8 @@ export function EventCalendarView({
     return (
       <div className="relative flex items-center justify-center w-full h-full">
         <div className="absolute inset-0 flex items-center justify-center">
-          {props.children}
+          {/* Display the day number directly instead of using props.children */}
+          {date.getDate()}
         </div>
         
         {eventTypes.length > 0 && (
