@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Truck, AlertTriangle, Check, Package, RefreshCw, RotateCcw, TruckIcon } from 'lucide-react';
+import { Truck, AlertTriangle, Check, Package, RefreshCw, RotateCcw } from 'lucide-react';
 import { useShipmentSummary } from './hooks/useShipmentSummary';
 
 interface SummaryCardsProps {
@@ -47,23 +47,6 @@ export function SummaryCards({
             {summary.inTransitShipments > 0 
               ? `${((summary.inTransitShipments / summary.totalShipments) * 100).toFixed(1)}% do total`
               : 'Nenhum embarque em trânsito'}
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Na Transportadora
-          </CardTitle>
-          <TruckIcon className="h-4 w-4 text-purple-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{summary.atCarrierShipments || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            {(summary.atCarrierShipments || 0) > 0 
-              ? `${(((summary.atCarrierShipments || 0) / summary.totalShipments) * 100).toFixed(1)}% do total`
-              : 'Nenhum embarque na transportadora'}
           </p>
         </CardContent>
       </Card>

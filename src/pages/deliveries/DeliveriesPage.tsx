@@ -18,7 +18,7 @@ import { useDeliveriesFilters } from './hooks/useDeliveriesFilters';
 import { useDeliveriesOps } from './hooks/useDeliveriesOps';
 
 export default function DeliveriesPage() {
-  const { deliveries } = useDeliveries();
+  const { deliveries, fetchDeliveries } = useDeliveries();
   const { clients, loading: clientsLoading } = useClients();
   
   // Safely access financial context with fallback
@@ -74,6 +74,12 @@ export default function DeliveriesPage() {
           setEditingDelivery={setEditingDelivery}
           onRefreshDeliveries={handleRefreshDeliveries}
           onDialogComplete={handleDialogComplete}
+          deliveries={deliveries}
+          setDeliveries={(newDeliveries) => {
+            // This is not optimal since we don't have a direct way to update deliveries,
+            // but we can trigger a fetch which will update the context
+            fetchDeliveries();
+          }}
         />
 
         <DeliveriesFilter

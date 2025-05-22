@@ -81,11 +81,11 @@ export function DocumentStatusControl({
         if (doc.id === document.id) {
           // Set boolean flags based on the status
           const isDelivered = status === "delivered";
-          const isRetained = false; // Since we're not handling "retained" here (it's handled separately)
+          const isRetained = status === "retained";
           const isPickedUp = status === "picked_up";
           
           // Remove retention info if we're changing from retained to another status
-          const retentionInfo = doc.isRetained ? undefined : doc.retentionInfo;
+          const retentionInfo = isRetained ? doc.retentionInfo : undefined;
           
           return {
             ...doc,
