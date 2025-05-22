@@ -13,7 +13,7 @@ export interface DeliveriesContextType {
   getDeliveryById: (id: string) => Delivery | undefined;
   createDeliveriesFromShipment: (shipment: any, deliveryDetails: any) => Promise<void>;
   refreshDeliveries: () => Promise<void>;
-  fetchDeliveries: () => Promise<void>;
+  fetchDeliveries: () => Promise<Delivery[]>;
   calculateFreight: (
     clientId: string,
     weight: number,

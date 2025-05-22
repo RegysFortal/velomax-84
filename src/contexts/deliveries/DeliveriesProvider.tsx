@@ -23,7 +23,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     updateDelivery, 
     deleteDelivery, 
     getDeliveryById,
-    fetchDeliveries
+    fetchDeliveries: fetchDeliveriesFromHook 
   } = useDeliveriesCRUD(deliveries, setDeliveries);
   
   // Safely get the required hooks
@@ -52,6 +52,11 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const refreshDeliveries = async () => {
     await fetchDeliveries();
+  };
+  
+  // Wrap fetchDeliveries to match the expected return type in context
+  const fetchDeliveries = async (): Promise<Delivery[]> => {
+    return await fetchDeliveriesFromHook();
   };
 
   return (
