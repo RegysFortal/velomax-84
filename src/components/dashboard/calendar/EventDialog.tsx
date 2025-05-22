@@ -1,146 +1,170 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { PlusCircle } from 'lucide-react';
-import { DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Calendar } from '@/components/ui/calendar';
-import { ptBR } from 'date-fns/locale';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarEvent, EVENT_TYPES, RECURRENCE_TYPES, EventType, RecurrenceType } from '@/hooks/useCalendarEvents';
+import { Edit, Trash } from 'lucide-react';
+import { CalendarEvent, EventType, EVENT_TYPES } from '@/hooks/useCalendarEvents';
+import { Shipment } from '@/types';
 
 interface EventDialogProps {
-  isEditMode: boolean;
-  newEvent: Partial<CalendarEvent>;
-  setNewEvent: React.Dispatch<React.SetStateAction<Partial<CalendarEvent>>>;
-  handleSaveEvent: () => Promise<void>;
-  handleRecurrenceChange: (recurrence: RecurrenceType) => void;
+  showEventDialog: boolean;
+  setShowEventDialog: (show: boolean) => void;
+  selectedEvent: CalendarEvent | undefined;
+  eventTitle: string;
+  setEventTitle: (title: string) => void;
+  eventType: EventType;
+  setEventType: (type: EventType) => void;
+  eventDescription: string;
+  setEventDescription: (description: string) => void;
+  isScheduledDelivery: boolean;
+  setIsScheduledDelivery: (isScheduled: boolean) => void;
+  scheduledShipmentId: string;
+  setScheduledShipmentId: (id: string) => void;
+  shipments: Shipment[];
+  handleSaveEvent: () => void;
+  handleDeleteEvent: () => void;
+  resetForm: () => void;
 }
 
 export function EventDialog({
-  isEditMode,
-  newEvent,
-  setNewEvent,
+  showEventDialog,
+  setShowEventDialog,
+  selectedEvent,
+  eventTitle,
+  setEventTitle,
+  eventType,
+  setEventType,
+  eventDescription,
+  setEventDescription,
+  isScheduledDelivery,
+  setIsScheduledDelivery,
+  scheduledShipmentId,
+  setScheduledShipmentId,
+  shipments,
   handleSaveEvent,
-  handleRecurrenceChange
+  handleDeleteEvent,
+  resetForm
 }: EventDialogProps) {
-  // Helper function to add months to a date
-  const addMonths = (date: Date, months: number) => {
-    const newDate = new Date(date);
-    newDate.setMonth(newDate.getMonth() + months);
-    return newDate;
-  };
-
   return (
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>{isEditMode ? 'Editar Evento' : 'Adicionar Novo Evento'}</DialogTitle>
-      </DialogHeader>
-      <ScrollArea className="max-h-[60vh] pr-3">
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="event-title">Título do Evento</Label>
-            <Input 
-              id="event-title" 
-              value={newEvent.title || ''} 
-              onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-              placeholder="Ex: Reunião com cliente" 
+    <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {selectedEvent ? 'Editar Evento' : 'Novo Evento'}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Título</Label>
+            <Input
+              id="title"
+              value={eventTitle}
+              onChange={(e) => setEventTitle(e.target.value)}
+              placeholder="Digite o título do evento"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="event-type">Tipo de Evento</Label>
-            <Select 
-              value={newEvent.type} 
-              onValueChange={(value: EventType) => setNewEvent({...newEvent, type: value})}
+          
+          <div className="space-y-2">
+            <Label htmlFor="type">Tipo de Evento</Label>
+            <Select
+              value={eventType}
+              onValueChange={(value) => setEventType(value as EventType)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo de evento" />
+                <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                  <SelectItem key={key} value={key}>{value.label}</SelectItem>
+                  <SelectItem key={key} value={key}>
+                    {value.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="grid gap-2">
-            <Label>Data do Evento</Label>
-            <Calendar
-              mode="single"
-              selected={newEvent.date}
-              onSelect={(date) => setNewEvent({...newEvent, date})}
-              locale={ptBR}
-              className="rounded-md border mx-auto"
+          
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="isScheduledDelivery"
+              checked={isScheduledDelivery}
+              onChange={(e) => setIsScheduledDelivery(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
             />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="event-time">Horário (opcional)</Label>
-            <Input 
-              id="event-time" 
-              value={newEvent.time || ''} 
-              onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
-              placeholder="Ex: 14:30" 
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="event-location">Local (opcional)</Label>
-            <Input 
-              id="event-location" 
-              value={newEvent.location || ''} 
-              onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
-              placeholder="Local do evento" 
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="event-recurrence">Repetição</Label>
-            <RadioGroup 
-              value={newEvent.recurrence || 'none'} 
-              onValueChange={(value: RecurrenceType) => handleRecurrenceChange(value)}
-            >
-              {Object.entries(RECURRENCE_TYPES).map(([key, value]) => (
-                <div key={key} className="flex items-center space-x-2">
-                  <RadioGroupItem value={key} id={`recurrence-${key}`} />
-                  <Label htmlFor={`recurrence-${key}`}>{value.label}</Label>
-                </div>
-              ))}
-            </RadioGroup>
+            <Label htmlFor="isScheduledDelivery" className="text-sm font-normal">
+              É uma entrega agendada
+            </Label>
           </div>
           
-          {newEvent.recurrence && newEvent.recurrence !== 'none' && (
-            <div className="grid gap-2">
-              <Label>Data Final da Repetição (opcional)</Label>
-              <Calendar
-                mode="single"
-                selected={newEvent.recurrenceEndDate}
-                onSelect={(date) => setNewEvent({...newEvent, recurrenceEndDate: date})}
-                locale={ptBR}
-                disabled={(date) => date < (newEvent.date || new Date())}
-                className="rounded-md border mx-auto"
-              />
+          {isScheduledDelivery && shipments.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="shipment">Embarque</Label>
+              <Select 
+                value={scheduledShipmentId} 
+                onValueChange={setScheduledShipmentId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o embarque" />
+                </SelectTrigger>
+                <SelectContent>
+                  {shipments.map((shipment) => (
+                    <SelectItem key={shipment.id} value={shipment.id}>
+                      {shipment.trackingNumber} - {shipment.companyName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           
-          <div className="grid gap-2">
-            <Label htmlFor="event-description">Descrição (opcional)</Label>
-            <Input 
-              id="event-description" 
-              value={newEvent.description || ''} 
-              onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
-              placeholder="Descrição do evento" 
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição</Label>
+            <Textarea
+              id="description"
+              value={eventDescription}
+              onChange={(e) => setEventDescription(e.target.value)}
+              placeholder="Digite uma descrição (opcional)"
             />
           </div>
         </div>
-      </ScrollArea>
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button variant="outline">Cancelar</Button>
-        </DialogClose>
-        <Button onClick={handleSaveEvent}>{isEditMode ? 'Atualizar' : 'Adicionar'}</Button>
-      </DialogFooter>
-    </DialogContent>
+        
+        <DialogFooter className="flex justify-between">
+          {selectedEvent && (
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteEvent}
+              type="button"
+            >
+              <Trash className="h-4 w-4 mr-1" />
+              Excluir
+            </Button>
+          )}
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowEventDialog(false);
+                resetForm();
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveEvent}>
+              {selectedEvent ? (
+                <>
+                  <Edit className="h-4 w-4 mr-1" />
+                  Atualizar
+                </>
+              ) : 'Salvar'}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

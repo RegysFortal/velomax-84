@@ -1,21 +1,14 @@
 
-import { useMemo, useState } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Delivery, Shipment } from '@/types';
-import { useNavigate } from 'react-router-dom';
-import { format, parseISO, isValid } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { useCalendarEvents, EVENT_TYPES, CalendarEvent, EventType } from '@/hooks/useCalendarEvents';
-import { Plus, Edit, Trash, PackageCheck } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { useCalendarEvents, EVENT_TYPES } from '@/hooks/useCalendarEvents';
 import { EventsList } from './calendar/EventsList';
 import { EventCalendarView } from './calendar/EventCalendarView';
+import { EventDialog } from './calendar/EventDialog';
+import { useEventState } from './calendar/hooks/useEventState';
 
 interface EventsCalendarProps {
   deliveries: Delivery[];
@@ -26,174 +19,40 @@ export const EventsCalendar = ({
   deliveries,
   shipments = []
 }: EventsCalendarProps) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const { events, loading, addEvent, updateEvent, deleteEvent } = useCalendarEvents();
   
-  const [showEventDialog, setShowEventDialog] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | undefined>(undefined);
-  const [eventTitle, setEventTitle] = useState('');
-  const [eventType, setEventType] = useState<EventType>('other');
-  const [eventDescription, setEventDescription] = useState('');
-  const [isScheduledDelivery, setIsScheduledDelivery] = useState(false);
-  const [scheduledShipmentId, setScheduledShipmentId] = useState('');
+  const {
+    showEventDialog,
+    setShowEventDialog,
+    selectedDate,
+    selectedEvent,
+    eventTitle,
+    setEventTitle,
+    eventType,
+    setEventType,
+    eventDescription,
+    setEventDescription,
+    isScheduledDelivery,
+    setIsScheduledDelivery,
+    scheduledShipmentId,
+    setScheduledShipmentId,
+    handleSelect,
+    handleSaveEvent,
+    handleDeleteEvent,
+    resetForm,
+    getEventsForSelectedDate,
+    handleEditEvent,
+    handleNewEvent
+  } = useEventState(events, addEvent, updateEvent, deleteEvent);
   
-  const calendarData = useMemo(() => {
-    const eventsMap = new Map<string, { events: CalendarEvent[] }>();
-    
-    events.forEach(event => {
-      try {
-        if (!event.date) return;
-        
-        const dateKey = format(event.date, 'yyyy-MM-dd');
-        const existing = eventsMap.get(dateKey) || { events: [] };
-        existing.events.push(event);
-        eventsMap.set(dateKey, existing);
-      } catch (error) {
-        console.error('Error processing event date:', error);
-      }
-    });
-    
-    return eventsMap;
-  }, [events]);
-  
-  // Handle selecting a date on the calendar
-  const handleSelect = (date: Date | undefined) => {
-    if (!date) return;
-    
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const eventsForDate = calendarData.get(dateStr);
-    
-    setSelectedDate(date);
-    
-    if (eventsForDate?.events.length === 1) {
-      const event = eventsForDate.events[0];
-      setSelectedEvent(event);
-      setEventTitle(event.title);
-      setEventType(event.type);
-      setEventDescription(event.description || '');
-      setIsScheduledDelivery(event.isScheduledDelivery || false);
-      setScheduledShipmentId(event.scheduledShipmentId || '');
-      setShowEventDialog(true);
-    } else {
-      setSelectedEvent(undefined);
-      setEventTitle('');
-      setEventType('other');
-      setEventDescription('');
-      setIsScheduledDelivery(false);
-      setScheduledShipmentId('');
-    }
-  };
-  
-  const handleSaveEvent = () => {
-    if (!selectedDate) return;
-    
-    try {
-      if (!eventTitle.trim()) {
-        toast({
-          title: "Erro",
-          description: "O título do evento é obrigatório.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      if (selectedEvent) {
-        updateEvent(selectedEvent.id, {
-          title: eventTitle,
-          type: eventType,
-          description: eventDescription,
-          isScheduledDelivery,
-          ...(isScheduledDelivery && { scheduledShipmentId })
-        });
-        toast({
-          title: "Evento atualizado",
-          description: "O evento foi atualizado com sucesso."
-        });
-      } else {
-        addEvent({
-          date: selectedDate,
-          title: eventTitle,
-          type: eventType,
-          description: eventDescription || undefined,
-          isScheduledDelivery,
-          ...(isScheduledDelivery && { scheduledShipmentId })
-        });
-        toast({
-          title: "Evento criado",
-          description: "O evento foi criado com sucesso."
-        });
-      }
-      
-      setShowEventDialog(false);
-      resetForm();
-    } catch (error) {
-      console.error('Error saving event:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao salvar o evento.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const handleDeleteEvent = () => {
-    if (!selectedEvent) return;
-    
-    try {
-      deleteEvent(selectedEvent.id);
-      toast({
-        title: "Evento excluído",
-        description: "O evento foi excluído com sucesso."
-      });
-      setShowEventDialog(false);
-      resetForm();
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao excluir o evento.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const resetForm = () => {
-    setSelectedEvent(undefined);
-    setEventTitle('');
-    setEventType('other');
-    setEventDescription('');
-    setIsScheduledDelivery(false);
-    setScheduledShipmentId('');
-  };
-  
-  const eventsForSelectedDate = selectedDate 
-    ? events.filter(event => {
-        const eventDate = new Date(event.date);
-        return eventDate.toDateString() === selectedDate.toDateString();
-      })
-    : [];
-    
-  const handleEditEvent = (event: CalendarEvent) => {
-    setSelectedEvent(event);
-    setEventTitle(event.title);
-    setEventType(event.type);
-    setEventDescription(event.description || '');
-    setIsScheduledDelivery(event.isScheduledDelivery || false);
-    setScheduledShipmentId(event.scheduledShipmentId || '');
-    setShowEventDialog(true);
-  };
+  const eventsForSelectedDate = getEventsForSelectedDate();
   
   return (
     <>
       <Card className="col-span-2 lg:col-span-3">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Calendário de Eventos</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => {
-            setSelectedDate(new Date());
-            setShowEventDialog(true);
-          }}>
+          <Button size="sm" variant="outline" onClick={handleNewEvent}>
             <Plus className="h-4 w-4 mr-1" />
             Novo Evento
           </Button>
@@ -219,10 +78,7 @@ export const EventsCalendar = ({
               <EventsList
                 selectedDate={selectedDate}
                 eventsForSelectedDate={eventsForSelectedDate}
-                handleNewEvent={() => {
-                  setSelectedDate(new Date());
-                  setShowEventDialog(true);
-                }}
+                handleNewEvent={handleNewEvent}
                 handleEditEvent={handleEditEvent}
                 handleDeleteEvent={deleteEvent}
               />
@@ -231,122 +87,25 @@ export const EventsCalendar = ({
         </CardContent>
       </Card>
       
-      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedEvent ? 'Editar Evento' : 'Novo Evento'}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título</Label>
-              <Input
-                id="title"
-                value={eventTitle}
-                onChange={(e) => setEventTitle(e.target.value)}
-                placeholder="Digite o título do evento"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="type">Tipo de Evento</Label>
-              <Select
-                value={eventType}
-                onValueChange={(value) => setEventType(value as EventType)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                    <SelectItem key={key} value={key}>
-                      {value.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isScheduledDelivery"
-                checked={isScheduledDelivery}
-                onChange={(e) => setIsScheduledDelivery(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-              />
-              <Label htmlFor="isScheduledDelivery" className="text-sm font-normal">
-                É uma entrega agendada
-              </Label>
-            </div>
-            
-            {isScheduledDelivery && shipments.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="shipment">Embarque</Label>
-                <Select 
-                  value={scheduledShipmentId} 
-                  onValueChange={setScheduledShipmentId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o embarque" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {shipments.map((shipment) => (
-                      <SelectItem key={shipment.id} value={shipment.id}>
-                        {shipment.trackingNumber} - {shipment.companyName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={eventDescription}
-                onChange={(e) => setEventDescription(e.target.value)}
-                placeholder="Digite uma descrição (opcional)"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter className="flex justify-between">
-            {selectedEvent && (
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteEvent}
-                type="button"
-              >
-                <Trash className="h-4 w-4 mr-1" />
-                Excluir
-              </Button>
-            )}
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowEventDialog(false);
-                  resetForm();
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button onClick={handleSaveEvent}>
-                {selectedEvent ? (
-                  <>
-                    <Edit className="h-4 w-4 mr-1" />
-                    Atualizar
-                  </>
-                ) : 'Salvar'}
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EventDialog
+        showEventDialog={showEventDialog}
+        setShowEventDialog={setShowEventDialog}
+        selectedEvent={selectedEvent}
+        eventTitle={eventTitle}
+        setEventTitle={setEventTitle}
+        eventType={eventType}
+        setEventType={setEventType}
+        eventDescription={eventDescription}
+        setEventDescription={setEventDescription}
+        isScheduledDelivery={isScheduledDelivery}
+        setIsScheduledDelivery={setIsScheduledDelivery}
+        scheduledShipmentId={scheduledShipmentId}
+        setScheduledShipmentId={setScheduledShipmentId}
+        shipments={shipments}
+        handleSaveEvent={handleSaveEvent}
+        handleDeleteEvent={handleDeleteEvent}
+        resetForm={resetForm}
+      />
     </>
   );
 };
