@@ -85,7 +85,7 @@ export function DocumentStatusControl({
           const isPickedUp = status === "picked_up";
           
           // Remove retention info if we're changing from retained to another status
-          const retentionInfo = isRetained ? doc.retentionInfo : undefined;
+          const retentionInfo = doc.isRetained && status !== "retained" ? undefined : doc.retentionInfo;
           
           return {
             ...doc,

@@ -13,6 +13,7 @@ export interface DeliveriesContextType {
   getDeliveryById: (id: string) => Delivery | undefined;
   createDeliveriesFromShipment: (shipment: any, deliveryDetails: any) => Promise<void>;
   refreshDeliveries: () => Promise<void>;
+  fetchDeliveries: () => Promise<void>;
   calculateFreight: (
     clientId: string,
     weight: number,
@@ -33,6 +34,6 @@ export const DeliveriesProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  // Implementation moved to DeliveriesProvider.tsx
+  // Implementation moved to DeliveriesProvider.tsx, please import DeliveriesProvider from there.
   throw new Error('DeliveriesProvider implementation moved to DeliveriesProvider.tsx, please import DeliveriesProvider from there.');
 };
