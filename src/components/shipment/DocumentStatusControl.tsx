@@ -147,13 +147,6 @@ export function DocumentStatusControl({
           retentionInfo
         };
         
-        // If delivery details are provided, add them to the document
-        if (status === "delivered" && deliveryDetails) {
-          updatedDoc.receiverName = deliveryDetails.receiverName;
-          updatedDoc.deliveryDate = deliveryDetails.deliveryDate;
-          updatedDoc.deliveryTime = deliveryDetails.deliveryTime;
-        }
-        
         return updatedDoc;
       }
       return doc;
@@ -162,19 +155,27 @@ export function DocumentStatusControl({
     // Update the document
     await updateDocument(shipmentId, document.id, updatedDocuments);
     
-    // Update shipment status based on document status changes
-    let shipmentStatus: ShipmentStatus | undefined;
-    if (status === "delivered") {
-      const allDelivered = updatedDocuments.every(doc => doc.isDelivered);
-      shipmentStatus = allDelivered ? "delivered_final" : "partially_delivered";
-    } else if (status === "retained") {
-      shipmentStatus = "retained";
-    } else if (status === "picked_up") {
-      shipmentStatus = "delivered"; // Map to "Retirado" status for shipment
-    }
-    
-    if (shipmentStatus) {
-      await updateStatus(shipmentId, shipmentStatus);
+    // If we have delivery details, update the shipment with delivery information
+    if (status === "delivered" && deliveryDetails) {
+      await updateStatus(shipmentId, "delivered_final");
+      
+      // Update shipment with delivery information
+      await updateShipmentWithDeliveryInfo(shipmentId, deliveryDetails);
+    } else {
+      // Update shipment status based on document status changes
+      let shipmentStatus: ShipmentStatus | undefined;
+      if (status === "delivered") {
+        const allDelivered = updatedDocuments.every(doc => doc.isDelivered);
+        shipmentStatus = allDelivered ? "delivered_final" : "partially_delivered";
+      } else if (status === "retained") {
+        shipmentStatus = "retained";
+      } else if (status === "picked_up") {
+        shipmentStatus = "delivered"; // Map to "Retirado" status for shipment
+      }
+      
+      if (shipmentStatus) {
+        await updateStatus(shipmentId, shipmentStatus);
+      }
     }
     
     // Show success message
@@ -188,6 +189,24 @@ export function DocumentStatusControl({
     // Call callback if provided
     if (onStatusChange) {
       onStatusChange();
+    }
+  };
+
+  // Helper function to update shipment with delivery information
+  const updateShipmentWithDeliveryInfo = async (shipmentId: string, deliveryDetails: any) => {
+    try {
+      const { receiverName, deliveryDate, deliveryTime } = deliveryDetails;
+      // Update the shipment directly instead of the document
+      const shipment = getShipmentById(shipmentId);
+      if (shipment) {
+        await updateStatus(shipmentId, "delivered_final", {
+          receiverName,
+          deliveryDate,
+          deliveryTime
+        });
+      }
+    } catch (error) {
+      console.error("Error updating shipment delivery info:", error);
     }
   };
   
