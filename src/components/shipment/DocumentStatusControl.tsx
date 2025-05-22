@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, Package, AlertTriangle, Clock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useShipments } from "@/contexts/shipments";
 import { Document, DocumentStatus, ShipmentStatus } from "@/types/shipment";
 import { RetentionSheet } from "./dialogs/RetentionSheet";
 import { useDocumentRetention } from "./hooks/useDocumentRetention";
+import { DeliveryDialog } from "./dialogs/DeliveryDialog";
 
 interface DocumentStatusControlProps {
   shipmentId: string;
@@ -29,6 +30,12 @@ export function DocumentStatusControl({
     retentionState,
     handleRetentionConfirm
   } = useDocumentRetention(shipmentId, document.id, onStatusChange);
+
+  // State for delivery dialog
+  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
+  const [receiverName, setReceiverName] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("");
   
   const getStatusBadge = () => {
     if (document.isRetained) {
@@ -68,74 +75,119 @@ export function DocumentStatusControl({
         return;
       }
       
-      // Get current documents for this shipment
-      const shipment = getShipmentById(shipmentId);
-      
-      if (!shipment || !shipment.documents) {
-        toast.error("Não foi possível encontrar os documentos do embarque");
+      // If changing to delivered status, show delivery form first
+      if (status === "delivered") {
+        setShowDeliveryDialog(true);
         return;
       }
       
-      // Create updated documents list
-      const updatedDocuments = shipment.documents.map(doc => {
-        if (doc.id === document.id) {
-          // Set boolean flags based on the status
-          const isDelivered = status === "delivered";
-          const isRetained = status === "retained";
-          const isPickedUp = status === "picked_up";
-          
-          // Handle retention info based on status changes
-          let retentionInfo = doc.retentionInfo;
-          
-          // If changing away from retained status, remove retention info
-          if (doc.isRetained && status !== "retained") {
-            retentionInfo = undefined;
-          }
-          
-          return {
-            ...doc,
-            isDelivered,
-            isRetained,
-            isPickedUp,
-            retentionInfo
-          };
-        }
-        return doc;
-      });
-      
-      // Update the document
-      await updateDocument(shipmentId, document.id, updatedDocuments);
-      
-      // Update shipment status based on document status changes
-      let shipmentStatus: ShipmentStatus | undefined;
-      if (status === "delivered") {
-        const allDelivered = updatedDocuments.every(doc => doc.isDelivered);
-        shipmentStatus = allDelivered ? "delivered_final" : "partially_delivered";
-      } else if (status === "retained") {
-        shipmentStatus = "retained";
-      } else if (status === "picked_up") {
-        shipmentStatus = "delivered"; // Map to "Retirado" status for shipment
-      }
-      
-      if (shipmentStatus) {
-        await updateStatus(shipmentId, shipmentStatus);
-      }
-      
-      // Show success message
-      let statusText = "Pendente";
-      if (status === "delivered") statusText = "Entregue";
-      else if (status === "picked_up") statusText = "Retirado";
-      else if (status === "retained") statusText = "Retido";
-      
-      toast.success(`Documento marcado como ${statusText}`);
-      
-      // Call callback if provided
-      if (onStatusChange) {
-        onStatusChange();
-      }
+      // For other statuses, proceed with direct update
+      await updateDocumentStatus(status);
     } catch (error) {
       console.error("Error updating document status:", error);
       toast.error("Erro ao atualizar status do documento");
+    }
+  };
+
+  // Handle delivery dialog confirmation
+  const handleDeliveryConfirm = async () => {
+    try {
+      await updateDocumentStatus("delivered", {
+        receiverName,
+        deliveryDate,
+        deliveryTime
+      });
+      setShowDeliveryDialog(false);
+      resetDeliveryForm();
+    } catch (error) {
+      console.error("Error confirming delivery:", error);
+      toast.error("Erro ao confirmar entrega");
+    }
+  };
+
+  // Reset delivery form fields
+  const resetDeliveryForm = () => {
+    setReceiverName("");
+    setDeliveryDate("");
+    setDeliveryTime("");
+  };
+
+  // Helper function to update document status
+  const updateDocumentStatus = async (status: DocumentStatus, deliveryDetails?: any) => {
+    // Get current documents for this shipment
+    const shipment = getShipmentById(shipmentId);
+    
+    if (!shipment || !shipment.documents) {
+      toast.error("Não foi possível encontrar os documentos do embarque");
+      return;
+    }
+    
+    // Create updated documents list
+    const updatedDocuments = shipment.documents.map(doc => {
+      if (doc.id === document.id) {
+        // Set boolean flags based on the status
+        const isDelivered = status === "delivered";
+        const isRetained = status === "retained";
+        const isPickedUp = status === "picked_up";
+        
+        // Handle retention info based on status changes
+        let retentionInfo = doc.retentionInfo;
+        
+        // If changing away from retained status, remove retention info
+        if (doc.isRetained && status !== "retained") {
+          retentionInfo = undefined;
+        }
+        
+        // Prepare base updated document
+        const updatedDoc = {
+          ...doc,
+          isDelivered,
+          isRetained,
+          isPickedUp,
+          retentionInfo
+        };
+        
+        // If delivery details are provided, add them to the document
+        if (status === "delivered" && deliveryDetails) {
+          updatedDoc.receiverName = deliveryDetails.receiverName;
+          updatedDoc.deliveryDate = deliveryDetails.deliveryDate;
+          updatedDoc.deliveryTime = deliveryDetails.deliveryTime;
+        }
+        
+        return updatedDoc;
+      }
+      return doc;
+    });
+    
+    // Update the document
+    await updateDocument(shipmentId, document.id, updatedDocuments);
+    
+    // Update shipment status based on document status changes
+    let shipmentStatus: ShipmentStatus | undefined;
+    if (status === "delivered") {
+      const allDelivered = updatedDocuments.every(doc => doc.isDelivered);
+      shipmentStatus = allDelivered ? "delivered_final" : "partially_delivered";
+    } else if (status === "retained") {
+      shipmentStatus = "retained";
+    } else if (status === "picked_up") {
+      shipmentStatus = "delivered"; // Map to "Retirado" status for shipment
+    }
+    
+    if (shipmentStatus) {
+      await updateStatus(shipmentId, shipmentStatus);
+    }
+    
+    // Show success message
+    let statusText = "Pendente";
+    if (status === "delivered") statusText = "Entregue";
+    else if (status === "picked_up") statusText = "Retirado";
+    else if (status === "retained") statusText = "Retido";
+    
+    toast.success(`Documento marcado como ${statusText}`);
+    
+    // Call callback if provided
+    if (onStatusChange) {
+      onStatusChange();
     }
   };
   
@@ -167,6 +219,7 @@ export function DocumentStatusControl({
         </DropdownMenuContent>
       </DropdownMenu>
       
+      {/* Retenção sheet dialog */}
       <RetentionSheet
         open={retentionState.showRetentionSheet}
         onOpenChange={retentionState.setShowRetentionSheet}
@@ -184,6 +237,19 @@ export function DocumentStatusControl({
         setFiscalNotes={retentionState.setFiscalNotes}
         onConfirm={handleRetentionConfirm}
         isEditing={false}
+      />
+
+      {/* Delivery dialog */}
+      <DeliveryDialog
+        open={showDeliveryDialog}
+        onOpenChange={setShowDeliveryDialog}
+        receiverName={receiverName}
+        setReceiverName={setReceiverName}
+        deliveryDate={deliveryDate}
+        setDeliveryDate={setDeliveryDate}
+        deliveryTime={deliveryTime}
+        setDeliveryTime={setDeliveryTime}
+        onConfirm={handleDeliveryConfirm}
       />
     </>
   );
