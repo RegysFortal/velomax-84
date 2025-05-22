@@ -65,6 +65,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         getDeliveryById,
         createDeliveriesFromShipment,
         refreshDeliveries,
+        fetchDeliveries,
         calculateFreight,
         isDoorToDoorDelivery,
         checkMinuteNumberExists: (minuteNumber: string, clientId: string) => 
