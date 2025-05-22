@@ -5,7 +5,9 @@ import { Card } from "@/components/ui/card";
 import { DocumentHeader } from './components/DocumentHeader';
 import { DocumentDetails } from './components/DocumentDetails';
 import { RetentionInfo } from './components/RetentionInfo';
+import { DeliveryInfo } from './components/DeliveryInfo';
 import { DocumentActions } from './components/DocumentActions';
+import { useShipments } from "@/contexts/shipments";
 
 interface DocumentItemProps {
   document: Document;
@@ -22,6 +24,10 @@ export function DocumentItem({
   onDelete,
   onStatusChange
 }: DocumentItemProps) {
+  // Get shipment data to pass delivery info
+  const { getShipmentById } = useShipments();
+  const shipment = getShipmentById(shipmentId);
+  
   // Determine if we should show priority background
   const shouldShowPriorityBackground = document.isPriority && !document.isDelivered;
 
@@ -45,6 +51,15 @@ export function DocumentItem({
           {document.isRetained && (
             <RetentionInfo
               document={document}
+              shouldShowPriorityBackground={shouldShowPriorityBackground}
+            />
+          )}
+          
+          {/* Informações de Entrega (quando aplicável) */}
+          {document.isDelivered && shipment && (
+            <DeliveryInfo
+              document={document}
+              shipment={shipment}
               shouldShowPriorityBackground={shouldShowPriorityBackground}
             />
           )}

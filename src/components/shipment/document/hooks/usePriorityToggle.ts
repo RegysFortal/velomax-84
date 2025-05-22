@@ -8,7 +8,7 @@ export function usePriorityToggle(
   document: Document,
   onStatusChange?: () => void
 ) {
-  const { getShipmentById, updateDocument } = useShipments();
+  const { getShipmentById, updateDocument, updateShipment } = useShipments();
   
   // Toggle priority flag
   const handleTogglePriority = async (e: React.MouseEvent) => {
@@ -34,6 +34,12 @@ export function usePriorityToggle(
       
       // Update the document
       await updateDocument(shipmentId, document.id, updatedDocuments);
+      
+      // Make sure to update the shipment with the updated documents to persist the changes
+      await updateShipment(shipmentId, {
+        ...shipment,
+        documents: updatedDocuments
+      });
       
       // Show notification
       if (!document.isPriority) {

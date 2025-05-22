@@ -26,7 +26,7 @@ export function EventCalendarView({
       if (!event.date) return;
       
       try {
-        const dateKey = format(event.date, 'yyyy-MM-dd');
+        const dateKey = format(new Date(event.date), 'yyyy-MM-dd');
         if (!eventMap.has(dateKey)) {
           eventMap.set(dateKey, []);
         }

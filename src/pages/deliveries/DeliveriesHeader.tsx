@@ -1,53 +1,54 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { DeliveryFormDialog } from '@/components/delivery/DeliveryFormDialog';
 import { Delivery } from '@/types';
 
 interface DeliveriesHeaderProps {
   isDialogOpen: boolean;
-  setIsDialogOpen: (open: boolean) => void;
+  setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   editingDelivery: Delivery | null;
-  setEditingDelivery: (delivery: Delivery | null) => void;
+  setEditingDelivery: React.Dispatch<React.SetStateAction<Delivery | null>>;
   onRefreshDeliveries: () => void;
   onDialogComplete: () => void;
 }
 
-export const DeliveriesHeader: React.FC<DeliveriesHeaderProps> = ({
+export function DeliveriesHeader({
   isDialogOpen,
   setIsDialogOpen,
   editingDelivery,
   setEditingDelivery,
   onRefreshDeliveries,
   onDialogComplete
-}) => {
-  // Mock empty arrays for deliveries since we're not using them in the header
-  const mockDeliveries: Delivery[] = [];
-  const setMockDeliveries = () => {};
-
+}: DeliveriesHeaderProps) {
   return (
-    <div className="flex justify-between items-center mb-6">
-      <h1 className="text-3xl font-bold">Entregas</h1>
-      <div className="flex gap-2">
-        <Button 
-          variant="outline" 
-          onClick={onRefreshDeliveries}
-          title="Atualizar lista de entregas"
-        >
-          <RefreshCcw className="h-4 w-4 mr-2" />
+    <div className="flex items-center justify-between pb-4">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Entregas</h1>
+        <p className="text-muted-foreground">
+          Gerencie todas as suas entregas nesta seção
+        </p>
+      </div>
+      <div className="flex space-x-2">
+        <Button variant="outline" onClick={onRefreshDeliveries}>
           Atualizar
         </Button>
-        <DeliveryFormDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          editingDelivery={editingDelivery}
-          setEditingDelivery={setEditingDelivery}
-          onComplete={onDialogComplete}
-          deliveries={mockDeliveries}
-          setDeliveries={setMockDeliveries}
-        />
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Nova Entrega
+        </Button>
       </div>
+      
+      <DeliveryFormDialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setEditingDelivery(null);
+        }}
+        delivery={editingDelivery}
+        onComplete={onDialogComplete}
+      />
     </div>
   );
-};
+}

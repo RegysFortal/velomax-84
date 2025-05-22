@@ -1,5 +1,5 @@
 
-import { Shipment, ShipmentStatus, DocumentStatus } from "@/types/shipment";
+import { Shipment, ShipmentStatus } from "@/types/shipment";
 import { toast } from "sonner";
 
 /**

@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { Check, Package, AlertTriangle, Truck, Clock } from "lucide-react";
+import { Check, Package, AlertTriangle, Clock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useShipments } from "@/contexts/shipments";
-import { Document, DocumentStatus } from "@/types/shipment";
+import { Document, DocumentStatus, ShipmentStatus } from "@/types/shipment";
 import { RetentionSheet } from "./dialogs/RetentionSheet";
 import { useDocumentRetention } from "./hooks/useDocumentRetention";
 
@@ -22,7 +22,7 @@ export function DocumentStatusControl({
   onStatusChange 
 }: DocumentStatusControlProps) {
   // Get shipment context for document updates
-  const { getShipmentById, updateDocument } = useShipments();
+  const { getShipmentById, updateDocument, updateStatus } = useShipments();
   
   // Use the document retention hook
   const { 
@@ -101,6 +101,21 @@ export function DocumentStatusControl({
       // Atualizar o documento
       await updateDocument(shipmentId, document.id, updatedDocuments);
       
+      // Update shipment status based on document status changes
+      let shipmentStatus: ShipmentStatus | undefined;
+      if (status === "delivered") {
+        const allDelivered = updatedDocuments.every(doc => doc.isDelivered);
+        shipmentStatus = allDelivered ? "delivered_final" : "partially_delivered";
+      } else if (status === "retained") {
+        shipmentStatus = "retained";
+      } else if (status === "picked_up") {
+        shipmentStatus = "delivered"; // Map to "Retirado" status for shipment
+      }
+      
+      if (shipmentStatus) {
+        await updateStatus(shipmentId, shipmentStatus);
+      }
+      
       // Mostrar mensagem de sucesso
       let statusText = "Pendente";
       if (status === "delivered") statusText = "Entregue";
@@ -127,7 +142,7 @@ export function DocumentStatusControl({
             {getStatusBadge()}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuContent align="end" className="w-40 bg-white">
           <DropdownMenuItem onClick={() => handleStatusChange("pending")}>
             <Clock className="mr-2 h-4 w-4" />
             <span>Pendente</span>
@@ -137,7 +152,7 @@ export function DocumentStatusControl({
             <span>Retido</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleStatusChange("picked_up")}>
-            <Truck className="mr-2 h-4 w-4" />
+            <Package className="mr-2 h-4 w-4" />
             <span>Retirado</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleStatusChange("delivered")}>
