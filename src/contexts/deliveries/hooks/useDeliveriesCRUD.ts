@@ -55,6 +55,12 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         ? parseFloat(deliveryData.totalFreight) 
         : deliveryData.totalFreight;
 
+      // Ensure we have a valid user_id from auth
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
+
       const { data, error } = await supabase
         .from('deliveries')
         .insert({
@@ -73,11 +79,15 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
           delivery_date: deliveryData.deliveryDate,
           delivery_time: deliveryData.deliveryTime,
           total_freight: totalFreight || 0,
+          user_id: userData.user.id, // Explicitly set user_id
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       const newDelivery: Delivery = {
         id: data.id,
@@ -100,11 +110,12 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       };
 
       setDeliveries((prevDeliveries) => [newDelivery, ...prevDeliveries]);
+      toast.success('Entrega criada com sucesso');
 
       return newDelivery;
     } catch (error) {
       console.error('Error adding delivery:', error);
-      toast.error('Erro ao adicionar entrega');
+      toast.error(`Erro ao adicionar entrega: ${error.message || 'Erro desconhecido'}`);
       return undefined;
     }
   };
@@ -174,6 +185,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         )
       );
 
+      toast.success('Entrega atualizada com sucesso');
       return updatedDelivery;
     } catch (error) {
       console.error('Error updating delivery:', error);
@@ -191,6 +203,8 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       setDeliveries((prevDeliveries) =>
         prevDeliveries.filter((delivery) => delivery.id !== id)
       );
+      
+      toast.success('Entrega excluída com sucesso');
       return true;
     } catch (error) {
       console.error('Error deleting delivery:', error);

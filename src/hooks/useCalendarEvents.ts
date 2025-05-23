@@ -2,121 +2,66 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/auth/AuthContext';
-import { EVENT_TYPES, RECURRENCE_TYPES, CalendarEvent, EventType, RecurrenceType } from './calendar/event-types';
-import { useEventOperations } from './calendar/event-operations';
-import { migrateLocalEventsToSupabase } from './calendar/event-migration';
+import { CalendarEvent, EventType, RECURRENCE_TYPES } from './calendar/event-types';
 
-export { EVENT_TYPES, RECURRENCE_TYPES, type CalendarEvent, type EventType, type RecurrenceType };
+export { CalendarEvent, EventType, RECURRENCE_TYPES };
 
 export const useCalendarEvents = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth();
-  const { addEvent, updateEvent, deleteEvent } = useEventOperations(events, setEvents, user);
 
-  // Load events from Supabase when component mounts
+  // Load events from Supabase
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
         
-        if (user) {
-          // Try to fetch from Supabase
-          const { data, error } = await supabase
-            .from('calendar_events')
-            .select('*')
-            .order('date', { ascending: true });
-          
-          if (error) {
-            console.error('Supabase fetch error:', error);
-            throw error;
-          }
-          
-          if (data && data.length > 0) {
-            // Convert string dates to Date objects
-            const parsedEvents = data.map(event => ({
-              id: event.id,
-              date: new Date(event.date),
-              title: event.title,
-              type: event.type as EventType,
-              description: event.description,
-              recurrence: event.recurrence as RecurrenceType,
-              recurrenceEndDate: event.recurrence_end_date ? new Date(event.recurrence_end_date) : undefined
-            }));
-            
-            setEvents(parsedEvents);
-            console.log("Loaded", parsedEvents.length, "events from Supabase");
-          } else {
-            // If no events from Supabase, try to load from localStorage
-            const storedEvents = localStorage.getItem('velomax_calendar_events');
-            if (storedEvents) {
-              try {
-                // Need to convert string dates back to Date objects
-                const parsedEvents = JSON.parse(storedEvents, (key, value) => {
-                  if (key === 'date' || key === 'recurrenceEndDate') {
-                    return new Date(value);
-                  }
-                  return value;
-                });
-                setEvents(parsedEvents);
-                
-                // If user is logged in, migrate localStorage events to Supabase
-                if (user && parsedEvents.length > 0) {
-                  migrateLocalEventsToSupabase(parsedEvents, user);
-                }
-              } catch (error) {
-                console.error('Error parsing stored events:', error);
-                setEvents([]);
-              }
-            } else {
-              setEvents([]);
-            }
-          }
-        } else {
-          // Not logged in, try to load from localStorage
-          const storedEvents = localStorage.getItem('velomax_calendar_events');
-          if (storedEvents) {
-            try {
-              const parsedEvents = JSON.parse(storedEvents, (key, value) => {
-                if (key === 'date' || key === 'recurrenceEndDate') {
-                  return new Date(value);
-                }
-                return value;
-              });
-              setEvents(parsedEvents);
-            } catch (e) {
-              console.error('Error parsing stored events:', e);
-              setEvents([]);
-            }
-          } else {
-            setEvents([]);
-          }
+        const { data, error } = await supabase
+          .from('calendar_events')
+          .select('*')
+          .order('date', { ascending: true });
+        
+        if (error) {
+          throw error;
         }
+        
+        const mappedEvents = data.map((event: any): CalendarEvent => ({
+          id: event.id,
+          title: event.title,
+          date: new Date(event.date),
+          type: event.type as EventType,
+          description: event.description || undefined,
+          recurrence: event.recurrence || undefined,
+          recurrenceEndDate: event.recurrence_end_date ? new Date(event.recurrence_end_date) : undefined,
+        }));
+        
+        setEvents(mappedEvents);
       } catch (error) {
         console.error('Error fetching events:', error);
         toast({
           title: "Erro ao carregar eventos",
-          description: "Não foi possível carregar os eventos. Verifique sua conexão.",
+          description: "Usando dados locais como fallback.",
           variant: "destructive"
         });
         
-        // Try to load from localStorage as fallback
+        // Load from localStorage as fallback
         const storedEvents = localStorage.getItem('velomax_calendar_events');
         if (storedEvents) {
           try {
-            const parsedEvents = JSON.parse(storedEvents, (key, value) => {
-              if (key === 'date' || key === 'recurrenceEndDate') {
-                return new Date(value);
-              }
-              return value;
-            });
-            setEvents(parsedEvents);
-          } catch (e) {
-            console.error('Error parsing stored events:', e);
+            const parsed = JSON.parse(storedEvents);
+            const mappedEvents = parsed.map((event: any) => ({
+              ...event,
+              date: new Date(event.date),
+              recurrenceEndDate: event.recurrenceEndDate ? new Date(event.recurrenceEndDate) : undefined
+            }));
+            setEvents(mappedEvents);
+          } catch (error) {
+            console.error('Failed to parse stored events', error);
             setEvents([]);
           }
+        } else {
+          setEvents([]);
         }
       } finally {
         setLoading(false);
@@ -124,7 +69,111 @@ export const useCalendarEvents = () => {
     };
     
     fetchEvents();
-  }, [toast, user]);
+  }, [toast]);
+
+  // Save events to localStorage as backup whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('velomax_calendar_events', JSON.stringify(events));
+    }
+  }, [events, loading]);
+
+  const addEvent = async (eventData: Omit<CalendarEvent, 'id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('calendar_events')
+        .insert({
+          title: eventData.title,
+          date: eventData.date.toISOString(),
+          type: eventData.type,
+          description: eventData.description,
+          recurrence: eventData.recurrence,
+          recurrence_end_date: eventData.recurrenceEndDate?.toISOString(),
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newEvent: CalendarEvent = {
+        id: data.id,
+        title: data.title,
+        date: new Date(data.date),
+        type: data.type,
+        description: data.description,
+        recurrence: data.recurrence,
+        recurrenceEndDate: data.recurrence_end_date ? new Date(data.recurrence_end_date) : undefined,
+      };
+
+      setEvents(prev => [...prev, newEvent]);
+    } catch (error) {
+      console.error('Error adding event:', error);
+      // Add to local state as fallback
+      const newEvent: CalendarEvent = {
+        id: Date.now().toString(),
+        ...eventData
+      };
+      setEvents(prev => [...prev, newEvent]);
+    }
+  };
+
+  const updateEvent = async (id: string, updates: Partial<CalendarEvent>) => {
+    try {
+      const updateData: any = {};
+      
+      if (updates.title !== undefined) updateData.title = updates.title;
+      if (updates.type !== undefined) updateData.type = updates.type;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.recurrence !== undefined) updateData.recurrence = updates.recurrence;
+      if (updates.date !== undefined) updateData.date = updates.date.toISOString();
+      if (updates.recurrenceEndDate !== undefined) {
+        updateData.recurrence_end_date = updates.recurrenceEndDate?.toISOString();
+      }
+
+      const { error } = await supabase
+        .from('calendar_events')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setEvents(prev => 
+        prev.map(event => 
+          event.id === id 
+            ? { ...event, ...updates }
+            : event
+        )
+      );
+    } catch (error) {
+      console.error('Error updating event:', error);
+      // Update local state as fallback
+      setEvents(prev => 
+        prev.map(event => 
+          event.id === id 
+            ? { ...event, ...updates }
+            : event
+        )
+      );
+    }
+  };
+
+  const deleteEvent = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('calendar_events')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setEvents(prev => prev.filter(event => event.id !== id));
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      // Delete from local state as fallback
+      setEvents(prev => prev.filter(event => event.id !== id));
+    }
+  };
 
   return {
     events,

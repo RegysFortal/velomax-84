@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { EventCalendarView } from './EventCalendarView';
-import { EVENT_TYPES } from '@/hooks/useCalendarEvents';
+import { EVENT_TYPES } from '@/hooks/calendar/event-types';
 
 interface EventCalendarSectionProps {
   selectedDate: Date | undefined;

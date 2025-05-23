@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { ptBR } from 'date-fns/locale';
@@ -80,7 +79,7 @@ export function EventCalendarView({
       </div>
     );
   };
-
+  
   return (
     <div className="flex-1">
       <Calendar
