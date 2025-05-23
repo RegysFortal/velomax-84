@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CalendarEvent, EVENT_TYPES } from '@/hooks/useCalendarEvents';
+import { CalendarEvent, EVENT_TYPES } from '@/hooks/calendar/event-types';
 import { Button } from '@/components/ui/button';
 import { Edit2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';

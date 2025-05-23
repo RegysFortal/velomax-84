@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarEvent, EventType, RECURRENCE_TYPES } from './calendar/event-types';
 
-export { CalendarEvent, EventType, RECURRENCE_TYPES };
+export type { CalendarEvent, EventType, RECURRENCE_TYPES };
 
 export const useCalendarEvents = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -32,7 +32,7 @@ export const useCalendarEvents = () => {
           date: new Date(event.date),
           type: event.type as EventType,
           description: event.description || undefined,
-          recurrence: event.recurrence || undefined,
+          recurrence: event.recurrence as keyof typeof RECURRENCE_TYPES || undefined,
           recurrenceEndDate: event.recurrence_end_date ? new Date(event.recurrence_end_date) : undefined,
         }));
         
@@ -100,9 +100,9 @@ export const useCalendarEvents = () => {
         id: data.id,
         title: data.title,
         date: new Date(data.date),
-        type: data.type,
+        type: data.type as EventType,
         description: data.description,
-        recurrence: data.recurrence,
+        recurrence: data.recurrence as keyof typeof RECURRENCE_TYPES,
         recurrenceEndDate: data.recurrence_end_date ? new Date(data.recurrence_end_date) : undefined,
       };
 

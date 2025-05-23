@@ -9,28 +9,38 @@ interface DeliveryFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   delivery?: Delivery;
-  onSave: (delivery: Delivery) => void;
+  onComplete: () => void;
+  editingDelivery?: Delivery | null;
+  setEditingDelivery?: React.Dispatch<React.SetStateAction<Delivery | null>>;
+  deliveries?: Delivery[];
+  setDeliveries?: React.Dispatch<React.SetStateAction<Delivery[]>>;
 }
 
 export function DeliveryFormDialog({
   open,
   onOpenChange,
   delivery,
-  onSave
+  onComplete,
+  editingDelivery,
+  setEditingDelivery,
+  deliveries,
+  setDeliveries
 }: DeliveryFormDialogProps) {
+  const deliveryToEdit = delivery || editingDelivery;
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>
-            {delivery ? 'Editar Entrega' : 'Nova Entrega'}
+            {deliveryToEdit ? 'Editar Entrega' : 'Nova Entrega'}
           </DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[calc(90vh-120px)] overflow-y-auto">
           <div className="p-1">
             <DeliveryForm
-              delivery={delivery}
-              onSave={onSave}
+              delivery={deliveryToEdit}
+              onComplete={onComplete}
               onCancel={() => onOpenChange(false)}
             />
           </div>

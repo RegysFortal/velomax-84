@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit, Trash } from 'lucide-react';
-import { CalendarEvent, EventType, EVENT_TYPES } from '@/hooks/useCalendarEvents';
+import { CalendarEvent, EventType, EVENT_TYPES } from '@/hooks/calendar/event-types';
 import { Shipment } from '@/types';
 
 interface EventDialogProps {

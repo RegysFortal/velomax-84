@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Repeat } from 'lucide-react';
-import { EVENT_TYPES } from '@/hooks/useCalendarEvents';
+import { EVENT_TYPES } from '@/hooks/calendar/event-types';
 
 export function EventLegend() {
   return (
