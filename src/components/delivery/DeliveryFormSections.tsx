@@ -63,6 +63,7 @@ export const DeliveryFormSections: React.FC<{
         toast.success('Entrega registrada com sucesso');
       }
       
+      // Fechar o diálogo automaticamente após salvar
       onComplete();
     } catch (error) {
       console.error('Error submitting delivery:', error);
@@ -73,9 +74,20 @@ export const DeliveryFormSections: React.FC<{
   };
 
   const handleConfirmDuplicate = async () => {
-    if (formData) {
-      await onSubmit(formData);
-      setShowDuplicateAlert(false);
+    if (formData && !submitting) {
+      try {
+        setSubmitting(true);
+        await addDelivery(formData);
+        toast.success('Entrega registrada com sucesso');
+        setShowDuplicateAlert(false);
+        // Fechar o diálogo automaticamente após salvar
+        onComplete();
+      } catch (error) {
+        console.error('Error submitting duplicate delivery:', error);
+        toast.error('Erro ao salvar entrega');
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
