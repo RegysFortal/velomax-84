@@ -6,11 +6,13 @@ import { DeliveryFormTypeFields } from './DeliveryFormTypeFields';
 import { DeliveryFormNotes } from './DeliveryFormNotes';
 import { useDeliveryFormContext } from './context/DeliveryFormContext';
 import { useCities } from '@/contexts/cities';
+import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { Separator } from '@/components/ui/separator';
-import { useDeliveryFormSubmit } from './hooks/useDeliveryFormSubmit';
 import { FreightSection } from './FreightSection';
 import { FormActionsSection } from './FormActionsSection';
 import { DuplicateMinuteAlertDialog } from './DuplicateMinuteAlertDialog';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export const DeliveryFormSections: React.FC<{
   onComplete: () => void;
@@ -29,24 +31,52 @@ export const DeliveryFormSections: React.FC<{
   } = useDeliveryFormContext();
 
   const { cities } = useCities();
-  const { handleSubmit, handleConfirmDuplicate } = useDeliveryFormSubmit({
-    deliveries: [],
-    addDelivery: async () => {
-      return {} as any;
-    },
-    onSuccess: onComplete,
-    isEditMode,
-    delivery,
-    setFormData,
-    setShowDuplicateAlert
-  });
+  const { addDelivery, updateDelivery } = useDeliveries();
+  const [submitting, setSubmitting] = useState(false);
 
   const watchDeliveryType = form.watch('deliveryType');
 
-  const onSubmit = (data: any) => {
-    // O valor do frete é lido do context, sempre atualizado
-    // O hook já faz o cálculo/manual mapping
-    handleSubmit(data);
+  const onSubmit = async (data: any) => {
+    if (submitting) return;
+    
+    try {
+      setSubmitting(true);
+      
+      console.log('Submitting delivery data:', data);
+      
+      // Preparar dados para envio
+      const deliveryData = {
+        ...data,
+        totalFreight: freight || data.totalFreight || 50,
+        weight: parseFloat(String(data.weight)),
+        packages: parseInt(String(data.packages)),
+        cargoValue: data.cargoValue ? parseFloat(String(data.cargoValue)) : 0,
+      };
+      
+      if (isEditMode && delivery?.id) {
+        // Atualizar entrega existente
+        await updateDelivery(delivery.id, deliveryData);
+        toast.success('Entrega atualizada com sucesso');
+      } else {
+        // Criar nova entrega
+        await addDelivery(deliveryData);
+        toast.success('Entrega registrada com sucesso');
+      }
+      
+      onComplete();
+    } catch (error) {
+      console.error('Error submitting delivery:', error);
+      toast.error('Erro ao salvar entrega');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleConfirmDuplicate = async () => {
+    if (formData) {
+      await onSubmit(formData);
+      setShowDuplicateAlert(false);
+    }
   };
 
   return (
@@ -76,12 +106,16 @@ export const DeliveryFormSections: React.FC<{
           </div>
 
           <FreightSection isEditMode={isEditMode} />
-          <FormActionsSection isEditMode={isEditMode} onCancel={onCancel} />
+          <FormActionsSection 
+            isEditMode={isEditMode} 
+            onCancel={onCancel} 
+            submitting={submitting}
+          />
         </form>
       </Form>
 
       <DuplicateMinuteAlertDialog
-        onConfirm={() => handleConfirmDuplicate(formData)}
+        onConfirm={handleConfirmDuplicate}
       />
     </>
   );
