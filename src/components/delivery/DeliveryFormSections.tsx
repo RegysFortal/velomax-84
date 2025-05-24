@@ -57,14 +57,16 @@ export const DeliveryFormSections: React.FC<{
         // Atualizar entrega existente
         await updateDelivery(delivery.id, deliveryData);
         toast.success('Entrega atualizada com sucesso');
+        // Garantir que o diálogo seja fechado após a atualização
+        setTimeout(() => {
+          onComplete();
+        }, 100);
       } else {
         // Criar nova entrega
         await addDelivery(deliveryData);
         toast.success('Entrega registrada com sucesso');
+        onComplete();
       }
-      
-      // Fechar o diálogo automaticamente após salvar (tanto para criar quanto editar)
-      onComplete();
     } catch (error) {
       console.error('Error submitting delivery:', error);
       toast.error('Erro ao salvar entrega');

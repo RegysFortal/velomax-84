@@ -131,6 +131,7 @@ export default function DeliveriesPage() {
           open={!!selectedDelivery}
           onClose={handleDetailClose}
           onEdit={handleEditDelivery}
+          onDelete={handleDeleteDelivery}
         />
       </div>
     </ScrollArea>

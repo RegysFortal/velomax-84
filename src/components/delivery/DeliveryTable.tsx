@@ -49,7 +49,7 @@ export function DeliveryTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={11} className="text-center py-4">
+              <TableCell colSpan={10} className="text-center py-4">
                 Nenhuma entrega encontrada
               </TableCell>
             </TableRow>

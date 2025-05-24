@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ClientInfo } from './details/ClientInfo';
@@ -23,10 +23,18 @@ interface DeliveryDetailsProps {
   open: boolean;
   onClose: () => void;
   onEdit: (delivery: Delivery) => void;
+  onDelete: (id: string) => void;
 }
 
-export function DeliveryDetails({ delivery, open, onClose, onEdit }: DeliveryDetailsProps) {
+export function DeliveryDetails({ delivery, open, onClose, onEdit, onDelete }: DeliveryDetailsProps) {
   if (!delivery) return null;
+
+  const handleDelete = () => {
+    if (window.confirm('Tem certeza que deseja excluir esta entrega?')) {
+      onDelete(delivery.id);
+      onClose();
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
@@ -34,10 +42,16 @@ export function DeliveryDetails({ delivery, open, onClose, onEdit }: DeliveryDet
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             <span>Detalhes da Entrega</span>
-            <Button variant="outline" size="sm" onClick={() => onEdit(delivery)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => onEdit(delivery)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </Button>
+            </div>
           </DialogTitle>
           <DialogDescription>
             Minuta: {delivery.minuteNumber}
