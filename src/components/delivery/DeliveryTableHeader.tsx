@@ -8,7 +8,7 @@ export function DeliveryTableHeader() {
       <TableRow>
         <TableHead className="px-2 py-2 min-w-[100px]">Minuta</TableHead>
         <TableHead className="px-2 py-2 min-w-[150px]">Cliente</TableHead>
-        <TableHead className="px-2 py-2 min-w-[100px]">Data</TableHead>
+        <TableHead className="px-2 py-2 min-w-[80px]">Data</TableHead>
         <TableHead className="px-2 py-2 min-w-[80px]">Hora</TableHead>
         <TableHead className="px-2 py-2 min-w-[120px]">Recebedor</TableHead>
         <TableHead className="px-2 py-2 min-w-[80px]">Peso</TableHead>
