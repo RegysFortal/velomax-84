@@ -63,7 +63,7 @@ export const DeliveryFormSections: React.FC<{
         toast.success('Entrega registrada com sucesso');
       }
       
-      // Fechar o diálogo automaticamente após salvar
+      // Fechar o diálogo automaticamente após salvar (tanto para criar quanto editar)
       onComplete();
     } catch (error) {
       console.error('Error submitting delivery:', error);

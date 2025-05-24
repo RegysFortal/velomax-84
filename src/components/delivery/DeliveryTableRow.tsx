@@ -35,14 +35,14 @@ export function DeliveryTableRow({
       className="cursor-pointer hover:bg-muted"
       onClick={() => onViewDetails(delivery)}
     >
-      <TableCell>{delivery.minuteNumber}</TableCell>
-      <TableCell>{clientName}</TableCell>
-      <TableCell>{formatToReadableDate(delivery.deliveryDate)}</TableCell>
-      <TableCell>{delivery.deliveryTime}</TableCell>
-      <TableCell>{delivery.receiver}</TableCell>
-      <TableCell>{delivery.weight} kg</TableCell>
-      <TableCell>{delivery.packages}</TableCell>
-      <TableCell>
+      <TableCell className="px-2 py-2">{delivery.minuteNumber}</TableCell>
+      <TableCell className="px-2 py-2">{clientName}</TableCell>
+      <TableCell className="px-2 py-2">{formatToReadableDate(delivery.deliveryDate)}</TableCell>
+      <TableCell className="px-2 py-2">{delivery.deliveryTime}</TableCell>
+      <TableCell className="px-2 py-2">{delivery.receiver}</TableCell>
+      <TableCell className="px-2 py-2">{delivery.weight} kg</TableCell>
+      <TableCell className="px-2 py-2">{delivery.packages}</TableCell>
+      <TableCell className="px-2 py-2">
         <Badge variant={delivery.deliveryType === 'emergency' ? 'destructive' : 'default'}>
           {delivery.deliveryType === 'standard' && 'Padrão'}
           {delivery.deliveryType === 'emergency' && 'Emergência'}
@@ -58,8 +58,8 @@ export function DeliveryTableRow({
           {delivery.deliveryType === 'tracked' && 'Rastreado'}
         </Badge>
       </TableCell>
-      <TableCell>R$ {delivery.totalFreight.toFixed(2)}</TableCell>
-      <TableCell>
+      <TableCell className="px-2 py-2">R$ {delivery.totalFreight.toFixed(2)}</TableCell>
+      <TableCell className="px-2 py-2">
         {delivery.occurrence ? (
           <div className="flex items-center">
             <AlertTriangle className="h-4 w-4 text-amber-500 mr-1" />
@@ -69,7 +69,7 @@ export function DeliveryTableRow({
           </div>
         ) : '-'}
       </TableCell>
-      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+      <TableCell className="text-right px-2 py-2" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">

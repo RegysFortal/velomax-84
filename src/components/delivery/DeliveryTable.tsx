@@ -32,28 +32,30 @@ export function DeliveryTable({
   };
 
   return (
-    <Table>
-      <DeliveryTableHeader />
-      <TableBody>
-        {deliveries.length > 0 ? (
-          deliveries.map((delivery) => (
-            <DeliveryTableRow
-              key={delivery.id}
-              delivery={delivery}
-              clientName={getClientDisplayName(delivery.clientId)}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onViewDetails={onViewDetails}
-            />
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={11} className="text-center py-4">
-              Nenhuma entrega encontrada
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <div className="w-full overflow-x-auto">
+      <Table className="min-w-full">
+        <DeliveryTableHeader />
+        <TableBody>
+          {deliveries.length > 0 ? (
+            deliveries.map((delivery) => (
+              <DeliveryTableRow
+                key={delivery.id}
+                delivery={delivery}
+                clientName={getClientDisplayName(delivery.clientId)}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onViewDetails={onViewDetails}
+              />
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={11} className="text-center py-4">
+                Nenhuma entrega encontrada
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

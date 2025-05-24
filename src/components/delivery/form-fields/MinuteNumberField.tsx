@@ -28,7 +28,7 @@ export function MinuteNumberField({
             <Input
               {...field}
               placeholder={placeholder}
-              disabled={isEditMode}
+              // Remover disabled={isEditMode} para permitir edição
             />
           </FormControl>
           <FormMessage />

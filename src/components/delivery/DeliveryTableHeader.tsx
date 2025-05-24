@@ -6,17 +6,17 @@ export function DeliveryTableHeader() {
   return (
     <TableHeader>
       <TableRow>
-        <TableHead>Minuta</TableHead>
-        <TableHead>Cliente</TableHead>
-        <TableHead>Data</TableHead>
-        <TableHead>Hora</TableHead>
-        <TableHead>Recebedor</TableHead>
-        <TableHead>Peso</TableHead>
-        <TableHead>Volumes</TableHead>
-        <TableHead>Tipo</TableHead>
-        <TableHead>Valor</TableHead>
-        <TableHead>Ocorrência</TableHead>
-        <TableHead className="text-right">Ações</TableHead>
+        <TableHead className="px-2 py-2 min-w-[100px]">Minuta</TableHead>
+        <TableHead className="px-2 py-2 min-w-[150px]">Cliente</TableHead>
+        <TableHead className="px-2 py-2 min-w-[100px]">Data</TableHead>
+        <TableHead className="px-2 py-2 min-w-[80px]">Hora</TableHead>
+        <TableHead className="px-2 py-2 min-w-[120px]">Recebedor</TableHead>
+        <TableHead className="px-2 py-2 min-w-[80px]">Peso</TableHead>
+        <TableHead className="px-2 py-2 min-w-[80px]">Volumes</TableHead>
+        <TableHead className="px-2 py-2 min-w-[120px]">Tipo</TableHead>
+        <TableHead className="px-2 py-2 min-w-[100px]">Valor</TableHead>
+        <TableHead className="px-2 py-2 min-w-[120px]">Ocorrência</TableHead>
+        <TableHead className="text-right px-2 py-2 min-w-[80px]">Ações</TableHead>
       </TableRow>
     </TableHeader>
   );
