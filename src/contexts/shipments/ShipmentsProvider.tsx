@@ -57,6 +57,15 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
       shipment.trackingNumber.toLowerCase() === trackingNumber.toLowerCase()
     );
   };
+
+  const checkDuplicateTrackingNumberForCompany = (trackingNumber: string, companyId: string, excludeId?: string): boolean => {
+    if (!trackingNumber || !companyId) return false;
+    return shipments.some(shipment => 
+      shipment.trackingNumber.toLowerCase() === trackingNumber.toLowerCase() &&
+      shipment.companyId === companyId &&
+      (!excludeId || shipment.id !== excludeId)
+    );
+  };
   
   const contextValue = {
     shipments,
@@ -79,7 +88,8 @@ export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
     getRetainedShipments,
     getUndeliveredShipments,
     refreshShipmentsData,
-    checkDuplicateTrackingNumber
+    checkDuplicateTrackingNumber,
+    checkDuplicateTrackingNumberForCompany
   };
   
   return (

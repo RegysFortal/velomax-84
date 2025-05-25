@@ -31,7 +31,7 @@ export const DeliveryFormSections: React.FC<{
   } = useDeliveryFormContext();
 
   const { cities } = useCities();
-  const { addDelivery, updateDelivery } = useDeliveries();
+  const { addDelivery, updateDelivery, checkMinuteNumberExistsForClient } = useDeliveries();
   const [submitting, setSubmitting] = useState(false);
 
   const watchDeliveryType = form.watch('deliveryType');
@@ -43,6 +43,15 @@ export const DeliveryFormSections: React.FC<{
       setSubmitting(true);
       
       console.log('Submitting delivery data:', data);
+      
+      // Check for duplicate minute number only for new deliveries or when minute number changes
+      if (!isEditMode || (delivery && delivery.minuteNumber !== data.minuteNumber)) {
+        if (data.minuteNumber && checkMinuteNumberExistsForClient(data.minuteNumber, data.clientId, delivery?.id)) {
+          setFormData(data);
+          setShowDuplicateAlert(true);
+          return;
+        }
+      }
       
       // Preparar dados para envio
       const deliveryData = {
@@ -79,8 +88,23 @@ export const DeliveryFormSections: React.FC<{
     if (formData && !submitting) {
       try {
         setSubmitting(true);
-        await addDelivery(formData);
-        toast.success('Entrega registrada com sucesso');
+        
+        const deliveryData = {
+          ...formData,
+          totalFreight: freight || formData.totalFreight || 50,
+          weight: parseFloat(String(formData.weight)),
+          packages: parseInt(String(formData.packages)),
+          cargoValue: formData.cargoValue ? parseFloat(String(formData.cargoValue)) : 0,
+        };
+        
+        if (isEditMode && delivery?.id) {
+          await updateDelivery(delivery.id, deliveryData);
+          toast.success('Entrega atualizada com sucesso');
+        } else {
+          await addDelivery(deliveryData);
+          toast.success('Entrega registrada com sucesso');
+        }
+        
         setShowDuplicateAlert(false);
         // Fechar o diálogo automaticamente após salvar
         onComplete();

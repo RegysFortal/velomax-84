@@ -1,6 +1,7 @@
 
 import React from "react";
 import { useClients } from "@/contexts/clients";
+import { useShipments } from "@/contexts/shipments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ShipmentFormContent } from "./ShipmentFormContent";
 import { DuplicateTrackingAlert } from "./DuplicateTrackingAlert";
@@ -15,11 +16,13 @@ interface ShipmentDialogProps {
 
 export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
   const { clients } = useClients();
+  const { checkDuplicateTrackingNumberForCompany } = useShipments();
   
   const formState = useShipmentDialogState({
     clients,
     onClose: () => onOpenChange(false),
-    open
+    open,
+    checkDuplicateTrackingNumberForCompany
   });
   
   return (

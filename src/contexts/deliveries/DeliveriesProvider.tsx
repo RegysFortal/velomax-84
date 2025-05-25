@@ -59,6 +59,15 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return await fetchDeliveriesFromHook();
   };
 
+  // New function to check minute number exists for specific client
+  const checkMinuteNumberExistsForClient = (minuteNumber: string, clientId: string, excludeId?: string): boolean => {
+    return deliveries.some(delivery => 
+      delivery.minuteNumber === minuteNumber && 
+      delivery.clientId === clientId &&
+      (!excludeId || delivery.id !== excludeId)
+    );
+  };
+
   return (
     <DeliveriesContext.Provider
       value={{
@@ -74,7 +83,8 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         calculateFreight,
         isDoorToDoorDelivery,
         checkMinuteNumberExists: (minuteNumber: string, clientId: string) => 
-          checkMinuteNumberExists(deliveries, minuteNumber, clientId)
+          checkMinuteNumberExists(deliveries, minuteNumber, clientId),
+        checkMinuteNumberExistsForClient
       }}
     >
       {children}

@@ -28,18 +28,18 @@ export function DuplicateTrackingAlert({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Embarque já existente</AlertDialogTitle>
+          <AlertDialogTitle>Conhecimento já cadastrado</AlertDialogTitle>
           <AlertDialogDescription>
-            Esse embarque com o número de conhecimento <span className="font-semibold">{trackingNumber}</span> já foi incluído.
-            Deseja incluir novamente?
+            Já existe um embarque com o número de conhecimento <span className="font-semibold">{trackingNumber}</span> para este cliente.
+            Deseja continuar a cadastrar um novo com o mesmo número ou cancelar?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={() => onOpenChange(false)}>
-            NÃO
+            Cancelar
           </AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-orange-600 hover:bg-orange-700">
-            SIM
+            Continuar mesmo assim
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

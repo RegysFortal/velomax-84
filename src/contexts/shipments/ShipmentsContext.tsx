@@ -41,6 +41,7 @@ interface ShipmentsContextType {
   
   // Validation
   checkDuplicateTrackingNumber: (trackingNumber: string) => boolean;
+  checkDuplicateTrackingNumberForCompany: (trackingNumber: string, companyId: string, excludeId?: string) => boolean;
 }
 
 // Create the context with undefined as initial value

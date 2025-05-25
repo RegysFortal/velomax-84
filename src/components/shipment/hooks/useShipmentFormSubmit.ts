@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Client } from '@/types';
 import { ShipmentStatus, TransportMode, Shipment } from '@/types/shipment';
@@ -24,7 +25,7 @@ interface UseShipmentFormSubmitProps {
   fiscalNotes?: string;
   clients: Client[];
   addShipment: (shipment: ShipmentCreateData) => Promise<Shipment>;
-  checkDuplicateTrackingNumber: (trackingNumber: string) => boolean;
+  checkDuplicateTrackingNumberForCompany: (trackingNumber: string, companyId: string) => boolean;
   closeDialog: () => void;
 }
 
@@ -48,7 +49,7 @@ export function useShipmentFormSubmit({
   fiscalNotes,
   clients,
   addShipment,
-  checkDuplicateTrackingNumber,
+  checkDuplicateTrackingNumberForCompany,
   closeDialog
 }: UseShipmentFormSubmitProps) {
   const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
@@ -92,7 +93,7 @@ export function useShipmentFormSubmit({
       const packagesNum = parseInt(packages, 10);
       const weightNum = parseFloat(weight);
       
-      if (checkDuplicate && checkDuplicateTrackingNumber(trackingNumber)) {
+      if (checkDuplicate && checkDuplicateTrackingNumberForCompany(trackingNumber, companyId)) {
         setShowDuplicateAlert(true);
         return;
       }

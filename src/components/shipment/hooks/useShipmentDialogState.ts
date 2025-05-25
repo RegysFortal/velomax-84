@@ -1,43 +1,46 @@
 
 import { useState, useEffect } from 'react';
-import { ShipmentStatus, TransportMode } from '@/types/shipment';
-import { useShipmentFormSubmit } from './useShipmentFormSubmit';
 import { useShipments } from '@/contexts/shipments';
+import { useShipmentFormSubmit } from './useShipmentFormSubmit';
 import { Client } from '@/types';
+import { ShipmentStatus, TransportMode } from '@/types/shipment';
 
 interface UseShipmentDialogStateProps {
   clients: Client[];
   onClose: () => void;
   open: boolean;
+  checkDuplicateTrackingNumberForCompany: (trackingNumber: string, companyId: string) => boolean;
 }
 
-export function useShipmentDialogState({ clients, onClose, open }: UseShipmentDialogStateProps) {
-  const { addShipment, checkDuplicateTrackingNumber } = useShipments();
-  const [isFormReady, setIsFormReady] = useState(false);
+export function useShipmentDialogState({
+  clients,
+  onClose,
+  open,
+  checkDuplicateTrackingNumberForCompany
+}: UseShipmentDialogStateProps) {
+  const { addShipment } = useShipments();
   
   // Form state
-  const [companyId, setCompanyId] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [transportMode, setTransportMode] = useState<TransportMode>("air");
-  const [carrierName, setCarrierName] = useState("");
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [packages, setPackages] = useState("");
-  const [weight, setWeight] = useState("");
-  const [arrivalFlight, setArrivalFlight] = useState("");
-  const [arrivalDate, setArrivalDate] = useState("");
-  const [observations, setObservations] = useState("");
-  const [status, setStatus] = useState<ShipmentStatus>("in_transit");
-  
-  // Retention data
-  const [retentionReason, setRetentionReason] = useState("");
-  const [retentionAmount, setRetentionAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
-  const [actionNumber, setActionNumber] = useState("");
-  const [releaseDate, setReleaseDate] = useState("");
-  const [fiscalNotes, setFiscalNotes] = useState("");
-  
-  // Initialize form submission hook
-  const { 
+  const [isFormReady, setIsFormReady] = useState(false);
+  const [companyId, setCompanyId] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [transportMode, setTransportMode] = useState<TransportMode>('air');
+  const [carrierName, setCarrierName] = useState('');
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [packages, setPackages] = useState('');
+  const [weight, setWeight] = useState('');
+  const [arrivalFlight, setArrivalFlight] = useState('');
+  const [arrivalDate, setArrivalDate] = useState('');
+  const [observations, setObservations] = useState('');
+  const [status, setStatus] = useState<ShipmentStatus>('pending');
+  const [retentionReason, setRetentionReason] = useState('');
+  const [retentionAmount, setRetentionAmount] = useState('');
+  const [paymentDate, setPaymentDate] = useState('');
+  const [releaseDate, setReleaseDate] = useState('');
+  const [actionNumber, setActionNumber] = useState('');
+  const [fiscalNotes, setFiscalNotes] = useState('');
+
+  const {
     showDuplicateAlert,
     setShowDuplicateAlert,
     handleSubmit,
@@ -62,26 +65,41 @@ export function useShipmentDialogState({ clients, onClose, open }: UseShipmentDi
     fiscalNotes,
     clients,
     addShipment,
-    checkDuplicateTrackingNumber,
+    checkDuplicateTrackingNumberForCompany,
     closeDialog: onClose
   });
-  
-  // Delay form initialization to prevent UI freezing
+
+  // Reset form when dialog opens/closes
   useEffect(() => {
     if (open) {
+      setIsFormReady(true);
+    } else {
+      // Reset form state when dialog closes
+      setCompanyId('');
+      setCompanyName('');
+      setTransportMode('air');
+      setCarrierName('');
+      setTrackingNumber('');
+      setPackages('');
+      setWeight('');
+      setArrivalFlight('');
+      setArrivalDate('');
+      setObservations('');
+      setStatus('pending');
+      setRetentionReason('');
+      setRetentionAmount('');
+      setPaymentDate('');
+      setReleaseDate('');
+      setActionNumber('');
+      setFiscalNotes('');
       setIsFormReady(false);
-      const timer = setTimeout(() => {
-        setIsFormReady(true);
-      }, 100);
-      return () => clearTimeout(timer);
     }
   }, [open]);
 
   return {
-    // Form state
+    isFormReady,
     companyId,
     setCompanyId,
-    companyName,
     setCompanyName,
     transportMode,
     setTransportMode,
@@ -101,8 +119,6 @@ export function useShipmentDialogState({ clients, onClose, open }: UseShipmentDi
     setObservations,
     status,
     setStatus,
-    
-    // Retention data
     retentionReason,
     setRetentionReason,
     retentionAmount,
@@ -115,15 +131,8 @@ export function useShipmentDialogState({ clients, onClose, open }: UseShipmentDi
     setReleaseDate,
     fiscalNotes,
     setFiscalNotes,
-    
-    // UI state
-    isFormReady,
-    
-    // Alert state
     showDuplicateAlert,
     setShowDuplicateAlert,
-    
-    // Actions
     handleSubmit,
     handleConfirmDuplicate
   };

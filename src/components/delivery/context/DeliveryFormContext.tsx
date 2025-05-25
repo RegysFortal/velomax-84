@@ -1,122 +1,28 @@
-import React, { createContext, useContext, useState } from 'react';
+
+import React, { createContext, useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { deliveryFormSchema } from '../schema/deliveryFormSchema';
-import { Delivery, Client, DeliveryType } from '@/types';
+import { Delivery } from '@/types';
+import { useDuplicateMinuteCheck } from '../hooks/useDuplicateMinuteCheck';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
-import { useClients } from '@/contexts';
-import { useDeliveryFormEffects } from '../hooks/useDeliveryFormEffects';
-
-export interface DeliveryFormValues {
-  clientId: string;
-  minuteNumber: string;
-  pickupName: string;
-  pickupDate: string;
-  pickupTime: string;
-  receiver: string;
-  receiverId: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  weight: string;
-  packages: string;
-  deliveryType: string;
-  cargoType: string;
-  cargoValue: string;
-  cityId: string;
-  notes: string;
-  occurrence: string;
-  totalFreight: string;
-  arrivalKnowledgeNumber: string; // Adicionado: Número do conhecimento
-}
+import { useFreightCalculation } from '@/contexts/deliveries/hooks/useFreightCalculation';
+import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
+import { useCities } from '@/contexts/cities';
 
 interface DeliveryFormContextType {
-  form: ReturnType<typeof useForm<DeliveryFormValues>>;
+  form: any;
   delivery: Delivery | null;
   isEditMode: boolean;
-  freight: number;
   showDoorToDoor: boolean;
   showDuplicateAlert: boolean;
-  setShowDuplicateAlert: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowDuplicateAlert: (show: boolean) => void;
   formData: any;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-  clients: Client[];
-  setFreight: React.Dispatch<React.SetStateAction<number>>;
+  setFormData: (data: any) => void;
+  freight: number;
 }
 
 const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
-
-export const DeliveryFormProvider: React.FC<{
-  children: React.ReactNode;
-  delivery?: Delivery | null;
-}> = ({ children, delivery = null }) => {
-  const [formData, setFormData] = useState<any>(null);
-  const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
-  const [freight, setFreight] = useState<number>(delivery?.totalFreight || 0);
-  const { calculateFreight, isDoorToDoorDelivery } = useDeliveries();
-  const isEditMode = !!delivery;
-  const { clients, loading: clientsLoading } = useClients();
-  
-  // Initialize the form
-  const form = useForm<DeliveryFormValues>({
-    resolver: zodResolver(deliveryFormSchema),
-    defaultValues: {
-      clientId: delivery?.clientId || '',
-      minuteNumber: delivery?.minuteNumber || '',
-      pickupName: delivery?.pickupName || '',
-      pickupDate: delivery?.pickupDate || new Date().toISOString().split('T')[0],
-      pickupTime: delivery?.pickupTime || '',
-      receiver: delivery?.receiver || '',
-      receiverId: delivery?.receiverId || '',
-      deliveryDate: delivery?.deliveryDate || new Date().toISOString().split('T')[0],
-      deliveryTime: delivery?.deliveryTime || '',
-      weight: delivery?.weight?.toString() || '',
-      packages: delivery?.packages?.toString() || '',
-      deliveryType: delivery?.deliveryType || 'standard',
-      cargoType: delivery?.cargoType || 'standard',
-      cargoValue: delivery?.cargoValue?.toString() || '',
-      cityId: delivery?.cityId || '',
-      notes: delivery?.notes || '',
-      occurrence: delivery?.occurrence || '',
-      totalFreight: delivery?.totalFreight?.toString() || '',
-      arrivalKnowledgeNumber: delivery?.arrivalKnowledgeNumber || '', // Adicionado: Número do conhecimento
-    },
-  });
-  
-  // Use the effects hook but pass all required dependencies directly instead of via context
-  const { watchDeliveryType } = useDeliveryFormEffects(
-    form, 
-    delivery, 
-    isEditMode, 
-    setFreight,
-    calculateFreight
-  );
-  
-  console.log("DeliveryFormContext initialized with", clients.length, "clients");
-  
-  // Calculate showDoorToDoor based on current delivery type
-  const deliveryType = form.watch('deliveryType');
-  const showDoorToDoor = isDoorToDoorDelivery(deliveryType as DeliveryType);
-
-  return (
-    <DeliveryFormContext.Provider
-      value={{
-        form,
-        delivery,
-        isEditMode,
-        freight,
-        showDoorToDoor,
-        showDuplicateAlert,
-        setShowDuplicateAlert,
-        formData,
-        setFormData,
-        clients,
-        setFreight,
-      }}
-    >
-      {children}
-    </DeliveryFormContext.Provider>
-  );
-};
 
 export const useDeliveryFormContext = () => {
   const context = useContext(DeliveryFormContext);
@@ -124,4 +30,119 @@ export const useDeliveryFormContext = () => {
     throw new Error('useDeliveryFormContext must be used within a DeliveryFormProvider');
   }
   return context;
+};
+
+interface DeliveryFormProviderProps {
+  children: React.ReactNode;
+  delivery?: Delivery | null;
+  isEditMode?: boolean;
+}
+
+export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({ 
+  children, 
+  delivery = null, 
+  isEditMode = false 
+}) => {
+  const { checkMinuteNumberExistsForClient } = useDeliveries();
+  const { cities } = useCities();
+  
+  // Safely get the required hooks
+  let getClientPriceTable = (clientId: string) => undefined;
+  
+  try {
+    const clientPriceTableHook = useClientPriceTable();
+    getClientPriceTable = clientPriceTableHook.getClientPriceTable;
+  } catch (error) {
+    console.warn("useClientPriceTable not available, using fallback");
+  }
+
+  const { calculateFreight } = useFreightCalculation(getClientPriceTable, cities);
+  
+  const {
+    showDuplicateAlert,
+    setShowDuplicateAlert,
+    formData,
+    setFormData
+  } = useDuplicateMinuteCheck();
+
+  const form = useForm({
+    resolver: zodResolver(deliveryFormSchema),
+    defaultValues: delivery ? {
+      minuteNumber: delivery.minuteNumber || '',
+      clientId: delivery.clientId || '',
+      deliveryDate: delivery.deliveryDate || '',
+      deliveryTime: delivery.deliveryTime || '',
+      receiver: delivery.receiver || '',
+      receiverId: delivery.receiverId || '',
+      weight: delivery.weight || 0,
+      packages: delivery.packages || 0,
+      deliveryType: delivery.deliveryType || 'standard',
+      cargoType: delivery.cargoType || 'general',
+      cargoValue: delivery.cargoValue || 0,
+      totalFreight: delivery.totalFreight || 0,
+      notes: delivery.notes || '',
+      occurrence: delivery.occurrence || '',
+      cityId: delivery.cityId || '',
+      arrivalKnowledgeNumber: delivery.arrivalKnowledgeNumber || ''
+    } : {
+      minuteNumber: '',
+      clientId: '',
+      deliveryDate: '',
+      deliveryTime: '',
+      receiver: '',
+      receiverId: '',
+      weight: 0,
+      packages: 0,
+      deliveryType: 'standard',
+      cargoType: 'general',
+      cargoValue: 0,
+      totalFreight: 0,
+      notes: '',
+      occurrence: '',
+      cityId: '',
+      arrivalKnowledgeNumber: ''
+    }
+  });
+
+  // Watch for changes to calculate freight
+  const watchClientId = form.watch('clientId');
+  const watchDeliveryType = form.watch('deliveryType');
+  const watchCityId = form.watch('cityId');
+  const watchWeight = form.watch('weight');
+  const watchPackages = form.watch('packages');
+
+  const freight = calculateFreight(
+    watchDeliveryType,
+    watchCityId,
+    watchWeight,
+    watchPackages,
+    watchClientId
+  );
+
+  useEffect(() => {
+    if (freight > 0) {
+      form.setValue('totalFreight', freight);
+    }
+  }, [freight, form]);
+
+  // Determine if door-to-door delivery type is selected
+  const showDoorToDoor = ['doorToDoorInterior', 'metropolitanRegion'].includes(watchDeliveryType);
+
+  return (
+    <DeliveryFormContext.Provider
+      value={{
+        form,
+        delivery,
+        isEditMode,
+        showDoorToDoor,
+        showDuplicateAlert,
+        setShowDuplicateAlert,
+        formData,
+        setFormData,
+        freight
+      }}
+    >
+      {children}
+    </DeliveryFormContext.Provider>
+  );
 };

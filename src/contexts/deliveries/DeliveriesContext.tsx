@@ -1,39 +1,32 @@
 
-import React, { createContext } from 'react';
-import type { Delivery, DeliveryType, CargoType } from '@/types';
-import type { DeliveryFormData } from '@/types/delivery';
-import type { ReactNode } from 'react';
+import React, { createContext, useContext } from 'react';
+import { Delivery, DeliveryFormData } from '@/types';
+import { Shipment } from '@/types/shipment';
 
 export interface DeliveriesContextType {
   deliveries: Delivery[];
   loading: boolean;
   addDelivery: (delivery: DeliveryFormData) => Promise<Delivery | undefined>;
-  updateDelivery: (id: string, data: Partial<Delivery>) => Promise<Delivery | undefined>;
+  updateDelivery: (id: string, delivery: Partial<Delivery>) => Promise<Delivery | undefined>;
   deleteDelivery: (id: string) => Promise<boolean>;
   getDeliveryById: (id: string) => Delivery | undefined;
-  createDeliveriesFromShipment: (shipment: any, deliveryDetails: any) => Promise<void>;
+  createDeliveriesFromShipment: (shipment: Shipment) => Promise<Delivery[]>;
   refreshDeliveries: () => Promise<void>;
   fetchDeliveries: () => Promise<Delivery[]>;
-  calculateFreight: (
-    clientId: string,
-    weight: number,
-    deliveryType: DeliveryType,
-    cargoType: CargoType,
-    cargoValue?: number,
-    distance?: number,
-    cityId?: string
-  ) => number;
-  isDoorToDoorDelivery: (deliveryType: DeliveryType) => boolean;
+  calculateFreight: (deliveryType: string, cityId?: string, weight?: number, packages?: number, clientId?: string) => number;
+  isDoorToDoorDelivery: (deliveryType: string) => boolean;
   checkMinuteNumberExists: (minuteNumber: string, clientId: string) => boolean;
+  checkMinuteNumberExistsForClient: (minuteNumber: string, clientId: string, excludeId?: string) => boolean;
 }
 
-export const DeliveriesContext = createContext<DeliveriesContextType | undefined>(undefined);
+const DeliveriesContext = createContext<DeliveriesContextType | undefined>(undefined);
 
-export const DeliveriesProvider = ({
-  children
-}: {
-  children: ReactNode;
-}) => {
-  // Implementation moved to DeliveriesProvider.tsx, please import DeliveriesProvider from there.
-  throw new Error('DeliveriesProvider implementation moved to DeliveriesProvider.tsx, please import DeliveriesProvider from there.');
+export const useDeliveries = () => {
+  const context = useContext(DeliveriesContext);
+  if (!context) {
+    throw new Error('useDeliveries must be used within a DeliveriesProvider');
+  }
+  return context;
 };
+
+export { DeliveriesContext };
