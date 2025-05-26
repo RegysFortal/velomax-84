@@ -115,21 +115,39 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   const watchCityId = form.watch('cityId');
   const watchWeight = form.watch('weight');
   const watchPackages = form.watch('packages');
+  const watchCargoType = form.watch('cargoType');
+  const watchCargoValue = form.watch('cargoValue');
 
-  const calculatedFreight = calculateFreight(
-    watchDeliveryType,
-    watchCityId,
-    watchWeight,
-    watchPackages,
-    watchClientId
-  );
-
+  // Calculate freight automatically when relevant fields change
   useEffect(() => {
-    if (calculatedFreight > 0) {
-      setFreight(calculatedFreight);
-      form.setValue('totalFreight', calculatedFreight);
+    if (watchClientId && watchWeight && watchDeliveryType) {
+      console.log('Calculating freight with params:', {
+        clientId: watchClientId,
+        weight: watchWeight,
+        deliveryType: watchDeliveryType,
+        cargoType: watchCargoType,
+        cargoValue: watchCargoValue,
+        cityId: watchCityId
+      });
+
+      const calculatedFreight = calculateFreight(
+        watchClientId,
+        parseFloat(String(watchWeight)) || 0,
+        watchDeliveryType as any,
+        watchCargoType as any,
+        parseFloat(String(watchCargoValue)) || 0,
+        undefined,
+        watchCityId
+      );
+
+      console.log('Calculated freight:', calculatedFreight);
+
+      if (calculatedFreight > 0) {
+        setFreight(calculatedFreight);
+        form.setValue('totalFreight', calculatedFreight);
+      }
     }
-  }, [calculatedFreight, form]);
+  }, [watchClientId, watchDeliveryType, watchCityId, watchWeight, watchPackages, watchCargoType, watchCargoValue, calculateFreight, form]);
 
   // Determine if door-to-door delivery type is selected
   const showDoorToDoor = ['doorToDoorInterior', 'metropolitanRegion'].includes(watchDeliveryType);

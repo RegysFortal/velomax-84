@@ -11,12 +11,19 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
   const fetchDeliveries = async () => {
     try {
       setLoading(true);
+      console.log('Fetching deliveries from database...');
+      
       const { data, error } = await supabase
         .from('deliveries')
         .select('*, clients(name)')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching deliveries:', error);
+        throw error;
+      }
+
+      console.log('Fetched deliveries from database:', data?.length || 0);
 
       const formattedDeliveries = data.map((item: any) => ({
         id: item.id,
@@ -38,11 +45,27 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         createdAt: item.created_at,
         updatedAt: item.updated_at,
       }));
+      
       setDeliveries(formattedDeliveries);
+      console.log('Successfully loaded deliveries into state:', formattedDeliveries.length);
       return formattedDeliveries;
     } catch (error) {
       console.error('Error fetching deliveries:', error);
       toast.error('Erro ao buscar entregas');
+      
+      // Try to load from localStorage as fallback
+      try {
+        const storedDeliveries = localStorage.getItem('velomax_deliveries');
+        if (storedDeliveries) {
+          const parsedDeliveries = JSON.parse(storedDeliveries);
+          setDeliveries(parsedDeliveries);
+          console.log('Loaded deliveries from localStorage as fallback:', parsedDeliveries.length);
+          return parsedDeliveries;
+        }
+      } catch (localError) {
+        console.error('Error loading from localStorage:', localError);
+      }
+      
       return [];
     } finally {
       setLoading(false);
@@ -60,6 +83,8 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       if (userError || !userData.user) {
         throw new Error('Usuário não autenticado');
       }
+
+      console.log('Adding delivery to database:', deliveryData);
 
       const { data, error } = await supabase
         .from('deliveries')
@@ -79,7 +104,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
           delivery_date: deliveryData.deliveryDate,
           delivery_time: deliveryData.deliveryTime,
           total_freight: totalFreight || 0,
-          user_id: userData.user.id, // Explicitly set user_id
+          user_id: userData.user.id,
         })
         .select()
         .single();
@@ -109,7 +134,14 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         updatedAt: data.updated_at,
       };
 
-      setDeliveries((prevDeliveries) => [newDelivery, ...prevDeliveries]);
+      setDeliveries((prevDeliveries) => {
+        const updatedDeliveries = [newDelivery, ...prevDeliveries];
+        // Save to localStorage as backup
+        localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
+        return updatedDeliveries;
+      });
+      
+      console.log('Successfully added delivery to database and state');
       toast.success('Entrega criada com sucesso');
 
       return newDelivery;
@@ -128,6 +160,8 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
           ? parseFloat(data.totalFreight) 
           : data.totalFreight;
       }
+
+      console.log('Updating delivery in database:', id, data);
 
       const supabaseData: any = {
         client_id: data.clientId,
@@ -179,12 +213,16 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         updatedAt: updatedData.updated_at,
       };
 
-      setDeliveries((prevDeliveries) =>
-        prevDeliveries.map((delivery) =>
+      setDeliveries((prevDeliveries) => {
+        const updatedDeliveries = prevDeliveries.map((delivery) =>
           delivery.id === id ? { ...delivery, ...updatedDelivery } : delivery
-        )
-      );
+        );
+        // Save to localStorage as backup
+        localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
+        return updatedDeliveries;
+      });
 
+      console.log('Successfully updated delivery in database and state');
       toast.success('Entrega atualizada com sucesso');
       return updatedDelivery;
     } catch (error) {
@@ -196,14 +234,20 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
   const deleteDelivery = async (id: string) => {
     try {
+      console.log('Deleting delivery from database:', id);
+
       const { error } = await supabase.from('deliveries').delete().eq('id', id);
 
       if (error) throw error;
 
-      setDeliveries((prevDeliveries) =>
-        prevDeliveries.filter((delivery) => delivery.id !== id)
-      );
+      setDeliveries((prevDeliveries) => {
+        const updatedDeliveries = prevDeliveries.filter((delivery) => delivery.id !== id);
+        // Save to localStorage as backup
+        localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
+        return updatedDeliveries;
+      });
       
+      console.log('Successfully deleted delivery from database and state');
       toast.success('Entrega excluída com sucesso');
       return true;
     } catch (error) {

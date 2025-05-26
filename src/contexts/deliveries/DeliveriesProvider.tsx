@@ -43,6 +43,7 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const calculateFreight = (deliveryType: string, cityId?: string, weight?: number, packages?: number, clientId?: string): number => {
     if (!clientId || !weight) return 0;
     
+    // Reorder parameters to match the hook signature
     return calculateFreightFromHook(
       clientId,
       weight,
@@ -54,18 +55,20 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     );
   };
   
-  // Get shipment to delivery conversion
+  // Get shipment to delivery conversion - updated to match expected signature
   const { createDeliveriesFromShipment: createDeliveriesFromShipmentHook } = useShipmentToDelivery(calculateFreightFromHook, addDelivery);
   
   // Wrapper function to match the expected signature
   const createDeliveriesFromShipment = async (shipment: any): Promise<Delivery[]> => {
-    // For backward compatibility, we'll call the hook function with empty delivery details
-    await createDeliveriesFromShipmentHook(shipment, {
-      receiverName: '',
-      deliveryDate: '',
-      deliveryTime: '',
+    // For backward compatibility, we'll call the hook function with default delivery details
+    const defaultDeliveryDetails = {
+      receiverName: shipment.receiverName || '',
+      deliveryDate: shipment.deliveryDate || '',
+      deliveryTime: shipment.deliveryTime || '',
       selectedDocumentIds: shipment.documents?.map((doc: any) => doc.id) || []
-    });
+    };
+    
+    await createDeliveriesFromShipmentHook(shipment, defaultDeliveryDetails);
     return [];
   };
   

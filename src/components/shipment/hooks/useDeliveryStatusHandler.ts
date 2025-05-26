@@ -71,9 +71,9 @@ export function useDeliveryStatusHandler({
       // Update shipment status with delivery details
       handleStatusUpdate(shipmentId, newStatus as ShipmentStatus, deliveryDetails);
       
-      // Create deliveries from shipment documents
+      // Create deliveries from shipment documents - call with proper signature
       if (shipment && selectedDocumentIds.length > 0) {
-        createDeliveriesFromShipment(shipment, deliveryDetails);
+        createDeliveriesFromShipment(shipment);
       }
       
       // Call the onStatusChange callback if provided
