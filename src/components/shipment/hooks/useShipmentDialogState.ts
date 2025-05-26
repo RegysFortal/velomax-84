@@ -32,7 +32,7 @@ export function useShipmentDialogState({
   const [arrivalFlight, setArrivalFlight] = useState('');
   const [arrivalDate, setArrivalDate] = useState('');
   const [observations, setObservations] = useState('');
-  const [status, setStatus] = useState<ShipmentStatus>('pending');
+  const [status, setStatus] = useState<ShipmentStatus>('in_transit');
   const [retentionReason, setRetentionReason] = useState('');
   const [retentionAmount, setRetentionAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState('');
@@ -85,7 +85,7 @@ export function useShipmentDialogState({
       setArrivalFlight('');
       setArrivalDate('');
       setObservations('');
-      setStatus('pending');
+      setStatus('in_transit');
       setRetentionReason('');
       setRetentionAmount('');
       setPaymentDate('');

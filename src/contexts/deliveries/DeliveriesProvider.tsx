@@ -37,10 +37,37 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }
 
   // Get freight calculation
-  const { calculateFreight } = useFreightCalculation(getClientPriceTable, cities);
+  const { calculateFreight: calculateFreightFromHook } = useFreightCalculation(getClientPriceTable, cities);
+  
+  // Wrapper function to match the expected signature
+  const calculateFreight = (deliveryType: string, cityId?: string, weight?: number, packages?: number, clientId?: string): number => {
+    if (!clientId || !weight) return 0;
+    
+    return calculateFreightFromHook(
+      clientId,
+      weight,
+      deliveryType as any,
+      'standard' as any,
+      undefined,
+      undefined,
+      cityId
+    );
+  };
   
   // Get shipment to delivery conversion
-  const { createDeliveriesFromShipment } = useShipmentToDelivery(calculateFreight, addDelivery);
+  const { createDeliveriesFromShipment: createDeliveriesFromShipmentHook } = useShipmentToDelivery(calculateFreightFromHook, addDelivery);
+  
+  // Wrapper function to match the expected signature
+  const createDeliveriesFromShipment = async (shipment: any): Promise<Delivery[]> => {
+    // For backward compatibility, we'll call the hook function with empty delivery details
+    await createDeliveriesFromShipmentHook(shipment, {
+      receiverName: '',
+      deliveryDate: '',
+      deliveryTime: '',
+      selectedDocumentIds: shipment.documents?.map((doc: any) => doc.id) || []
+    });
+    return [];
+  };
   
   // Get delivery type utilities
   const { isDoorToDoorDelivery, checkMinuteNumberExists } = useDeliveryTypes();

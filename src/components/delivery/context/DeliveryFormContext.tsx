@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { deliveryFormSchema } from '../schema/deliveryFormSchema';
@@ -9,6 +9,7 @@ import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useFreightCalculation } from '@/contexts/deliveries/hooks/useFreightCalculation';
 import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
 import { useCities } from '@/contexts/cities';
+import { useClients } from '@/contexts';
 
 interface DeliveryFormContextType {
   form: any;
@@ -20,6 +21,8 @@ interface DeliveryFormContextType {
   formData: any;
   setFormData: (data: any) => void;
   freight: number;
+  setFreight: (value: number) => void;
+  clients: any[];
 }
 
 const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
@@ -45,6 +48,8 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
 }) => {
   const { checkMinuteNumberExistsForClient } = useDeliveries();
   const { cities } = useCities();
+  const { clients } = useClients();
+  const [freight, setFreight] = useState<number>(0);
   
   // Safely get the required hooks
   let getClientPriceTable = (clientId: string) => undefined;
@@ -111,7 +116,7 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   const watchWeight = form.watch('weight');
   const watchPackages = form.watch('packages');
 
-  const freight = calculateFreight(
+  const calculatedFreight = calculateFreight(
     watchDeliveryType,
     watchCityId,
     watchWeight,
@@ -120,10 +125,11 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   );
 
   useEffect(() => {
-    if (freight > 0) {
-      form.setValue('totalFreight', freight);
+    if (calculatedFreight > 0) {
+      setFreight(calculatedFreight);
+      form.setValue('totalFreight', calculatedFreight);
     }
-  }, [freight, form]);
+  }, [calculatedFreight, form]);
 
   // Determine if door-to-door delivery type is selected
   const showDoorToDoor = ['doorToDoorInterior', 'metropolitanRegion'].includes(watchDeliveryType);
@@ -139,7 +145,9 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
         setShowDuplicateAlert,
         formData,
         setFormData,
-        freight
+        freight,
+        setFreight,
+        clients
       }}
     >
       {children}

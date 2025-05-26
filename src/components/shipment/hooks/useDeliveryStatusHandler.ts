@@ -59,10 +59,8 @@ export function useDeliveryStatusHandler({
       const selectedCount = selectedDocumentIds.length;
       const remainingCount = totalDocuments - selectedCount;
       const allDocumentsSelected = totalDocuments > 0 && selectedCount === totalDocuments;
-      const onlyOneRemaining = remainingCount === 1;
       
       // Determine the appropriate status based on selected documents
-      // Se tiver apenas um documento restante, automaticamente marcar como parcial
       const newStatus = allDocumentsSelected 
         ? "delivered_final" 
         : (selectedCount > 0 ? "partially_delivered" : "in_transit");
