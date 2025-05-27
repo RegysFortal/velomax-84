@@ -43,8 +43,10 @@ export const DeliveryFormSections: React.FC<{
       setSubmitting(true);
       
       console.log('Submitting delivery data:', data);
+      console.log('Is Edit Mode:', isEditMode);
+      console.log('Delivery ID:', delivery?.id);
       
-      // Validação básica
+      // Validações básicas
       if (!data.clientId) {
         toast.error('Por favor, selecione um cliente');
         return;
@@ -60,13 +62,17 @@ export const DeliveryFormSections: React.FC<{
         return;
       }
 
-      if (!data.weight || data.weight <= 0) {
-        toast.error('Por favor, informe um peso válido');
+      // Converter e validar peso
+      const weight = typeof data.weight === 'string' ? parseFloat(data.weight) : data.weight;
+      if (!weight || weight <= 0) {
+        toast.error('Por favor, informe um peso válido maior que 0');
         return;
       }
 
-      if (!data.packages || data.packages <= 0) {
-        toast.error('Por favor, informe a quantidade de volumes');
+      // Converter e validar volumes
+      const packages = typeof data.packages === 'string' ? parseInt(data.packages) : data.packages;
+      if (!packages || packages <= 0) {
+        toast.error('Por favor, informe a quantidade de volumes válida maior que 0');
         return;
       }
       
@@ -83,24 +89,30 @@ export const DeliveryFormSections: React.FC<{
       const deliveryData = {
         ...data,
         totalFreight: freight || data.totalFreight || 50,
-        weight: parseFloat(String(data.weight)),
-        packages: parseInt(String(data.packages)),
+        weight: weight,
+        packages: packages,
         cargoValue: data.cargoValue ? parseFloat(String(data.cargoValue)) : 0,
       };
       
       if (isEditMode && delivery?.id) {
         // Atualizar entrega existente
+        console.log('Updating existing delivery with ID:', delivery.id);
         const result = await updateDelivery(delivery.id, deliveryData);
         if (result) {
           toast.success('Entrega atualizada com sucesso');
           onComplete();
+        } else {
+          toast.error('Erro ao atualizar entrega');
         }
       } else {
         // Criar nova entrega
+        console.log('Creating new delivery');
         const result = await addDelivery(deliveryData);
         if (result) {
           toast.success('Entrega registrada com sucesso');
           onComplete();
+        } else {
+          toast.error('Erro ao registrar entrega');
         }
       }
     } catch (error) {
@@ -119,8 +131,8 @@ export const DeliveryFormSections: React.FC<{
         const deliveryData = {
           ...formData,
           totalFreight: freight || formData.totalFreight || 50,
-          weight: parseFloat(String(formData.weight)),
-          packages: parseInt(String(formData.packages)),
+          weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight,
+          packages: typeof formData.packages === 'string' ? parseInt(formData.packages) : formData.packages,
           cargoValue: formData.cargoValue ? parseFloat(String(formData.cargoValue)) : 0,
         };
         

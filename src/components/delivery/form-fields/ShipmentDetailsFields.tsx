@@ -16,14 +16,19 @@ export function ShipmentDetailsFields({ control }: ShipmentDetailsFieldsProps) {
         name="weight"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Peso (kg)</FormLabel>
+            <FormLabel>Peso (kg) *</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 type="number"
                 step="0.01"
-                min="0"
+                min="0.01"
                 placeholder="0.00"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  field.onChange(value === '' ? '' : parseFloat(value) || 0);
+                }}
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />
@@ -36,13 +41,18 @@ export function ShipmentDetailsFields({ control }: ShipmentDetailsFieldsProps) {
         name="packages"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Volumes</FormLabel>
+            <FormLabel>Volumes *</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 type="number"
                 min="1"
                 placeholder="1"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  field.onChange(value === '' ? '' : parseInt(value) || 0);
+                }}
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />

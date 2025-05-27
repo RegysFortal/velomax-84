@@ -8,8 +8,20 @@ export const deliveryFormSchema = z.object({
   deliveryTime: z.string().optional(),
   receiver: z.string().min(1, "Destinatário é obrigatório"),
   receiverId: z.string().optional(),
-  weight: z.number().min(0.1, "Peso deve ser maior que 0"),
-  packages: z.number().int().min(1, "Quantidade de volumes deve ser maior que 0"),
+  weight: z.union([
+    z.number().min(0.1, "Peso deve ser maior que 0"),
+    z.string().refine(val => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num >= 0.1;
+    }, "Peso deve ser maior que 0")
+  ]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+  packages: z.union([
+    z.number().int().min(1, "Quantidade de volumes deve ser maior que 0"),
+    z.string().refine(val => {
+      const num = parseInt(val);
+      return !isNaN(num) && num >= 1;
+    }, "Quantidade de volumes deve ser maior que 0")
+  ]).transform(val => typeof val === 'string' ? parseInt(val) : val),
   deliveryType: z.string().min(1, "Tipo de entrega é obrigatório"),
   cargoType: z.string().min(1, "Tipo de carga é obrigatório"),
   cargoValue: z.number().optional(),

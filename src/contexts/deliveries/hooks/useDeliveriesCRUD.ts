@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,11 +38,13 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         notes: item.notes,
         occurrence: item.occurrence,
         receiver: item.receiver,
+        receiverId: item.receiver_id,
         deliveryDate: item.delivery_date,
         deliveryTime: item.delivery_time,
         totalFreight: item.total_freight,
         createdAt: item.created_at,
         updatedAt: item.updated_at,
+        arrivalKnowledgeNumber: item.arrival_knowledge_number,
       }));
       
       setDeliveries(formattedDeliveries);
@@ -84,7 +85,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('Adding delivery to database:', deliveryData);
+      console.log('Adding new delivery to database:', deliveryData);
 
       const { data, error } = await supabase
         .from('deliveries')
@@ -101,10 +102,12 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
           notes: deliveryData.notes,
           occurrence: deliveryData.occurrence,
           receiver: deliveryData.receiver,
+          receiver_id: deliveryData.receiverId,
           delivery_date: deliveryData.deliveryDate,
           delivery_time: deliveryData.deliveryTime,
           total_freight: totalFreight || 0,
           user_id: userData.user.id,
+          arrival_knowledge_number: deliveryData.arrivalKnowledgeNumber,
         })
         .select()
         .single();
@@ -114,24 +117,27 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         throw error;
       }
 
+      // Map the returned data to our Delivery type with proper field mappings
       const newDelivery: Delivery = {
         id: data.id,
-        clientId: data.client_id,
-        cityId: data.city_id,
         minuteNumber: data.minute_number,
-        packages: data.packages,
-        weight: data.weight,
-        cargoType: data.cargo_type as CargoType,
-        cargoValue: data.cargo_value,
-        deliveryType: data.delivery_type as DeliveryType,
-        notes: data.notes,
-        occurrence: data.occurrence,
-        receiver: data.receiver,
+        clientId: data.client_id,
         deliveryDate: data.delivery_date,
-        deliveryTime: data.delivery_time,
+        deliveryTime: data.delivery_time || '',
+        receiver: data.receiver || '',
+        receiverId: data.receiver_id,
+        weight: data.weight,
+        packages: data.packages,
+        deliveryType: data.delivery_type as Delivery['deliveryType'],
+        cargoType: data.cargo_type as Delivery['cargoType'],
+        cargoValue: data.cargo_value || 0,
         totalFreight: data.total_freight,
+        notes: data.notes || '',
+        occurrence: data.occurrence || '',
         createdAt: data.created_at,
         updatedAt: data.updated_at,
+        cityId: data.city_id || undefined,
+        arrivalKnowledgeNumber: data.arrival_knowledge_number || '',
       };
 
       setDeliveries((prevDeliveries) => {
@@ -141,7 +147,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         return updatedDeliveries;
       });
       
-      console.log('Successfully added delivery to database and state');
+      console.log('Successfully added new delivery to database and state');
       toast.success('Entrega criada com sucesso');
 
       return newDelivery;
@@ -161,7 +167,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
           : data.totalFreight;
       }
 
-      console.log('Updating delivery in database:', id, data);
+      console.log('Updating delivery in database with ID:', id, data);
 
       const supabaseData: any = {
         client_id: data.clientId,
@@ -175,9 +181,12 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         notes: data.notes,
         occurrence: data.occurrence,
         receiver: data.receiver,
+        receiver_id: data.receiverId,
         delivery_date: data.deliveryDate,
         delivery_time: data.deliveryTime,
         total_freight: data.totalFreight !== undefined ? totalFreightValue : undefined,
+        arrival_knowledge_number: data.arrivalKnowledgeNumber,
+        updated_at: new Date().toISOString(),
       };
 
       Object.keys(supabaseData).forEach(
@@ -191,7 +200,12 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating delivery in Supabase:', error);
+        throw error;
+      }
+
+      console.log('Successfully updated delivery in database:', updatedData);
 
       const updatedDelivery: Delivery = {
         id: updatedData.id,
@@ -206,11 +220,13 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         notes: updatedData.notes,
         occurrence: updatedData.occurrence,
         receiver: updatedData.receiver,
+        receiverId: updatedData.receiver_id,
         deliveryDate: updatedData.delivery_date,
         deliveryTime: updatedData.delivery_time,
         totalFreight: updatedData.total_freight,
         createdAt: updatedData.created_at,
         updatedAt: updatedData.updated_at,
+        arrivalKnowledgeNumber: updatedData.arrival_knowledge_number,
       };
 
       setDeliveries((prevDeliveries) => {
@@ -222,8 +238,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         return updatedDeliveries;
       });
 
-      console.log('Successfully updated delivery in database and state');
-      toast.success('Entrega atualizada com sucesso');
+      console.log('Successfully updated delivery in state');
       return updatedDelivery;
     } catch (error) {
       console.error('Error updating delivery:', error);
