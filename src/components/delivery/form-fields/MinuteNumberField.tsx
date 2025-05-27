@@ -2,18 +2,22 @@
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Control } from 'react-hook-form';
+import { Control, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 
 interface MinuteNumberFieldProps {
   control: Control<any>;
-  isEditMode: boolean;
+  setValue: UseFormSetValue<any>;
+  getValues: UseFormGetValues<any>;
+  isEditMode?: boolean;
   label?: string;
   placeholder?: string;
 }
 
 export function MinuteNumberField({ 
   control, 
-  isEditMode, 
+  setValue,
+  getValues,
+  isEditMode = false, 
   label = "Número da Minuta",
   placeholder = "Gerado automaticamente se vazio"
 }: MinuteNumberFieldProps) {
@@ -28,7 +32,6 @@ export function MinuteNumberField({
             <Input
               {...field}
               placeholder={placeholder}
-              // Remover disabled={isEditMode} para permitir edição
             />
           </FormControl>
           <FormMessage />

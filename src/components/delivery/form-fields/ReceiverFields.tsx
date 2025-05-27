@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Control } from 'react-hook-form';
+import { Control, UseFormSetValue } from 'react-hook-form';
 import { FormField } from '@/components/ui/form';
 import { FormItem } from '@/components/ui/form';
 import { FormLabel } from '@/components/ui/form';
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 
 interface ReceiverFieldsProps {
   control: Control<any>;
-  setValue: any;
+  setValue?: UseFormSetValue<any>;
 }
 
 export function ReceiverFields({ control, setValue }: ReceiverFieldsProps) {

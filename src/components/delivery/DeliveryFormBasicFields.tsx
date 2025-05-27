@@ -33,11 +33,12 @@ export const DeliveryFormBasicFields: React.FC<DeliveryFormBasicFieldsProps> = (
           control={control}
           setValue={setValue}
           getValues={getValues}
+          isEditMode={isEditMode}
         />
       </div>
 
       <DeliveryDateTimeFields control={control} />
-      <ReceiverFields control={control} />
+      <ReceiverFields control={control} setValue={setValue} />
       <ShipmentDetailsFields control={control} />
 
       <FormField
