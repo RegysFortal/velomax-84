@@ -18,7 +18,7 @@ export const FormActionsSection: React.FC<FormActionsSectionProps> = ({
       Cancelar
     </Button>
     <Button type="submit" disabled={submitting}>
-      {submitting ? 'Salvando...' : (isEditMode ? "Atualizar Entrega" : "Registrar Entrega")}
+      {submitting ? 'Salvando...' : "Salvar Entrega"}
     </Button>
   </div>
 );

@@ -44,6 +44,32 @@ export const DeliveryFormSections: React.FC<{
       
       console.log('Submitting delivery data:', data);
       
+      // Validação básica
+      if (!data.clientId) {
+        toast.error('Por favor, selecione um cliente');
+        return;
+      }
+      
+      if (!data.deliveryDate) {
+        toast.error('Por favor, informe a data de entrega');
+        return;
+      }
+      
+      if (!data.receiver?.trim()) {
+        toast.error('Por favor, informe o destinatário');
+        return;
+      }
+
+      if (!data.weight || data.weight <= 0) {
+        toast.error('Por favor, informe um peso válido');
+        return;
+      }
+
+      if (!data.packages || data.packages <= 0) {
+        toast.error('Por favor, informe a quantidade de volumes');
+        return;
+      }
+      
       // Check for duplicate minute number only for new deliveries or when minute number changes
       if (!isEditMode || (delivery && delivery.minuteNumber !== data.minuteNumber)) {
         if (data.minuteNumber && checkMinuteNumberExistsForClient(data.minuteNumber, data.clientId, delivery?.id)) {
@@ -64,17 +90,18 @@ export const DeliveryFormSections: React.FC<{
       
       if (isEditMode && delivery?.id) {
         // Atualizar entrega existente
-        await updateDelivery(delivery.id, deliveryData);
-        toast.success('Entrega atualizada com sucesso');
-        // Garantir que o diálogo seja fechado após a atualização
-        setTimeout(() => {
+        const result = await updateDelivery(delivery.id, deliveryData);
+        if (result) {
+          toast.success('Entrega atualizada com sucesso');
           onComplete();
-        }, 100);
+        }
       } else {
         // Criar nova entrega
-        await addDelivery(deliveryData);
-        toast.success('Entrega registrada com sucesso');
-        onComplete();
+        const result = await addDelivery(deliveryData);
+        if (result) {
+          toast.success('Entrega registrada com sucesso');
+          onComplete();
+        }
       }
     } catch (error) {
       console.error('Error submitting delivery:', error);
@@ -98,16 +125,20 @@ export const DeliveryFormSections: React.FC<{
         };
         
         if (isEditMode && delivery?.id) {
-          await updateDelivery(delivery.id, deliveryData);
-          toast.success('Entrega atualizada com sucesso');
+          const result = await updateDelivery(delivery.id, deliveryData);
+          if (result) {
+            toast.success('Entrega atualizada com sucesso');
+            onComplete();
+          }
         } else {
-          await addDelivery(deliveryData);
-          toast.success('Entrega registrada com sucesso');
+          const result = await addDelivery(deliveryData);
+          if (result) {
+            toast.success('Entrega registrada com sucesso');
+            onComplete();
+          }
         }
         
         setShowDuplicateAlert(false);
-        // Fechar o diálogo automaticamente após salvar
-        onComplete();
       } catch (error) {
         console.error('Error submitting duplicate delivery:', error);
         toast.error('Erro ao salvar entrega');

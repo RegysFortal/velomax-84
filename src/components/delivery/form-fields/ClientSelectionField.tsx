@@ -1,141 +1,43 @@
 
-import React, { useEffect, useState } from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import React from 'react';
 import { Control } from 'react-hook-form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDeliveryFormContext } from '../context/DeliveryFormContext';
-import { 
-  Command, 
-  CommandEmpty, 
-  CommandGroup, 
-  CommandInput, 
-  CommandItem, 
-  CommandList 
-} from '@/components/ui/command';
-import { Card } from '@/components/ui/card';
-import { SearchWithMagnifier } from '@/components/ui/search-with-magnifier';
-import { ChevronDown, ChevronUp, Check } from 'lucide-react';
 
 interface ClientSelectionFieldProps {
   control: Control<any>;
-  isEditMode: boolean;
 }
 
-export function ClientSelectionField({ control, isEditMode }: ClientSelectionFieldProps) {
+export const ClientSelectionField: React.FC<ClientSelectionFieldProps> = ({
+  control
+}) => {
   const { clients } = useDeliveryFormContext();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedClientName, setSelectedClientName] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (clients.length > 0) {
-      console.log("ClientSelectionField - Clients loaded:", clients.length);
-      setLoading(false);
-    } else {
-      console.log("ClientSelectionField - No clients available");
-      setLoading(true);
-    }
-  }, [clients]);
-
-  const filteredClients = clients.filter(client => {
-    const searchFields = [
-      client.tradingName || '',
-      client.name || '',
-      client.document || '',
-      client.phone || '',
-      client.email || ''
-    ].join(' ').toLowerCase();
-    
-    return searchFields.includes(searchTerm.toLowerCase());
-  });
 
   return (
-    <div className="md:col-span-2">
-      <FormField
-        control={control}
-        name="clientId"
-        rules={{ 
-          required: "Selecione um cliente" 
-        }}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Selecione um cliente</FormLabel>
+    <FormField
+      control={control}
+      name="clientId"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Cliente *</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
-              <Card className="overflow-hidden border p-0">
-                <div className="border-b px-3 py-2 flex items-center">
-                  {selectedClientName && !isOpen ? (
-                    <div className="flex-1 py-2 px-1 font-medium">
-                      {selectedClientName}
-                    </div>
-                  ) : (
-                    <SearchWithMagnifier
-                      placeholder="Buscar cliente..."
-                      value={searchTerm}
-                      onChange={(value) => {
-                        setSearchTerm(value);
-                        setIsOpen(true);
-                      }}
-                      className="w-full"
-                    />
-                  )}
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setIsOpen(!isOpen);
-                      if (!isOpen && selectedClientName) {
-                        setSearchTerm('');
-                      }
-                    }}
-                    className="ml-2 text-muted-foreground"
-                  >
-                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </button>
-                </div>
-                {isOpen && (
-                  <Command className="border-0">
-                    <CommandList 
-                      className="max-h-[300px] overflow-y-auto"
-                    >
-                      <CommandEmpty>Nenhum cliente encontrado</CommandEmpty>
-                      <CommandGroup>
-                        {filteredClients.map(client => (
-                          <CommandItem
-                            key={client.id}
-                            value={client.id}
-                            onSelect={(value) => {
-                              console.log("ClientSelectionField - Client selected:", value);
-                              field.onChange(value);
-                              setIsOpen(false);
-                              setSearchTerm('');
-                              const displayName = client.tradingName || client.name;
-                              setSelectedClientName(displayName);
-                            }}
-                            className="flex items-center justify-between hover:bg-accent hover:text-accent-foreground"
-                            disabled={isEditMode && field.value}
-                          >
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                {client.tradingName || client.name}
-                              </span>
-                              {client.tradingName && (
-                                <span className="text-xs text-muted-foreground">
-                                  {client.name}
-                                </span>
-                              )}
-                            </div>
-                            {field.value === client.id && <Check className="h-4 w-4" />}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                )}
-              </Card>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o cliente" />
+              </SelectTrigger>
             </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
+            <SelectContent>
+              {clients.map((client) => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
-}
+};

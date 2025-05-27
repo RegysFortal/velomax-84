@@ -1,28 +1,23 @@
 
 import { z } from 'zod';
-import { DeliveryType, CargoType } from '@/types/delivery';
 
 export const deliveryFormSchema = z.object({
-  clientId: z.string({ required_error: 'Cliente é obrigatório' }),
   minuteNumber: z.string().optional(),
-  deliveryDate: z.string({ required_error: 'Data de entrega é obrigatória' }),
-  deliveryTime: z.string({ required_error: 'Hora de entrega é obrigatória' }),
-  receiver: z.string({ required_error: 'Destinatário é obrigatório' }).min(3, 'Mínimo de 3 caracteres'),
+  clientId: z.string().min(1, "Cliente é obrigatório"),
+  deliveryDate: z.string().min(1, "Data de entrega é obrigatória"),
+  deliveryTime: z.string().optional(),
+  receiver: z.string().min(1, "Destinatário é obrigatório"),
   receiverId: z.string().optional(),
-  weight: z.string({ required_error: 'Peso é obrigatório' }).refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
-    message: 'Peso deve ser maior que zero',
-  }),
-  packages: z.string({ required_error: 'Quantidade de volumes é obrigatória' }).refine(val => !isNaN(parseInt(val)) && parseInt(val) > 0, {
-    message: 'Volumes devem ser maior que zero',
-  }),
-  deliveryType: z.string({ required_error: 'Tipo de entrega é obrigatório' }) as z.ZodType<DeliveryType>,
-  cargoType: z.string({ required_error: 'Tipo de carga é obrigatório' }) as z.ZodType<CargoType>,
-  cargoValue: z.string().optional(),
-  cityId: z.string().optional(),
+  weight: z.number().min(0.1, "Peso deve ser maior que 0"),
+  packages: z.number().int().min(1, "Quantidade de volumes deve ser maior que 0"),
+  deliveryType: z.string().min(1, "Tipo de entrega é obrigatório"),
+  cargoType: z.string().min(1, "Tipo de carga é obrigatório"),
+  cargoValue: z.number().optional(),
+  totalFreight: z.number().min(0, "Valor do frete deve ser maior ou igual a 0"),
   notes: z.string().optional(),
   occurrence: z.string().optional(),
-  pickupName: z.string().optional(),
-  pickupDate: z.string().optional(),
-  pickupTime: z.string().optional(),
-  arrivalKnowledgeNumber: z.string().optional(), // Adicionado: Número do conhecimento de chegada
+  cityId: z.string().optional(),
+  arrivalKnowledgeNumber: z.string().optional()
 });
+
+export type DeliveryFormData = z.infer<typeof deliveryFormSchema>;

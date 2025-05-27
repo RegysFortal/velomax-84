@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { Control, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { ClientSelectionField } from './form-fields/ClientSelectionField';
-import { MinuteNumberField } from './form-fields/MinuteNumberField';
 import { DeliveryDateTimeFields } from './form-fields/DeliveryDateTimeFields';
 import { ReceiverFields } from './form-fields/ReceiverFields';
 import { ShipmentDetailsFields } from './form-fields/ShipmentDetailsFields';
-import { Separator } from '@/components/ui/separator';
+import { MinuteNumberField } from './form-fields/MinuteNumberField';
 
 interface DeliveryFormBasicFieldsProps {
   control: Control<any>;
@@ -15,50 +16,43 @@ interface DeliveryFormBasicFieldsProps {
   getValues: UseFormGetValues<any>;
 }
 
-export function DeliveryFormBasicFields({ 
-  control, 
-  isEditMode, 
-  setValue, 
-  getValues 
-}: DeliveryFormBasicFieldsProps) {
+export const DeliveryFormBasicFields: React.FC<DeliveryFormBasicFieldsProps> = ({
+  control,
+  isEditMode,
+  setValue,
+  getValues
+}) => {
   return (
-    <>
-      {/* 1. Seleção de cliente */}
-      <ClientSelectionField 
-        control={control} 
-        isEditMode={isEditMode} 
-      />
-      
-      {/* 2. Número da minuta */}
-      <MinuteNumberField 
-        control={control} 
-        isEditMode={isEditMode} 
-      />
-      
-      {/* 3. Detalhes da carga: peso e volumes */}
-      <div className="space-y-4">
-        <Separator className="my-4" />
-        <h3 className="text-md font-medium">Detalhes da Carga</h3>
-        
-        <ShipmentDetailsFields 
-          control={control} 
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ClientSelectionField 
+          control={control}
         />
-      </div>
-      
-      {/* 4. Informações de entrega: recebedor, data/hora, observações */}
-      <div className="space-y-4">
-        <Separator className="my-4" />
-        <h3 className="text-md font-medium">Informações de Entrega</h3>
         
-        <ReceiverFields 
+        <MinuteNumberField 
           control={control}
           setValue={setValue}
-        />
-        
-        <DeliveryDateTimeFields 
-          control={control} 
+          getValues={getValues}
         />
       </div>
-    </>
+
+      <DeliveryDateTimeFields control={control} />
+      <ReceiverFields control={control} />
+      <ShipmentDetailsFields control={control} />
+
+      <FormField
+        control={control}
+        name="arrivalKnowledgeNumber"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Número do Conhecimento de Chegada</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Digite o número do conhecimento de chegada" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   );
-}
+};
