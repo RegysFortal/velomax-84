@@ -272,6 +272,7 @@ export type Database = {
       }
       deliveries: {
         Row: {
+          arrival_knowledge_number: string | null
           cargo_type: string
           cargo_value: number | null
           city_id: string | null
@@ -286,12 +287,14 @@ export type Database = {
           occurrence: string | null
           packages: number
           receiver: string
+          receiver_id: string | null
           total_freight: number
           updated_at: string | null
           user_id: string | null
           weight: number
         }
         Insert: {
+          arrival_knowledge_number?: string | null
           cargo_type: string
           cargo_value?: number | null
           city_id?: string | null
@@ -306,12 +309,14 @@ export type Database = {
           occurrence?: string | null
           packages: number
           receiver: string
+          receiver_id?: string | null
           total_freight: number
           updated_at?: string | null
           user_id?: string | null
           weight: number
         }
         Update: {
+          arrival_knowledge_number?: string | null
           cargo_type?: string
           cargo_value?: number | null
           city_id?: string | null
@@ -326,6 +331,7 @@ export type Database = {
           occurrence?: string | null
           packages?: number
           receiver?: string
+          receiver_id?: string | null
           total_freight?: number
           updated_at?: string | null
           user_id?: string | null
