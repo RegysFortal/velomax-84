@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -33,54 +33,54 @@ export function ClientSearchSelect({
   disabled = false,
   clients = []
 }: ClientSearchSelectProps) {
-  const [clientOptions, setClientOptions] = useState<SearchableSelectOption[]>([]);
   const navigate = useNavigate();
   
-  // Format client options
-  useEffect(() => {
+  // Memoize client options to prevent unnecessary recalculations
+  const clientOptions = useMemo<SearchableSelectOption[]>(() => {
     try {
-      if (clients && clients.length > 0) {
-        console.log("ClientSearchSelect - Formatting options for", clients.length, "clients");
-        
-        // Format client options for the searchable select
-        const options = [
-          ...(includeAllOption ? [{ 
-            value: allOptionValue, 
-            label: allOptionLabel 
-          }] : []),
-          ...clients.map(client => ({
-            value: client.id,
-            label: client.tradingName || client.name,
-            description: client.tradingName ? client.name : undefined
-          }))
-        ];
-        
-        setClientOptions(options);
-        console.log("ClientSearchSelect - Formatted options:", options.length);
-      } else {
+      if (!clients || clients.length === 0) {
         console.log("ClientSearchSelect - No clients available");
-        setClientOptions([]);
+        return includeAllOption ? [{ 
+          value: allOptionValue, 
+          label: allOptionLabel 
+        }] : [];
       }
+      
+      console.log("ClientSearchSelect - Formatting options for", clients.length, "clients");
+      
+      const options = [
+        ...(includeAllOption ? [{ 
+          value: allOptionValue, 
+          label: allOptionLabel 
+        }] : []),
+        ...clients.map(client => ({
+          value: client.id,
+          label: client.tradingName || client.name,
+          description: client.tradingName ? client.name : undefined
+        }))
+      ];
+      
+      console.log("ClientSearchSelect - Formatted options:", options.length);
+      return options;
     } catch (error) {
       console.error("Error formatting client options:", error);
-      setClientOptions([]);
+      return [];
     }
   }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
   
-  const handleCreateNewClient = () => {
+  const handleCreateNewClient = useCallback(() => {
     // Store current route to return after client creation
     localStorage.setItem('velomax_return_route', window.location.pathname);
     
     // Navigate to clients page
     toast.info("Redirecionando para cadastro de novo cliente");
     navigate("/clients");
-  };
+  }, [navigate]);
 
-  const handleValueChange = (newValue: string) => {
+  const handleValueChange = useCallback((newValue: string) => {
     console.log("ClientSearchSelect - Value changed to:", newValue);
-    // Make sure we're passing the selection up
     onValueChange(newValue);
-  };
+  }, [onValueChange]);
   
   return (
     <div className="w-full" data-testid="client-search-select">

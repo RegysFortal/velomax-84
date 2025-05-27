@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { 
   Command, 
   CommandInput, 
@@ -30,46 +30,60 @@ export function SearchableSelect({
   const popoverRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Find the selected option to display in the trigger
-  const selectedOption = options.find(option => option.value === value);
+  // Memoize the selected option to prevent unnecessary re-renders
+  const selectedOption = useMemo(() => {
+    return options.find(option => option.value === value);
+  }, [options, value]);
   
-  // Filter options based on search value
-  const filteredOptions = options.filter(option => {
-    const optionText = `${option.label} ${option.description || ''}`.toLowerCase();
-    return optionText.includes(searchValue.toLowerCase());
-  });
+  // Memoize filtered options to prevent unnecessary filtering
+  const filteredOptions = useMemo(() => {
+    if (!searchValue) return options;
+    
+    return options.filter(option => {
+      const optionText = `${option.label} ${option.description || ''}`.toLowerCase();
+      return optionText.includes(searchValue.toLowerCase());
+    });
+  }, [options, searchValue]);
   
   // Auto-focus input when popover opens
   useEffect(() => {
     if (open && inputRef.current) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
+      return () => clearTimeout(timer);
     }
   }, [open]);
   
   // Clear search when popover closes
   useEffect(() => {
     if (!open) {
-      setTimeout(() => setSearchValue(''), 150);
+      const timer = setTimeout(() => setSearchValue(''), 150);
+      return () => clearTimeout(timer);
     }
   }, [open]);
   
-  const handleSelect = (currentValue: string) => {
+  const handleSelect = useCallback((currentValue: string) => {
     console.log("SearchableSelect - handleSelect called with:", currentValue);
     onValueChange(currentValue);
     setOpen(false);
-  };
+  }, [onValueChange]);
   
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     if (onCreateNew && searchValue) {
       onCreateNew(searchValue);
     }
     setOpen(false);
-  };
+  }, [onCreateNew, searchValue]);
+  
+  const handleOpenChange = useCallback((newOpen: boolean) => {
+    if (!disabled) {
+      setOpen(newOpen);
+    }
+  }, [disabled]);
   
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <div className="w-full">
           <SearchableSelectTrigger

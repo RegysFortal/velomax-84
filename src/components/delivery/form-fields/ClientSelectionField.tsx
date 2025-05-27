@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Control } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,10 +9,12 @@ interface ClientSelectionFieldProps {
   control: Control<any>;
 }
 
-export const ClientSelectionField: React.FC<ClientSelectionFieldProps> = ({
+export const ClientSelectionField: React.FC<ClientSelectionFieldProps> = memo(({
   control
 }) => {
   const { clients } = useDeliveryFormContext();
+
+  console.log('ClientSelectionField rendering with', clients?.length || 0, 'clients');
 
   return (
     <FormField
@@ -27,12 +29,18 @@ export const ClientSelectionField: React.FC<ClientSelectionFieldProps> = ({
                 <SelectValue placeholder="Selecione o cliente" />
               </SelectTrigger>
             </FormControl>
-            <SelectContent>
-              {clients.map((client) => (
-                <SelectItem key={client.id} value={client.id}>
-                  {client.name}
+            <SelectContent className="max-h-[300px] overflow-y-auto">
+              {clients && clients.length > 0 ? (
+                clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.tradingName || client.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="" disabled>
+                  Nenhum cliente encontrado
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
           <FormMessage />
@@ -40,4 +48,6 @@ export const ClientSelectionField: React.FC<ClientSelectionFieldProps> = ({
       )}
     />
   );
-};
+});
+
+ClientSelectionField.displayName = 'ClientSelectionField';
