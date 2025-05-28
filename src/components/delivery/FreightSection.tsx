@@ -13,6 +13,8 @@ interface FreightSectionProps {
 export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) => {
   const { form, freight, setFreight } = useDeliveryFormContext();
   const [freightInput, setFreightInput] = useState(String(freight));
+  const [isManualEdit, setIsManualEdit] = useState(false);
+  
   const { calculateFreight, setManualFreight } = useDeliveryFormCalculations({
     form,
     setFreight,
@@ -20,25 +22,41 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
     isEditMode,
   });
 
-  // Sincronizar o valor de entrada com o estado externo
+  // Sincronizar o valor de entrada com o estado externo apenas se não estiver sendo editado manualmente
   useEffect(() => {
-    setFreightInput(String(freight));
-  }, [freight]);
+    if (!isManualEdit) {
+      setFreightInput(String(freight));
+      form.setValue('totalFreight', freight);
+    }
+  }, [freight, isManualEdit, form]);
 
   const handleFreightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFreightInput(value);
+    setIsManualEdit(true);
     
     // Converter para número e atualizar o estado apenas se for um número válido
     const numValue = parseFloat(value);
-    if (!isNaN(numValue)) {
+    if (!isNaN(numValue) && numValue >= 0) {
       setManualFreight(numValue);
+      form.setValue('totalFreight', numValue);
     }
   };
 
   const handleRecalculate = () => {
+    setIsManualEdit(false);
     const calculated = calculateFreight();
     console.log(`Frete recalculado: ${calculated}`);
+    form.setValue('totalFreight', calculated);
+  };
+
+  const handleFreightBlur = () => {
+    // Quando o campo perde o foco, garantir que o valor seja válido
+    const numValue = parseFloat(freightInput);
+    if (isNaN(numValue) || numValue < 0) {
+      setFreightInput(String(freight));
+      form.setValue('totalFreight', freight);
+    }
   };
 
   return (
@@ -60,13 +78,19 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
               type="number"
               value={freightInput}
               onChange={handleFreightChange}
+              onBlur={handleFreightBlur}
               className="w-32 text-right font-bold"
               step="0.01"
+              min="0"
             />
           </div>
         </div>
         <div className="text-xs text-muted-foreground text-right italic">
-          Você pode ajustar o valor do frete manualmente se necessário
+          {isManualEdit ? (
+            <span className="text-amber-600">Valor manual aplicado - clique em "Recalcular" para usar a tabela de preços</span>
+          ) : (
+            "Você pode ajustar o valor do frete manualmente se necessário"
+          )}
         </div>
       </div>
     </div>

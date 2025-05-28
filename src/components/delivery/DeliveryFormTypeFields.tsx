@@ -83,7 +83,15 @@ export function DeliveryFormTypeFields({
             <FormItem>
               <FormLabel>Valor da Nota Fiscal (R$)</FormLabel>
               <FormControl>
-                <Input {...field} type="number" step="0.01" min="0" placeholder="0.00" className="bg-background" />
+                <Input 
+                  {...field} 
+                  type="number" 
+                  step="0.01" 
+                  min="0" 
+                  placeholder="0.00" 
+                  className="bg-background"
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                />
               </FormControl>
               <FormMessage />
               <p className="text-xs text-muted-foreground mt-1 font-medium text-amber-600">

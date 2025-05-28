@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { Control, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { ClientSelectionField } from './form-fields/ClientSelectionField';
 import { DeliveryDateTimeFields } from './form-fields/DeliveryDateTimeFields';
 import { ReceiverFields } from './form-fields/ReceiverFields';
@@ -33,20 +31,6 @@ export const DeliveryFormBasicFields: React.FC<DeliveryFormBasicFieldsProps> = (
       <DeliveryDateTimeFields control={control} />
       <ReceiverFields control={control} setValue={setValue} />
       <ShipmentDetailsFields control={control} />
-
-      <FormField 
-        control={control} 
-        name="arrivalKnowledgeNumber" 
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Número do Conhecimento de Chegada</FormLabel>
-            <FormControl>
-              <Input {...field} placeholder="Digite o número do conhecimento" className="bg-background" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )} 
-      />
     </div>
   );
 };
