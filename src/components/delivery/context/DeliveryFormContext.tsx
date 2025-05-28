@@ -23,6 +23,8 @@ interface DeliveryFormContextType {
   freight: number;
   setFreight: (value: number) => void;
   clients: any[];
+  insuranceValue: number;
+  setInsuranceValue: (value: number) => void;
 }
 
 const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
@@ -50,6 +52,7 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   const { cities } = useCities();
   const { clients } = useClients();
   const [freight, setFreight] = useState<number>(0);
+  const [insuranceValue, setInsuranceValue] = useState<number>(0);
   
   // Memoize clients to prevent unnecessary re-renders
   const memoizedClients = useMemo(() => clients, [clients]);
@@ -85,7 +88,7 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
       weight: delivery.weight || 0,
       packages: delivery.packages || 0,
       deliveryType: delivery.deliveryType || 'standard',
-      cargoType: delivery.cargoType || 'general',
+      cargoType: delivery.cargoType || 'standard',
       cargoValue: delivery.cargoValue || 0,
       totalFreight: delivery.totalFreight || 0,
       notes: delivery.notes || '',
@@ -102,7 +105,7 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
       weight: 0,
       packages: 0,
       deliveryType: 'standard',
-      cargoType: 'general',
+      cargoType: 'standard',
       cargoValue: 0,
       totalFreight: 0,
       notes: '',
@@ -126,6 +129,16 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   const watchCargoType = form.watch('cargoType');
   const watchCargoValue = form.watch('cargoValue');
 
+  // Calculate insurance for reshipment
+  useEffect(() => {
+    if (watchDeliveryType === 'reshipment' && watchCargoValue > 0) {
+      const insurance = watchCargoValue * 0.01;
+      setInsuranceValue(insurance);
+    } else {
+      setInsuranceValue(0);
+    }
+  }, [watchDeliveryType, watchCargoValue]);
+
   // Calculate freight automatically when relevant fields change - debounced
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -136,7 +149,8 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
           deliveryType: watchDeliveryType,
           cargoType: watchCargoType,
           cargoValue: watchCargoValue,
-          cityId: watchCityId
+          cityId: watchCityId,
+          insuranceValue
         });
 
         const calculatedFreight = calculateFreight(
@@ -149,17 +163,20 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
           watchCityId
         );
 
-        console.log('Calculated freight:', calculatedFreight);
+        // Add insurance for reshipment
+        const totalWithInsurance = calculatedFreight + insuranceValue;
 
-        if (calculatedFreight > 0) {
-          setFreight(calculatedFreight);
-          form.setValue('totalFreight', calculatedFreight);
+        console.log('Calculated freight:', calculatedFreight, 'Insurance:', insuranceValue, 'Total:', totalWithInsurance);
+
+        if (totalWithInsurance > 0) {
+          setFreight(totalWithInsurance);
+          form.setValue('totalFreight', totalWithInsurance);
         }
       }
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [watchClientId, watchDeliveryType, watchCityId, watchWeight, watchPackages, watchCargoType, watchCargoValue, calculateFreight, form]);
+  }, [watchClientId, watchDeliveryType, watchCityId, watchWeight, watchPackages, watchCargoType, watchCargoValue, calculateFreight, form, insuranceValue]);
 
   // Determine if door-to-door delivery type is selected
   const showDoorToDoor = useMemo(() => {
@@ -178,7 +195,9 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
     setFormData,
     freight,
     setFreight,
-    clients: memoizedClients
+    clients: memoizedClients,
+    insuranceValue,
+    setInsuranceValue
   }), [
     form,
     delivery,
@@ -190,7 +209,9 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
     setFormData,
     freight,
     setFreight,
-    memoizedClients
+    memoizedClients,
+    insuranceValue,
+    setInsuranceValue
   ]);
 
   return (

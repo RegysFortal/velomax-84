@@ -27,7 +27,10 @@ export const DeliveryFormSections: React.FC<{
     setShowDuplicateAlert,
     formData,
     setFormData,
-    freight
+    freight,
+    setFreight,
+    insuranceValue,
+    setInsuranceValue
   } = useDeliveryFormContext();
 
   const { cities } = useCities();
@@ -35,6 +38,20 @@ export const DeliveryFormSections: React.FC<{
   const [submitting, setSubmitting] = useState(false);
 
   const watchDeliveryType = form.watch('deliveryType');
+  const watchCargoValue = form.watch('cargoValue') || 0;
+
+  const handleCargoValueChange = (value: number) => {
+    if (watchDeliveryType === 'reshipment') {
+      const insurance = value * 0.01;
+      setInsuranceValue(insurance);
+      
+      // Recalculate total freight with insurance
+      const currentFreight = freight - insuranceValue; // Remove old insurance
+      const newTotal = currentFreight + insurance;
+      setFreight(newTotal);
+      form.setValue('totalFreight', newTotal);
+    }
+  };
 
   const onSubmit = async (data: any) => {
     if (submitting) return;
@@ -85,9 +102,10 @@ export const DeliveryFormSections: React.FC<{
         }
       }
       
-      // Preparar dados para envio
+      // Preparar dados para envio - definir cargoType como 'standard' para todos os casos
       const deliveryData = {
         ...data,
+        cargoType: 'standard', // Define um valor padrão já que não vamos mais usar este campo
         totalFreight: freight || data.totalFreight || 50,
         weight: weight,
         packages: packages,
@@ -95,7 +113,7 @@ export const DeliveryFormSections: React.FC<{
       };
       
       if (isEditMode && delivery?.id) {
-        // Atualizar entrega existente
+        // Atualizar entrega existente - usar updateDelivery em vez de addDelivery
         console.log('Updating existing delivery with ID:', delivery.id);
         const result = await updateDelivery(delivery.id, deliveryData);
         if (result) {
@@ -130,6 +148,7 @@ export const DeliveryFormSections: React.FC<{
         
         const deliveryData = {
           ...formData,
+          cargoType: 'standard', // Define um valor padrão
           totalFreight: freight || formData.totalFreight || 50,
           weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight,
           packages: typeof formData.packages === 'string' ? parseInt(formData.packages) : formData.packages,
@@ -173,13 +192,15 @@ export const DeliveryFormSections: React.FC<{
             />
             <div className="space-y-4">
               <Separator className="my-4" />
-              <h3 className="text-md font-medium">Tipo de Entrega e Carga</h3>
+              <h3 className="text-md font-medium">Tipo de Entrega</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <DeliveryFormTypeFields
                   control={form.control}
                   watchDeliveryType={watchDeliveryType}
+                  watchCargoValue={watchCargoValue}
                   showDoorToDoor={showDoorToDoor}
                   cities={cities}
+                  onCargoValueChange={handleCargoValueChange}
                 />
               </div>
             </div>
