@@ -80,36 +80,31 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         ? parseFloat(deliveryData.totalFreight) 
         : deliveryData.totalFreight;
 
-      // Ensure we have a valid user_id from auth
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       console.log('Adding new delivery to database:', deliveryData);
+
+      const deliveryRecord = {
+        id: uuidv4(),
+        client_id: deliveryData.clientId,
+        city_id: deliveryData.cityId,
+        minute_number: deliveryData.minuteNumber,
+        packages: deliveryData.packages,
+        weight: deliveryData.weight,
+        cargo_type: deliveryData.cargoType,
+        cargo_value: deliveryData.cargoValue,
+        delivery_type: deliveryData.deliveryType,
+        notes: deliveryData.notes,
+        occurrence: deliveryData.occurrence,
+        receiver: deliveryData.receiver,
+        receiver_id: deliveryData.receiverId,
+        delivery_date: deliveryData.deliveryDate,
+        delivery_time: deliveryData.deliveryTime,
+        total_freight: totalFreight || 0,
+        arrival_knowledge_number: deliveryData.arrivalKnowledgeNumber,
+      };
 
       const { data, error } = await supabase
         .from('deliveries')
-        .insert({
-          id: uuidv4(),
-          client_id: deliveryData.clientId,
-          city_id: deliveryData.cityId,
-          minute_number: deliveryData.minuteNumber,
-          packages: deliveryData.packages,
-          weight: deliveryData.weight,
-          cargo_type: deliveryData.cargoType,
-          cargo_value: deliveryData.cargoValue,
-          delivery_type: deliveryData.deliveryType,
-          notes: deliveryData.notes,
-          occurrence: deliveryData.occurrence,
-          receiver: deliveryData.receiver,
-          receiver_id: deliveryData.receiverId,
-          delivery_date: deliveryData.deliveryDate,
-          delivery_time: deliveryData.deliveryTime,
-          total_freight: totalFreight || 0,
-          user_id: userData.user.id,
-          arrival_knowledge_number: deliveryData.arrivalKnowledgeNumber,
-        })
+        .insert(deliveryRecord)
         .select()
         .single();
 
@@ -118,7 +113,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         throw error;
       }
 
-      // Map the returned data to our Delivery type with proper field mappings
+      // Map the returned data to our Delivery type
       const newDelivery: Delivery = {
         id: data.id,
         minuteNumber: data.minute_number,
@@ -143,7 +138,6 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
       setDeliveries((prevDeliveries) => {
         const updatedDeliveries = [newDelivery, ...prevDeliveries];
-        // Save to localStorage as backup
         localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
         return updatedDeliveries;
       });
@@ -190,6 +184,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         updated_at: new Date().toISOString(),
       };
 
+      // Remove undefined values
       Object.keys(supabaseData).forEach(
         (key) => supabaseData[key] === undefined && delete supabaseData[key]
       );
@@ -208,6 +203,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
       console.log('Successfully updated delivery in database:', updatedData);
 
+      // Map the response back to our format
       const updatedDelivery: Delivery = {
         id: updatedData.id,
         clientId: updatedData.client_id,
@@ -234,7 +230,6 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         const updatedDeliveries = prevDeliveries.map((delivery) =>
           delivery.id === id ? { ...delivery, ...updatedDelivery } : delivery
         );
-        // Save to localStorage as backup
         localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
         return updatedDeliveries;
       });
@@ -258,7 +253,6 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
       setDeliveries((prevDeliveries) => {
         const updatedDeliveries = prevDeliveries.filter((delivery) => delivery.id !== id);
-        // Save to localStorage as backup
         localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
         return updatedDeliveries;
       });
