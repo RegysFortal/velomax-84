@@ -40,6 +40,10 @@ export const DeliveryFormSections: React.FC<{
   const watchDeliveryType = form.watch('deliveryType');
   const watchCargoValue = form.watch('cargoValue') || 0;
 
+  console.log('DeliveryFormSections - isEditMode:', isEditMode);
+  console.log('DeliveryFormSections - delivery:', delivery);
+  console.log('DeliveryFormSections - delivery.id:', delivery?.id);
+
   const handleCargoValueChange = (value: number) => {
     if (watchDeliveryType === 'reshipment') {
       const insurance = value * 0.01;
@@ -59,8 +63,10 @@ export const DeliveryFormSections: React.FC<{
     try {
       setSubmitting(true);
       
+      console.log('=== SUBMITTING DELIVERY ===');
       console.log('Submitting delivery data:', data);
       console.log('Is Edit Mode:', isEditMode);
+      console.log('Delivery object:', delivery);
       console.log('Delivery ID:', delivery?.id);
       
       // Validações básicas
@@ -111,10 +117,18 @@ export const DeliveryFormSections: React.FC<{
         cargoValue: data.cargoValue ? parseFloat(String(data.cargoValue)) : 0,
       };
       
-      if (isEditMode && delivery?.id) {
+      console.log('Prepared delivery data:', deliveryData);
+      
+      // Decisão entre criar ou atualizar baseada no modo de edição E na existência do ID
+      if (isEditMode && delivery && delivery.id) {
         // Atualizar entrega existente
-        console.log('Updating existing delivery with ID:', delivery.id);
+        console.log('=== UPDATING EXISTING DELIVERY ===');
+        console.log('Updating delivery with ID:', delivery.id);
+        console.log('Update data:', deliveryData);
+        
         const result = await updateDelivery(delivery.id, deliveryData);
+        console.log('Update result:', result);
+        
         if (result) {
           toast.success('Entrega atualizada com sucesso');
           onComplete();
@@ -123,8 +137,12 @@ export const DeliveryFormSections: React.FC<{
         }
       } else {
         // Criar nova entrega
-        console.log('Creating new delivery');
+        console.log('=== CREATING NEW DELIVERY ===');
+        console.log('Creating new delivery with data:', deliveryData);
+        
         const result = await addDelivery(deliveryData);
+        console.log('Create result:', result);
+        
         if (result) {
           toast.success('Entrega registrada com sucesso');
           onComplete();
@@ -145,6 +163,10 @@ export const DeliveryFormSections: React.FC<{
       try {
         setSubmitting(true);
         
+        console.log('=== CONFIRMING DUPLICATE ===');
+        console.log('Is Edit Mode:', isEditMode);
+        console.log('Delivery ID:', delivery?.id);
+        
         const deliveryData = {
           ...formData,
           totalFreight: freight || formData.totalFreight || 50,
@@ -153,8 +175,9 @@ export const DeliveryFormSections: React.FC<{
           cargoValue: formData.cargoValue ? parseFloat(String(formData.cargoValue)) : 0,
         };
         
-        if (isEditMode && delivery?.id) {
+        if (isEditMode && delivery && delivery.id) {
           // Atualizar entrega existente
+          console.log('Updating delivery in duplicate confirmation:', delivery.id);
           const result = await updateDelivery(delivery.id, deliveryData);
           if (result) {
             toast.success('Entrega atualizada com sucesso');
@@ -162,6 +185,7 @@ export const DeliveryFormSections: React.FC<{
           }
         } else {
           // Criar nova entrega
+          console.log('Creating new delivery in duplicate confirmation');
           const result = await addDelivery(deliveryData);
           if (result) {
             toast.success('Entrega registrada com sucesso');

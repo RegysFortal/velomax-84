@@ -54,9 +54,22 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   const [freight, setFreight] = useState<number>(0);
   const [insuranceValue, setInsuranceValue] = useState<number>(0);
   
-  // Determine if we're in edit mode based on whether delivery exists
+  // Determine if we're in edit mode - mais rigoroso na verificação
   const isEditMode = useMemo(() => {
-    return propIsEditMode !== undefined ? propIsEditMode : (delivery !== null && delivery !== undefined);
+    const hasDelivery = delivery !== null && delivery !== undefined;
+    const hasId = hasDelivery && delivery.id !== undefined && delivery.id !== null && delivery.id !== '';
+    const editModeFromProp = propIsEditMode === true;
+    
+    const finalEditMode = editModeFromProp && hasDelivery && hasId;
+    
+    console.log('DeliveryFormContext - Edit mode calculation:');
+    console.log('  - propIsEditMode:', propIsEditMode);
+    console.log('  - hasDelivery:', hasDelivery);
+    console.log('  - hasId:', hasId);
+    console.log('  - delivery.id:', delivery?.id);
+    console.log('  - finalEditMode:', finalEditMode);
+    
+    return finalEditMode;
   }, [propIsEditMode, delivery]);
   
   // Memoize clients to prevent unnecessary re-renders
@@ -132,6 +145,7 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   // Set initial freight value for edit mode
   useEffect(() => {
     if (isEditMode && delivery?.totalFreight) {
+      console.log('Setting initial freight for edit mode:', delivery.totalFreight);
       setFreight(delivery.totalFreight);
     }
   }, [isEditMode, delivery?.totalFreight]);
