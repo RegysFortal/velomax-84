@@ -46,13 +46,18 @@ interface DeliveryFormProviderProps {
 export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({ 
   children, 
   delivery = null, 
-  isEditMode = false 
+  isEditMode: propIsEditMode
 }) => {
   const { checkMinuteNumberExistsForClient } = useDeliveries();
   const { cities } = useCities();
   const { clients } = useClients();
   const [freight, setFreight] = useState<number>(0);
   const [insuranceValue, setInsuranceValue] = useState<number>(0);
+  
+  // Determine if we're in edit mode based on whether delivery exists
+  const isEditMode = useMemo(() => {
+    return propIsEditMode !== undefined ? propIsEditMode : (delivery !== null && delivery !== undefined);
+  }, [propIsEditMode, delivery]);
   
   // Memoize clients to prevent unnecessary re-renders
   const memoizedClients = useMemo(() => clients, [clients]);
@@ -78,47 +83,58 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
 
   // Memoize default values to prevent form re-initialization
   const defaultValues = useMemo(() => {
-    return delivery ? {
-      minuteNumber: delivery.minuteNumber || '',
-      clientId: delivery.clientId || '',
-      deliveryDate: delivery.deliveryDate || '',
-      deliveryTime: delivery.deliveryTime || '',
-      receiver: delivery.receiver || '',
-      receiverId: delivery.receiverId || '',
-      weight: delivery.weight || 0,
-      packages: delivery.packages || 0,
-      deliveryType: delivery.deliveryType || 'standard',
-      cargoType: delivery.cargoType || 'standard',
-      cargoValue: delivery.cargoValue || 0,
-      totalFreight: delivery.totalFreight || 0,
-      notes: delivery.notes || '',
-      occurrence: delivery.occurrence || '',
-      cityId: delivery.cityId || '',
-      arrivalKnowledgeNumber: delivery.arrivalKnowledgeNumber || ''
-    } : {
-      minuteNumber: '',
-      clientId: '',
-      deliveryDate: '',
-      deliveryTime: '',
-      receiver: '',
-      receiverId: '',
-      weight: 0,
-      packages: 0,
-      deliveryType: 'standard',
-      cargoType: 'standard',
-      cargoValue: 0,
-      totalFreight: 0,
-      notes: '',
-      occurrence: '',
-      cityId: '',
-      arrivalKnowledgeNumber: ''
-    };
-  }, [delivery]);
+    if (isEditMode && delivery) {
+      console.log('DeliveryFormContext - Setting edit mode values for delivery:', delivery.id);
+      return {
+        minuteNumber: delivery.minuteNumber || '',
+        clientId: delivery.clientId || '',
+        deliveryDate: delivery.deliveryDate || '',
+        deliveryTime: delivery.deliveryTime || '',
+        receiver: delivery.receiver || '',
+        receiverId: delivery.receiverId || '',
+        weight: delivery.weight || 0,
+        packages: delivery.packages || 0,
+        deliveryType: delivery.deliveryType || 'standard',
+        cargoValue: delivery.cargoValue || 0,
+        totalFreight: delivery.totalFreight || 0,
+        notes: delivery.notes || '',
+        occurrence: delivery.occurrence || '',
+        cityId: delivery.cityId || '',
+        arrivalKnowledgeNumber: delivery.arrivalKnowledgeNumber || ''
+      };
+    } else {
+      console.log('DeliveryFormContext - Setting default values for new delivery');
+      return {
+        minuteNumber: '',
+        clientId: '',
+        deliveryDate: '',
+        deliveryTime: '',
+        receiver: '',
+        receiverId: '',
+        weight: 0,
+        packages: 0,
+        deliveryType: 'standard',
+        cargoValue: 0,
+        totalFreight: 0,
+        notes: '',
+        occurrence: '',
+        cityId: '',
+        arrivalKnowledgeNumber: ''
+      };
+    }
+  }, [delivery, isEditMode]);
 
   const form = useForm({
     resolver: zodResolver(deliveryFormSchema),
     defaultValues
   });
+
+  // Set initial freight value for edit mode
+  useEffect(() => {
+    if (isEditMode && delivery?.totalFreight) {
+      setFreight(delivery.totalFreight);
+    }
+  }, [isEditMode, delivery?.totalFreight]);
 
   // Watch for changes to calculate freight - use debounced approach
   const watchClientId = form.watch('clientId');
@@ -126,7 +142,6 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
   const watchCityId = form.watch('cityId');
   const watchWeight = form.watch('weight');
   const watchPackages = form.watch('packages');
-  const watchCargoType = form.watch('cargoType');
   const watchCargoValue = form.watch('cargoValue');
 
   // Calculate insurance for reshipment
@@ -139,44 +154,45 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
     }
   }, [watchDeliveryType, watchCargoValue]);
 
-  // Calculate freight automatically when relevant fields change - debounced
+  // Calculate freight automatically when relevant fields change - but only for new deliveries
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (watchClientId && watchWeight && watchDeliveryType) {
-        console.log('Calculating freight with params:', {
-          clientId: watchClientId,
-          weight: watchWeight,
-          deliveryType: watchDeliveryType,
-          cargoType: watchCargoType,
-          cargoValue: watchCargoValue,
-          cityId: watchCityId,
-          insuranceValue
-        });
+    if (!isEditMode) {
+      const timeoutId = setTimeout(() => {
+        if (watchClientId && watchWeight && watchDeliveryType) {
+          console.log('Calculating freight for new delivery with params:', {
+            clientId: watchClientId,
+            weight: watchWeight,
+            deliveryType: watchDeliveryType,
+            cargoValue: watchCargoValue,
+            cityId: watchCityId,
+            insuranceValue
+          });
 
-        const calculatedFreight = calculateFreight(
-          watchClientId,
-          parseFloat(String(watchWeight)) || 0,
-          watchDeliveryType as any,
-          watchCargoType as any,
-          parseFloat(String(watchCargoValue)) || 0,
-          undefined,
-          watchCityId
-        );
+          const calculatedFreight = calculateFreight(
+            watchClientId,
+            parseFloat(String(watchWeight)) || 0,
+            watchDeliveryType as any,
+            'standard' as any,
+            parseFloat(String(watchCargoValue)) || 0,
+            undefined,
+            watchCityId
+          );
 
-        // Add insurance for reshipment
-        const totalWithInsurance = calculatedFreight + insuranceValue;
+          // Add insurance for reshipment
+          const totalWithInsurance = calculatedFreight + insuranceValue;
 
-        console.log('Calculated freight:', calculatedFreight, 'Insurance:', insuranceValue, 'Total:', totalWithInsurance);
+          console.log('Calculated freight:', calculatedFreight, 'Insurance:', insuranceValue, 'Total:', totalWithInsurance);
 
-        if (totalWithInsurance > 0) {
-          setFreight(totalWithInsurance);
-          form.setValue('totalFreight', totalWithInsurance);
+          if (totalWithInsurance > 0) {
+            setFreight(totalWithInsurance);
+            form.setValue('totalFreight', totalWithInsurance);
+          }
         }
-      }
-    }, 300); // 300ms debounce
+      }, 300); // 300ms debounce
 
-    return () => clearTimeout(timeoutId);
-  }, [watchClientId, watchDeliveryType, watchCityId, watchWeight, watchPackages, watchCargoType, watchCargoValue, calculateFreight, form, insuranceValue]);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [watchClientId, watchDeliveryType, watchCityId, watchWeight, watchPackages, watchCargoValue, calculateFreight, form, insuranceValue, isEditMode]);
 
   // Determine if door-to-door delivery type is selected
   const showDoorToDoor = useMemo(() => {

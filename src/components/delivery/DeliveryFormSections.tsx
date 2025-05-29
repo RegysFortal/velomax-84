@@ -102,10 +102,9 @@ export const DeliveryFormSections: React.FC<{
         }
       }
       
-      // Preparar dados para envio - definir cargoType como 'standard' para todos os casos
+      // Preparar dados para envio
       const deliveryData = {
         ...data,
-        cargoType: 'standard', // Define um valor padrão já que não vamos mais usar este campo
         totalFreight: freight || data.totalFreight || 50,
         weight: weight,
         packages: packages,
@@ -113,7 +112,7 @@ export const DeliveryFormSections: React.FC<{
       };
       
       if (isEditMode && delivery?.id) {
-        // Atualizar entrega existente - usar updateDelivery em vez de addDelivery
+        // Atualizar entrega existente
         console.log('Updating existing delivery with ID:', delivery.id);
         const result = await updateDelivery(delivery.id, deliveryData);
         if (result) {
@@ -148,7 +147,6 @@ export const DeliveryFormSections: React.FC<{
         
         const deliveryData = {
           ...formData,
-          cargoType: 'standard', // Define um valor padrão
           totalFreight: freight || formData.totalFreight || 50,
           weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight,
           packages: typeof formData.packages === 'string' ? parseInt(formData.packages) : formData.packages,
@@ -156,12 +154,14 @@ export const DeliveryFormSections: React.FC<{
         };
         
         if (isEditMode && delivery?.id) {
+          // Atualizar entrega existente
           const result = await updateDelivery(delivery.id, deliveryData);
           if (result) {
             toast.success('Entrega atualizada com sucesso');
             onComplete();
           }
         } else {
+          // Criar nova entrega
           const result = await addDelivery(deliveryData);
           if (result) {
             toast.success('Entrega registrada com sucesso');
