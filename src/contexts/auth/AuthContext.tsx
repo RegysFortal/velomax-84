@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { User, PermissionLevel } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,35 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("Auth state changed:", event, session);
         setSession(session);
         
         if (session?.user) {
           setSupabaseUser(session.user);
-          
-          // Verificar se o usuário existe na tabela users
-          const { data: existingUser, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (error && error.code === 'PGRST116') {
-            // Usuário não existe na tabela users, criar um novo
-            const { error: insertError } = await supabase
-              .from('users')
-              .insert({
-                id: session.user.id,
-                email: session.user.email || '',
-                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
-                role: session.user.email === 'reginaldo@velomax.com.br' ? 'admin' : 'user'
-              });
-
-            if (insertError) {
-              console.error('Error creating user:', insertError);
-            }
-          }
           
           const storedUsers = localStorage.getItem('velomax_users');
           const usersList = storedUsers ? JSON.parse(storedUsers) : [];
@@ -95,24 +73,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               name: session.user.user_metadata.name || session.user.email?.split('@')[0] || 'Usuário',
               username: session.user.email?.split('@')[0] || session.user.id,
               email: session.user.email || `${session.user.id}@velomax.com`,
-              role: session.user.email === 'reginaldo@velomax.com.br' ? 'admin' : 'user',
+              role: 'admin',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               lastLogin: new Date().toISOString(),
               permissions: {
-                deliveries: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                shipments: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                clients: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                cities: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                reports: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                financial: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                priceTables: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                dashboard: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                logbook: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                employees: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                vehicles: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                maintenance: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
-                settings: { view: true, create: true, edit: true, delete: session.user.email === 'reginaldo@velomax.com.br' },
+                deliveries: { view: true, create: true, edit: true, delete: true },
+                shipments: { view: true, create: true, edit: true, delete: true },
+                clients: { view: true, create: true, edit: true, delete: true },
+                cities: { view: true, create: true, edit: true, delete: true },
+                reports: { view: true, create: true, edit: true, delete: true },
+                financial: { view: true, create: true, edit: true, delete: true },
+                priceTables: { view: true, create: true, edit: true, delete: true },
+                dashboard: { view: true, create: true, edit: true, delete: true },
+                logbook: { view: true, create: true, edit: true, delete: true },
+                employees: { view: true, create: true, edit: true, delete: true },
+                vehicles: { view: true, create: true, edit: true, delete: true },
+                maintenance: { view: true, create: true, edit: true, delete: true },
+                settings: { view: true, create: true, edit: true, delete: true },
               }
             };
             
