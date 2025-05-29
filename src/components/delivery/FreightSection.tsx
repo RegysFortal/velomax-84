@@ -33,9 +33,13 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
   const handleFreightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFreightInput(value);
-    setIsManualEdit(true);
     
-    // Converter para número e atualizar o estado apenas se for um número válido
+    // Marcar como edição manual para prevenir sobrescrita
+    if (!isManualEdit) {
+      setIsManualEdit(true);
+    }
+    
+    // Atualizar o valor no formulário em tempo real
     const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue >= 0) {
       setManualFreight(numValue);
@@ -47,6 +51,7 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
     setIsManualEdit(false);
     const calculated = calculateFreight();
     console.log(`Frete recalculado: ${calculated}`);
+    setFreightInput(String(calculated));
     form.setValue('totalFreight', calculated);
   };
 
@@ -54,9 +59,19 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
     // Quando o campo perde o foco, garantir que o valor seja válido
     const numValue = parseFloat(freightInput);
     if (isNaN(numValue) || numValue < 0) {
-      setFreightInput(String(freight));
-      form.setValue('totalFreight', freight);
+      // Se valor inválido, restaurar o último valor válido
+      const currentFormValue = form.getValues('totalFreight') || freight;
+      setFreightInput(String(currentFormValue));
+    } else {
+      // Se valor válido, garantir que está sincronizado
+      setManualFreight(numValue);
+      form.setValue('totalFreight', numValue);
     }
+  };
+
+  const handleFreightFocus = () => {
+    // Quando o campo recebe foco, marcar como edição manual
+    setIsManualEdit(true);
   };
 
   return (
@@ -79,17 +94,23 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
               value={freightInput}
               onChange={handleFreightChange}
               onBlur={handleFreightBlur}
+              onFocus={handleFreightFocus}
               className="w-32 text-right font-bold"
               step="0.01"
               min="0"
+              placeholder="0.00"
             />
           </div>
         </div>
         <div className="text-xs text-muted-foreground text-right italic">
           {isManualEdit ? (
-            <span className="text-amber-600">Valor manual aplicado - clique em "Recalcular" para usar a tabela de preços</span>
+            <span className="text-amber-600">
+              Valor manual aplicado - clique em "Recalcular" para usar a tabela de preços
+            </span>
           ) : (
-            "Você pode ajustar o valor do frete manualmente se necessário"
+            <span className="text-green-600">
+              Valor calculado automaticamente - você pode editá-lo manualmente
+            </span>
           )}
         </div>
       </div>
