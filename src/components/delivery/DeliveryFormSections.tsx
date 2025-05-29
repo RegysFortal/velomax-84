@@ -40,10 +40,6 @@ export const DeliveryFormSections: React.FC<{
   const watchDeliveryType = form.watch('deliveryType');
   const watchCargoValue = form.watch('cargoValue') || 0;
 
-  console.log('DeliveryFormSections - isEditMode:', isEditMode);
-  console.log('DeliveryFormSections - delivery:', delivery);
-  console.log('DeliveryFormSections - delivery.id:', delivery?.id);
-
   const handleCargoValueChange = (value: number) => {
     if (watchDeliveryType === 'reshipment') {
       const insurance = value * 0.01;
@@ -63,10 +59,8 @@ export const DeliveryFormSections: React.FC<{
     try {
       setSubmitting(true);
       
-      console.log('=== SUBMITTING DELIVERY ===');
       console.log('Submitting delivery data:', data);
       console.log('Is Edit Mode:', isEditMode);
-      console.log('Delivery object:', delivery);
       console.log('Delivery ID:', delivery?.id);
       
       // Validações básicas
@@ -108,27 +102,20 @@ export const DeliveryFormSections: React.FC<{
         }
       }
       
-      // Preparar dados para envio
+      // Preparar dados para envio - definir cargoType como 'standard' para todos os casos
       const deliveryData = {
         ...data,
+        cargoType: 'standard', // Define um valor padrão já que não vamos mais usar este campo
         totalFreight: freight || data.totalFreight || 50,
         weight: weight,
         packages: packages,
         cargoValue: data.cargoValue ? parseFloat(String(data.cargoValue)) : 0,
       };
       
-      console.log('Prepared delivery data:', deliveryData);
-      
-      // Decisão entre criar ou atualizar baseada no modo de edição E na existência do ID
-      if (isEditMode && delivery && delivery.id) {
-        // Atualizar entrega existente
-        console.log('=== UPDATING EXISTING DELIVERY ===');
-        console.log('Updating delivery with ID:', delivery.id);
-        console.log('Update data:', deliveryData);
-        
+      if (isEditMode && delivery?.id) {
+        // Atualizar entrega existente - usar updateDelivery em vez de addDelivery
+        console.log('Updating existing delivery with ID:', delivery.id);
         const result = await updateDelivery(delivery.id, deliveryData);
-        console.log('Update result:', result);
-        
         if (result) {
           toast.success('Entrega atualizada com sucesso');
           onComplete();
@@ -137,12 +124,8 @@ export const DeliveryFormSections: React.FC<{
         }
       } else {
         // Criar nova entrega
-        console.log('=== CREATING NEW DELIVERY ===');
-        console.log('Creating new delivery with data:', deliveryData);
-        
+        console.log('Creating new delivery');
         const result = await addDelivery(deliveryData);
-        console.log('Create result:', result);
-        
         if (result) {
           toast.success('Entrega registrada com sucesso');
           onComplete();
@@ -163,29 +146,22 @@ export const DeliveryFormSections: React.FC<{
       try {
         setSubmitting(true);
         
-        console.log('=== CONFIRMING DUPLICATE ===');
-        console.log('Is Edit Mode:', isEditMode);
-        console.log('Delivery ID:', delivery?.id);
-        
         const deliveryData = {
           ...formData,
+          cargoType: 'standard', // Define um valor padrão
           totalFreight: freight || formData.totalFreight || 50,
           weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight,
           packages: typeof formData.packages === 'string' ? parseInt(formData.packages) : formData.packages,
           cargoValue: formData.cargoValue ? parseFloat(String(formData.cargoValue)) : 0,
         };
         
-        if (isEditMode && delivery && delivery.id) {
-          // Atualizar entrega existente
-          console.log('Updating delivery in duplicate confirmation:', delivery.id);
+        if (isEditMode && delivery?.id) {
           const result = await updateDelivery(delivery.id, deliveryData);
           if (result) {
             toast.success('Entrega atualizada com sucesso');
             onComplete();
           }
         } else {
-          // Criar nova entrega
-          console.log('Creating new delivery in duplicate confirmation');
           const result = await addDelivery(deliveryData);
           if (result) {
             toast.success('Entrega registrada com sucesso');

@@ -15,14 +15,8 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
   onComplete, 
   onCancel 
 }) => {
-  // Determine if we're in edit mode based on delivery existence
-  const isEditMode = delivery !== null && delivery !== undefined;
-  
-  console.log('DeliveryForm - Delivery:', delivery);
-  console.log('DeliveryForm - IsEditMode:', isEditMode);
-  
   return (
-    <DeliveryFormProvider delivery={delivery} isEditMode={isEditMode}>
+    <DeliveryFormProvider delivery={delivery}>
       <DeliveryFormSections 
         onComplete={onComplete} 
         onCancel={onCancel} 
