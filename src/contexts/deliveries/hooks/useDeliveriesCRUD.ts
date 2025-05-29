@@ -13,6 +13,14 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       setLoading(true);
       console.log('Fetching deliveries from database...');
       
+      // Check if user is authenticated before making the request
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        toast.error('Usuário não autenticado');
+        return [];
+      }
+      
       const { data, error } = await supabase
         .from('deliveries')
         .select('*, clients(name)')
@@ -76,6 +84,14 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
   const addDelivery = async (deliveryData: DeliveryFormData) => {
     try {
+      // Check if user is authenticated before making the request
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        toast.error('Usuário não autenticado');
+        return undefined;
+      }
+
       const totalFreight = typeof deliveryData.totalFreight === 'string' 
         ? parseFloat(deliveryData.totalFreight) 
         : deliveryData.totalFreight;
@@ -155,6 +171,14 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
   const updateDelivery = async (id: string, data: Partial<Delivery>) => {
     try {
+      // Check if user is authenticated before making the request
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        toast.error('Usuário não autenticado');
+        return undefined;
+      }
+
       let totalFreightValue = 0;
       if (data.totalFreight !== undefined) {
         totalFreightValue = typeof data.totalFreight === 'string' 
@@ -245,6 +269,14 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
   const deleteDelivery = async (id: string) => {
     try {
+      // Check if user is authenticated before making the request
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        toast.error('Usuário não autenticado');
+        return false;
+      }
+
       console.log('Deleting delivery from database:', id);
 
       const { error } = await supabase.from('deliveries').delete().eq('id', id);
