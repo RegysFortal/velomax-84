@@ -52,8 +52,26 @@ export function useReportManagement() {
     if (startDate && endDate && clients.length > 0) {
       console.log('Filtering clients by date range');
       const filteredClients = filterClientsByDateRange(startDate, endDate);
-      console.log('Setting filtered clients:', filteredClients.length);
-      setAvailableClients(filteredClients);
+      
+      // Remove clients that already have reports for this period
+      const clientsWithoutReports = filteredClients.filter(client => {
+        const hasExistingReport = financialReports.some(report => {
+          const reportStart = new Date(report.startDate);
+          const reportEnd = new Date(report.endDate);
+          const periodStart = new Date(startDate);
+          const periodEnd = new Date(endDate);
+          
+          // Check if there's overlap between the periods
+          return report.clientId === client.id && 
+                 reportStart <= periodEnd && 
+                 reportEnd >= periodStart;
+        });
+        
+        return !hasExistingReport;
+      });
+      
+      console.log('Setting filtered clients without existing reports:', clientsWithoutReports.length);
+      setAvailableClients(clientsWithoutReports);
     } else if (clients.length > 0 && deliveries.length > 0) {
       console.log('Setting default available clients:', clientsWithUnreportedDeliveries.length);
       setAvailableClients(clientsWithUnreportedDeliveries);
@@ -61,9 +79,9 @@ export function useReportManagement() {
   }, [
     startDate, 
     endDate, 
-    clients.length, 
-    deliveries.length, 
-    financialReports.length,
+    clients, 
+    deliveries, 
+    financialReports,
     filterClientsByDateRange, 
     setAvailableClients, 
     clientsWithUnreportedDeliveries
@@ -106,9 +124,13 @@ export function useReportManagement() {
       console.log('generateReport result:', result);
       
       if (result) {
-        console.log('Report generated successfully, staying on reports page');
+        console.log('Report generated successfully, updating state');
         setCurrentGeneratedReport(result);
         setReportId(result.id);
+        
+        // Clear the selected client after successful generation
+        setSelectedClient('');
+        
         // Update URL without redirecting
         const newUrl = `${location.pathname}?reportId=${result.id}`;
         window.history.pushState({}, '', newUrl);
