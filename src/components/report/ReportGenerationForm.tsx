@@ -105,7 +105,8 @@ export function ReportGenerationForm({
     selectedClient: !!selectedClient,
     startDate: !!startDate,
     endDate: !!endDate,
-    isButtonDisabled
+    isButtonDisabled,
+    availableClientsCount: availableClients.length
   });
 
   return (
@@ -158,11 +159,13 @@ export function ReportGenerationForm({
           {isGenerating ? "Gerando..." : "Gerar Relatório"}
         </Button>
         
-        {/* Debug info */}
+        {/* Debug info - temporário para diagnóstico */}
         <div className="text-xs text-muted-foreground">
           Debug: Clientes disponíveis: {availableClients.length}, 
           Carregando: {clientsLoading ? 'Sim' : 'Não'}, 
-          Botão desabilitado: {isButtonDisabled ? 'Sim' : 'Não'}
+          Botão desabilitado: {isButtonDisabled ? 'Sim' : 'Não'},
+          Cliente selecionado: {selectedClient ? 'Sim' : 'Não'},
+          Datas preenchidas: {startDate && endDate ? 'Sim' : 'Não'}
         </div>
       </CardContent>
     </Card>

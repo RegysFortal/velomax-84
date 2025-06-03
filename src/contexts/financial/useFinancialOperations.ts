@@ -21,10 +21,19 @@ export function useFinancialOperations() {
     return newReport.id;
   };
   
-  const createReport = async (reportData: Partial<FinancialReport>) => {
-    // In a real implementation, this would create a report in the database
-    console.log("Creating report:", reportData);
-    return null;
+  const createReport = async (reportData: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'>) => {
+    console.log("Creating report with data:", reportData);
+    
+    const newReport: FinancialReport = {
+      ...reportData,
+      id: `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    setFinancialReports(prev => [...prev, newReport]);
+    console.log('Created new financial report:', newReport);
+    return newReport;
   };
   
   const updateFinancialReport = async (id: string, data: Partial<FinancialReport>) => {

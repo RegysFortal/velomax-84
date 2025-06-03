@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useFinancial } from '@/contexts/financial';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
@@ -38,36 +38,39 @@ export function useReportManagement() {
   }, [location.search]);
   
   // Memoize the clients with unreported deliveries calculation
-  const clientsWithUnreportedDeliveries = useCallback(() => {
+  const clientsWithUnreportedDeliveries = useMemo(() => {
     if (clients.length === 0 || deliveries.length === 0) return [];
     
     const unreportedClientIds = getClientsWithUnreportedDeliveries(financialReports);
     return clients.filter(client => unreportedClientIds.includes(client.id));
   }, [clients, deliveries, financialReports, getClientsWithUnreportedDeliveries]);
   
-  // Update available clients when data changes - Fixed to prevent hook issues
+  // Update available clients when data changes
   useEffect(() => {
-    console.log('useReportManagement - Update available clients effect triggered');
-    if (clients.length > 0 && deliveries.length > 0 && !startDate && !endDate) {
-      const availableClientsList = clientsWithUnreportedDeliveries();
-      console.log('Setting available clients (no date filter):', availableClientsList.length);
-      setAvailableClients(availableClientsList);
-    }
-  }, [clients.length, deliveries.length, financialReports.length, clientsWithUnreportedDeliveries, setAvailableClients, startDate, endDate]);
-  
-  // Filter clients by date range when dates change - Fixed to be more stable
-  useEffect(() => {
-    console.log('useReportManagement - Filter by date range effect triggered');
+    console.log('useReportManagement - Updating available clients');
+    
     if (startDate && endDate && clients.length > 0) {
       console.log('Filtering clients by date range');
       const filteredClients = filterClientsByDateRange(startDate, endDate);
       console.log('Setting filtered clients:', filteredClients.length);
       setAvailableClients(filteredClients);
+    } else if (clients.length > 0 && deliveries.length > 0) {
+      console.log('Setting default available clients:', clientsWithUnreportedDeliveries.length);
+      setAvailableClients(clientsWithUnreportedDeliveries);
     }
-  }, [startDate, endDate, clients.length, filterClientsByDateRange, setAvailableClients]);
+  }, [
+    startDate, 
+    endDate, 
+    clients.length, 
+    deliveries.length, 
+    financialReports.length,
+    filterClientsByDateRange, 
+    setAvailableClients, 
+    clientsWithUnreportedDeliveries
+  ]);
   
   // Handle report generation
-  const handleGenerateReport = async () => {
+  const handleGenerateReport = useCallback(async () => {
     console.log('handleGenerateReport called with:', {
       selectedClient,
       startDate,
@@ -115,40 +118,42 @@ export function useReportManagement() {
     } catch (error) {
       console.error('Error in handleGenerateReport:', error);
     }
-  };
+  }, [selectedClient, startDate, endDate, deliveries, generateReport, location.pathname]);
   
   // Get current report and deliveries
   const currentReport = currentGeneratedReport || financialReports.find(report => report.id === reportId);
   
   // Filter deliveries for the current report
-  const filteredDeliveries = deliveries.filter(delivery => {
-    if (!currentReport) return false;
-    
-    // Check if the report is closed and not specifically being viewed
-    const isClosedReport = currentReport.status === 'closed' && !reportId;
-    if (isClosedReport) return false;
-    
-    if (delivery.clientId !== currentReport.clientId) return false;
-    
-    const deliveryDate = new Date(delivery.deliveryDate);
-    const startDate = new Date(currentReport.startDate);
-    const endDate = new Date(currentReport.endDate);
-    
-    return deliveryDate >= startDate && deliveryDate <= endDate;
-  }) as Delivery[];
+  const filteredDeliveries = useMemo(() => {
+    return deliveries.filter(delivery => {
+      if (!currentReport) return false;
+      
+      // Check if the report is closed and not specifically being viewed
+      const isClosedReport = currentReport.status === 'closed' && !reportId;
+      if (isClosedReport) return false;
+      
+      if (delivery.clientId !== currentReport.clientId) return false;
+      
+      const deliveryDate = new Date(delivery.deliveryDate);
+      const startDate = new Date(currentReport.startDate);
+      const endDate = new Date(currentReport.endDate);
+      
+      return deliveryDate >= startDate && deliveryDate <= endDate;
+    }) as Delivery[];
+  }, [deliveries, currentReport, reportId]);
   
   // Export handlers
-  const handleExportPDF = () => {
+  const handleExportPDF = useCallback(() => {
     if (!currentReport) return;
     const client = clients.find(c => c.id === currentReport.clientId);
     exportPDF(currentReport, client, filteredDeliveries);
-  };
+  }, [currentReport, clients, filteredDeliveries, exportPDF]);
   
-  const handleExportExcel = () => {
+  const handleExportExcel = useCallback(() => {
     if (!currentReport) return;
     const client = clients.find(c => c.id === currentReport.clientId);
     exportExcel(currentReport, client, filteredDeliveries);
-  };
+  }, [currentReport, clients, filteredDeliveries, exportExcel]);
 
   return {
     selectedClient,
