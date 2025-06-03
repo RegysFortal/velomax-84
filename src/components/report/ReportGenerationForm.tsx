@@ -38,10 +38,11 @@ export function ReportGenerationForm({
   const { toast } = useToast();
 
   const onGenerateReport = async () => {
-    console.log('Botão "Gerar Relatório" clicado');
+    console.log('ReportGenerationForm - Generate button clicked');
 
     // Basic validations
     if (!selectedClient) {
+      console.log('ReportGenerationForm - No client selected');
       toast({
         title: "Cliente não selecionado",
         description: 'Por favor, selecione um cliente.',
@@ -51,6 +52,7 @@ export function ReportGenerationForm({
     }
 
     if (!startDate) {
+      console.log('ReportGenerationForm - No start date');
       toast({
         title: "Data inicial não informada",
         description: 'Por favor, informe a data inicial.',
@@ -60,6 +62,7 @@ export function ReportGenerationForm({
     }
 
     if (!endDate) {
+      console.log('ReportGenerationForm - No end date');
       toast({
         title: "Data final não informada",
         description: 'Por favor, informe a data final.',
@@ -69,6 +72,7 @@ export function ReportGenerationForm({
     }
 
     if (startDate > endDate) {
+      console.log('ReportGenerationForm - Invalid date range');
       toast({
         title: "Período inválido",
         description: 'A data inicial não pode ser maior que a data final.',
@@ -77,13 +81,13 @@ export function ReportGenerationForm({
       return;
     }
     
-    console.log('Validações passaram, executando geração do relatório...');
+    console.log('ReportGenerationForm - All validations passed, calling handleGenerateReport');
     
     try {
       await handleGenerateReport();
-      console.log('Relatório gerado com sucesso');
+      console.log('ReportGenerationForm - Report generated successfully');
     } catch (error) {
-      console.error('Erro ao gerar relatório:', error);
+      console.error('ReportGenerationForm - Error generating report:', error);
       toast({
         title: "Erro",
         description: 'Erro ao gerar relatório. Tente novamente.',
@@ -91,6 +95,18 @@ export function ReportGenerationForm({
       });
     }
   };
+
+  // Check if button should be disabled
+  const isButtonDisabled = isGenerating || reportLoading || !selectedClient || !startDate || !endDate;
+  
+  console.log('ReportGenerationForm - Button state:', {
+    isGenerating,
+    reportLoading,
+    selectedClient: !!selectedClient,
+    startDate: !!startDate,
+    endDate: !!endDate,
+    isButtonDisabled
+  });
 
   return (
     <Card>
@@ -135,12 +151,19 @@ export function ReportGenerationForm({
         </div>
         <Button 
           onClick={onGenerateReport} 
-          disabled={isGenerating || reportLoading || !selectedClient || !startDate || !endDate}
+          disabled={isButtonDisabled}
           className="w-full"
           type="button"
         >
           {isGenerating ? "Gerando..." : "Gerar Relatório"}
         </Button>
+        
+        {/* Debug info */}
+        <div className="text-xs text-muted-foreground">
+          Debug: Clientes disponíveis: {availableClients.length}, 
+          Carregando: {clientsLoading ? 'Sim' : 'Não'}, 
+          Botão desabilitado: {isButtonDisabled ? 'Sim' : 'Não'}
+        </div>
       </CardContent>
     </Card>
   );

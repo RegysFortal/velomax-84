@@ -45,27 +45,30 @@ export function useReportManagement() {
     return clients.filter(client => unreportedClientIds.includes(client.id));
   }, [clients, deliveries, financialReports, getClientsWithUnreportedDeliveries]);
   
-  // Update available clients when data changes
+  // Update available clients when data changes - Fixed to prevent hook issues
   useEffect(() => {
-    if (clients.length > 0 && deliveries.length > 0) {
+    console.log('useReportManagement - Update available clients effect triggered');
+    if (clients.length > 0 && deliveries.length > 0 && !startDate && !endDate) {
       const availableClientsList = clientsWithUnreportedDeliveries();
-      console.log('Atualizando clientes disponíveis:', availableClientsList.length);
+      console.log('Setting available clients (no date filter):', availableClientsList.length);
       setAvailableClients(availableClientsList);
     }
-  }, [clients.length, deliveries.length, financialReports.length, clientsWithUnreportedDeliveries, setAvailableClients]);
+  }, [clients.length, deliveries.length, financialReports.length, clientsWithUnreportedDeliveries, setAvailableClients, startDate, endDate]);
   
-  // Filter clients by date range when dates change
+  // Filter clients by date range when dates change - Fixed to be more stable
   useEffect(() => {
+    console.log('useReportManagement - Filter by date range effect triggered');
     if (startDate && endDate && clients.length > 0) {
-      console.log('Filtrando clientes por período');
+      console.log('Filtering clients by date range');
       const filteredClients = filterClientsByDateRange(startDate, endDate);
+      console.log('Setting filtered clients:', filteredClients.length);
       setAvailableClients(filteredClients);
     }
   }, [startDate, endDate, clients.length, filterClientsByDateRange, setAvailableClients]);
   
   // Handle report generation
   const handleGenerateReport = async () => {
-    console.log('handleGenerateReport executado com parâmetros:', {
+    console.log('handleGenerateReport called with:', {
       selectedClient,
       startDate,
       endDate,
@@ -74,22 +77,22 @@ export function useReportManagement() {
     });
 
     if (!selectedClient) {
-      console.error('Cliente não selecionado');
+      console.error('No client selected');
       return;
     }
 
     if (!startDate || !endDate) {
-      console.error('Datas não informadas', { startDate, endDate });
+      console.error('Dates not provided', { startDate, endDate });
       return;
     }
 
     if (!deliveries || deliveries.length === 0) {
-      console.error('Nenhuma entrega disponível');
+      console.error('No deliveries available');
       return;
     }
 
     try {
-      console.log('Chamando generateReport...');
+      console.log('Calling generateReport...');
       const result = await generateReport({
         selectedClient,
         startDate,
@@ -97,21 +100,20 @@ export function useReportManagement() {
         deliveries
       });
       
-      console.log('Resultado do generateReport:', result);
+      console.log('generateReport result:', result);
       
       if (result) {
-        console.log('Relatório gerado com sucesso');
-        // Set the generated report and update URL
+        console.log('Report generated successfully, staying on reports page');
         setCurrentGeneratedReport(result);
         setReportId(result.id);
         // Update URL without redirecting
         const newUrl = `${location.pathname}?reportId=${result.id}`;
         window.history.pushState({}, '', newUrl);
       } else {
-        console.log('generateReport retornou null - possível erro');
+        console.log('generateReport returned null - possible error');
       }
     } catch (error) {
-      console.error('Erro em handleGenerateReport:', error);
+      console.error('Error in handleGenerateReport:', error);
     }
   };
   
