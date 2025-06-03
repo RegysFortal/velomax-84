@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useFinancial } from '@/contexts/financial';
@@ -28,7 +29,6 @@ export function useReportManagement() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [reportId, setReportId] = useState<string | null>(null);
   const [currentGeneratedReport, setCurrentGeneratedReport] = useState<FinancialReport | null>(null);
-  const [hasGeneratedReport, setHasGeneratedReport] = useState(false);
   
   // Extract report ID from URL
   useEffect(() => {
@@ -54,23 +54,19 @@ export function useReportManagement() {
       const filteredClients = filterClientsByDateRange(startDate, endDate);
       console.log('Setting filtered clients:', filteredClients.length);
       setAvailableClients(filteredClients);
-    } else if (clients.length > 0 && !hasGeneratedReport) {
-      // Only use unreported clients if no report has been generated yet
+    } else if (clients.length > 0 && deliveries.length > 0) {
       console.log('Setting default available clients:', clientsWithUnreportedDeliveries.length);
       setAvailableClients(clientsWithUnreportedDeliveries);
-    } else if (clients.length > 0 && hasGeneratedReport) {
-      // After generating a report, show all clients
-      console.log('Setting all clients as available after report generation');
-      setAvailableClients(clients);
     }
   }, [
     startDate, 
     endDate, 
-    clients, 
-    clientsWithUnreportedDeliveries,
+    clients.length, 
+    deliveries.length, 
+    financialReports.length,
     filterClientsByDateRange, 
-    setAvailableClients,
-    hasGeneratedReport
+    setAvailableClients, 
+    clientsWithUnreportedDeliveries
   ]);
   
   // Handle report generation
@@ -113,16 +109,9 @@ export function useReportManagement() {
         console.log('Report generated successfully, staying on reports page');
         setCurrentGeneratedReport(result);
         setReportId(result.id);
-        setHasGeneratedReport(true);
-        
         // Update URL without redirecting
         const newUrl = `${location.pathname}?reportId=${result.id}`;
         window.history.pushState({}, '', newUrl);
-        
-        // Clear the form selections but keep clients available
-        setSelectedClient('');
-        setStartDate(undefined);
-        setEndDate(undefined);
       } else {
         console.log('generateReport returned null - possible error');
       }
