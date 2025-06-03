@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useFinancial } from '@/contexts/financial';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
@@ -37,34 +37,31 @@ export function useReportManagement() {
     setReportId(reportIdParam);
   }, [location.search]);
   
-  // Filter clients with unreported deliveries
+  // Memoize the clients with unreported deliveries calculation
+  const clientsWithUnreportedDeliveries = useCallback(() => {
+    if (clients.length === 0 || deliveries.length === 0) return [];
+    
+    const unreportedClientIds = getClientsWithUnreportedDeliveries(financialReports);
+    return clients.filter(client => unreportedClientIds.includes(client.id));
+  }, [clients, deliveries, financialReports, getClientsWithUnreportedDeliveries]);
+  
+  // Update available clients when data changes
   useEffect(() => {
     if (clients.length > 0 && deliveries.length > 0) {
-      console.log('Atualizando clientes disponíveis - Total de clientes:', clients.length);
-      console.log('Total de entregas:', deliveries.length);
-      const clientsWithUnreportedDeliveries = getClientsWithUnreportedDeliveries(financialReports);
-      const filteredClients = clients.filter(client => 
-        clientsWithUnreportedDeliveries.includes(client.id)
-      );
-      console.log('Clientes com entregas não reportadas:', filteredClients.length);
-      setAvailableClients(filteredClients);
+      const availableClientsList = clientsWithUnreportedDeliveries();
+      console.log('Atualizando clientes disponíveis:', availableClientsList.length);
+      setAvailableClients(availableClientsList);
     }
-  }, [clients, deliveries, financialReports, getClientsWithUnreportedDeliveries, setAvailableClients]);
+  }, [clients.length, deliveries.length, financialReports.length, clientsWithUnreportedDeliveries, setAvailableClients]);
   
-  // Filter clients by date range
+  // Filter clients by date range when dates change
   useEffect(() => {
-    if (startDate && endDate) {
-      console.log('Filtrando clientes por período:', startDate, endDate);
+    if (startDate && endDate && clients.length > 0) {
+      console.log('Filtrando clientes por período');
       const filteredClients = filterClientsByDateRange(startDate, endDate);
-      console.log('Clientes filtrados por período:', filteredClients.length);
       setAvailableClients(filteredClients);
-    } else if (clients.length > 0) {
-      const clientsWithUnreportedDeliveries = getClientsWithUnreportedDeliveries(financialReports);
-      setAvailableClients(clients.filter(client => 
-        clientsWithUnreportedDeliveries.includes(client.id)
-      ));
     }
-  }, [startDate, endDate, clients, financialReports, getClientsWithUnreportedDeliveries, filterClientsByDateRange, setAvailableClients]);
+  }, [startDate, endDate, clients.length, filterClientsByDateRange, setAvailableClients]);
   
   // Handle report generation
   const handleGenerateReport = async () => {

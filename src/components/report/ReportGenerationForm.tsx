@@ -38,14 +38,9 @@ export function ReportGenerationForm({
   const { toast } = useToast();
 
   const onGenerateReport = async () => {
-    console.log('Botão clicado - dados atuais:', {
-      selectedClient,
-      startDate,
-      endDate,
-      isGenerating,
-      reportLoading
-    });
+    console.log('Botão "Gerar Relatório" clicado');
 
+    // Basic validations
     if (!selectedClient) {
       toast({
         title: "Cliente não selecionado",
@@ -82,13 +77,13 @@ export function ReportGenerationForm({
       return;
     }
     
-    console.log('Validações passaram, chamando handleGenerateReport...');
+    console.log('Validações passaram, executando geração do relatório...');
     
     try {
       await handleGenerateReport();
-      console.log('handleGenerateReport executado com sucesso');
+      console.log('Relatório gerado com sucesso');
     } catch (error) {
-      console.error('Erro no onGenerateReport:', error);
+      console.error('Erro ao gerar relatório:', error);
       toast({
         title: "Erro",
         description: 'Erro ao gerar relatório. Tente novamente.',
@@ -96,8 +91,6 @@ export function ReportGenerationForm({
       });
     }
   };
-
-  const isFormValid = selectedClient && startDate && endDate && !isGenerating && !reportLoading;
 
   return (
     <Card>
@@ -113,12 +106,9 @@ export function ReportGenerationForm({
             ) : (
               <ClientSearchSelect
                 value={selectedClient}
-                onValueChange={(value) => {
-                  console.log('Cliente selecionado:', value);
-                  setSelectedClient(value);
-                }}
+                onValueChange={setSelectedClient}
                 placeholder="Selecione um cliente"
-                disabled={isGenerating}
+                disabled={isGenerating || reportLoading}
                 clients={availableClients}
               />
             )}
@@ -128,30 +118,24 @@ export function ReportGenerationForm({
             <div className="flex gap-2">
               <DatePicker 
                 date={startDate} 
-                onSelect={(date) => {
-                  console.log('Data inicial selecionada:', date);
-                  setStartDate(date);
-                }} 
-                placeholder={isGenerating ? "Carregando..." : "Data inicial"} 
+                onSelect={setStartDate} 
+                placeholder="Data inicial"
                 allowTyping={true}
-                disabled={isGenerating}
+                disabled={isGenerating || reportLoading}
               />
               <DatePicker 
                 date={endDate} 
-                onSelect={(date) => {
-                  console.log('Data final selecionada:', date);
-                  setEndDate(date);
-                }} 
-                placeholder={isGenerating ? "Carregando..." : "Data final"} 
+                onSelect={setEndDate} 
+                placeholder="Data final"
                 allowTyping={true}
-                disabled={isGenerating}
+                disabled={isGenerating || reportLoading}
               />
             </div>
           </div>
         </div>
         <Button 
           onClick={onGenerateReport} 
-          disabled={!isFormValid}
+          disabled={isGenerating || reportLoading || !selectedClient || !startDate || !endDate}
           className="w-full"
           type="button"
         >
