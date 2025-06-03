@@ -1,13 +1,11 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useFinancial } from '@/contexts/financial';
 import { useToast } from '@/hooks/use-toast';
 import { FinancialReport } from '@/types';
 import { toLocalDate, toISODateString } from '@/utils/dateUtils';
+import { useFinancial } from '@/contexts/financial';
 
 export function useReportGeneration() {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const { createReport } = useFinancial();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -119,8 +117,6 @@ export function useReportGeneration() {
           description: `Relatório criado com ${filteredDeliveries.length} entregas e total de R$ ${totalFreight.toFixed(2)}`,
         });
         
-        // Navigate to the new report
-        navigate(`/reports?reportId=${createdReport.id}`);
         return createdReport;
       } else {
         throw new Error('Falha ao criar relatório - createReport retornou null');

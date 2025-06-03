@@ -7,6 +7,7 @@ import { useReportClients } from './useReportClients';
 import { useReportGeneration } from './useReportGeneration';
 import { useReportExport } from './useReportExport';
 import { Delivery } from '@/types/delivery';
+import { FinancialReport } from '@/types';
 
 export function useReportManagement() {
   const location = useLocation();
@@ -27,6 +28,7 @@ export function useReportManagement() {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [currentGeneratedReport, setCurrentGeneratedReport] = useState<FinancialReport | null>(null);
   
   // Extract report ID from URL
   useEffect(() => {
@@ -102,6 +104,12 @@ export function useReportManagement() {
       
       if (result) {
         console.log('Relatório gerado com sucesso');
+        // Set the generated report and update URL
+        setCurrentGeneratedReport(result);
+        setReportId(result.id);
+        // Update URL without redirecting
+        const newUrl = `${location.pathname}?reportId=${result.id}`;
+        window.history.pushState({}, '', newUrl);
       } else {
         console.log('generateReport retornou null - possível erro');
       }
@@ -111,7 +119,7 @@ export function useReportManagement() {
   };
   
   // Get current report and deliveries
-  const currentReport = financialReports.find(report => report.id === reportId);
+  const currentReport = currentGeneratedReport || financialReports.find(report => report.id === reportId);
   
   // Filter deliveries for the current report
   const filteredDeliveries = deliveries.filter(delivery => {
