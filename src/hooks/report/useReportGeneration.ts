@@ -23,10 +23,28 @@ export function useReportGeneration() {
     endDate: Date | undefined;
     deliveries: any[];
   }) => {
+    console.log('generateReport chamado com:', {
+      selectedClient,
+      startDate,
+      endDate,
+      deliveriesLength: deliveries?.length || 0
+    });
+
     if (!selectedClient || !startDate || !endDate) {
+      console.error('Parâmetros obrigatórios ausentes:', { selectedClient, startDate, endDate });
       toast({
         title: "Campos incompletos",
         description: 'Por favor, selecione um cliente e um período para gerar o relatório.',
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    if (!deliveries || deliveries.length === 0) {
+      console.error('Nenhuma entrega disponível para filtrar');
+      toast({
+        title: "Sem dados",
+        description: 'Não há entregas disponíveis para gerar o relatório.',
         variant: "destructive"
       });
       return null;
@@ -35,19 +53,16 @@ export function useReportGeneration() {
     try {
       setIsGenerating(true);
 
-      console.log('Iniciando geração de relatório:', {
-        selectedClient,
-        startDate,
-        endDate,
-        totalDeliveries: deliveries.length
-      });
+      console.log('Iniciando geração de relatório...');
 
       // Filter deliveries for the selected client and date range
       const startLocalDate = toLocalDate(startDate);
       const endLocalDate = toLocalDate(endDate);
       
-      console.log('Filtrando entregas - data inicial:', startLocalDate);
-      console.log('Filtrando entregas - data final:', endLocalDate);
+      console.log('Período de filtro:', {
+        startLocalDate: startLocalDate.toISOString(),
+        endLocalDate: endLocalDate.toISOString()
+      });
       
       // Set hours for proper comparison
       startLocalDate.setHours(0, 0, 0, 0);
@@ -59,7 +74,11 @@ export function useReportGeneration() {
         return deliveryDate >= startLocalDate && deliveryDate <= endLocalDate;
       });
 
-      console.log('Entregas filtradas:', filteredDeliveries.length);
+      console.log('Entregas filtradas:', {
+        total: deliveries.length,
+        filtered: filteredDeliveries.length,
+        clientId: selectedClient
+      });
 
       if (filteredDeliveries.length === 0) {
         toast({
@@ -78,17 +97,17 @@ export function useReportGeneration() {
 
       console.log('Total do frete calculado:', totalFreight);
 
-      // Create the report with explicitly typed status
+      // Create the report
       const newReport: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'> = {
         clientId: selectedClient,
         startDate: toISODateString(startDate),
         endDate: toISODateString(endDate),
         totalDeliveries: filteredDeliveries.length,
         totalFreight: totalFreight,
-        status: 'open', // Explicitly using the union type value
+        status: 'open',
       };
       
-      console.log('Dados do novo relatório:', newReport);
+      console.log('Criando relatório com dados:', newReport);
       
       const createdReport = await createReport(newReport);
       
@@ -104,10 +123,10 @@ export function useReportGeneration() {
         navigate(`/reports?reportId=${createdReport.id}`);
         return createdReport;
       } else {
-        throw new Error('Falha ao criar relatório');
+        throw new Error('Falha ao criar relatório - createReport retornou null');
       }
     } catch (error) {
-      console.error("Erro ao gerar relatório:", error);
+      console.error("Erro detalhado ao gerar relatório:", error);
       toast({
         title: "Erro ao gerar relatório",
         description: "Ocorreu um erro ao gerar o relatório. Verifique os dados e tente novamente.",

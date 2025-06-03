@@ -82,10 +82,11 @@ export function ReportGenerationForm({
       return;
     }
     
-    console.log('Validações passaram, gerando relatório...');
+    console.log('Validações passaram, chamando handleGenerateReport...');
     
     try {
       await handleGenerateReport();
+      console.log('handleGenerateReport executado com sucesso');
     } catch (error) {
       console.error('Erro no onGenerateReport:', error);
       toast({
@@ -152,18 +153,10 @@ export function ReportGenerationForm({
           onClick={onGenerateReport} 
           disabled={!isFormValid}
           className="w-full"
+          type="button"
         >
           {isGenerating ? "Gerando..." : "Gerar Relatório"}
         </Button>
-        
-        {/* Debug info - remove after testing */}
-        <div className="text-xs text-muted-foreground space-y-1">
-          <div>Cliente: {selectedClient || 'Não selecionado'}</div>
-          <div>Data inicial: {startDate ? startDate.toLocaleDateString() : 'Não informada'}</div>
-          <div>Data final: {endDate ? endDate.toLocaleDateString() : 'Não informada'}</div>
-          <div>Clientes disponíveis: {availableClients.length}</div>
-          <div>Botão habilitado: {isFormValid ? 'Sim' : 'Não'}</div>
-        </div>
       </CardContent>
     </Card>
   );

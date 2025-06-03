@@ -38,12 +38,13 @@ export function useReportManagement() {
   // Filter clients with unreported deliveries
   useEffect(() => {
     if (clients.length > 0 && deliveries.length > 0) {
-      console.log('Filtrando clientes com entregas não reportadas...');
+      console.log('Atualizando clientes disponíveis - Total de clientes:', clients.length);
+      console.log('Total de entregas:', deliveries.length);
       const clientsWithUnreportedDeliveries = getClientsWithUnreportedDeliveries(financialReports);
       const filteredClients = clients.filter(client => 
         clientsWithUnreportedDeliveries.includes(client.id)
       );
-      console.log('Clientes disponíveis para relatório:', filteredClients.length);
+      console.log('Clientes com entregas não reportadas:', filteredClients.length);
       setAvailableClients(filteredClients);
     }
   }, [clients, deliveries, financialReports, getClientsWithUnreportedDeliveries, setAvailableClients]);
@@ -53,6 +54,7 @@ export function useReportManagement() {
     if (startDate && endDate) {
       console.log('Filtrando clientes por período:', startDate, endDate);
       const filteredClients = filterClientsByDateRange(startDate, endDate);
+      console.log('Clientes filtrados por período:', filteredClients.length);
       setAvailableClients(filteredClients);
     } else if (clients.length > 0) {
       const clientsWithUnreportedDeliveries = getClientsWithUnreportedDeliveries(financialReports);
@@ -64,19 +66,31 @@ export function useReportManagement() {
   
   // Handle report generation
   const handleGenerateReport = async () => {
-    console.log('handleGenerateReport chamado com:', {
+    console.log('handleGenerateReport executado com parâmetros:', {
       selectedClient,
       startDate,
       endDate,
-      deliveriesCount: deliveries.length
+      deliveriesCount: deliveries?.length || 0,
+      isGenerating
     });
 
-    if (!selectedClient || !startDate || !endDate) {
-      console.error('Dados obrigatórios ausentes para gerar relatório');
+    if (!selectedClient) {
+      console.error('Cliente não selecionado');
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      console.error('Datas não informadas', { startDate, endDate });
+      return;
+    }
+
+    if (!deliveries || deliveries.length === 0) {
+      console.error('Nenhuma entrega disponível');
       return;
     }
 
     try {
+      console.log('Chamando generateReport...');
       const result = await generateReport({
         selectedClient,
         startDate,
@@ -84,9 +98,15 @@ export function useReportManagement() {
         deliveries
       });
       
-      console.log('Resultado da geração:', result);
+      console.log('Resultado do generateReport:', result);
+      
+      if (result) {
+        console.log('Relatório gerado com sucesso');
+      } else {
+        console.log('generateReport retornou null - possível erro');
+      }
     } catch (error) {
-      console.error('Erro na geração do relatório:', error);
+      console.error('Erro em handleGenerateReport:', error);
     }
   };
   
