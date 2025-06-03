@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -38,18 +38,65 @@ export function ReportGenerationForm({
   const { toast } = useToast();
 
   const onGenerateReport = async () => {
-    if (!selectedClient || !startDate || !endDate) {
+    console.log('Botão clicado - dados atuais:', {
+      selectedClient,
+      startDate,
+      endDate,
+      isGenerating,
+      reportLoading
+    });
+
+    if (!selectedClient) {
       toast({
-        title: "Campos incompletos",
-        description: 'Por favor, selecione um cliente e um período para gerar o relatório.',
+        title: "Cliente não selecionado",
+        description: 'Por favor, selecione um cliente.',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!startDate) {
+      toast({
+        title: "Data inicial não informada",
+        description: 'Por favor, informe a data inicial.',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!endDate) {
+      toast({
+        title: "Data final não informada",
+        description: 'Por favor, informe a data final.',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (startDate > endDate) {
+      toast({
+        title: "Período inválido",
+        description: 'A data inicial não pode ser maior que a data final.',
         variant: "destructive"
       });
       return;
     }
     
-    console.log('Gerando relatório com datas:', startDate, endDate);
-    await handleGenerateReport();
+    console.log('Validações passaram, gerando relatório...');
+    
+    try {
+      await handleGenerateReport();
+    } catch (error) {
+      console.error('Erro no onGenerateReport:', error);
+      toast({
+        title: "Erro",
+        description: 'Erro ao gerar relatório. Tente novamente.',
+        variant: "destructive"
+      });
+    }
   };
+
+  const isFormValid = selectedClient && startDate && endDate && !isGenerating && !reportLoading;
 
   return (
     <Card>
@@ -65,7 +112,10 @@ export function ReportGenerationForm({
             ) : (
               <ClientSearchSelect
                 value={selectedClient}
-                onValueChange={setSelectedClient}
+                onValueChange={(value) => {
+                  console.log('Cliente selecionado:', value);
+                  setSelectedClient(value);
+                }}
                 placeholder="Selecione um cliente"
                 disabled={isGenerating}
                 clients={availableClients}
@@ -83,6 +133,7 @@ export function ReportGenerationForm({
                 }} 
                 placeholder={isGenerating ? "Carregando..." : "Data inicial"} 
                 allowTyping={true}
+                disabled={isGenerating}
               />
               <DatePicker 
                 date={endDate} 
@@ -92,16 +143,27 @@ export function ReportGenerationForm({
                 }} 
                 placeholder={isGenerating ? "Carregando..." : "Data final"} 
                 allowTyping={true}
+                disabled={isGenerating}
               />
             </div>
           </div>
         </div>
         <Button 
           onClick={onGenerateReport} 
-          disabled={isGenerating || reportLoading || !selectedClient || !startDate || !endDate}
+          disabled={!isFormValid}
+          className="w-full"
         >
           {isGenerating ? "Gerando..." : "Gerar Relatório"}
         </Button>
+        
+        {/* Debug info - remove after testing */}
+        <div className="text-xs text-muted-foreground space-y-1">
+          <div>Cliente: {selectedClient || 'Não selecionado'}</div>
+          <div>Data inicial: {startDate ? startDate.toLocaleDateString() : 'Não informada'}</div>
+          <div>Data final: {endDate ? endDate.toLocaleDateString() : 'Não informada'}</div>
+          <div>Clientes disponíveis: {availableClients.length}</div>
+          <div>Botão habilitado: {isFormValid ? 'Sim' : 'Não'}</div>
+        </div>
       </CardContent>
     </Card>
   );

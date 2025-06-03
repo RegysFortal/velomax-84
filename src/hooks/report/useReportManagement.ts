@@ -38,35 +38,56 @@ export function useReportManagement() {
   // Filter clients with unreported deliveries
   useEffect(() => {
     if (clients.length > 0 && deliveries.length > 0) {
+      console.log('Filtrando clientes com entregas não reportadas...');
       const clientsWithUnreportedDeliveries = getClientsWithUnreportedDeliveries(financialReports);
       const filteredClients = clients.filter(client => 
         clientsWithUnreportedDeliveries.includes(client.id)
       );
+      console.log('Clientes disponíveis para relatório:', filteredClients.length);
       setAvailableClients(filteredClients);
     }
-  }, [clients, deliveries, financialReports]);
+  }, [clients, deliveries, financialReports, getClientsWithUnreportedDeliveries, setAvailableClients]);
   
   // Filter clients by date range
   useEffect(() => {
     if (startDate && endDate) {
+      console.log('Filtrando clientes por período:', startDate, endDate);
       const filteredClients = filterClientsByDateRange(startDate, endDate);
       setAvailableClients(filteredClients);
-    } else {
+    } else if (clients.length > 0) {
       const clientsWithUnreportedDeliveries = getClientsWithUnreportedDeliveries(financialReports);
       setAvailableClients(clients.filter(client => 
         clientsWithUnreportedDeliveries.includes(client.id)
       ));
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, clients, financialReports, getClientsWithUnreportedDeliveries, filterClientsByDateRange, setAvailableClients]);
   
   // Handle report generation
   const handleGenerateReport = async () => {
-    await generateReport({
+    console.log('handleGenerateReport chamado com:', {
       selectedClient,
       startDate,
       endDate,
-      deliveries
+      deliveriesCount: deliveries.length
     });
+
+    if (!selectedClient || !startDate || !endDate) {
+      console.error('Dados obrigatórios ausentes para gerar relatório');
+      return;
+    }
+
+    try {
+      const result = await generateReport({
+        selectedClient,
+        startDate,
+        endDate,
+        deliveries
+      });
+      
+      console.log('Resultado da geração:', result);
+    } catch (error) {
+      console.error('Erro na geração do relatório:', error);
+    }
   };
   
   // Get current report and deliveries

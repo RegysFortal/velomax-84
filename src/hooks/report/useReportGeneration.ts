@@ -35,12 +35,19 @@ export function useReportGeneration() {
     try {
       setIsGenerating(true);
 
+      console.log('Iniciando geração de relatório:', {
+        selectedClient,
+        startDate,
+        endDate,
+        totalDeliveries: deliveries.length
+      });
+
       // Filter deliveries for the selected client and date range
       const startLocalDate = toLocalDate(startDate);
       const endLocalDate = toLocalDate(endDate);
       
-      console.log('Gerando relatório - data inicial:', startLocalDate);
-      console.log('Gerando relatório - data final:', endLocalDate);
+      console.log('Filtrando entregas - data inicial:', startLocalDate);
+      console.log('Filtrando entregas - data final:', endLocalDate);
       
       // Set hours for proper comparison
       startLocalDate.setHours(0, 0, 0, 0);
@@ -52,8 +59,24 @@ export function useReportGeneration() {
         return deliveryDate >= startLocalDate && deliveryDate <= endLocalDate;
       });
 
+      console.log('Entregas filtradas:', filteredDeliveries.length);
+
+      if (filteredDeliveries.length === 0) {
+        toast({
+          title: "Nenhuma entrega encontrada",
+          description: 'Não foram encontradas entregas para o cliente e período selecionados.',
+          variant: "destructive"
+        });
+        return null;
+      }
+
       // Calculate total freight
-      const totalFreight = filteredDeliveries.reduce((sum, delivery) => sum + delivery.totalFreight, 0);
+      const totalFreight = filteredDeliveries.reduce((sum, delivery) => {
+        const freight = parseFloat(delivery.totalFreight) || 0;
+        return sum + freight;
+      }, 0);
+
+      console.log('Total do frete calculado:', totalFreight);
 
       // Create the report with explicitly typed status
       const newReport: Omit<FinancialReport, 'id' | 'createdAt' | 'updatedAt'> = {
@@ -70,16 +93,24 @@ export function useReportGeneration() {
       const createdReport = await createReport(newReport);
       
       if (createdReport) {
+        console.log('Relatório criado com sucesso:', createdReport);
+        
+        toast({
+          title: "Relatório gerado com sucesso",
+          description: `Relatório criado com ${filteredDeliveries.length} entregas e total de R$ ${totalFreight.toFixed(2)}`,
+        });
+        
         // Navigate to the new report
         navigate(`/reports?reportId=${createdReport.id}`);
         return createdReport;
+      } else {
+        throw new Error('Falha ao criar relatório');
       }
-      return null;
     } catch (error) {
-      console.error("Error generating report:", error);
+      console.error("Erro ao gerar relatório:", error);
       toast({
         title: "Erro ao gerar relatório",
-        description: "Ocorreu um erro ao gerar o relatório. Tente novamente.",
+        description: "Ocorreu um erro ao gerar o relatório. Verifique os dados e tente novamente.",
         variant: "destructive"
       });
       return null;
