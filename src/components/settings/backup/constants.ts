@@ -14,3 +14,27 @@ export const MENU_LABELS = {
   inventory: 'estoque',
   settings: 'configurações'
 } as const;
+
+// Mapeamento de chaves do localStorage para categorias
+export const LOCALSTORAGE_KEY_MAPPING = {
+  'velomax_deliveries': 'operational',
+  'velomax_shipments': 'operational',
+  'velomax_cities': 'settings',
+  'velomax_price_tables': 'settings',
+  'velomax_clients': 'settings',
+  'velomax_employees': 'settings',
+  'velomax_financial_reports': 'financial',
+  'velomax_receivable_accounts': 'financial',
+  'velomax_payable_accounts': 'financial',
+  'velomax_vehicles': 'fleet',
+  'velomax_logbook_entries': 'fleet',
+  'velomax_fuel_records': 'fleet',
+  'velomax_maintenance_records': 'fleet',
+  'velomax_tire_maintenance_records': 'fleet',
+  'velomax_products': 'inventory',
+  'velomax_inventory_entries': 'inventory',
+  'velomax_inventory_exits': 'inventory',
+  'velomax_company_settings': 'settings',
+  'velomax_system_settings': 'settings',
+  'velomax_users': 'settings'
+} as const;

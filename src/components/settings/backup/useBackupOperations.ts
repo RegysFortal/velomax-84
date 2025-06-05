@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { BackupSelectionState, BackupData } from './types';
-import { DATA_CATEGORIES, MENU_LABELS } from './constants';
+import { DATA_CATEGORIES, MENU_LABELS, LOCALSTORAGE_KEY_MAPPING } from './constants';
 
 export function useBackupOperations() {
   const { toast } = useToast();
@@ -24,20 +24,18 @@ export function useBackupOperations() {
         if (key && key.startsWith('velomax_')) {
           let shouldInclude = false;
           
-          // Check if this key belongs to any of the selected categories
-          if (selectionState.includeOperational && DATA_CATEGORIES.operational.some(cat => key.includes(cat))) {
+          // Use the mapping to determine category
+          const category = LOCALSTORAGE_KEY_MAPPING[key as keyof typeof LOCALSTORAGE_KEY_MAPPING];
+          
+          if (category === 'operational' && selectionState.includeOperational) {
             shouldInclude = true;
-          }
-          if (selectionState.includeFinancial && DATA_CATEGORIES.financial.some(cat => key.includes(cat))) {
+          } else if (category === 'financial' && selectionState.includeFinancial) {
             shouldInclude = true;
-          }
-          if (selectionState.includeFleet && DATA_CATEGORIES.fleet.some(cat => key.includes(cat))) {
+          } else if (category === 'fleet' && selectionState.includeFleet) {
             shouldInclude = true;
-          }
-          if (selectionState.includeInventory && DATA_CATEGORIES.inventory.some(cat => key.includes(cat))) {
+          } else if (category === 'inventory' && selectionState.includeInventory) {
             shouldInclude = true;
-          }
-          if (selectionState.includeSettings && DATA_CATEGORIES.settings.some(cat => key.includes(cat))) {
+          } else if (category === 'settings' && selectionState.includeSettings) {
             shouldInclude = true;
           }
           
@@ -46,6 +44,7 @@ export function useBackupOperations() {
               const value = localStorage.getItem(key);
               if (value) {
                 backupData[key] = JSON.parse(value);
+                console.log(`Added localStorage data for key: ${key}`);
               }
             } catch (err) {
               console.error(`Error parsing ${key}:`, err);
@@ -58,7 +57,7 @@ export function useBackupOperations() {
         }
       }
 
-      // Also collect data from Supabase database if operational data is selected
+      // Collect data from Supabase database based on selections
       if (selectionState.includeOperational) {
         try {
           // Fetch deliveries from Supabase
@@ -95,6 +94,82 @@ export function useBackupOperations() {
         }
       }
 
+      if (selectionState.includeSettings) {
+        try {
+          // Fetch cities from Supabase
+          const { data: citiesData, error: citiesError } = await supabase
+            .from('cities')
+            .select('*');
+          
+          if (!citiesError && citiesData) {
+            backupData['supabase_cities'] = citiesData;
+            console.log('Added cities from Supabase to backup:', citiesData.length);
+          }
+
+          // Fetch price tables from Supabase
+          const { data: priceTablesData, error: priceTablesError } = await supabase
+            .from('price_tables')
+            .select('*');
+          
+          if (!priceTablesError && priceTablesData) {
+            backupData['supabase_price_tables'] = priceTablesData;
+            console.log('Added price tables from Supabase to backup:', priceTablesData.length);
+          }
+
+          // Fetch clients from Supabase
+          const { data: clientsData, error: clientsError } = await supabase
+            .from('clients')
+            .select('*');
+          
+          if (!clientsError && clientsData) {
+            backupData['supabase_clients'] = clientsData;
+            console.log('Added clients from Supabase to backup:', clientsData.length);
+          }
+
+          // Fetch employees from Supabase
+          const { data: employeesData, error: employeesError } = await supabase
+            .from('employees')
+            .select('*');
+          
+          if (!employeesError && employeesData) {
+            backupData['supabase_employees'] = employeesData;
+            console.log('Added employees from Supabase to backup:', employeesData.length);
+          }
+
+          // Fetch company settings from Supabase
+          const { data: companyData, error: companyError } = await supabase
+            .from('company_settings')
+            .select('*');
+          
+          if (!companyError && companyData) {
+            backupData['supabase_company_settings'] = companyData;
+            console.log('Added company settings from Supabase to backup:', companyData.length);
+          }
+
+          // Fetch system settings from Supabase
+          const { data: systemData, error: systemError } = await supabase
+            .from('system_settings')
+            .select('*');
+          
+          if (!systemError && systemData) {
+            backupData['supabase_system_settings'] = systemData;
+            console.log('Added system settings from Supabase to backup:', systemData.length);
+          }
+
+          // Fetch users from Supabase
+          const { data: usersData, error: usersError } = await supabase
+            .from('users')
+            .select('*');
+          
+          if (!usersError && usersData) {
+            backupData['supabase_users'] = usersData;
+            console.log('Added users from Supabase to backup:', usersData.length);
+          }
+        } catch (error) {
+          console.error('Error fetching settings data from Supabase:', error);
+        }
+      }
+
       // Collect other Supabase data based on selections
       if (selectionState.includeFinancial) {
         try {
@@ -104,6 +179,7 @@ export function useBackupOperations() {
           
           if (!error && financialData) {
             backupData['supabase_financial_reports'] = financialData;
+            console.log('Added financial reports from Supabase to backup:', financialData.length);
           }
 
           const { data: receivableData, error: receivableError } = await supabase
@@ -112,6 +188,7 @@ export function useBackupOperations() {
           
           if (!receivableError && receivableData) {
             backupData['supabase_receivable_accounts'] = receivableData;
+            console.log('Added receivable accounts from Supabase to backup:', receivableData.length);
           }
 
           const { data: payableData, error: payableError } = await supabase
@@ -120,6 +197,7 @@ export function useBackupOperations() {
           
           if (!payableError && payableData) {
             backupData['supabase_payable_accounts'] = payableData;
+            console.log('Added payable accounts from Supabase to backup:', payableData.length);
           }
         } catch (error) {
           console.error('Error fetching financial data from Supabase:', error);
@@ -128,44 +206,23 @@ export function useBackupOperations() {
 
       if (selectionState.includeFleet) {
         try {
-          const { data: vehiclesData, error } = await supabase
-            .from('vehicles')
-            .select('*');
-          
-          if (!error && vehiclesData) {
-            backupData['supabase_vehicles'] = vehiclesData;
-          }
+          const fleetTables = [
+            { key: 'supabase_vehicles', table: 'vehicles' as const },
+            { key: 'supabase_logbook_entries', table: 'logbook_entries' as const },
+            { key: 'supabase_fuel_records', table: 'fuel_records' as const },
+            { key: 'supabase_maintenance_records', table: 'maintenance_records' as const },
+            { key: 'supabase_tire_maintenance_records', table: 'tire_maintenance_records' as const }
+          ];
 
-          const { data: logbookData, error: logbookError } = await supabase
-            .from('logbook_entries')
-            .select('*');
-          
-          if (!logbookError && logbookData) {
-            backupData['supabase_logbook_entries'] = logbookData;
-          }
-
-          const { data: fuelData, error: fuelError } = await supabase
-            .from('fuel_records')
-            .select('*');
-          
-          if (!fuelError && fuelData) {
-            backupData['supabase_fuel_records'] = fuelData;
-          }
-
-          const { data: maintenanceData, error: maintenanceError } = await supabase
-            .from('maintenance_records')
-            .select('*');
-          
-          if (!maintenanceError && maintenanceData) {
-            backupData['supabase_maintenance_records'] = maintenanceData;
-          }
-
-          const { data: tireData, error: tireError } = await supabase
-            .from('tire_maintenance_records')
-            .select('*');
-          
-          if (!tireError && tireData) {
-            backupData['supabase_tire_maintenance_records'] = tireData;
+          for (const { key, table } of fleetTables) {
+            const { data, error } = await supabase
+              .from(table)
+              .select('*');
+            
+            if (!error && data) {
+              backupData[key] = data;
+              console.log(`Added ${table} from Supabase to backup:`, data.length);
+            }
           }
         } catch (error) {
           console.error('Error fetching fleet data from Supabase:', error);
@@ -174,93 +231,24 @@ export function useBackupOperations() {
 
       if (selectionState.includeInventory) {
         try {
-          const { data: productsData, error } = await supabase
-            .from('products')
-            .select('*');
-          
-          if (!error && productsData) {
-            backupData['supabase_products'] = productsData;
-          }
+          const inventoryTables = [
+            { key: 'supabase_products', table: 'products' as const },
+            { key: 'supabase_inventory_entries', table: 'inventory_entries' as const },
+            { key: 'supabase_inventory_exits', table: 'inventory_exits' as const }
+          ];
 
-          const { data: entriesData, error: entriesError } = await supabase
-            .from('inventory_entries')
-            .select('*');
-          
-          if (!entriesError && entriesData) {
-            backupData['supabase_inventory_entries'] = entriesData;
-          }
-
-          const { data: exitsData, error: exitsError } = await supabase
-            .from('inventory_exits')
-            .select('*');
-          
-          if (!exitsError && exitsData) {
-            backupData['supabase_inventory_exits'] = exitsData;
+          for (const { key, table } of inventoryTables) {
+            const { data, error } = await supabase
+              .from(table)
+              .select('*');
+            
+            if (!error && data) {
+              backupData[key] = data;
+              console.log(`Added ${table} from Supabase to backup:`, data.length);
+            }
           }
         } catch (error) {
           console.error('Error fetching inventory data from Supabase:', error);
-        }
-      }
-
-      if (selectionState.includeSettings) {
-        try {
-          const { data: clientsData, error } = await supabase
-            .from('clients')
-            .select('*');
-          
-          if (!error && clientsData) {
-            backupData['supabase_clients'] = clientsData;
-          }
-
-          const { data: employeesData, error: employeesError } = await supabase
-            .from('employees')
-            .select('*');
-          
-          if (!employeesError && employeesData) {
-            backupData['supabase_employees'] = employeesData;
-          }
-
-          const { data: citiesData, error: citiesError } = await supabase
-            .from('cities')
-            .select('*');
-          
-          if (!citiesError && citiesData) {
-            backupData['supabase_cities'] = citiesData;
-          }
-
-          const { data: priceTablesData, error: priceTablesError } = await supabase
-            .from('price_tables')
-            .select('*');
-          
-          if (!priceTablesError && priceTablesData) {
-            backupData['supabase_price_tables'] = priceTablesData;
-          }
-
-          const { data: companyData, error: companyError } = await supabase
-            .from('company_settings')
-            .select('*');
-          
-          if (!companyError && companyData) {
-            backupData['supabase_company_settings'] = companyData;
-          }
-
-          const { data: systemData, error: systemError } = await supabase
-            .from('system_settings')
-            .select('*');
-          
-          if (!systemError && systemData) {
-            backupData['supabase_system_settings'] = systemData;
-          }
-
-          const { data: usersData, error: usersError } = await supabase
-            .from('users')
-            .select('*');
-          
-          if (!usersError && usersData) {
-            backupData['supabase_users'] = usersData;
-          }
-        } catch (error) {
-          console.error('Error fetching settings data from Supabase:', error);
         }
       }
       
@@ -274,10 +262,11 @@ export function useBackupOperations() {
       
       backupData['_metadata'] = {
         createdAt: new Date().toISOString(),
-        version: '2.0', // Updated version to indicate new format
+        version: '2.1', // Updated version to indicate improved format
         type: 'velomax_complete_backup',
         includes: backupTypes,
-        source: 'velomax_system'
+        source: 'velomax_system',
+        dataKeys: Object.keys(backupData).filter(key => key !== '_metadata')
       };
       
       // Create JSON and download it
@@ -317,7 +306,7 @@ export function useBackupOperations() {
       console.log('Backup created successfully with data:', Object.keys(backupData));
       toast({
         title: "Backup criado com sucesso",
-        description: `Dados exportados: ${backupTypes.join(', ')}`,
+        description: `Dados exportados: ${backupTypes.join(', ')}. Total de chaves: ${Object.keys(backupData).length - 1}`,
       });
     } catch (error) {
       console.error("Error creating backup:", error);
@@ -359,24 +348,22 @@ export function useBackupOperations() {
             if (key !== '_metadata' && key.startsWith('velomax_')) {
               let shouldRestore = false;
               
-              // Check if this key belongs to any of the selected categories for restoration
-              if (selectionState.includeOperational && DATA_CATEGORIES.operational.some(cat => key.includes(cat))) {
+              // Use the mapping to determine category
+              const category = LOCALSTORAGE_KEY_MAPPING[key as keyof typeof LOCALSTORAGE_KEY_MAPPING];
+              
+              if (category === 'operational' && selectionState.includeOperational) {
                 shouldRestore = true;
                 if (!restoredTypes.includes(MENU_LABELS.operational)) restoredTypes.push(MENU_LABELS.operational);
-              }
-              if (selectionState.includeFinancial && DATA_CATEGORIES.financial.some(cat => key.includes(cat))) {
+              } else if (category === 'financial' && selectionState.includeFinancial) {
                 shouldRestore = true;
                 if (!restoredTypes.includes(MENU_LABELS.financial)) restoredTypes.push(MENU_LABELS.financial);
-              }
-              if (selectionState.includeFleet && DATA_CATEGORIES.fleet.some(cat => key.includes(cat))) {
+              } else if (category === 'fleet' && selectionState.includeFleet) {
                 shouldRestore = true;
                 if (!restoredTypes.includes(MENU_LABELS.fleet)) restoredTypes.push(MENU_LABELS.fleet);
-              }
-              if (selectionState.includeInventory && DATA_CATEGORIES.inventory.some(cat => key.includes(cat))) {
+              } else if (category === 'inventory' && selectionState.includeInventory) {
                 shouldRestore = true;
                 if (!restoredTypes.includes(MENU_LABELS.inventory)) restoredTypes.push(MENU_LABELS.inventory);
-              }
-              if (selectionState.includeSettings && DATA_CATEGORIES.settings.some(cat => key.includes(cat))) {
+              } else if (category === 'settings' && selectionState.includeSettings) {
                 shouldRestore = true;
                 if (!restoredTypes.includes(MENU_LABELS.settings)) restoredTypes.push(MENU_LABELS.settings);
               }
@@ -453,56 +440,100 @@ export function useBackupOperations() {
             }
           }
 
+          // Restore Settings data
+          if (selectionState.includeSettings) {
+            // Restore cities
+            if (backupData.supabase_cities && Array.isArray(backupData.supabase_cities)) {
+              try {
+                for (const city of backupData.supabase_cities) {
+                  const { error } = await supabase
+                    .from('cities')
+                    .upsert(city, { onConflict: 'id' });
+                  
+                  if (error) {
+                    console.error('Error restoring city:', error);
+                  }
+                }
+                console.log(`Restored ${backupData.supabase_cities.length} cities to Supabase`);
+              } catch (error) {
+                console.error('Error restoring cities:', error);
+              }
+            }
+
+            // Restore price tables
+            if (backupData.supabase_price_tables && Array.isArray(backupData.supabase_price_tables)) {
+              try {
+                for (const priceTable of backupData.supabase_price_tables) {
+                  const { error } = await supabase
+                    .from('price_tables')
+                    .upsert(priceTable, { onConflict: 'id' });
+                  
+                  if (error) {
+                    console.error('Error restoring price table:', error);
+                  }
+                }
+                console.log(`Restored ${backupData.supabase_price_tables.length} price tables to Supabase`);
+              } catch (error) {
+                console.error('Error restoring price tables:', error);
+              }
+            }
+
+            const settingsTables = [
+              { key: 'supabase_clients', table: 'clients' as const },
+              { key: 'supabase_employees', table: 'employees' as const },
+              { key: 'supabase_company_settings', table: 'company_settings' as const },
+              { key: 'supabase_system_settings', table: 'system_settings' as const },
+              { key: 'supabase_users', table: 'users' as const }
+            ];
+
+            for (const { key, table } of settingsTables) {
+              if (backupData[key] && Array.isArray(backupData[key])) {
+                try {
+                  for (const record of backupData[key]) {
+                    const { error } = await supabase
+                      .from(table)
+                      .upsert(record, { onConflict: 'id' });
+                    
+                    if (error) {
+                      console.error(`Error restoring ${table}:`, error);
+                    }
+                  }
+                  console.log(`Restored ${backupData[key].length} records to ${table}`);
+                } catch (error) {
+                  console.error(`Error restoring ${key}:`, error);
+                }
+              }
+            }
+
+            if (!restoredTypes.includes(MENU_LABELS.settings)) {
+              restoredTypes.push(MENU_LABELS.settings);
+            }
+          }
+
           // Restore Financial data
           if (selectionState.includeFinancial) {
-            if (backupData.supabase_financial_reports && Array.isArray(backupData.supabase_financial_reports)) {
-              try {
-                for (const report of backupData.supabase_financial_reports) {
-                  const { error } = await supabase
-                    .from('financial_reports')
-                    .upsert(report, { onConflict: 'id' });
-                  
-                  if (error) {
-                    console.error('Error restoring financial report:', error);
-                  }
-                }
-                console.log(`Restored ${backupData.supabase_financial_reports.length} financial reports to Supabase`);
-              } catch (error) {
-                console.error('Error restoring financial reports:', error);
-              }
-            }
+            const financialTables = [
+              { key: 'supabase_financial_reports', table: 'financial_reports' as const },
+              { key: 'supabase_receivable_accounts', table: 'receivable_accounts' as const },
+              { key: 'supabase_payable_accounts', table: 'payable_accounts' as const }
+            ];
 
-            if (backupData.supabase_receivable_accounts && Array.isArray(backupData.supabase_receivable_accounts)) {
-              try {
-                for (const account of backupData.supabase_receivable_accounts) {
-                  const { error } = await supabase
-                    .from('receivable_accounts')
-                    .upsert(account, { onConflict: 'id' });
-                  
-                  if (error) {
-                    console.error('Error restoring receivable account:', error);
+            for (const { key, table } of financialTables) {
+              if (backupData[key] && Array.isArray(backupData[key])) {
+                try {
+                  for (const record of backupData[key]) {
+                    const { error } = await supabase
+                      .from(table)
+                      .upsert(record, { onConflict: 'id' });
+                    
+                    if (error) {
+                      console.error(`Error restoring ${table}:`, error);
+                    }
                   }
+                  console.log(`Restored ${backupData[key].length} records to ${table}`);
+                } catch (error) {
+                  console.error(`Error restoring ${key}:`, error);
                 }
-                console.log(`Restored ${backupData.supabase_receivable_accounts.length} receivable accounts to Supabase`);
-              } catch (error) {
-                console.error('Error restoring receivable accounts:', error);
-              }
-            }
-
-            if (backupData.supabase_payable_accounts && Array.isArray(backupData.supabase_payable_accounts)) {
-              try {
-                for (const account of backupData.supabase_payable_accounts) {
-                  const { error } = await supabase
-                    .from('payable_accounts')
-                    .upsert(account, { onConflict: 'id' });
-                  
-                  if (error) {
-                    console.error('Error restoring payable account:', error);
-                  }
-                }
-                console.log(`Restored ${backupData.supabase_payable_accounts.length} payable accounts to Supabase`);
-              } catch (error) {
-                console.error('Error restoring payable accounts:', error);
               }
             }
 
@@ -574,42 +605,6 @@ export function useBackupOperations() {
 
             if (!restoredTypes.includes(MENU_LABELS.inventory)) {
               restoredTypes.push(MENU_LABELS.inventory);
-            }
-          }
-
-          // Restore Settings data
-          if (selectionState.includeSettings) {
-            const settingsTables = [
-              { key: 'supabase_clients', table: 'clients' as const },
-              { key: 'supabase_employees', table: 'employees' as const },
-              { key: 'supabase_cities', table: 'cities' as const },
-              { key: 'supabase_price_tables', table: 'price_tables' as const },
-              { key: 'supabase_company_settings', table: 'company_settings' as const },
-              { key: 'supabase_system_settings', table: 'system_settings' as const },
-              { key: 'supabase_users', table: 'users' as const }
-            ];
-
-            for (const { key, table } of settingsTables) {
-              if (backupData[key] && Array.isArray(backupData[key])) {
-                try {
-                  for (const record of backupData[key]) {
-                    const { error } = await supabase
-                      .from(table)
-                      .upsert(record, { onConflict: 'id' });
-                    
-                    if (error) {
-                      console.error(`Error restoring ${table}:`, error);
-                    }
-                  }
-                  console.log(`Restored ${backupData[key].length} records to ${table}`);
-                } catch (error) {
-                  console.error(`Error restoring ${key}:`, error);
-                }
-              }
-            }
-
-            if (!restoredTypes.includes(MENU_LABELS.settings)) {
-              restoredTypes.push(MENU_LABELS.settings);
             }
           }
           
