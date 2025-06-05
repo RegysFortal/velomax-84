@@ -14,13 +14,13 @@ interface ShipmentsProviderProps {
 }
 
 export function ShipmentsProvider({ children }: ShipmentsProviderProps) {
-  const { user } = useAuth();
+  const { supabaseUser } = useAuth();
   const { 
     shipments, 
     setShipments, 
     loading, 
     refreshShipmentsData 
-  } = useShipmentsData(user);
+  } = useShipmentsData(supabaseUser);
   
   const { 
     addShipment, 

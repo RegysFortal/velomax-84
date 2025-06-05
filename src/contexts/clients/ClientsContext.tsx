@@ -8,9 +8,9 @@ import { ClientsContextType } from './types';
 const ClientsContext = createContext<ClientsContextType | undefined>(undefined);
 
 export const ClientsProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
-  const { clients, setClients, loading } = useFetchClients(user);
-  const { addClient, updateClient, deleteClient, getClient } = useClientsOperations(clients, setClients, user);
+  const { supabaseUser } = useAuth();
+  const { clients, setClients, loading } = useFetchClients(supabaseUser);
+  const { addClient, updateClient, deleteClient, getClient } = useClientsOperations(clients, setClients, supabaseUser);
   
   return (
     <ClientsContext.Provider value={{

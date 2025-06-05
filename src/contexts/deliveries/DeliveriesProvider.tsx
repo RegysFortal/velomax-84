@@ -86,8 +86,13 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   
   // Wrap fetchDeliveries to match the expected return type in context
   const fetchDeliveries = async (): Promise<Delivery[]> => {
-    const result = await fetchDeliveriesFromHook();
-    return result || [];
+    try {
+      const result = await fetchDeliveriesFromHook();
+      return result || [];
+    } catch (error) {
+      console.error('Error fetching deliveries:', error);
+      return [];
+    }
   };
 
   // New function to check minute number exists for specific client

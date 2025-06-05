@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 import { Shipment } from '@/types/shipment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { User } from '@supabase/supabase-js';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
-export function useShipmentsData(user: User | null | undefined) {
+export function useShipmentsData(user: SupabaseUser | null | undefined) {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
 
