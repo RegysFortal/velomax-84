@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -154,14 +155,15 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
   const updateDelivery = async (id: string, data: Partial<Delivery>) => {
     try {
-      console.log('Updating delivery in database with ID:', id, data);
+      console.log('Updating delivery in database with ID:', id);
+      console.log('Original data received:', data);
 
       // Prepare the update data with proper field mapping
       const supabaseData: any = {
         updated_at: new Date().toISOString(),
       };
 
-      // Map each field properly, ensuring totalFreight is handled correctly
+      // Map each field properly
       if (data.clientId !== undefined) supabaseData.client_id = data.clientId;
       if (data.cityId !== undefined) supabaseData.city_id = data.cityId;
       if (data.minuteNumber !== undefined) supabaseData.minute_number = data.minuteNumber;
@@ -178,21 +180,36 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       if (data.deliveryTime !== undefined) supabaseData.delivery_time = data.deliveryTime;
       if (data.arrivalKnowledgeNumber !== undefined) supabaseData.arrival_knowledge_number = data.arrivalKnowledgeNumber;
 
-      // Handle totalFreight conversion with extra care
+      // Handle totalFreight with more robust conversion
       if (data.totalFreight !== undefined) {
-        let freightValue = 0;
+        let freightValue: number;
+        
         if (typeof data.totalFreight === 'string') {
-          // Remove any non-numeric characters except decimal point and comma
-          const cleanValue = String(data.totalFreight).replace(/[^\d.,]/g, '').replace(',', '.');
-          freightValue = parseFloat(cleanValue) || 0;
+          // Clean the string: remove currency symbols, spaces, and handle comma as decimal separator
+          const cleanValue = data.totalFreight
+            .toString()
+            .replace(/[R$\s]/g, '') // Remove R$, spaces
+            .replace(/\./g, '') // Remove thousand separators (dots)
+            .replace(/,/, '.'); // Replace decimal comma with dot
+          
+          freightValue = parseFloat(cleanValue);
+          
+          if (isNaN(freightValue)) {
+            freightValue = 0;
+            console.warn('Could not parse totalFreight value:', data.totalFreight, 'defaulting to 0');
+          }
         } else if (typeof data.totalFreight === 'number') {
           freightValue = data.totalFreight;
+        } else {
+          freightValue = 0;
+          console.warn('Unexpected totalFreight type:', typeof data.totalFreight, 'defaulting to 0');
         }
+        
         supabaseData.total_freight = freightValue;
-        console.log('Converted totalFreight:', data.totalFreight, '->', freightValue);
+        console.log('Freight conversion - Original:', data.totalFreight, 'Converted:', freightValue);
       }
 
-      console.log('Supabase update data:', supabaseData);
+      console.log('Final Supabase update data:', supabaseData);
 
       const { data: updatedData, error } = await supabase
         .from('deliveries')
@@ -237,6 +254,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
           delivery.id === id ? { ...delivery, ...updatedDelivery } : delivery
         );
         localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
+        console.log('Updated delivery in local state with totalFreight:', updatedDelivery.totalFreight);
         return updatedDeliveries;
       });
 

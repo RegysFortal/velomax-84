@@ -44,6 +44,12 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
     if (!isNaN(numValue) && numValue >= 0) {
       setManualFreight(numValue);
       form.setValue('totalFreight', numValue);
+      console.log('FreightSection - Updated form totalFreight to:', numValue);
+    } else if (value === '' || value === '0') {
+      // Allow empty or zero values
+      setManualFreight(0);
+      form.setValue('totalFreight', 0);
+      console.log('FreightSection - Set totalFreight to 0');
     }
   };
 
@@ -66,6 +72,7 @@ export const FreightSection: React.FC<FreightSectionProps> = ({ isEditMode }) =>
       // Se valor válido, garantir que está sincronizado
       setManualFreight(numValue);
       form.setValue('totalFreight', numValue);
+      console.log('FreightSection - Final totalFreight value on blur:', numValue);
     }
   };
 
