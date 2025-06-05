@@ -1,3 +1,4 @@
+
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
   | "retained"    // Retida
@@ -39,6 +40,7 @@ export interface DocumentDeliveryInfo {
   receiverName?: string;
   receiverId?: string;
   notes?: string;
+  arrivalKnowledgeNumber?: string;
 }
 
 export interface Document {
@@ -84,6 +86,7 @@ export interface Shipment {
   deliveryTime?: string;
   receiverName?: string;
   receiverId?: string;
+  arrivalKnowledgeNumber?: string;
   createdAt: string;
   updatedAt: string;
 }
