@@ -1,3 +1,4 @@
+
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
   | "retained"    // Retida
@@ -60,6 +61,7 @@ export interface Shipment {
   trackingNumber: string;
   packages: number;
   weight: number;
+  shipmentDate?: string; // Added shipmentDate field
   arrivalFlight?: string;
   arrivalDate?: string;
   observations?: string;
