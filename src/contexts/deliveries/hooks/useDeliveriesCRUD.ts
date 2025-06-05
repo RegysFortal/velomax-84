@@ -180,10 +180,10 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       if (data.deliveryTime !== undefined) supabaseData.delivery_time = data.deliveryTime;
       if (data.arrivalKnowledgeNumber !== undefined) supabaseData.arrival_knowledge_number = data.arrivalKnowledgeNumber;
 
-      // Handle totalFreight with more robust conversion
+      // Handle totalFreight with explicit type checking
       if (data.totalFreight !== undefined) {
-        let freightValue: number;
-        const freightInput = data.totalFreight;
+        let freightValue: number = 0;
+        const freightInput: string | number = data.totalFreight;
         
         if (typeof freightInput === 'string') {
           // Clean the string: remove currency symbols, spaces, and handle comma as decimal separator
