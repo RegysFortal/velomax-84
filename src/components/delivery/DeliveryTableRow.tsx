@@ -70,10 +70,8 @@ export function DeliveryTableRow({
       <TableCell className={isIncomplete ? 'text-red-700' : ''}>{formatDate(delivery.deliveryDate)}</TableCell>
       <TableCell className={isIncomplete ? 'text-red-700' : ''}>{delivery.deliveryTime}</TableCell>
       <TableCell className={isIncomplete ? 'text-red-700' : ''}>{delivery.receiver}</TableCell>
-      <TableCell className={isIncomplete ? 'text-red-700' : ''}>{delivery.receiverId || '-'}</TableCell>
-      <TableCell className={isIncomplete ? 'text-red-700' : ''}>{delivery.arrivalKnowledgeNumber || '-'}</TableCell>
-      <TableCell className={isIncomplete ? 'text-red-700' : ''}>{delivery.weight} kg</TableCell>
       <TableCell className={isIncomplete ? 'text-red-700' : ''}>{delivery.packages}</TableCell>
+      <TableCell className={isIncomplete ? 'text-red-700' : ''}>{delivery.weight} kg</TableCell>
       <TableCell className={isIncomplete ? 'text-red-700' : ''}>
         <Badge variant={isIncomplete ? "destructive" : "secondary"}>
           {getDeliveryTypeDisplay(delivery.deliveryType)}
