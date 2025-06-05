@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -183,13 +184,15 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       if (data.totalFreight !== undefined) {
         let freightValue: number = 0;
         
+        // Explicitly type the input to avoid TypeScript 'never' type inference
+        const freightInput: number | string | undefined = data.totalFreight;
+        
         // Handle different input types for totalFreight
-        if (typeof data.totalFreight === 'number') {
-          freightValue = data.totalFreight;
-        } else if (typeof data.totalFreight === 'string') {
+        if (typeof freightInput === 'number') {
+          freightValue = freightInput;
+        } else if (typeof freightInput === 'string') {
           // Clean string input for monetary values
-          const cleanValue = data.totalFreight
-            .toString()
+          const cleanValue = freightInput
             .replace(/[R$\s]/g, '') // Remove R$, spaces
             .replace(/\./g, '') // Remove thousand separators (dots)
             .replace(/,/, '.'); // Replace decimal comma with dot
@@ -198,16 +201,16 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
           
           if (isNaN(freightValue)) {
             freightValue = 0;
-            console.warn('Could not parse totalFreight value:', data.totalFreight, 'defaulting to 0');
+            console.warn('Could not parse totalFreight value:', freightInput, 'defaulting to 0');
           }
         } else {
           // For any other type, try to convert to number
-          freightValue = Number(data.totalFreight) || 0;
-          console.warn('Unexpected totalFreight type:', typeof data.totalFreight, 'converted to:', freightValue);
+          freightValue = Number(freightInput) || 0;
+          console.warn('Unexpected totalFreight type:', typeof freightInput, 'converted to:', freightValue);
         }
         
         supabaseData.total_freight = freightValue;
-        console.log('Freight processing - Original:', data.totalFreight, 'Processed:', freightValue);
+        console.log('Freight processing - Original:', freightInput, 'Processed:', freightValue);
       }
 
       console.log('Final Supabase update data:', supabaseData);
