@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { useShipments } from "@/contexts/shipments";
 import { Shipment } from "@/types/shipment";
 import { useClients } from "@/contexts";
-import { DocumentsList } from "./DocumentsList";
 import DetailsTab from "./details/DetailsTab";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -54,14 +53,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
     }
   }, [open, shipment?.id, getShipmentById, onClose]);
   
-  // Log for debugging
-  useEffect(() => {
-    if (open) {
-      console.log('ShipmentDetails - Shipment ID:', shipment?.id);
-      console.log('ShipmentDetails - Documents:', currentShipment?.documents);
-    }
-  }, [open, shipment?.id, currentShipment?.documents]);
-  
   const handleDelete = async () => {
     if (deleteInProgress) return;
     
@@ -69,16 +60,12 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
       setDeleteInProgress(true);
       console.log('Deleting shipment with ID:', shipment.id);
       
-      // Perform the deletion
       await deleteShipment(shipment.id);
       
       toast.success("Embarque excluído com sucesso");
       setDeleteDialogOpen(false);
-      
-      // Close the details dialog first to prevent UI glitches
       onClose();
       
-      // Then refresh data after a small delay
       setTimeout(() => {
         refreshShipmentsData();
       }, 100);
@@ -90,9 +77,6 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
       setDeleteInProgress(false);
     }
   };
-  
-  // Filtrar documentos retidos para mostrar na aba de detalhes
-  const retainedDocuments = currentShipment?.documents?.filter(doc => doc.isRetained) || [];
 
   if (!currentShipment) {
     return null;
@@ -109,31 +93,10 @@ export function ShipmentDetails({ shipment, open, onClose }: ShipmentDetailsProp
           </DialogHeader>
           
           <ScrollArea className="h-[calc(95vh-150px)]">
-            <Tabs defaultValue="details" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="details">Detalhes</TabsTrigger>
-                <TabsTrigger value="documents">Documentos</TabsTrigger>
-                {/* <TabsTrigger value="history">Histórico</TabsTrigger> */}
-              </TabsList>
-              
-              <TabsContent value="details">
-                <DetailsTab 
-                  shipment={currentShipment} 
-                  onClose={onClose} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="documents" className="space-y-4">
-                <DocumentsList 
-                  shipmentId={currentShipment.id} 
-                  documents={currentShipment.documents || []} 
-                />
-              </TabsContent>
-              
-              {/* <TabsContent value="history">
-                <p>Em breve: Histórico de alterações do embarque.</p>
-              </TabsContent> */}
-            </Tabs>
+            <DetailsTab 
+              shipment={currentShipment} 
+              onClose={onClose} 
+            />
             
             <div className="flex justify-between pt-6">
               <Button 

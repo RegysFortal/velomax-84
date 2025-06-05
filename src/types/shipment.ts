@@ -8,17 +8,17 @@ export type ShipmentStatus =
 
 export type TransportMode = "air" | "road";
 
-// Define a consistent DocumentStatus type
-export type DocumentStatus = "retained" | "delivered" | "picked_up" | "pending";
+// Define status individual de documentos
+export type DocumentStatus = "in_transit" | "picked_up" | "retained" | "delivered";
 
 export interface FiscalAction {
   id: string;
-  actionNumber?: string; // Adding the fiscal action number field
+  actionNumber?: string;
   reason: string;
   amountToPay: number;
   paymentDate?: string;
   releaseDate?: string;
-  notes?: string; // Added for additional details
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +33,15 @@ export interface DocumentRetentionInfo {
   notes?: string;
 }
 
+// Document-specific delivery information
+export interface DocumentDeliveryInfo {
+  deliveryDate?: string;
+  deliveryTime?: string;
+  receiverName?: string;
+  receiverId?: string;
+  notes?: string;
+}
+
 export interface Document {
   id: string;
   name: string;
@@ -40,16 +49,19 @@ export interface Document {
   url?: string;
   notes?: string;
   minuteNumber?: string;
-  invoiceNumbers?: string[]; // Add array of invoice numbers
+  invoiceNumbers?: string[];
   weight?: number;
   packages?: number;
-  isDelivered?: boolean;
-  isRetained?: boolean;
-  isPickedUp?: boolean; // New flag for "Retirado" status
-  isPriority?: boolean; // New flag for prioritized documents
-  retentionInfo?: DocumentRetentionInfo; // Document-specific retention info
+  status: DocumentStatus; // Status individual do documento
+  isPriority?: boolean; // Flag de prioridade
+  retentionInfo?: DocumentRetentionInfo;
+  deliveryInfo?: DocumentDeliveryInfo;
   createdAt: string;
   updatedAt: string;
+  // Campos de compatibilidade (manter por enquanto)
+  isDelivered?: boolean;
+  isRetained?: boolean;
+  isPickedUp?: boolean;
 }
 
 export interface Shipment {
@@ -61,7 +73,7 @@ export interface Shipment {
   trackingNumber: string;
   packages: number;
   weight: number;
-  shipmentDate?: string; // Added shipmentDate field
+  shipmentDate?: string;
   arrivalFlight?: string;
   arrivalDate?: string;
   observations?: string;

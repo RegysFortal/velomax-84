@@ -18,6 +18,7 @@ import {
 import { useShipmentFiltering } from './hooks/useShipmentFiltering';
 import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
+import { ExpandableDocuments } from '@/components/shipment/table/ExpandableDocuments';
 
 interface ShipmentsTableProps {
   searchTerm: string;
@@ -36,6 +37,7 @@ export function ShipmentsTable({
 }: ShipmentsTableProps) {
   const { shipments, loading } = useShipments();
   const [sortedShipments, setSortedShipments] = useState<Shipment[]>([]);
+  const [expandedShipments, setExpandedShipments] = useState<Set<string>>(new Set());
   
   const { filteredShipments, isShipmentOverdue } = useShipmentFiltering(
     shipments,
@@ -45,21 +47,35 @@ export function ShipmentsTable({
   
   // Update sorted shipments whenever filtered shipments change
   useEffect(() => {
-    // Sort shipments: overdue first, then by createdAt date (newest on top)
     const sorted = [...filteredShipments].sort((a, b) => {
       const isAOverdue = isShipmentOverdue(a);
       const isBOverdue = isShipmentOverdue(b);
       
-      // First sort by overdue status
       if (isAOverdue && !isBOverdue) return -1;
       if (!isAOverdue && isBOverdue) return 1;
       
-      // Then sort by created date (newest first)
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
     
     setSortedShipments(sorted);
   }, [filteredShipments, isShipmentOverdue]);
+
+  const toggleExpandShipment = (shipmentId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedShipments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(shipmentId)) {
+        newSet.delete(shipmentId);
+      } else {
+        newSet.add(shipmentId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDocumentUpdate = () => {
+    onStatusChange(); // Refresh the data
+  };
 
   return (
     <ScrollArea className="h-[calc(100vh-280px)]">
@@ -95,61 +111,87 @@ export function ShipmentsTable({
             ) : (
               sortedShipments.map((shipment) => {
                 const isOverdue = isShipmentOverdue(shipment);
+                const isExpanded = expandedShipments.has(shipment.id);
                 
                 return (
-                  <TableRow 
-                    key={shipment.id} 
-                    className={cn(
-                      "cursor-pointer hover:bg-muted",
-                      shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
-                      isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100"
-                    )}
-                    onClick={() => onRowClick(shipment)}
-                  >
-                    <TableCell>
-                      {shipment.companyName}
-                    </TableCell>
-                    <TableCell>
-                      {shipment.trackingNumber}
-                    </TableCell>
-                    <TableCell>
-                      {shipment.carrierName}
-                    </TableCell>
-                    <TableCell>
-                      {shipment.packages}
-                    </TableCell>
-                    <TableCell>
-                      {shipment.weight} kg
-                    </TableCell>
-                    <TableCell>
-                      {shipment.arrivalDate ? (
-                        <div className="flex items-center gap-1">
-                          {format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })}
-                          {isOverdue && (
-                            <span className="inline-flex h-2 w-2 rounded-full bg-red-500" 
-                              title="Embarque em atraso" />
-                          )}
+                  <React.Fragment key={shipment.id}>
+                    <TableRow 
+                      className={cn(
+                        "cursor-pointer hover:bg-muted",
+                        shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
+                        isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100"
+                      )}
+                      onClick={() => onRowClick(shipment)}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => toggleExpandShipment(shipment.id, e)}
+                            className="p-1 h-6 w-6"
+                          >
+                            {isExpanded ? '−' : '+'}
+                          </Button>
+                          {shipment.companyName}
                         </div>
-                      ) : 'Não definida'}
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <StatusMenu 
-                        shipmentId={shipment.id} 
-                        status={shipment.status} 
-                        onStatusChange={onStatusChange}
-                      />
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => onEditClick(shipment)}
-                        title="Editar embarque"
-                      >
-                        <Edit className="h-4 w-4 text-gray-500" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell>
+                        {shipment.trackingNumber}
+                      </TableCell>
+                      <TableCell>
+                        {shipment.carrierName}
+                      </TableCell>
+                      <TableCell>
+                        {shipment.packages}
+                      </TableCell>
+                      <TableCell>
+                        {shipment.weight} kg
+                      </TableCell>
+                      <TableCell>
+                        {shipment.arrivalDate ? (
+                          <div className="flex items-center gap-1">
+                            {format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })}
+                            {isOverdue && (
+                              <span className="inline-flex h-2 w-2 rounded-full bg-red-500" 
+                                title="Embarque em atraso" />
+                            )}
+                          </div>
+                        ) : 'Não definida'}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <StatusMenu 
+                          shipmentId={shipment.id} 
+                          status={shipment.status} 
+                          onStatusChange={onStatusChange}
+                        />
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => onEditClick(shipment)}
+                          title="Editar embarque"
+                        >
+                          <Edit className="h-4 w-4 text-gray-500" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    
+                    {/* Expanded documents row */}
+                    {isExpanded && (
+                      <TableRow>
+                        <TableCell colSpan={8} className="p-0">
+                          <div className="p-4 bg-gray-50 border-t">
+                            <ExpandableDocuments 
+                              shipment={shipment}
+                              onDocumentUpdate={handleDocumentUpdate}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
                 );
               })
             )}

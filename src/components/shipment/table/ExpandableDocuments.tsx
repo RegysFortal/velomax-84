@@ -1,0 +1,168 @@
+
+import React, { useState } from 'react';
+import { Document, Shipment } from "@/types/shipment";
+import { ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DocumentStatusSelector } from "./DocumentStatusSelector";
+import { PriorityToggle } from "./PriorityToggle";
+import { DocumentRetentionForm } from "./DocumentRetentionForm";
+import { DocumentDeliveryForm } from "./DocumentDeliveryForm";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
+
+interface ExpandableDocumentsProps {
+  shipment: Shipment;
+  onDocumentUpdate: () => void;
+}
+
+export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDocumentsProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [editMode, setEditMode] = useState<'retention' | 'delivery' | null>(null);
+
+  const priorityDocuments = shipment.documents?.filter(doc => doc.isPriority) || [];
+  const totalDocuments = shipment.documents?.length || 0;
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'in_transit': return 'secondary';
+      case 'picked_up': return 'outline';
+      case 'retained': return 'destructive';
+      case 'delivered': return 'default';
+      default: return 'secondary';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'in_transit': return 'Em Trânsito';
+      case 'picked_up': return 'Retirado';
+      case 'retained': return 'Retido';
+      case 'delivered': return 'Entregue';
+      default: return status;
+    }
+  };
+
+  const handleStatusChange = (document: Document, newStatus: string) => {
+    if (newStatus === 'retained') {
+      setEditingDocument(document);
+      setEditMode('retention');
+    } else if (newStatus === 'delivered') {
+      setEditingDocument(document);
+      setEditMode('delivery');
+    } else {
+      // Update status directly for other statuses
+      // This would call the context method to update the document
+      onDocumentUpdate();
+    }
+  };
+
+  const closeEditMode = () => {
+    setEditingDocument(null);
+    setEditMode(null);
+  };
+
+  return (
+    <div className="w-full">
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" className="flex items-center gap-2">
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <span>Documentos ({totalDocuments})</span>
+            {priorityDocuments.length > 0 && (
+              <div className="flex items-center gap-1 ml-2">
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+                <span className="text-red-500 text-sm">({priorityDocuments.length} prioritários)</span>
+              </div>
+            )}
+          </Button>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent className="mt-2">
+          <div className="border rounded-md bg-gray-50 p-4 space-y-3">
+            {shipment.documents && shipment.documents.length > 0 ? (
+              shipment.documents.map((document) => (
+                <div 
+                  key={document.id} 
+                  className={`border rounded-md p-3 bg-white ${document.isPriority ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        {document.isPriority && (
+                          <AlertTriangle className="h-4 w-4 text-red-500" />
+                        )}
+                        <span className="font-medium">
+                          {document.minuteNumber ? `Minuta: ${document.minuteNumber}` : document.name}
+                        </span>
+                      </div>
+                      
+                      <Badge variant={getStatusBadgeVariant(document.status || 'in_transit')}>
+                        {getStatusLabel(document.status || 'in_transit')}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <PriorityToggle 
+                        document={document}
+                        shipmentId={shipment.id}
+                        onUpdate={onDocumentUpdate}
+                      />
+                      
+                      <DocumentStatusSelector
+                        document={document}
+                        onStatusChange={(newStatus) => handleStatusChange(document, newStatus)}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Document details */}
+                  <div className="mt-2 text-sm text-gray-600 space-y-1">
+                    {document.invoiceNumbers && document.invoiceNumbers.length > 0 && (
+                      <div>
+                        <strong>Notas Fiscais:</strong> {document.invoiceNumbers.join(', ')}
+                      </div>
+                    )}
+                    {document.weight && (
+                      <div><strong>Peso:</strong> {document.weight} kg</div>
+                    )}
+                    {document.packages && (
+                      <div><strong>Volumes:</strong> {document.packages}</div>
+                    )}
+                    {document.notes && (
+                      <div><strong>Observações:</strong> {document.notes}</div>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500 py-4">
+                Nenhum documento encontrado
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+      
+      {/* Retention Form Modal */}
+      {editingDocument && editMode === 'retention' && (
+        <DocumentRetentionForm
+          document={editingDocument}
+          shipmentId={shipment.id}
+          onClose={closeEditMode}
+          onUpdate={onDocumentUpdate}
+        />
+      )}
+      
+      {/* Delivery Form Modal */}
+      {editingDocument && editMode === 'delivery' && (
+        <DocumentDeliveryForm
+          document={editingDocument}
+          shipmentId={shipment.id}
+          onClose={closeEditMode}
+          onUpdate={onDocumentUpdate}
+        />
+      )}
+    </div>
+  );
+}
