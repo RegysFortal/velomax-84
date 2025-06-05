@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Document } from "@/types/shipment";
 import { Button } from "@/components/ui/button";
@@ -42,7 +41,7 @@ export function DocumentsList({ shipmentId, documents, onStatusChange }: Documen
     setIsDialogOpen
   });
 
-  const { handleDelete } = useDocumentDeletion({
+  const { handleDelete: deleteDocument } = useDocumentDeletion({
     shipmentId
   });
 
@@ -53,7 +52,7 @@ export function DocumentsList({ shipmentId, documents, onStatusChange }: Documen
   };
 
   const handleDelete = async (documentId: string) => {
-    await handleDelete(documentId);
+    await deleteDocument(documentId);
   };
 
   const handleDialogClose = (open: boolean) => {
