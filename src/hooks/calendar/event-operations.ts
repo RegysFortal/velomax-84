@@ -5,16 +5,18 @@ import { CalendarEvent, EventType, RecurrenceType } from './event-types';
 
 export const useEventOperations = (
   events: CalendarEvent[],
-  setEvents: React.Dispatch<React.SetStateAction<CalendarEvent[]>>,
-  user: any
+  setEvents: React.Dispatch<React.SetStateAction<CalendarEvent[]>>
 ) => {
   const { toast } = useToast();
   
   // Add a new event
   const addEvent = async (newEvent: Omit<CalendarEvent, 'id'>) => {
     try {
+      // Get current user for user_id field
+      const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
-        throw new Error('User must be logged in to add events');
+        throw new Error('Usuário não autenticado');
       }
 
       // Prepare event for Supabase
@@ -67,10 +69,6 @@ export const useEventOperations = (
   // Update an existing event
   const updateEvent = async (id: string, updatedEvent: Partial<CalendarEvent>) => {
     try {
-      if (!user) {
-        throw new Error('User must be logged in to update events');
-      }
-
       // Prepare update data for Supabase
       const updateData: any = {};
       if (updatedEvent.title !== undefined) updateData.title = updatedEvent.title;
@@ -117,10 +115,6 @@ export const useEventOperations = (
   // Delete an event
   const deleteEvent = async (id: string) => {
     try {
-      if (!user) {
-        throw new Error('User must be logged in to delete events');
-      }
-
       // Delete from Supabase
       const { error } = await supabase
         .from('calendar_events')

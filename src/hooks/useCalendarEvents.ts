@@ -80,6 +80,13 @@ export const useCalendarEvents = () => {
 
   const addEvent = async (eventData: Omit<CalendarEvent, 'id'>) => {
     try {
+      // Get current user for user_id field
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
       const { data, error } = await supabase
         .from('calendar_events')
         .insert({
@@ -89,7 +96,7 @@ export const useCalendarEvents = () => {
           description: eventData.description,
           recurrence: eventData.recurrence,
           recurrence_end_date: eventData.recurrenceEndDate?.toISOString(),
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: user.id
         })
         .select()
         .single();
@@ -107,8 +114,19 @@ export const useCalendarEvents = () => {
       };
 
       setEvents(prev => [...prev, newEvent]);
+      
+      toast({
+        title: "Evento criado",
+        description: "O evento foi criado com sucesso."
+      });
     } catch (error) {
       console.error('Error adding event:', error);
+      toast({
+        title: "Erro ao criar evento",
+        description: "Não foi possível criar o evento. Tente novamente.",
+        variant: "destructive"
+      });
+      
       // Add to local state as fallback
       const newEvent: CalendarEvent = {
         id: Date.now().toString(),
@@ -145,8 +163,19 @@ export const useCalendarEvents = () => {
             : event
         )
       );
+      
+      toast({
+        title: "Evento atualizado",
+        description: "O evento foi atualizado com sucesso."
+      });
     } catch (error) {
       console.error('Error updating event:', error);
+      toast({
+        title: "Erro ao atualizar evento",
+        description: "Não foi possível atualizar o evento. Tente novamente.",
+        variant: "destructive"
+      });
+      
       // Update local state as fallback
       setEvents(prev => 
         prev.map(event => 
@@ -168,8 +197,19 @@ export const useCalendarEvents = () => {
       if (error) throw error;
 
       setEvents(prev => prev.filter(event => event.id !== id));
+      
+      toast({
+        title: "Evento excluído",
+        description: "O evento foi excluído com sucesso."
+      });
     } catch (error) {
       console.error('Error deleting event:', error);
+      toast({
+        title: "Erro ao excluir evento",
+        description: "Não foi possível excluir o evento. Tente novamente.",
+        variant: "destructive"
+      });
+      
       // Delete from local state as fallback
       setEvents(prev => prev.filter(event => event.id !== id));
     }
