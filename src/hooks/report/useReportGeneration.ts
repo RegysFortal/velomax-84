@@ -7,25 +7,94 @@ import { useFinancial } from '@/contexts/financial';
 
 export function useReportGeneration() {
   const { toast } = useToast();
-  const { createReport } = useFinancial();
+  const { createReport, financialReports } = useFinancial();
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  const checkForDuplicateReport = (
+    selectedClient: string,
+    startDate: Date,
+    endDate: Date
+  ): FinancialReport | null => {
+    const startLocalDate = toLocalDate(startDate);
+    const endLocalDate = toLocalDate(endDate);
+    
+    // Check if there's already a report for this client that overlaps with the date range
+    const existingReport = financialReports.find(report => {
+      if (report.clientId !== selectedClient) return false;
+      
+      const reportStart = new Date(report.startDate);
+      const reportEnd = new Date(report.endDate);
+      
+      // Check for date overlap
+      return (
+        (startLocalDate >= reportStart && startLocalDate <= reportEnd) ||
+        (endLocalDate >= reportStart && endLocalDate <= reportEnd) ||
+        (startLocalDate <= reportStart && endLocalDate >= reportEnd)
+      );
+    });
+    
+    return existingReport || null;
+  };
+  
+  const checkForDuplicateDeliveries = (
+    deliveries: any[],
+    selectedClient: string,
+    startDate: Date,
+    endDate: Date
+  ): number => {
+    const startLocalDate = toLocalDate(startDate);
+    const endLocalDate = toLocalDate(endDate);
+    startLocalDate.setHours(0, 0, 0, 0);
+    endLocalDate.setHours(23, 59, 59, 999);
+    
+    // Filter deliveries for the selected client and date range
+    const filteredDeliveries = deliveries.filter(delivery => {
+      if (delivery.clientId !== selectedClient) return false;
+      const deliveryDate = new Date(delivery.deliveryDate);
+      return deliveryDate >= startLocalDate && deliveryDate <= endLocalDate;
+    });
+    
+    // Check how many of these deliveries are already in other reports
+    let duplicateCount = 0;
+    
+    filteredDeliveries.forEach(delivery => {
+      const isInOtherReport = financialReports.some(report => {
+        if (report.clientId !== selectedClient) return false;
+        
+        const reportStart = new Date(report.startDate);
+        const reportEnd = new Date(report.endDate);
+        const deliveryDate = new Date(delivery.deliveryDate);
+        
+        return deliveryDate >= reportStart && deliveryDate <= reportEnd;
+      });
+      
+      if (isInOtherReport) {
+        duplicateCount++;
+      }
+    });
+    
+    return duplicateCount;
+  };
   
   const generateReport = async ({
     selectedClient,
     startDate,
     endDate,
     deliveries,
+    ignoreDuplicates = false
   }: {
     selectedClient: string;
     startDate: Date | undefined;
     endDate: Date | undefined;
     deliveries: any[];
+    ignoreDuplicates?: boolean;
   }) => {
     console.log('generateReport chamado com:', {
       selectedClient,
       startDate,
       endDate,
-      deliveriesLength: deliveries?.length || 0
+      deliveriesLength: deliveries?.length || 0,
+      ignoreDuplicates
     });
 
     if (!selectedClient || !startDate || !endDate) {
@@ -35,7 +104,7 @@ export function useReportGeneration() {
         description: 'Por favor, selecione um cliente e um período para gerar o relatório.',
         variant: "destructive"
       });
-      return null;
+      return { result: null, duplicateCount: 0 };
     }
 
     if (!deliveries || deliveries.length === 0) {
@@ -45,7 +114,26 @@ export function useReportGeneration() {
         description: 'Não há entregas disponíveis para gerar o relatório.',
         variant: "destructive"
       });
-      return null;
+      return { result: null, duplicateCount: 0 };
+    }
+    
+    // Check for duplicate report
+    const duplicateReport = checkForDuplicateReport(selectedClient, startDate, endDate);
+    if (duplicateReport) {
+      toast({
+        title: "Relatório já existe",
+        description: `Já existe um relatório para este cliente no período selecionado (${new Date(duplicateReport.startDate).toLocaleDateString()} - ${new Date(duplicateReport.endDate).toLocaleDateString()}).`,
+        variant: "destructive"
+      });
+      return { result: null, duplicateCount: 0 };
+    }
+    
+    // Check for duplicate deliveries if not ignoring
+    if (!ignoreDuplicates) {
+      const duplicateCount = checkForDuplicateDeliveries(deliveries, selectedClient, startDate, endDate);
+      if (duplicateCount > 0) {
+        return { result: null, duplicateCount };
+      }
     }
     
     try {
@@ -84,7 +172,7 @@ export function useReportGeneration() {
           description: 'Não foram encontradas entregas para o cliente e período selecionados.',
           variant: "destructive"
         });
-        return null;
+        return { result: null, duplicateCount: 0 };
       }
 
       // Calculate total freight
@@ -117,7 +205,7 @@ export function useReportGeneration() {
           description: `Relatório criado com ${filteredDeliveries.length} entregas e total de R$ ${totalFreight.toFixed(2)}`,
         });
         
-        return createdReport;
+        return { result: createdReport, duplicateCount: 0 };
       } else {
         throw new Error('Falha ao criar relatório - createReport retornou null');
       }
@@ -128,7 +216,7 @@ export function useReportGeneration() {
         description: "Ocorreu um erro ao gerar o relatório. Verifique os dados e tente novamente.",
         variant: "destructive"
       });
-      return null;
+      return { result: null, duplicateCount: 0 };
     } finally {
       setIsGenerating(false);
     }

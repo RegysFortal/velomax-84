@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClientSearchSelect } from '@/components/client/ClientSearchSelect';
+import { DuplicateDeliveriesDialog } from './DuplicateDeliveriesDialog';
 import { useToast } from '@/hooks/use-toast';
 
 interface ReportGenerationFormProps {
@@ -20,6 +21,10 @@ interface ReportGenerationFormProps {
   reportLoading: boolean;
   availableClients: any[];
   clientsLoading: boolean;
+  showDuplicateDialog: boolean;
+  setShowDuplicateDialog: (show: boolean) => void;
+  duplicateCount: number;
+  handleConfirmDuplicates: () => Promise<void>;
 }
 
 export function ReportGenerationForm({
@@ -33,7 +38,11 @@ export function ReportGenerationForm({
   isGenerating,
   reportLoading,
   availableClients,
-  clientsLoading
+  clientsLoading,
+  showDuplicateDialog,
+  setShowDuplicateDialog,
+  duplicateCount,
+  handleConfirmDuplicates
 }: ReportGenerationFormProps) {
   const { toast } = useToast();
 
@@ -110,64 +119,74 @@ export function ReportGenerationForm({
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Gerar Novo Relatório</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="client">Cliente</Label>
-            {clientsLoading ? (
-              <Skeleton className="h-10 w-full" />
-            ) : (
-              <ClientSearchSelect
-                value={selectedClient}
-                onValueChange={setSelectedClient}
-                placeholder="Selecione um cliente"
-                disabled={isGenerating || reportLoading}
-                clients={availableClients}
-              />
-            )}
-          </div>
-          <div>
-            <Label>Período</Label>
-            <div className="flex gap-2">
-              <DatePicker 
-                date={startDate} 
-                onSelect={setStartDate} 
-                placeholder="Data inicial"
-                allowTyping={true}
-                disabled={isGenerating || reportLoading}
-              />
-              <DatePicker 
-                date={endDate} 
-                onSelect={setEndDate} 
-                placeholder="Data final"
-                allowTyping={true}
-                disabled={isGenerating || reportLoading}
-              />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Gerar Novo Relatório</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="client">Cliente</Label>
+              {clientsLoading ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <ClientSearchSelect
+                  value={selectedClient}
+                  onValueChange={setSelectedClient}
+                  placeholder="Selecione um cliente"
+                  disabled={isGenerating || reportLoading}
+                  clients={availableClients}
+                />
+              )}
+            </div>
+            <div>
+              <Label>Período</Label>
+              <div className="flex gap-2">
+                <DatePicker 
+                  date={startDate} 
+                  onSelect={setStartDate} 
+                  placeholder="Data inicial"
+                  allowTyping={true}
+                  disabled={isGenerating || reportLoading}
+                />
+                <DatePicker 
+                  date={endDate} 
+                  onSelect={setEndDate} 
+                  placeholder="Data final"
+                  allowTyping={true}
+                  disabled={isGenerating || reportLoading}
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <Button 
-          onClick={onGenerateReport} 
-          disabled={isButtonDisabled}
-          className="w-full"
-          type="button"
-        >
-          {isGenerating ? "Gerando..." : "Gerar Relatório"}
-        </Button>
-        
-        {/* Debug info - temporário para diagnóstico */}
-        <div className="text-xs text-muted-foreground">
-          Debug: Clientes disponíveis: {availableClients.length}, 
-          Carregando: {clientsLoading ? 'Sim' : 'Não'}, 
-          Botão desabilitado: {isButtonDisabled ? 'Sim' : 'Não'},
-          Cliente selecionado: {selectedClient ? 'Sim' : 'Não'},
-          Datas preenchidas: {startDate && endDate ? 'Sim' : 'Não'}
-        </div>
-      </CardContent>
-    </Card>
+          <Button 
+            onClick={onGenerateReport} 
+            disabled={isButtonDisabled}
+            className="w-full"
+            type="button"
+          >
+            {isGenerating ? "Gerando..." : "Gerar Relatório"}
+          </Button>
+          
+          {/* Debug info - temporário para diagnóstico */}
+          <div className="text-xs text-muted-foreground">
+            Debug: Clientes disponíveis: {availableClients.length}, 
+            Carregando: {clientsLoading ? 'Sim' : 'Não'}, 
+            Botão desabilitado: {isButtonDisabled ? 'Sim' : 'Não'},
+            Cliente selecionado: {selectedClient ? 'Sim' : 'Não'},
+            Datas preenchidas: {startDate && endDate ? 'Sim' : 'Não'}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <DuplicateDeliveriesDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        duplicateCount={duplicateCount}
+        onConfirm={handleConfirmDuplicates}
+        onCancel={() => setShowDuplicateDialog(false)}
+      />
+    </>
   );
 }

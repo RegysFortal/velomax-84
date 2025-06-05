@@ -29,6 +29,8 @@ export function useReportManagement() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [reportId, setReportId] = useState<string | null>(null);
   const [currentGeneratedReport, setCurrentGeneratedReport] = useState<FinancialReport | null>(null);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateCount, setDuplicateCount] = useState(0);
   
   // Extract report ID from URL
   useEffect(() => {
@@ -114,14 +116,15 @@ export function useReportManagement() {
 
     try {
       console.log('Calling generateReport...');
-      const result = await generateReport({
+      const { result, duplicateCount: dupCount } = await generateReport({
         selectedClient,
         startDate,
         endDate,
-        deliveries
+        deliveries,
+        ignoreDuplicates: false
       });
       
-      console.log('generateReport result:', result);
+      console.log('generateReport result:', { result, duplicateCount: dupCount });
       
       if (result) {
         console.log('Report generated successfully, updating state');
@@ -134,11 +137,39 @@ export function useReportManagement() {
         // Update URL without redirecting
         const newUrl = `${location.pathname}?reportId=${result.id}`;
         window.history.pushState({}, '', newUrl);
-      } else {
-        console.log('generateReport returned null - possible error');
+      } else if (dupCount > 0) {
+        // Show duplicate dialog
+        setDuplicateCount(dupCount);
+        setShowDuplicateDialog(true);
       }
     } catch (error) {
       console.error('Error in handleGenerateReport:', error);
+    }
+  }, [selectedClient, startDate, endDate, deliveries, generateReport, location.pathname]);
+  
+  // Handle duplicate confirmation
+  const handleConfirmDuplicates = useCallback(async () => {
+    setShowDuplicateDialog(false);
+    
+    try {
+      const { result } = await generateReport({
+        selectedClient,
+        startDate,
+        endDate,
+        deliveries,
+        ignoreDuplicates: true
+      });
+      
+      if (result) {
+        setCurrentGeneratedReport(result);
+        setReportId(result.id);
+        setSelectedClient('');
+        
+        const newUrl = `${location.pathname}?reportId=${result.id}`;
+        window.history.pushState({}, '', newUrl);
+      }
+    } catch (error) {
+      console.error('Error in handleConfirmDuplicates:', error);
     }
   }, [selectedClient, startDate, endDate, deliveries, generateReport, location.pathname]);
   
@@ -194,5 +225,9 @@ export function useReportManagement() {
     handleGenerateReport,
     handleExportPDF,
     handleExportExcel,
+    showDuplicateDialog,
+    setShowDuplicateDialog,
+    duplicateCount,
+    handleConfirmDuplicates,
   };
 }

@@ -24,6 +24,10 @@ const Reports = () => {
     handleGenerateReport,
     handleExportPDF,
     handleExportExcel,
+    showDuplicateDialog,
+    setShowDuplicateDialog,
+    duplicateCount,
+    handleConfirmDuplicates,
   } = useReportManagement();
 
   return (
@@ -49,6 +53,10 @@ const Reports = () => {
             reportLoading={reportLoading}
             availableClients={availableClients}
             clientsLoading={clientsLoading}
+            showDuplicateDialog={showDuplicateDialog}
+            setShowDuplicateDialog={setShowDuplicateDialog}
+            duplicateCount={duplicateCount}
+            handleConfirmDuplicates={handleConfirmDuplicates}
           />
           
           {/* Hidden logo for PDF generation */}
