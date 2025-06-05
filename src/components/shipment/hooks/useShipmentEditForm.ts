@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Shipment, ShipmentStatus, TransportMode } from "@/types/shipment";
 import { useShipments } from "@/contexts/shipments";
 import { toast } from "sonner";
+import { toISODateString } from "@/utils/dateUtils";
 
 export function useShipmentEditForm(
   shipment: Shipment | null,
@@ -19,9 +20,7 @@ export function useShipmentEditForm(
   const [trackingNumber, setTrackingNumber] = useState("");
   const [packages, setPackages] = useState("");
   const [weight, setWeight] = useState("");
-  const [arrivalFlight, setArrivalFlight] = useState("");
-  const [arrivalDate, setArrivalDate] = useState("");
-  const [observations, setObservations] = useState("");
+  const [shipmentDate, setShipmentDate] = useState("");
   const [status, setStatus] = useState<ShipmentStatus>("in_transit");
   const [retentionReason, setRetentionReason] = useState("");
   const [retentionAmount, setRetentionAmount] = useState("");
@@ -41,9 +40,7 @@ export function useShipmentEditForm(
       setTrackingNumber(shipment.trackingNumber);
       setPackages(shipment.packages.toString());
       setWeight(shipment.weight.toString());
-      setArrivalFlight(shipment.arrivalFlight || "");
-      setArrivalDate(shipment.arrivalDate || "");
-      setObservations(shipment.observations || "");
+      setShipmentDate(shipment.shipmentDate || toISODateString(new Date()));
       setStatus(shipment.status);
       
       // Load retention data if present
@@ -95,9 +92,7 @@ export function useShipmentEditForm(
         trackingNumber: trackingNumber.trim(),
         packages: packageCount,
         weight: weightValue,
-        arrivalFlight: arrivalFlight.trim() || undefined,
-        arrivalDate: arrivalDate || undefined,
-        observations: observations.trim() || undefined,
+        shipmentDate: shipmentDate || undefined,
         status,
         isRetained: status === "retained"
       };
@@ -152,12 +147,8 @@ export function useShipmentEditForm(
     setPackages,
     weight,
     setWeight,
-    arrivalFlight,
-    setArrivalFlight,
-    arrivalDate,
-    setArrivalDate,
-    observations,
-    setObservations,
+    shipmentDate,
+    setShipmentDate,
     status,
     setStatus,
     retentionReason,
