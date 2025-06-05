@@ -3,7 +3,7 @@ import React, { memo } from 'react';
 import { Control } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useDeliveryFormContext } from '../context/DeliveryFormContext';
+import { useClients } from '@/contexts';
 
 interface ClientSelectionFieldProps {
   control: Control<any>;
@@ -12,7 +12,7 @@ interface ClientSelectionFieldProps {
 export const ClientSelectionField: React.FC<ClientSelectionFieldProps> = memo(({
   control
 }) => {
-  const { clients } = useDeliveryFormContext();
+  const { clients } = useClients();
 
   console.log('ClientSelectionField rendering with', clients?.length || 0, 'clients');
 

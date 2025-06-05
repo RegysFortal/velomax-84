@@ -13,6 +13,7 @@ import { FormActionsSection } from './FormActionsSection';
 import { DuplicateMinuteAlertDialog } from './DuplicateMinuteAlertDialog';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { CargoType } from '@/types';
 
 export const DeliveryFormSections: React.FC<{
   onComplete: () => void;
@@ -105,7 +106,7 @@ export const DeliveryFormSections: React.FC<{
       // Preparar dados para envio - definir cargoType como 'standard' para todos os casos
       const deliveryData = {
         ...data,
-        cargoType: 'standard', // Define um valor padrão já que não vamos mais usar este campo
+        cargoType: 'standard' as CargoType, // Properly type the cargoType
         totalFreight: freight || data.totalFreight || 50,
         weight: weight,
         packages: packages,
@@ -148,7 +149,7 @@ export const DeliveryFormSections: React.FC<{
         
         const deliveryData = {
           ...formData,
-          cargoType: 'standard', // Define um valor padrão
+          cargoType: 'standard' as CargoType, // Properly type the cargoType
           totalFreight: freight || formData.totalFreight || 50,
           weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight,
           packages: typeof formData.packages === 'string' ? parseInt(formData.packages) : formData.packages,
