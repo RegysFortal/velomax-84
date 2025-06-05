@@ -16,11 +16,13 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
   onCancel 
 }) => {
   return (
-    <DeliveryFormProvider delivery={delivery}>
-      <DeliveryFormSections 
-        onComplete={onComplete} 
-        onCancel={onCancel} 
-      />
-    </DeliveryFormProvider>
+    <div className="space-y-6">
+      <DeliveryFormProvider delivery={delivery}>
+        <DeliveryFormSections 
+          onComplete={onComplete} 
+          onCancel={onCancel} 
+        />
+      </DeliveryFormProvider>
+    </div>
   );
 };
