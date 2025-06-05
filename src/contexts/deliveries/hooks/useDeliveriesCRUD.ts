@@ -154,20 +154,14 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
 
   const updateDelivery = async (id: string, data: Partial<Delivery>) => {
     try {
-      let totalFreightValue = 0;
-      if (data.totalFreight !== undefined) {
-        totalFreightValue = typeof data.totalFreight === 'string' 
-          ? parseFloat(data.totalFreight) 
-          : data.totalFreight;
-      }
-
       console.log('Updating delivery in database with ID:', id, data);
 
+      // Prepare the update data with proper field mapping
       const supabaseData: any = {
         updated_at: new Date().toISOString(),
       };
 
-      // Only include fields that are defined
+      // Map each field properly, ensuring totalFreight is handled correctly
       if (data.clientId !== undefined) supabaseData.client_id = data.clientId;
       if (data.cityId !== undefined) supabaseData.city_id = data.cityId;
       if (data.minuteNumber !== undefined) supabaseData.minute_number = data.minuteNumber;
@@ -182,8 +176,23 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       if (data.receiverId !== undefined) supabaseData.receiver_id = data.receiverId;
       if (data.deliveryDate !== undefined) supabaseData.delivery_date = data.deliveryDate;
       if (data.deliveryTime !== undefined) supabaseData.delivery_time = data.deliveryTime;
-      if (data.totalFreight !== undefined) supabaseData.total_freight = totalFreightValue;
       if (data.arrivalKnowledgeNumber !== undefined) supabaseData.arrival_knowledge_number = data.arrivalKnowledgeNumber;
+
+      // Handle totalFreight conversion with extra care
+      if (data.totalFreight !== undefined) {
+        let freightValue = 0;
+        if (typeof data.totalFreight === 'string') {
+          // Remove any non-numeric characters except decimal point and comma
+          const cleanValue = String(data.totalFreight).replace(/[^\d.,]/g, '').replace(',', '.');
+          freightValue = parseFloat(cleanValue) || 0;
+        } else if (typeof data.totalFreight === 'number') {
+          freightValue = data.totalFreight;
+        }
+        supabaseData.total_freight = freightValue;
+        console.log('Converted totalFreight:', data.totalFreight, '->', freightValue);
+      }
+
+      console.log('Supabase update data:', supabaseData);
 
       const { data: updatedData, error } = await supabase
         .from('deliveries')
@@ -222,6 +231,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
         arrivalKnowledgeNumber: updatedData.arrival_knowledge_number,
       };
 
+      // Update the local state
       setDeliveries((prevDeliveries) => {
         const updatedDeliveries = prevDeliveries.map((delivery) =>
           delivery.id === id ? { ...delivery, ...updatedDelivery } : delivery
