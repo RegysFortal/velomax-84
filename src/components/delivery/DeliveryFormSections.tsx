@@ -11,9 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { FreightSection } from './FreightSection';
 import { FormActionsSection } from './FormActionsSection';
 import { DuplicateMinuteAlertDialog } from './DuplicateMinuteAlertDialog';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { CargoType } from '@/types';
+import { useDeliveryFormSubmission } from './hooks/useDeliveryFormSubmission';
 
 export const DeliveryFormSections: React.FC<{
   onComplete: () => void;
@@ -35,8 +33,17 @@ export const DeliveryFormSections: React.FC<{
   } = useDeliveryFormContext();
 
   const { cities } = useCities();
-  const { addDelivery, updateDelivery, checkMinuteNumberExistsForClient } = useDeliveries();
-  const [submitting, setSubmitting] = useState(false);
+  const { checkMinuteNumberExistsForClient } = useDeliveries();
+  
+  const { submitting, submitDelivery, handleConfirmDuplicate } = useDeliveryFormSubmission({
+    delivery,
+    isEditMode,
+    onComplete,
+    checkMinuteNumberExistsForClient,
+    setFormData,
+    setShowDuplicateAlert,
+    freight
+  });
 
   const watchDeliveryType = form.watch('deliveryType');
   const watchCargoValue = form.watch('cargoValue') || 0;
@@ -55,131 +62,11 @@ export const DeliveryFormSections: React.FC<{
   };
 
   const onSubmit = async (data: any) => {
-    if (submitting) return;
-    
-    try {
-      setSubmitting(true);
-      
-      console.log('Submitting delivery data:', data);
-      console.log('Is Edit Mode:', isEditMode);
-      console.log('Delivery ID:', delivery?.id);
-      
-      // Validações básicas
-      if (!data.clientId) {
-        toast.error('Por favor, selecione um cliente');
-        return;
-      }
-      
-      if (!data.deliveryDate) {
-        toast.error('Por favor, informe a data de entrega');
-        return;
-      }
-      
-      if (!data.receiver?.trim()) {
-        toast.error('Por favor, informe o destinatário');
-        return;
-      }
-
-      // Converter e validar peso
-      const weight = typeof data.weight === 'string' ? parseFloat(data.weight) : data.weight;
-      if (!weight || weight <= 0) {
-        toast.error('Por favor, informe um peso válido maior que 0');
-        return;
-      }
-
-      // Converter e validar volumes
-      const packages = typeof data.packages === 'string' ? parseInt(data.packages) : data.packages;
-      if (!packages || packages <= 0) {
-        toast.error('Por favor, informe a quantidade de volumes válida maior que 0');
-        return;
-      }
-      
-      // Check for duplicate minute number only for new deliveries or when minute number changes
-      if (!isEditMode || (delivery && delivery.minuteNumber !== data.minuteNumber)) {
-        if (data.minuteNumber && checkMinuteNumberExistsForClient(data.minuteNumber, data.clientId, delivery?.id)) {
-          setFormData(data);
-          setShowDuplicateAlert(true);
-          return;
-        }
-      }
-      
-      // Preparar dados para envio
-      const deliveryData = {
-        ...data,
-        cargoType: 'standard' as CargoType,
-        totalFreight: data.isCourtesy ? 0 : (freight || data.totalFreight || 50),
-        weight: weight,
-        packages: packages,
-        cargoValue: data.cargoValue ? parseFloat(String(data.cargoValue)) : 0,
-        isCourtesy: data.isCourtesy || false,
-      };
-      
-      if (isEditMode && delivery?.id) {
-        // Atualizar entrega existente
-        console.log('Updating existing delivery with ID:', delivery.id);
-        const result = await updateDelivery(delivery.id, deliveryData);
-        if (result) {
-          toast.success('Entrega atualizada com sucesso');
-          onComplete(); // Chama onComplete após sucesso
-        } else {
-          toast.error('Erro ao atualizar entrega');
-        }
-      } else {
-        // Criar nova entrega
-        console.log('Creating new delivery');
-        const result = await addDelivery(deliveryData);
-        if (result) {
-          toast.success('Entrega registrada com sucesso');
-          onComplete(); // Chama onComplete após sucesso
-        } else {
-          toast.error('Erro ao registrar entrega');
-        }
-      }
-    } catch (error) {
-      console.error('Error submitting delivery:', error);
-      toast.error('Erro ao salvar entrega');
-    } finally {
-      setSubmitting(false);
-    }
+    await submitDelivery(data);
   };
 
-  const handleConfirmDuplicate = async () => {
-    if (formData && !submitting) {
-      try {
-        setSubmitting(true);
-        
-        const deliveryData = {
-          ...formData,
-          cargoType: 'standard' as CargoType,
-          totalFreight: formData.isCourtesy ? 0 : (freight || formData.totalFreight || 50),
-          weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight,
-          packages: typeof formData.packages === 'string' ? parseInt(formData.packages) : formData.packages,
-          cargoValue: formData.cargoValue ? parseFloat(String(formData.cargoValue)) : 0,
-          isCourtesy: formData.isCourtesy || false,
-        };
-        
-        if (isEditMode && delivery?.id) {
-          const result = await updateDelivery(delivery.id, deliveryData);
-          if (result) {
-            toast.success('Entrega atualizada com sucesso');
-            onComplete(); // Chama onComplete após sucesso
-          }
-        } else {
-          const result = await addDelivery(deliveryData);
-          if (result) {
-            toast.success('Entrega registrada com sucesso');
-            onComplete(); // Chama onComplete após sucesso
-          }
-        }
-        
-        setShowDuplicateAlert(false);
-      } catch (error) {
-        console.error('Error submitting duplicate delivery:', error);
-        toast.error('Erro ao salvar entrega');
-      } finally {
-        setSubmitting(false);
-      }
-    }
+  const handleConfirmDuplicateSubmission = async () => {
+    await handleConfirmDuplicate(formData);
   };
 
   return (
@@ -220,7 +107,7 @@ export const DeliveryFormSections: React.FC<{
       </Form>
 
       <DuplicateMinuteAlertDialog
-        onConfirm={handleConfirmDuplicate}
+        onConfirm={handleConfirmDuplicateSubmission}
       />
     </>
   );
