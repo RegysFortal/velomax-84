@@ -1,125 +1,74 @@
 
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Delivery, CargoType, DeliveryType } from '@/types';
+import { useToast } from '@/hooks/use-toast';
+import { Delivery } from '@/types';
 
-export function useDeliveryUpdate(
-  setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>
-) {
-  const updateDelivery = async (id: string, data: Partial<Delivery>) => {
+export function useDeliveryUpdate(setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>) {
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const updateDelivery = async (id: string, updates: Partial<Delivery>): Promise<Delivery | undefined> => {
     try {
-      console.log('Updating delivery in database with ID:', id);
-      console.log('Original data received:', data);
+      setLoading(true);
 
-      // Prepare the update data with proper field mapping
-      const supabaseData: any = {
-        updated_at: new Date().toISOString(),
-      };
+      const updateData: any = {};
+      
+      if (updates.minuteNumber !== undefined) updateData.minute_number = updates.minuteNumber;
+      if (updates.clientId !== undefined) updateData.client_id = updates.clientId;
+      if (updates.deliveryDate !== undefined) updateData.delivery_date = updates.deliveryDate;
+      if (updates.deliveryTime !== undefined) updateData.delivery_time = updates.deliveryTime;
+      if (updates.receiver !== undefined) updateData.receiver = updates.receiver;
+      if (updates.receiverId !== undefined) updateData.receiver_id = updates.receiverId;
+      if (updates.weight !== undefined) updateData.weight = updates.weight;
+      if (updates.packages !== undefined) updateData.packages = updates.packages;
+      if (updates.deliveryType !== undefined) updateData.delivery_type = updates.deliveryType;
+      if (updates.cargoType !== undefined) updateData.cargo_type = updates.cargoType;
+      if (updates.cargoValue !== undefined) updateData.cargo_value = updates.cargoValue;
+      if (updates.totalFreight !== undefined) updateData.total_freight = updates.totalFreight;
+      if (updates.notes !== undefined) updateData.notes = updates.notes;
+      if (updates.occurrence !== undefined) updateData.occurrence = updates.occurrence;
+      if (updates.cityId !== undefined) updateData.city_id = updates.cityId;
+      if (updates.arrivalKnowledgeNumber !== undefined) updateData.arrival_knowledge_number = updates.arrivalKnowledgeNumber;
 
-      // Map each field properly
-      if (data.clientId !== undefined) supabaseData.client_id = data.clientId;
-      if (data.cityId !== undefined) supabaseData.city_id = data.cityId;
-      if (data.minuteNumber !== undefined) supabaseData.minute_number = data.minuteNumber;
-      if (data.packages !== undefined) supabaseData.packages = data.packages;
-      if (data.weight !== undefined) supabaseData.weight = data.weight;
-      if (data.cargoType !== undefined) supabaseData.cargo_type = data.cargoType;
-      if (data.cargoValue !== undefined) supabaseData.cargo_value = data.cargoValue;
-      if (data.deliveryType !== undefined) supabaseData.delivery_type = data.deliveryType;
-      if (data.notes !== undefined) supabaseData.notes = data.notes;
-      if (data.occurrence !== undefined) supabaseData.occurrence = data.occurrence;
-      if (data.receiver !== undefined) supabaseData.receiver = data.receiver;
-      if (data.receiverId !== undefined) supabaseData.receiver_id = data.receiverId;
-      if (data.deliveryDate !== undefined) supabaseData.delivery_date = data.deliveryDate;
-      if (data.deliveryTime !== undefined) supabaseData.delivery_time = data.deliveryTime;
-      if (data.arrivalKnowledgeNumber !== undefined) supabaseData.arrival_knowledge_number = data.arrivalKnowledgeNumber;
+      updateData.updated_at = new Date().toISOString();
 
-      // Handle totalFreight with proper processing for manual values
-      if (data.totalFreight !== undefined) {
-        let freightValue: number = 0;
-        
-        const freightInput = data.totalFreight as number | string;
-        
-        if (typeof freightInput === 'number') {
-          freightValue = freightInput;
-        } else if (typeof freightInput === 'string') {
-          const cleanValue = freightInput
-            .replace(/[R$\s]/g, '')
-            .replace(/\./g, '')
-            .replace(/,/, '.');
-          
-          freightValue = parseFloat(cleanValue);
-          
-          if (isNaN(freightValue)) {
-            freightValue = 0;
-            console.warn('Could not parse totalFreight value:', freightInput, 'defaulting to 0');
-          }
-        } else {
-          freightValue = Number(freightInput) || 0;
-          console.warn('Unexpected totalFreight type:', typeof freightInput, 'converted to:', freightValue);
-        }
-        
-        supabaseData.total_freight = freightValue;
-        console.log('Freight processing - Original:', freightInput, 'Processed:', freightValue);
-      }
-
-      console.log('Final Supabase update data:', supabaseData);
-
-      const { data: updatedData, error } = await supabase
+      const { error } = await supabase
         .from('deliveries')
-        .update(supabaseData)
-        .eq('id', id)
-        .select()
-        .single();
+        .update(updateData)
+        .eq('id', id);
 
       if (error) {
-        console.error('Error updating delivery in Supabase:', error);
         throw error;
       }
 
-      console.log('Successfully updated delivery in database:', updatedData);
+      setDeliveries(prev => 
+        prev.map(delivery => 
+          delivery.id === id 
+            ? { ...delivery, ...updates, updatedAt: updateData.updated_at }
+            : delivery
+        )
+      );
 
-      // Map the response back to our format
-      const updatedDelivery: Delivery = {
-        id: updatedData.id,
-        clientId: updatedData.client_id,
-        cityId: updatedData.city_id,
-        minuteNumber: updatedData.minute_number,
-        packages: updatedData.packages,
-        weight: updatedData.weight,
-        cargoType: updatedData.cargo_type as CargoType,
-        cargoValue: updatedData.cargo_value,
-        deliveryType: updatedData.delivery_type as DeliveryType,
-        notes: updatedData.notes,
-        occurrence: updatedData.occurrence,
-        receiver: updatedData.receiver,
-        receiverId: updatedData.receiver_id,
-        deliveryDate: updatedData.delivery_date,
-        deliveryTime: updatedData.delivery_time,
-        totalFreight: updatedData.total_freight,
-        createdAt: updatedData.created_at,
-        updatedAt: updatedData.updated_at,
-        arrivalKnowledgeNumber: updatedData.arrival_knowledge_number,
-      };
-
-      // Update the local state
-      setDeliveries((prevDeliveries) => {
-        const updatedDeliveries = prevDeliveries.map((delivery) =>
-          delivery.id === id ? { ...delivery, ...updatedDelivery } : delivery
-        );
-        localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
-        console.log('Updated delivery in local state with totalFreight:', updatedDelivery.totalFreight);
-        return updatedDeliveries;
+      toast({
+        title: "Entrega atualizada",
+        description: "A entrega foi atualizada com sucesso."
       });
 
-      console.log('Successfully updated delivery in state');
-      toast.success('Entrega atualizada com sucesso');
+      const updatedDelivery = { ...updates, updatedAt: updateData.updated_at } as Delivery;
       return updatedDelivery;
     } catch (error) {
       console.error('Error updating delivery:', error);
-      toast.error('Erro ao atualizar entrega');
-      return undefined;
+      toast({
+        title: "Erro ao atualizar entrega",
+        description: "Não foi possível atualizar a entrega. Tente novamente.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  return { updateDelivery };
+  return { updateDelivery, loading };
 }

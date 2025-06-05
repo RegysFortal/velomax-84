@@ -1,76 +1,90 @@
 
 import { useState } from 'react';
 import { Client } from '@/types';
-import { User } from '@/types';
-import { useToast } from '@/hooks/use-toast';
-import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
-import { UseClientsOperationsReturnType } from './types';
+import { useToast } from '@/hooks/use-toast';
+import { User } from '@supabase/supabase-js';
 
-export const useClientsOperations = (
+export function useClientsOperations(
   clients: Client[],
   setClients: React.Dispatch<React.SetStateAction<Client[]>>,
-  user: User | null
-): UseClientsOperationsReturnType => {
+  user: User | null | undefined
+) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  
-  const addClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+
+  const addClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client> => {
     try {
       setLoading(true);
-      const timestamp = new Date().toISOString();
-      const newClient: Client = {
-        ...clientData,
-        id: uuidv4(),
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
+
+      // Get current user for user_id field
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // Add to Supabase if user is logged in
-      if (user) {
-        const { error } = await supabase
-          .from('clients')
-          .insert({
-            id: newClient.id,
-            name: newClient.name,
-            trading_name: newClient.tradingName,
-            email: newClient.email,
-            phone: newClient.phone,
-            document: newClient.document,
-            address: newClient.address,
-            street: newClient.street,
-            number: newClient.number,
-            complement: newClient.complement,
-            neighborhood: newClient.neighborhood,
-            city: newClient.city,
-            state: newClient.state,
-            zip_code: newClient.zipCode,
-            contact: newClient.contact,
-            price_table_id: newClient.priceTableId,
-            notes: newClient.notes,
-            user_id: user.id,
-            created_at: timestamp,
-            updated_at: timestamp,
-          });
-        
-        if (error) {
-          throw error;
-        }
+      if (!user) {
+        throw new Error('Usuário não autenticado');
       }
-      
+
+      const { data, error } = await supabase
+        .from('clients')
+        .insert({
+          name: clientData.name,
+          trading_name: clientData.tradingName,
+          document: clientData.document,
+          email: clientData.email,
+          phone: clientData.phone,
+          contact: clientData.contact,
+          street: clientData.street,
+          number: clientData.number,
+          complement: clientData.complement,
+          neighborhood: clientData.neighborhood,
+          city: clientData.city,
+          state: clientData.state,
+          zip_code: clientData.zipCode,
+          price_table_id: clientData.priceTableId,
+          notes: clientData.notes,
+          user_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      const newClient: Client = {
+        id: data.id,
+        name: data.name,
+        tradingName: data.trading_name,
+        document: data.document,
+        email: data.email,
+        phone: data.phone,
+        contact: data.contact,
+        street: data.street,
+        number: data.number,
+        complement: data.complement,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+        zipCode: data.zip_code,
+        priceTableId: data.price_table_id,
+        notes: data.notes,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+
       setClients(prev => [...prev, newClient]);
       
       toast({
-        title: "Cliente adicionado",
-        description: `${newClient.name} foi adicionado com sucesso.`
+        title: "Cliente criado",
+        description: "O cliente foi criado com sucesso."
       });
-      
-      // Don't return any value (void)
+
+      return newClient;
     } catch (error) {
-      console.error('Error adding client:', error);
+      console.error('Error creating client:', error);
       toast({
-        title: "Erro ao adicionar cliente",
-        description: "Ocorreu um erro ao adicionar o cliente. Tente novamente.",
+        title: "Erro ao criar cliente",
+        description: "Não foi possível criar o cliente. Tente novamente.",
         variant: "destructive"
       });
       throw error;
@@ -78,64 +92,57 @@ export const useClientsOperations = (
       setLoading(false);
     }
   };
-  
-  const updateClient = async (id: string, clientUpdate: Partial<Client>): Promise<void> => {
+
+  const updateClient = async (id: string, updates: Partial<Client>): Promise<void> => {
     try {
       setLoading(true);
-      const updatedAt = new Date().toISOString();
+
+      const updateData: any = {};
       
-      // Update in Supabase if user is logged in
-      if (user) {
-        // Create a data object with snake_case field names for Supabase
-        const updateData = {
-          name: clientUpdate.name,
-          trading_name: clientUpdate.tradingName,
-          email: clientUpdate.email,
-          phone: clientUpdate.phone,
-          document: clientUpdate.document,
-          address: clientUpdate.address,
-          street: clientUpdate.street,
-          number: clientUpdate.number,
-          complement: clientUpdate.complement,
-          neighborhood: clientUpdate.neighborhood,
-          city: clientUpdate.city,
-          state: clientUpdate.state,
-          zip_code: clientUpdate.zipCode,
-          contact: clientUpdate.contact,
-          price_table_id: clientUpdate.priceTableId,
-          notes: clientUpdate.notes,
-          updated_at: updatedAt
-        };
-        
-        const { error } = await supabase
-          .from('clients')
-          .update(updateData)
-          .eq('id', id);
-        
-        if (error) {
-          throw error;
-        }
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.tradingName !== undefined) updateData.trading_name = updates.tradingName;
+      if (updates.document !== undefined) updateData.document = updates.document;
+      if (updates.email !== undefined) updateData.email = updates.email;
+      if (updates.phone !== undefined) updateData.phone = updates.phone;
+      if (updates.contact !== undefined) updateData.contact = updates.contact;
+      if (updates.street !== undefined) updateData.street = updates.street;
+      if (updates.number !== undefined) updateData.number = updates.number;
+      if (updates.complement !== undefined) updateData.complement = updates.complement;
+      if (updates.neighborhood !== undefined) updateData.neighborhood = updates.neighborhood;
+      if (updates.city !== undefined) updateData.city = updates.city;
+      if (updates.state !== undefined) updateData.state = updates.state;
+      if (updates.zipCode !== undefined) updateData.zip_code = updates.zipCode;
+      if (updates.priceTableId !== undefined) updateData.price_table_id = updates.priceTableId;
+      if (updates.notes !== undefined) updateData.notes = updates.notes;
+
+      updateData.updated_at = new Date().toISOString();
+
+      const { error } = await supabase
+        .from('clients')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) {
+        throw error;
       }
-      
+
       setClients(prev => 
         prev.map(client => 
           client.id === id 
-            ? { ...client, ...clientUpdate, updatedAt }
+            ? { ...client, ...updates, updatedAt: updateData.updated_at }
             : client
         )
       );
-      
+
       toast({
         title: "Cliente atualizado",
-        description: "As informações do cliente foram atualizadas com sucesso."
+        description: "O cliente foi atualizado com sucesso."
       });
-      
-      // Don't return any value (void)
     } catch (error) {
       console.error('Error updating client:', error);
       toast({
         title: "Erro ao atualizar cliente",
-        description: "Ocorreu um erro ao atualizar o cliente. Tente novamente.",
+        description: "Não foi possível atualizar o cliente. Tente novamente.",
         variant: "destructive"
       });
       throw error;
@@ -143,36 +150,31 @@ export const useClientsOperations = (
       setLoading(false);
     }
   };
-  
+
   const deleteClient = async (id: string): Promise<void> => {
     try {
       setLoading(true);
-      
-      // Delete from Supabase if user is logged in
-      if (user) {
-        const { error } = await supabase
-          .from('clients')
-          .delete()
-          .eq('id', id);
-        
-        if (error) {
-          throw error;
-        }
+
+      const { error } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
       }
-      
+
       setClients(prev => prev.filter(client => client.id !== id));
       
       toast({
-        title: "Cliente removido",
-        description: "O cliente foi removido com sucesso."
+        title: "Cliente excluído",
+        description: "O cliente foi excluído com sucesso."
       });
-      
-      // Don't return any value (void)
     } catch (error) {
       console.error('Error deleting client:', error);
       toast({
-        title: "Erro ao remover cliente",
-        description: "Ocorreu um erro ao remover o cliente. Tente novamente.",
+        title: "Erro ao excluir cliente",
+        description: "Não foi possível excluir o cliente. Tente novamente.",
         variant: "destructive"
       });
       throw error;
@@ -180,15 +182,16 @@ export const useClientsOperations = (
       setLoading(false);
     }
   };
-  
+
   const getClient = (id: string): Client | undefined => {
     return clients.find(client => client.id === id);
   };
-  
+
   return {
     addClient,
     updateClient,
     deleteClient,
     getClient,
+    loading
   };
-};
+}

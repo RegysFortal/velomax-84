@@ -1,90 +1,94 @@
 
-import { v4 as uuidv4 } from 'uuid';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 import { Delivery, DeliveryFormData } from '@/types';
 
-export function useDeliveryCreate(
-  setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>
-) {
-  const addDelivery = async (deliveryData: DeliveryFormData) => {
+export function useDeliveryCreate(setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>) {
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const addDelivery = async (deliveryData: DeliveryFormData): Promise<Delivery | undefined> => {
     try {
-      const totalFreight = typeof deliveryData.totalFreight === 'string' 
-        ? parseFloat(deliveryData.totalFreight) 
-        : deliveryData.totalFreight;
+      setLoading(true);
 
-      console.log('Adding new delivery to database:', deliveryData);
-
-      const deliveryRecord = {
-        id: uuidv4(),
-        client_id: deliveryData.clientId,
-        city_id: deliveryData.cityId,
-        minute_number: deliveryData.minuteNumber,
-        packages: deliveryData.packages,
-        weight: deliveryData.weight,
-        cargo_type: deliveryData.cargoType,
-        cargo_value: deliveryData.cargoValue,
-        delivery_type: deliveryData.deliveryType,
-        notes: deliveryData.notes,
-        occurrence: deliveryData.occurrence,
-        receiver: deliveryData.receiver,
-        receiver_id: deliveryData.receiverId,
-        delivery_date: deliveryData.deliveryDate,
-        delivery_time: deliveryData.deliveryTime,
-        total_freight: totalFreight || 0,
-        arrival_knowledge_number: deliveryData.arrivalKnowledgeNumber,
-      };
+      // Get current user for user_id field
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
 
       const { data, error } = await supabase
         .from('deliveries')
-        .insert(deliveryRecord)
+        .insert({
+          minute_number: deliveryData.minuteNumber,
+          client_id: deliveryData.clientId,
+          delivery_date: deliveryData.deliveryDate,
+          delivery_time: deliveryData.deliveryTime,
+          receiver: deliveryData.receiver,
+          receiver_id: deliveryData.receiverId,
+          weight: deliveryData.weight,
+          packages: deliveryData.packages,
+          delivery_type: deliveryData.deliveryType,
+          cargo_type: deliveryData.cargoType,
+          cargo_value: deliveryData.cargoValue,
+          total_freight: deliveryData.totalFreight,
+          notes: deliveryData.notes,
+          occurrence: deliveryData.occurrence,
+          city_id: deliveryData.cityId,
+          arrival_knowledge_number: deliveryData.arrivalKnowledgeNumber,
+          user_id: user.id
+        })
         .select()
         .single();
 
       if (error) {
-        console.error('Supabase error:', error);
         throw error;
       }
 
-      // Map the returned data to our Delivery type
       const newDelivery: Delivery = {
         id: data.id,
         minuteNumber: data.minute_number,
         clientId: data.client_id,
         deliveryDate: data.delivery_date,
-        deliveryTime: data.delivery_time || '',
-        receiver: data.receiver || '',
+        deliveryTime: data.delivery_time,
+        receiver: data.receiver,
         receiverId: data.receiver_id,
         weight: data.weight,
         packages: data.packages,
-        deliveryType: data.delivery_type as Delivery['deliveryType'],
-        cargoType: data.cargo_type as Delivery['cargoType'],
-        cargoValue: data.cargo_value || 0,
+        deliveryType: data.delivery_type as any,
+        cargoType: data.cargo_type as any,
+        cargoValue: data.cargo_value,
         totalFreight: data.total_freight,
-        notes: data.notes || '',
-        occurrence: data.occurrence || '',
+        notes: data.notes,
+        occurrence: data.occurrence,
+        cityId: data.city_id,
+        arrivalKnowledgeNumber: data.arrival_knowledge_number,
         createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        cityId: data.city_id || undefined,
-        arrivalKnowledgeNumber: data.arrival_knowledge_number || '',
+        updatedAt: data.updated_at
       };
 
-      setDeliveries((prevDeliveries) => {
-        const updatedDeliveries = [newDelivery, ...prevDeliveries];
-        localStorage.setItem('velomax_deliveries', JSON.stringify(updatedDeliveries));
-        return updatedDeliveries;
-      });
+      setDeliveries(prev => [...prev, newDelivery]);
       
-      console.log('Successfully added new delivery to database and state');
-      toast.success('Entrega criada com sucesso');
+      toast({
+        title: "Entrega criada",
+        description: "A entrega foi criada com sucesso."
+      });
 
       return newDelivery;
     } catch (error) {
-      console.error('Error adding delivery:', error);
-      toast.error(`Erro ao adicionar entrega: ${error.message || 'Erro desconhecido'}`);
-      return undefined;
+      console.error('Error creating delivery:', error);
+      toast({
+        title: "Erro ao criar entrega",
+        description: "Não foi possível criar a entrega. Tente novamente.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  return { addDelivery };
+  return { addDelivery, loading };
 }

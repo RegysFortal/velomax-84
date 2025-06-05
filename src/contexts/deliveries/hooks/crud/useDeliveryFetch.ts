@@ -1,87 +1,78 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 import { Delivery } from '@/types';
 
-export function useDeliveryFetch(
-  setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>
-) {
+export function useDeliveryFetch(setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>) {
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const fetchDeliveries = async () => {
     try {
       setLoading(true);
-      console.log('Fetching deliveries from database...');
       
       const { data, error } = await supabase
         .from('deliveries')
-        .select('*, clients(name)')
+        .select('*')
         .order('created_at', { ascending: false });
-
+      
       if (error) {
-        console.error('Error fetching deliveries:', error);
         throw error;
       }
-
-      console.log('Fetched deliveries from database:', data?.length || 0);
-
-      const formattedDeliveries = data.map((item: any) => ({
-        id: item.id,
-        clientId: item.client_id,
-        clientName: item.clients?.name,
-        cityId: item.city_id,
-        minuteNumber: item.minute_number,
-        packages: item.packages,
-        weight: item.weight,
-        cargoType: item.cargo_type,
-        cargoValue: item.cargo_value,
-        deliveryType: item.delivery_type,
-        notes: item.notes,
-        occurrence: item.occurrence,
-        receiver: item.receiver,
-        receiverId: item.receiver_id,
-        deliveryDate: item.delivery_date,
-        deliveryTime: item.delivery_time,
-        totalFreight: item.total_freight,
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-        arrivalKnowledgeNumber: item.arrival_knowledge_number,
+      
+      const mappedDeliveries = data.map((delivery: any): Delivery => ({
+        id: delivery.id,
+        minuteNumber: delivery.minute_number,
+        clientId: delivery.client_id,
+        deliveryDate: delivery.delivery_date,
+        deliveryTime: delivery.delivery_time,
+        receiver: delivery.receiver,
+        receiverId: delivery.receiver_id,
+        weight: delivery.weight,
+        packages: delivery.packages,
+        deliveryType: delivery.delivery_type,
+        cargoType: delivery.cargo_type,
+        cargoValue: delivery.cargo_value,
+        totalFreight: delivery.total_freight,
+        notes: delivery.notes,
+        occurrence: delivery.occurrence,
+        cityId: delivery.city_id,
+        arrivalKnowledgeNumber: delivery.arrival_knowledge_number,
+        createdAt: delivery.created_at,
+        updatedAt: delivery.updated_at
       }));
       
-      setDeliveries(formattedDeliveries);
-      console.log('Successfully loaded deliveries into state:', formattedDeliveries.length);
-      return formattedDeliveries;
+      setDeliveries(mappedDeliveries);
     } catch (error) {
       console.error('Error fetching deliveries:', error);
-      toast.error('Erro ao buscar entregas');
+      toast({
+        title: "Erro ao carregar entregas",
+        description: "Usando dados locais como fallback.",
+        variant: "destructive"
+      });
       
-      // Try to load from localStorage as fallback
-      try {
-        const storedDeliveries = localStorage.getItem('velomax_deliveries');
-        if (storedDeliveries) {
-          const parsedDeliveries = JSON.parse(storedDeliveries);
-          setDeliveries(parsedDeliveries);
-          console.log('Loaded deliveries from localStorage as fallback:', parsedDeliveries.length);
-          return parsedDeliveries;
+      // Load from localStorage as fallback
+      const storedDeliveries = localStorage.getItem('velomax_deliveries');
+      if (storedDeliveries) {
+        try {
+          const parsed = JSON.parse(storedDeliveries);
+          setDeliveries(parsed);
+        } catch (error) {
+          console.error('Failed to parse stored deliveries', error);
+          setDeliveries([]);
         }
-      } catch (localError) {
-        console.error('Error loading from localStorage:', localError);
+      } else {
+        setDeliveries([]);
       }
-      
-      return [];
     } finally {
       setLoading(false);
     }
   };
 
   const getDeliveryById = (deliveries: Delivery[], id: string) => {
-    return deliveries.find((delivery) => delivery.id === id);
+    return deliveries.find(delivery => delivery.id === id);
   };
 
-  return {
-    loading,
-    fetchDeliveries,
-    getDeliveryById
-  };
+  return { loading, fetchDeliveries, getDeliveryById };
 }
