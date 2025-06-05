@@ -45,8 +45,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
         formState.invoiceNumbers,
         formState.packages,
         formState.weight,
-        formState.notes,
-        formState.isDelivered
+        formState.notes
       );
     } else {
       await submission.handleCreateDocument(
@@ -54,8 +53,7 @@ export function useDocumentOperations({ shipmentId }: UseDocumentOperationsProps
         formState.invoiceNumbers,
         formState.packages,
         formState.weight,
-        formState.notes,
-        formState.isDelivered
+        formState.notes
       );
     }
   };

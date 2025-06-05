@@ -20,8 +20,6 @@ interface DocumentFormProps {
   setWeight: (value: string) => void;
   notes: string;
   setNotes: (value: string) => void;
-  isDelivered: boolean;
-  setIsDelivered: (value: boolean) => void;
   onSubmit: () => void;
   onCancel: () => void;
 }
@@ -38,8 +36,6 @@ export function DocumentForm({
   setWeight,
   notes,
   setNotes,
-  isDelivered,
-  setIsDelivered,
   onSubmit,
   onCancel
 }: DocumentFormProps) {

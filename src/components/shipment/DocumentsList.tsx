@@ -33,8 +33,6 @@ export function DocumentsList({ shipmentId, documents, onStatusChange }: Documen
     setWeight,
     notes,
     setNotes,
-    isDelivered,
-    setIsDelivered,
     resetForm,
     populateForm
   } = useDocumentForm();
@@ -44,7 +42,7 @@ export function DocumentsList({ shipmentId, documents, onStatusChange }: Documen
     setIsDialogOpen
   });
 
-  const { handleDeleteDocument } = useDocumentDeletion({
+  const { handleDelete } = useDocumentDeletion({
     shipmentId
   });
 
@@ -55,7 +53,7 @@ export function DocumentsList({ shipmentId, documents, onStatusChange }: Documen
   };
 
   const handleDelete = async (documentId: string) => {
-    await handleDeleteDocument(documentId);
+    await handleDelete(documentId);
   };
 
   const handleDialogClose = (open: boolean) => {
@@ -132,8 +130,6 @@ export function DocumentsList({ shipmentId, documents, onStatusChange }: Documen
               setWeight={setWeight}
               notes={notes}
               setNotes={setNotes}
-              isDelivered={isDelivered}
-              setIsDelivered={setIsDelivered}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
             />
