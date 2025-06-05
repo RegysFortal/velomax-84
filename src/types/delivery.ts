@@ -48,7 +48,8 @@ export interface Delivery {
   pickupTime?: string;
   invoiceNumbers?: string[];
   arrivalKnowledgeNumber?: string;
-  isCourtesy?: boolean; // Novo campo para marcar como cortesia
+  isCourtesy?: boolean; // Campo para marcar como cortesia
+  hasCustomPrice?: boolean; // Novo campo para preço personalizado
 }
 
 // Adding DeliveryFormData interface which was missing
@@ -73,5 +74,6 @@ export interface DeliveryFormData {
   pickupTime?: string;
   invoiceNumbers?: string[];
   arrivalKnowledgeNumber?: string;
-  isCourtesy?: boolean; // Novo campo para marcar como cortesia
+  isCourtesy?: boolean; // Campo para marcar como cortesia
+  hasCustomPrice?: boolean; // Novo campo para preço personalizado
 }

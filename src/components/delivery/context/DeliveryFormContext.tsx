@@ -25,6 +25,7 @@ const deliveryFormSchema = z.object({
   cityId: z.string().optional(),
   arrivalKnowledgeNumber: z.string().optional(),
   isCourtesy: z.boolean().optional(),
+  hasCustomPrice: z.boolean().optional(),
 });
 
 interface DeliveryFormContextType {
@@ -85,6 +86,7 @@ export const DeliveryFormProvider = ({ children, delivery }: DeliveryFormProvide
       cityId: delivery?.cityId || '',
       arrivalKnowledgeNumber: delivery?.arrivalKnowledgeNumber || '',
       isCourtesy: delivery?.isCourtesy || false,
+      hasCustomPrice: false, // New field for custom pricing
     },
   });
 
@@ -98,6 +100,7 @@ export const DeliveryFormProvider = ({ children, delivery }: DeliveryFormProvide
   // Watch delivery type to show/hide door to door fields
   const watchDeliveryType = form.watch('deliveryType');
   const watchIsCourtesy = form.watch('isCourtesy');
+  const watchHasCustomPrice = form.watch('hasCustomPrice');
   const showDoorToDoor = doorToDoorDeliveryTypes.includes(watchDeliveryType);
 
   // Set initial freight value
@@ -112,22 +115,35 @@ export const DeliveryFormProvider = ({ children, delivery }: DeliveryFormProvide
     if (watchIsCourtesy) {
       setFreight(0);
       form.setValue('totalFreight', 0);
-    } else {
-      // Recalculate freight when courtesy is unchecked
+      form.setValue('hasCustomPrice', false);
+    } else if (!watchHasCustomPrice) {
+      // Recalculate freight when courtesy is unchecked and not using custom price
       const formValues = form.getValues();
       if (formValues.clientId && formValues.weight && formValues.deliveryType) {
         const newFreight = calculateFreight();
         form.setValue('totalFreight', newFreight);
       }
     }
-  }, [watchIsCourtesy, form, calculateFreight, setFreight]);
+  }, [watchIsCourtesy, form, calculateFreight, setFreight, watchHasCustomPrice]);
 
-  // Recalculate freight when relevant fields change, except when it's courtesy
+  // Handle custom price checkbox
+  useEffect(() => {
+    if (watchHasCustomPrice) {
+      form.setValue('isCourtesy', false);
+    }
+  }, [watchHasCustomPrice, form]);
+
+  // Recalculate freight when relevant fields change, except when it's courtesy or custom price
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (value.isCourtesy) {
         setFreight(0);
         form.setValue('totalFreight', 0);
+        return;
+      }
+      
+      if (value.hasCustomPrice) {
+        // Don't auto-calculate when using custom price
         return;
       }
       
