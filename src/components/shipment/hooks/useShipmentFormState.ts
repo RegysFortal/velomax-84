@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { ShipmentStatus, TransportMode } from '@/types/shipment';
+import { toISODateString } from "@/utils/dateUtils";
 
 export function useShipmentFormState() {
   const [companyId, setCompanyId] = useState<string>("");
@@ -10,9 +11,7 @@ export function useShipmentFormState() {
   const [trackingNumber, setTrackingNumber] = useState<string>("");
   const [packages, setPackages] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
-  const [arrivalFlight, setArrivalFlight] = useState<string>("");
-  const [arrivalDate, setArrivalDate] = useState<string>("");
-  const [observations, setObservations] = useState<string>("");
+  const [shipmentDate, setShipmentDate] = useState<string>(toISODateString(new Date()));
   const [status, setStatus] = useState<ShipmentStatus>("in_transit");
   const [retentionReason, setRetentionReason] = useState<string>("");
   const [retentionAmount, setRetentionAmount] = useState<string>("");
@@ -29,9 +28,7 @@ export function useShipmentFormState() {
     setTrackingNumber("");
     setPackages("");
     setWeight("");
-    setArrivalFlight("");
-    setArrivalDate("");
-    setObservations("");
+    setShipmentDate(toISODateString(new Date()));
     setStatus("in_transit");
     setRetentionReason("");
     setRetentionAmount("");
@@ -56,12 +53,8 @@ export function useShipmentFormState() {
     setPackages,
     weight,
     setWeight,
-    arrivalFlight,
-    setArrivalFlight,
-    arrivalDate,
-    setArrivalDate,
-    observations,
-    setObservations,
+    shipmentDate,
+    setShipmentDate,
     status,
     setStatus,
     retentionReason,

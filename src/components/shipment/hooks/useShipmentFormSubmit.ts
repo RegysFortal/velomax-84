@@ -13,9 +13,7 @@ interface UseShipmentFormSubmitProps {
   trackingNumber: string;
   packages: string;
   weight: string;
-  arrivalFlight?: string;
-  arrivalDate?: string;
-  observations?: string;
+  shipmentDate: string;
   status: ShipmentStatus;
   retentionReason?: string;
   retentionAmount?: string;
@@ -37,9 +35,7 @@ export function useShipmentFormSubmit({
   trackingNumber,
   packages,
   weight,
-  arrivalFlight,
-  arrivalDate,
-  observations,
+  shipmentDate,
   status,
   retentionReason,
   retentionAmount,
@@ -80,8 +76,8 @@ export function useShipmentFormSubmit({
       return false;
     }
     
-    if (!arrivalDate) {
-      toast.error("Por favor, informe a data de chegada");
+    if (!shipmentDate) {
+      toast.error("Por favor, informe a data do embarque");
       return false;
     }
     
@@ -106,9 +102,7 @@ export function useShipmentFormSubmit({
         trackingNumber,
         packages: packagesNum,
         weight: weightNum,
-        arrivalFlight,
-        arrivalDate,
-        observations,
+        arrivalDate: shipmentDate, // Using shipmentDate as arrivalDate for now
         status,
         isRetained: status === 'retained',
         ...(status === 'retained' && retentionReason && {

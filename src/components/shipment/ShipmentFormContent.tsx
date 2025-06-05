@@ -1,13 +1,17 @@
-import React, { useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import { ClientSelection } from "@/components/shipment/ClientSelection";
 import { TransportSection } from "@/components/shipment/TransportSection";
 import { PackageDetailsSection } from "@/components/shipment/PackageDetailsSection";
-import { ShipmentInfoSection } from "@/components/shipment/ShipmentInfoSection";
+import { ShipmentDateSection } from "@/components/shipment/ShipmentDateSection";
+import { CarrierSection } from "@/components/shipment/CarrierSection";
 import { StatusSection } from "@/components/shipment/StatusSection";
 import { RetentionFormSection } from "./form-sections/RetentionFormSection";
-import { ObservationsSection } from "./form-sections/ObservationsSection";
 import { FormActions } from "./form-sections/FormActions";
+import { AddDocumentsModal } from "./AddDocumentsModal";
 import { useCompanySelection } from "./hooks/useCompanySelection";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 import { Client } from "@/types";
 import { ShipmentStatus, TransportMode } from "@/types";
 
@@ -25,12 +29,8 @@ interface ShipmentFormContentProps {
   setPackages: (packages: string) => void;
   weight: string;
   setWeight: (weight: string) => void;
-  arrivalFlight?: string;
-  setArrivalFlight: (flight: string) => void;
-  arrivalDate?: string;
-  setArrivalDate: (date: string) => void;
-  observations?: string;
-  setObservations: (obs: string) => void;
+  shipmentDate: string;
+  setShipmentDate: (date: string) => void;
   status: ShipmentStatus;
   setStatus: (status: ShipmentStatus) => void;
   retentionReason?: string;
@@ -64,12 +64,8 @@ export function ShipmentFormContent({
   setPackages,
   weight,
   setWeight,
-  arrivalFlight,
-  setArrivalFlight,
-  arrivalDate,
-  setArrivalDate,
-  observations,
-  setObservations,
+  shipmentDate,
+  setShipmentDate,
   status,
   setStatus,
   retentionReason,
@@ -88,6 +84,9 @@ export function ShipmentFormContent({
   onSubmit,
   onCancel,
 }: ShipmentFormContentProps) {
+  const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false);
+  const [documentsAdded, setDocumentsAdded] = useState(0);
+
   useEffect(() => {
     console.log("ShipmentFormContent - Clients available:", clients.length);
     if (clients.length > 0) {
@@ -101,26 +100,56 @@ export function ShipmentFormContent({
     setCompanyName
   });
 
+  const handleDocumentsSave = (documents: any[]) => {
+    setDocumentsAdded(documents.length);
+    console.log("Documents saved:", documents);
+    // Aqui você pode processar os documentos salvos
+  };
+
   return (
-    <div className="space-y-8">
-      {/* Client Selection */}
-      <div className="space-y-2">
-        <ClientSelection
-          companyId={companyId}
-          onCompanyChange={handleCompanyChange}
-          clients={clients}
-        />
-      </div>
+    <div className="space-y-6">
+      {/* Data do Embarque */}
+      <ShipmentDateSection
+        shipmentDate={shipmentDate}
+        setShipmentDate={setShipmentDate}
+      />
       
-      {/* Transport Information */}
-      <div className="space-y-4">
+      {/* Client Selection */}
+      <ClientSelection
+        companyId={companyId}
+        onCompanyChange={handleCompanyChange}
+        clients={clients}
+      />
+      
+      {/* Transport Mode */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Tipo de Transporte</label>
         <TransportSection 
           transportMode={transportMode}
           setTransportMode={setTransportMode}
-          carrierName={carrierName}
-          setCarrierName={setCarrierName}
-          trackingNumber={trackingNumber}
-          setTrackingNumber={setTrackingNumber}
+          carrierName=""
+          setCarrierName={() => {}}
+          trackingNumber=""
+          setTrackingNumber={() => {}}
+        />
+      </div>
+      
+      {/* Carrier Section */}
+      <CarrierSection
+        transportMode={transportMode}
+        carrierName={carrierName}
+        setCarrierName={setCarrierName}
+      />
+      
+      {/* Tracking Number */}
+      <div className="space-y-2">
+        <label htmlFor="trackingNumber" className="text-sm font-medium">Número do Conhecimento</label>
+        <input
+          id="trackingNumber"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          value={trackingNumber}
+          onChange={(e) => setTrackingNumber(e.target.value)}
+          placeholder="Digite o número do conhecimento"
         />
       </div>
       
@@ -132,16 +161,23 @@ export function ShipmentFormContent({
         setWeight={setWeight}
       />
       
-      {/* Arrival Information */}
-      <ShipmentInfoSection 
-        transportMode={transportMode}
-        arrivalFlight={arrivalFlight}
-        setArrivalFlight={setArrivalFlight}
-        arrivalDate={arrivalDate}
-        setArrivalDate={setArrivalDate}
-        observations={observations}
-        setObservations={setObservations}
-      />
+      {/* Add Documents Button */}
+      <div className="space-y-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setIsDocumentsModalOpen(true)}
+          className="w-full"
+        >
+          <FileText className="w-4 h-4 mr-2" />
+          Adicionar Documentos
+          {documentsAdded > 0 && (
+            <span className="ml-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs">
+              {documentsAdded}
+            </span>
+          )}
+        </Button>
+      </div>
       
       {/* Status */}
       <StatusSection 
@@ -168,14 +204,15 @@ export function ShipmentFormContent({
         />
       )}
       
-      {/* Observations */}
-      <ObservationsSection 
-        observations={observations}
-        setObservations={setObservations}
-      />
-      
       {/* Form Actions */}
       <FormActions onSubmit={onSubmit} onCancel={onCancel} />
+      
+      {/* Documents Modal */}
+      <AddDocumentsModal
+        open={isDocumentsModalOpen}
+        onOpenChange={setIsDocumentsModalOpen}
+        onSave={handleDocumentsSave}
+      />
     </div>
   );
 }
