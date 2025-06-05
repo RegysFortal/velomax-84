@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -183,9 +184,12 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       if (data.totalFreight !== undefined) {
         let freightValue: number = 0;
         
-        if (typeof data.totalFreight === 'string') {
+        // Cast to unknown first, then to string | number to handle mixed types
+        const freightInput = data.totalFreight as unknown as string | number;
+        
+        if (typeof freightInput === 'string') {
           // Clean the string: remove currency symbols, spaces, and handle comma as decimal separator
-          const cleanValue = data.totalFreight
+          const cleanValue = freightInput
             .replace(/[R$\s]/g, '') // Remove R$, spaces
             .replace(/\./g, '') // Remove thousand separators (dots)
             .replace(/,/, '.'); // Replace decimal comma with dot
@@ -194,17 +198,17 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
           
           if (isNaN(freightValue)) {
             freightValue = 0;
-            console.warn('Could not parse totalFreight value:', data.totalFreight, 'defaulting to 0');
+            console.warn('Could not parse totalFreight value:', freightInput, 'defaulting to 0');
           }
-        } else if (typeof data.totalFreight === 'number') {
-          freightValue = data.totalFreight;
+        } else if (typeof freightInput === 'number') {
+          freightValue = freightInput;
         } else {
           freightValue = 0;
-          console.warn('Unexpected totalFreight type:', typeof data.totalFreight, 'defaulting to 0');
+          console.warn('Unexpected totalFreight type:', typeof freightInput, 'defaulting to 0');
         }
         
         supabaseData.total_freight = freightValue;
-        console.log('Freight conversion - Original:', data.totalFreight, 'Converted:', freightValue);
+        console.log('Freight conversion - Original:', freightInput, 'Converted:', freightValue);
       }
 
       console.log('Final Supabase update data:', supabaseData);
