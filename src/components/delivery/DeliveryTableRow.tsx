@@ -2,9 +2,7 @@
 import React from 'react';
 import { Delivery } from '@/types';
 import { TableRow, TableCell } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Eye } from 'lucide-react';
 
 interface DeliveryTableRowProps {
   delivery: Delivery;
@@ -56,8 +54,15 @@ export function DeliveryTableRow({
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
+  const handleRowClick = () => {
+    onViewDetails(delivery);
+  };
+
   return (
-    <TableRow className={isIncomplete ? 'bg-red-50 border-red-200' : ''}>
+    <TableRow 
+      className={`cursor-pointer hover:bg-gray-50 ${isIncomplete ? 'bg-red-50 border-red-200' : ''}`}
+      onClick={handleRowClick}
+    >
       <TableCell className="font-medium">
         <span className={isIncomplete ? 'text-red-800' : ''}>{delivery.minuteNumber}</span>
         {isIncomplete && (
@@ -79,34 +84,6 @@ export function DeliveryTableRow({
       </TableCell>
       <TableCell className={isIncomplete ? 'text-red-700 font-medium' : ''}>
         {formatCurrency(delivery.totalFreight)}
-      </TableCell>
-      <TableCell>
-        <div className="flex space-x-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onViewDetails(delivery)}
-            title="Ver detalhes"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(delivery)}
-            title="Editar"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(delivery.id)}
-            title="Excluir"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
       </TableCell>
     </TableRow>
   );

@@ -15,7 +15,6 @@ export function DeliveryTableHeader() {
         <TableHead className="px-2 py-2 min-w-[80px]">Peso</TableHead>
         <TableHead className="px-2 py-2 min-w-[120px]">Tipo</TableHead>
         <TableHead className="px-2 py-2 min-w-[100px]">Valor</TableHead>
-        <TableHead className="px-2 py-2 min-w-[120px]">Ações</TableHead>
       </TableRow>
     </TableHeader>
   );
