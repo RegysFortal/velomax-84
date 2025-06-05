@@ -11,14 +11,10 @@ interface DocumentDetailsProps {
 export function DocumentDetails({ document, shouldShowPriorityBackground }: DocumentDetailsProps) {
   return (
     <div>
-      {/* Display invoice numbers if available, otherwise show document name */}
-      {document.invoiceNumbers && document.invoiceNumbers.length > 0 ? (
+      {/* Display invoice numbers if available */}
+      {document.invoiceNumbers && document.invoiceNumbers.length > 0 && (
         <div className={`text-sm ${shouldShowPriorityBackground ? 'text-red-600' : 'text-muted-foreground'} mt-1 font-medium`}>
           Nota(s) Fiscal(is): {document.invoiceNumbers.join(', ')}
-        </div>
-      ) : document.minuteNumber && document.name !== `Minuta: ${document.minuteNumber}` && (
-        <div className={`text-sm ${shouldShowPriorityBackground ? 'text-red-600' : 'text-muted-foreground'} mt-1 font-medium`}>
-          {document.name}
         </div>
       )}
       
