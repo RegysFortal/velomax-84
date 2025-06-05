@@ -2,8 +2,6 @@
 import React from 'react';
 import { ShipmentStatus } from "@/types/shipment";
 import { DeliveryDetailsType } from "../hooks/useStatusAction";
-import { StatusHeader } from "./StatusHeader";
-import { StatusActionButtons } from "./StatusActionButtons";
 import { StatusActionDialogs } from "./StatusActionDialogs";
 import { useStatusActionsHandler } from "./hooks/useStatusActionsHandler";
 import { useShipments } from "@/contexts/shipments";
@@ -68,13 +66,6 @@ export function StatusActions({ status, shipmentId, onStatusChange }: StatusActi
 
   return (
     <div className="md:col-span-2">
-      <StatusHeader status={status} />
-      
-      <StatusActionButtons 
-        status={status} 
-        onStatusChangeClick={handleStatusChangeClick} 
-      />
-      
       <StatusActionDialogs
         shipment={shipment}
         showDocumentSelection={showDocumentSelection}
