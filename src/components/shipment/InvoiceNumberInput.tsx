@@ -5,29 +5,30 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
 interface InvoiceNumberInputProps {
-  invoiceNumbers: string[];
-  setInvoiceNumbers: (values: string[]) => void;
+  value: string[];
+  onChange: (values: string[]) => void;
+  placeholder?: string;
 }
 
-export function InvoiceNumberInput({ invoiceNumbers, setInvoiceNumbers }: InvoiceNumberInputProps) {
+export function InvoiceNumberInput({ value, onChange, placeholder = "Digite e pressione Enter para adicionar" }: InvoiceNumberInputProps) {
   const [currentInput, setCurrentInput] = useState('');
   
   useEffect(() => {
-    console.log("InvoiceNumberInput - Current invoice numbers:", invoiceNumbers);
-  }, [invoiceNumbers]);
+    console.log("InvoiceNumberInput - Current invoice numbers:", value);
+  }, [value]);
   
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && currentInput.trim()) {
       e.preventDefault();
       
       // Clone the array to ensure we're not directly mutating state
-      const updatedInvoices = Array.isArray(invoiceNumbers) ? [...invoiceNumbers] : [];
+      const updatedInvoices = Array.isArray(value) ? [...value] : [];
       
       // Add invoice number if it doesn't already exist
       if (!updatedInvoices.includes(currentInput.trim())) {
         updatedInvoices.push(currentInput.trim());
         console.log("Updated invoice numbers:", updatedInvoices);
-        setInvoiceNumbers(updatedInvoices);
+        onChange(updatedInvoices);
       }
       
       setCurrentInput('');
@@ -35,16 +36,16 @@ export function InvoiceNumberInput({ invoiceNumbers, setInvoiceNumbers }: Invoic
   };
   
   const removeInvoiceNumber = (index: number) => {
-    // Make sure invoiceNumbers is an array before operating on it
-    if (!Array.isArray(invoiceNumbers)) {
-      console.warn("invoiceNumbers is not an array:", invoiceNumbers);
+    // Make sure value is an array before operating on it
+    if (!Array.isArray(value)) {
+      console.warn("value is not an array:", value);
       return;
     }
     
-    const newInvoiceNumbers = [...invoiceNumbers];
+    const newInvoiceNumbers = [...value];
     newInvoiceNumbers.splice(index, 1);
     console.log("After removal invoice numbers:", newInvoiceNumbers);
-    setInvoiceNumbers(newInvoiceNumbers);
+    onChange(newInvoiceNumbers);
   };
   
   return (
@@ -53,12 +54,12 @@ export function InvoiceNumberInput({ invoiceNumbers, setInvoiceNumbers }: Invoic
         value={currentInput}
         onChange={(e) => setCurrentInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Digite e pressione Enter para adicionar"
+        placeholder={placeholder}
       />
       
       <div className="flex flex-wrap gap-2 mt-2">
-        {Array.isArray(invoiceNumbers) && invoiceNumbers.length > 0 ? (
-          invoiceNumbers.map((number, index) => (
+        {Array.isArray(value) && value.length > 0 ? (
+          value.map((number, index) => (
             <Badge key={index} variant="secondary" className="px-2 py-1">
               {number}
               <button

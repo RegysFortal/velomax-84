@@ -21,12 +21,8 @@ interface ShipmentEditContentProps {
   setPackages: (packages: string) => void;
   weight: string;
   setWeight: (weight: string) => void;
-  arrivalFlight: string;
-  setArrivalFlight: (flight: string) => void;
-  arrivalDate: string;
-  setArrivalDate: (date: string) => void;
-  observations: string;
-  setObservations: (obs: string) => void;
+  shipmentDate: string;
+  setShipmentDate: (date: string) => void;
   status: any;
   setStatus: (status: any) => void;
   retentionReason: string;
@@ -61,12 +57,8 @@ export function ShipmentEditContent({
   setPackages,
   weight,
   setWeight,
-  arrivalFlight,
-  setArrivalFlight,
-  arrivalDate,
-  setArrivalDate,
-  observations,
-  setObservations,
+  shipmentDate,
+  setShipmentDate,
   status,
   setStatus,
   retentionReason,
@@ -105,12 +97,8 @@ export function ShipmentEditContent({
             setPackages={setPackages}
             weight={weight}
             setWeight={setWeight}
-            arrivalFlight={arrivalFlight}
-            setArrivalFlight={setArrivalFlight}
-            arrivalDate={arrivalDate}
-            setArrivalDate={setArrivalDate}
-            observations={observations}
-            setObservations={setObservations}
+            shipmentDate={shipmentDate}
+            setShipmentDate={setShipmentDate}
             status={status}
             setStatus={setStatus}
             retentionReason={retentionReason}

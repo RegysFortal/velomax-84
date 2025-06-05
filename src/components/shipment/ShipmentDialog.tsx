@@ -52,12 +52,8 @@ export function ShipmentDialog({ open, onOpenChange }: ShipmentDialogProps) {
                   setPackages={formState.setPackages}
                   weight={formState.weight}
                   setWeight={formState.setWeight}
-                  arrivalFlight={formState.arrivalFlight}
-                  setArrivalFlight={formState.setArrivalFlight}
-                  arrivalDate={formState.arrivalDate}
-                  setArrivalDate={formState.setArrivalDate}
-                  observations={formState.observations}
-                  setObservations={formState.setObservations}
+                  shipmentDate={formState.shipmentDate}
+                  setShipmentDate={formState.setShipmentDate}
                   status={formState.status}
                   setStatus={formState.setStatus}
                   retentionReason={formState.retentionReason}
