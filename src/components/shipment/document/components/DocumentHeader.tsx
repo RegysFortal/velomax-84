@@ -2,6 +2,8 @@
 import React from 'react';
 import { FileText } from "lucide-react";
 import { Document } from "@/types/shipment";
+import { DocumentStatusControl } from "../../DocumentStatusControl";
+import { PriorityButton } from './PriorityButton';
 
 interface DocumentHeaderProps {
   document: Document;
@@ -22,6 +24,18 @@ export function DocumentHeader({
       <h4 className={`font-medium ${shouldShowPriorityBackground ? 'text-red-700' : ''}`}>
         {document.minuteNumber ? `Minuta: ${document.minuteNumber}` : document.name}
       </h4>
+      <PriorityButton 
+        document={document}
+        shipmentId={shipmentId}
+        onStatusChange={onStatusChange}
+      />
+      <div className="ml-2">
+        <DocumentStatusControl 
+          shipmentId={shipmentId} 
+          document={document} 
+          onStatusChange={onStatusChange}
+        />
+      </div>
     </div>
   );
 }
