@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -182,7 +183,8 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       // Handle totalFreight with proper type checking
       if (data.totalFreight !== undefined) {
         let freightValue: number = 0;
-        const freightInput = data.totalFreight;
+        // Explicitly type the freight input as string or number
+        const freightInput: string | number = data.totalFreight;
         
         if (typeof freightInput === 'string') {
           // Clean the string: remove currency symbols, spaces, and handle comma as decimal separator
