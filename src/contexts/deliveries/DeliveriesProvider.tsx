@@ -87,8 +87,8 @@ export const DeliveriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Wrap fetchDeliveries to match the expected return type in context
   const fetchDeliveries = async (): Promise<Delivery[]> => {
     try {
-      const result = await fetchDeliveriesFromHook();
-      return result || [];
+      await fetchDeliveriesFromHook();
+      return deliveries;
     } catch (error) {
       console.error('Error fetching deliveries:', error);
       return [];
