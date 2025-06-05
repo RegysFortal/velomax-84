@@ -41,7 +41,8 @@ export function useShipmentsData(user: User | null | undefined) {
         receiverName: shipment.receiver_name,
         receiverId: shipment.receiver_id,
         deliveryDate: shipment.delivery_date,
-        deliveryTime: shipment.delivery_time
+        deliveryTime: shipment.delivery_time,
+        documents: [] // Initialize empty documents array
       }));
       
       setShipments(mappedShipments);

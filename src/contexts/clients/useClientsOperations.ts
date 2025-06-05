@@ -3,17 +3,17 @@ import { useState } from 'react';
 import { Client } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { User } from '@supabase/supabase-js';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export function useClientsOperations(
   clients: Client[],
   setClients: React.Dispatch<React.SetStateAction<Client[]>>,
-  user: User | null | undefined
+  user: SupabaseUser | null | undefined
 ) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const addClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client> => {
+  const addClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
       setLoading(true);
 
@@ -78,8 +78,6 @@ export function useClientsOperations(
         title: "Cliente criado",
         description: "O cliente foi criado com sucesso."
       });
-
-      return newClient;
     } catch (error) {
       console.error('Error creating client:', error);
       toast({

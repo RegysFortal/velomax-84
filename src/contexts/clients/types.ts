@@ -1,6 +1,5 @@
 
 import { Client } from "@/types/client";
-import { User } from "@/types/user";
 
 export type ClientsContextType = {
   clients: Client[];

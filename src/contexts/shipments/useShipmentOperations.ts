@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Shipment, ShipmentStatus } from '@/types/shipment';
+import { Shipment, ShipmentStatus, TransportMode } from '@/types/shipment';
 import { ShipmentCreateData } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -49,7 +49,7 @@ export function useShipmentOperations(
         id: data.id,
         companyId: data.company_id,
         companyName: data.company_name,
-        transportMode: data.transport_mode,
+        transportMode: data.transport_mode as TransportMode,
         carrierName: data.carrier_name,
         trackingNumber: data.tracking_number,
         packages: data.packages,
@@ -57,14 +57,15 @@ export function useShipmentOperations(
         arrivalFlight: data.arrival_flight,
         arrivalDate: data.arrival_date,
         observations: data.observations,
-        status: data.status,
+        status: data.status as ShipmentStatus,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         isRetained: data.is_retained || false,
         receiverName: data.receiver_name,
         receiverId: data.receiver_id,
         deliveryDate: data.delivery_date,
-        deliveryTime: data.delivery_time
+        deliveryTime: data.delivery_time,
+        documents: [] // Initialize empty documents array
       };
 
       setShipments(prev => [...prev, newShipment]);
