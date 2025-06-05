@@ -120,7 +120,7 @@ export const DeliveryFormSections: React.FC<{
         const result = await updateDelivery(delivery.id, deliveryData);
         if (result) {
           toast.success('Entrega atualizada com sucesso');
-          onComplete(); // Close dialog automatically after success
+          onComplete();
         } else {
           toast.error('Erro ao atualizar entrega');
         }
@@ -130,7 +130,7 @@ export const DeliveryFormSections: React.FC<{
         const result = await addDelivery(deliveryData);
         if (result) {
           toast.success('Entrega registrada com sucesso');
-          onComplete(); // Close dialog automatically after success
+          onComplete();
         } else {
           toast.error('Erro ao registrar entrega');
         }
@@ -162,17 +162,21 @@ export const DeliveryFormSections: React.FC<{
           const result = await updateDelivery(delivery.id, deliveryData);
           if (result) {
             toast.success('Entrega atualizada com sucesso');
-            onComplete(); // Close dialog automatically after success
+            setShowDuplicateAlert(false);
+            onComplete();
+          } else {
+            toast.error('Erro ao atualizar entrega');
           }
         } else {
           const result = await addDelivery(deliveryData);
           if (result) {
             toast.success('Entrega registrada com sucesso');
-            onComplete(); // Close dialog automatically after success
+            setShowDuplicateAlert(false);
+            onComplete();
+          } else {
+            toast.error('Erro ao registrar entrega');
           }
         }
-        
-        setShowDuplicateAlert(false);
       } catch (error) {
         console.error('Error submitting duplicate delivery:', error);
         toast.error('Erro ao salvar entrega');
