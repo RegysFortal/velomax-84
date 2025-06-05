@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { Document, Shipment } from "@/types/shipment";
 import { ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DocumentStatusSelector } from "./DocumentStatusSelector";
-import { PriorityToggle } from "./PriorityToggle";
 import { DocumentRetentionForm } from "./DocumentRetentionForm";
 import { DocumentDeliveryForm } from "./DocumentDeliveryForm";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -40,20 +38,6 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
       case 'retained': return 'Retido';
       case 'delivered': return 'Entregue';
       default: return status;
-    }
-  };
-
-  const handleStatusChange = (document: Document, newStatus: string) => {
-    if (newStatus === 'retained') {
-      setEditingDocument(document);
-      setEditMode('retention');
-    } else if (newStatus === 'delivered') {
-      setEditingDocument(document);
-      setEditMode('delivery');
-    } else {
-      // Update status directly for other statuses
-      // This would call the context method to update the document
-      onDocumentUpdate();
     }
   };
 
@@ -100,19 +84,6 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
                       <Badge variant={getStatusBadgeVariant(document.status || 'in_transit')}>
                         {getStatusLabel(document.status || 'in_transit')}
                       </Badge>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <PriorityToggle 
-                        document={document}
-                        shipmentId={shipment.id}
-                        onUpdate={onDocumentUpdate}
-                      />
-                      
-                      <DocumentStatusSelector
-                        document={document}
-                        onStatusChange={(newStatus) => handleStatusChange(document, newStatus)}
-                      />
                     </div>
                   </div>
                   
