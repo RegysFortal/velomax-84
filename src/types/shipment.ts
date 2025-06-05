@@ -1,4 +1,3 @@
-
 export type ShipmentStatus = 
   | "in_transit"  // Em trânsito 
   | "retained"    // Retida
@@ -9,7 +8,7 @@ export type ShipmentStatus =
 export type TransportMode = "air" | "road";
 
 // Define status individual de documentos
-export type DocumentStatus = "in_transit" | "picked_up" | "retained" | "delivered";
+export type DocumentStatus = "pending" | "in_transit" | "picked_up" | "retained" | "delivered";
 
 export interface FiscalAction {
   id: string;

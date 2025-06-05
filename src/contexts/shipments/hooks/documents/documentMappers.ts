@@ -15,6 +15,10 @@ export const mapSupabaseToDocument = (supabaseDoc: any): Document => {
     invoiceNumbers: supabaseDoc.invoice_numbers || [],
     weight: supabaseDoc.weight,
     packages: supabaseDoc.packages,
+    status: supabaseDoc.status || "in_transit", // Add status with default
+    isPriority: supabaseDoc.is_priority || false,
+    retentionInfo: supabaseDoc.retention_info,
+    deliveryInfo: supabaseDoc.delivery_info,
     isDelivered: supabaseDoc.is_delivered,
     createdAt: supabaseDoc.created_at,
     updatedAt: supabaseDoc.updated_at

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useShipments } from '@/contexts/shipments';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

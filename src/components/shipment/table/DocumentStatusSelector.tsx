@@ -16,6 +16,7 @@ interface DocumentStatusSelectorProps {
 
 export function DocumentStatusSelector({ document, onStatusChange }: DocumentStatusSelectorProps) {
   const statusOptions = [
+    { value: 'pending', label: 'Pendente' },
     { value: 'in_transit', label: 'Em Trânsito' },
     { value: 'picked_up', label: 'Retirado' },
     { value: 'retained', label: 'Retido' },
