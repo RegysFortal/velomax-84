@@ -120,7 +120,7 @@ export const DeliveryFormSections: React.FC<{
         const result = await updateDelivery(delivery.id, deliveryData);
         if (result) {
           toast.success('Entrega atualizada com sucesso');
-          onComplete(); // Chama onComplete após sucesso
+          onComplete(); // Close dialog automatically after success
         } else {
           toast.error('Erro ao atualizar entrega');
         }
@@ -130,7 +130,7 @@ export const DeliveryFormSections: React.FC<{
         const result = await addDelivery(deliveryData);
         if (result) {
           toast.success('Entrega registrada com sucesso');
-          onComplete(); // Chama onComplete após sucesso
+          onComplete(); // Close dialog automatically after success
         } else {
           toast.error('Erro ao registrar entrega');
         }
@@ -162,13 +162,13 @@ export const DeliveryFormSections: React.FC<{
           const result = await updateDelivery(delivery.id, deliveryData);
           if (result) {
             toast.success('Entrega atualizada com sucesso');
-            onComplete(); // Chama onComplete após sucesso
+            onComplete(); // Close dialog automatically after success
           }
         } else {
           const result = await addDelivery(deliveryData);
           if (result) {
             toast.success('Entrega registrada com sucesso');
-            onComplete(); // Chama onComplete após sucesso
+            onComplete(); // Close dialog automatically after success
           }
         }
         
