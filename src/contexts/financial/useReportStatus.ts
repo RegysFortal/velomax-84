@@ -33,7 +33,8 @@ export const useReportStatus = (
     const updateData: Partial<FinancialReport> = {
       status: 'closed',
       paymentMethod,
-      dueDate
+      dueDate,
+      updatedAt: new Date().toISOString()
     };
     
     await updateFinancialReport(id, updateData);
@@ -46,7 +47,8 @@ export const useReportStatus = (
       });
     }
     
-    console.log("Relatórios após fechamento:", 
+    console.log("Relatório fechado com sucesso:", id);
+    console.log("Status atual dos relatórios:", 
       financialReports.map(r => ({id: r.id, status: r.status}))
     );
     
@@ -70,9 +72,13 @@ export const useReportStatus = (
       return;
     }
     
-    await updateFinancialReport(id, { status: newStatus });
+    await updateFinancialReport(id, { 
+      status: newStatus,
+      updatedAt: new Date().toISOString()
+    });
     
-    console.log("Relatórios após mudança de status:", 
+    console.log("Status do relatório alterado com sucesso:", id);
+    console.log("Status atual dos relatórios:", 
       financialReports.map(r => ({id: r.id, status: r.status}))
     );
     
@@ -128,7 +134,9 @@ export const useReportStatus = (
       return;
     }
     
-    const updateData: Partial<FinancialReport> = {};
+    const updateData: Partial<FinancialReport> = {
+      updatedAt: new Date().toISOString()
+    };
     
     // Only include properties that are being updated
     if (paymentMethod !== null) updateData.paymentMethod = paymentMethod;

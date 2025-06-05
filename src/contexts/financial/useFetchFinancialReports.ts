@@ -19,22 +19,31 @@ export const useFetchFinancialReports = (
       try {
         const parsedReports = JSON.parse(storedReports) as FinancialReport[];
         
+        // Ensure we maintain all reports regardless of status
+        const validReports = parsedReports.filter(report => 
+          report && report.id && report.status && report.clientId
+        );
+        
         // Count reports by status
-        const archivedCount = parsedReports.filter(r => r.status === 'archived').length;
-        const closedCount = parsedReports.filter(r => r.status === 'closed').length;
-        const openCount = parsedReports.filter(r => r.status === 'open').length;
+        const archivedCount = validReports.filter(r => r.status === 'archived').length;
+        const closedCount = validReports.filter(r => r.status === 'closed').length;
+        const openCount = validReports.filter(r => r.status === 'open').length;
         
         console.log('Loaded financial reports from localStorage:', 
-          parsedReports.map(r => ({ id: r.id, status: r.status })));
+          validReports.map(r => ({ id: r.id, status: r.status, clientId: r.clientId })));
         console.log(`Loaded reports counts - Archived: ${archivedCount}, Closed: ${closedCount}, Open: ${openCount}`);
         
-        // Set the reports in state
-        setFinancialReports(parsedReports);
+        // Set the reports in state - this should include ALL reports
+        setFinancialReports(validReports);
       } catch (error) {
         console.error('Error parsing financial reports from localStorage:', error);
+        // Initialize with empty array if parsing fails
+        setFinancialReports([]);
       }
     } else {
       console.log('No financial reports found in localStorage');
+      // Initialize with empty array if no data found
+      setFinancialReports([]);
     }
     
     // In a real implementation, we would fetch data from the database here
