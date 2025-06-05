@@ -79,32 +79,32 @@ export function ShipmentsTable({
 
   return (
     <ScrollArea className="h-[calc(100vh-280px)]">
-      <div className="bg-white rounded-md border">
+      <div className="bg-white dark:bg-gray-800 rounded-md border dark:border-gray-700">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Empresa</TableHead>
-              <TableHead>Conhecimento</TableHead>
-              <TableHead>Transportadora</TableHead>
-              <TableHead>Volumes</TableHead>
-              <TableHead>Peso</TableHead>
-              <TableHead>Chegada</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Ações</TableHead>
+            <TableRow className="dark:border-gray-700">
+              <TableHead className="dark:text-white">Empresa</TableHead>
+              <TableHead className="dark:text-white">Conhecimento</TableHead>
+              <TableHead className="dark:text-white">Transportadora</TableHead>
+              <TableHead className="dark:text-white">Volumes</TableHead>
+              <TableHead className="dark:text-white">Peso</TableHead>
+              <TableHead className="dark:text-white">Chegada</TableHead>
+              <TableHead className="dark:text-white">Status</TableHead>
+              <TableHead className="dark:text-white">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-4">
+              <TableRow className="dark:border-gray-700">
+                <TableCell colSpan={8} className="text-center py-4 dark:text-white">
                   <div className="flex justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                   </div>
                 </TableCell>
               </TableRow>
             ) : sortedShipments.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-6">
+              <TableRow className="dark:border-gray-700">
+                <TableCell colSpan={8} className="text-center py-6 dark:text-white">
                   Nenhum embarque encontrado
                 </TableCell>
               </TableRow>
@@ -117,38 +117,38 @@ export function ShipmentsTable({
                   <React.Fragment key={shipment.id}>
                     <TableRow 
                       className={cn(
-                        "cursor-pointer hover:bg-muted",
-                        shipment.status === 'retained' && "bg-red-50 hover:bg-red-100",
-                        isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100"
+                        "cursor-pointer hover:bg-muted dark:hover:bg-gray-700 dark:border-gray-700",
+                        shipment.status === 'retained' && "bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30",
+                        isOverdue && shipment.status !== 'retained' && "bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30"
                       )}
                       onClick={() => onRowClick(shipment)}
                     >
-                      <TableCell>
+                      <TableCell className="dark:text-white">
                         <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={(e) => toggleExpandShipment(shipment.id, e)}
-                            className="p-1 h-6 w-6"
+                            className="p-1 h-6 w-6 dark:text-white dark:hover:bg-gray-600"
                           >
                             {isExpanded ? '−' : '+'}
                           </Button>
                           {shipment.companyName}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="dark:text-white">
                         {shipment.trackingNumber}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="dark:text-white">
                         {shipment.carrierName}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="dark:text-white">
                         {shipment.packages}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="dark:text-white">
                         {shipment.weight} kg
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="dark:text-white">
                         {shipment.arrivalDate ? (
                           <div className="flex items-center gap-1">
                             {format(new Date(shipment.arrivalDate), 'dd/MM/yyyy', { locale: ptBR })}
@@ -172,17 +172,18 @@ export function ShipmentsTable({
                           size="icon"
                           onClick={() => onEditClick(shipment)}
                           title="Editar embarque"
+                          className="dark:text-white dark:hover:bg-gray-600"
                         >
-                          <Edit className="h-4 w-4 text-gray-500" />
+                          <Edit className="h-4 w-4 text-gray-500 dark:text-gray-300" />
                         </Button>
                       </TableCell>
                     </TableRow>
                     
                     {/* Expanded documents row */}
                     {isExpanded && (
-                      <TableRow>
+                      <TableRow className="dark:border-gray-700">
                         <TableCell colSpan={8} className="p-0">
-                          <div className="p-4 bg-gray-50 border-t">
+                          <div className="p-4 bg-gray-50 dark:bg-gray-900 border-t dark:border-gray-700">
                             <ExpandableDocuments 
                               shipment={shipment}
                               onDocumentUpdate={handleDocumentUpdate}
