@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
@@ -24,10 +25,12 @@ export function SystemBackup() {
   const [hasAccess, setHasAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Backup selection options
-  const [includeDeliveries, setIncludeDeliveries] = useState(true);
-  const [includeShipments, setIncludeShipments] = useState(true);
-  const [includeSystemData, setIncludeSystemData] = useState(true);
+  // Backup selection options for each menu
+  const [includeOperational, setIncludeOperational] = useState(true);
+  const [includeFinancial, setIncludeFinancial] = useState(true);
+  const [includeFleet, setIncludeFleet] = useState(true);
+  const [includeInventory, setIncludeInventory] = useState(true);
+  const [includeSettings, setIncludeSettings] = useState(true);
   
   // Check if current user has backup access permissions
   useEffect(() => {
@@ -48,7 +51,6 @@ export function SystemBackup() {
           
           if (error) {
             console.error("Error checking backup permissions:", error);
-            // Already checked role above, default to false
             setHasAccess(false);
           } else {
             setHasAccess(!!accessAllowed);
@@ -58,7 +60,6 @@ export function SystemBackup() {
         }
       } catch (error) {
         console.error("Error checking backup access:", error);
-        // Already checked role above, default to false
         setHasAccess(false);
       } finally {
         setIsLoading(false);
@@ -85,12 +86,39 @@ export function SystemBackup() {
       // Get all data from localStorage
       const backupData: Record<string, any> = {};
       
-      // Always include system data if selected
-      if (includeSystemData) {
-        // Get all localStorage keys
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('velomax_') && !key.includes('deliveries') && !key.includes('shipments')) {
+      // Define data categories for each menu
+      const dataCategories = {
+        operational: ['deliveries', 'shipments'],
+        financial: ['financial_reports', 'receivable_accounts', 'payable_accounts'],
+        fleet: ['vehicles', 'logbook_entries', 'fuel_records', 'maintenance_records', 'tire_maintenance_records'],
+        inventory: ['products', 'inventory_entries', 'inventory_exits'],
+        settings: ['clients', 'employees', 'cities', 'price_tables', 'company_settings', 'system_settings', 'users']
+      };
+      
+      // Collect data based on selected categories
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('velomax_')) {
+          let shouldInclude = false;
+          
+          // Check if this key belongs to any of the selected categories
+          if (includeOperational && dataCategories.operational.some(cat => key.includes(cat))) {
+            shouldInclude = true;
+          }
+          if (includeFinancial && dataCategories.financial.some(cat => key.includes(cat))) {
+            shouldInclude = true;
+          }
+          if (includeFleet && dataCategories.fleet.some(cat => key.includes(cat))) {
+            shouldInclude = true;
+          }
+          if (includeInventory && dataCategories.inventory.some(cat => key.includes(cat))) {
+            shouldInclude = true;
+          }
+          if (includeSettings && dataCategories.settings.some(cat => key.includes(cat))) {
+            shouldInclude = true;
+          }
+          
+          if (shouldInclude) {
             try {
               const value = localStorage.getItem(key);
               if (value) {
@@ -98,7 +126,6 @@ export function SystemBackup() {
               }
             } catch (err) {
               console.error(`Error parsing ${key}:`, err);
-              // If we can't parse it, store it as a string
               const value = localStorage.getItem(key);
               if (value) {
                 backupData[key] = value;
@@ -108,44 +135,18 @@ export function SystemBackup() {
         }
       }
       
-      // Include deliveries if selected
-      if (includeDeliveries) {
-        const deliveriesKey = 'velomax_deliveries';
-        const deliveriesData = localStorage.getItem(deliveriesKey);
-        if (deliveriesData) {
-          try {
-            backupData[deliveriesKey] = JSON.parse(deliveriesData);
-          } catch (err) {
-            console.error(`Error parsing deliveries:`, err);
-            backupData[deliveriesKey] = deliveriesData;
-          }
-        }
-      }
-      
-      // Include shipments if selected
-      if (includeShipments) {
-        const shipmentsKey = 'velomax_shipments';
-        const shipmentsData = localStorage.getItem(shipmentsKey);
-        if (shipmentsData) {
-          try {
-            backupData[shipmentsKey] = JSON.parse(shipmentsData);
-          } catch (err) {
-            console.error(`Error parsing shipments:`, err);
-            backupData[shipmentsKey] = shipmentsData;
-          }
-        }
-      }
-      
       // Create a metadata section
       const backupTypes = [];
-      if (includeSystemData) backupTypes.push('sistema');
-      if (includeDeliveries) backupTypes.push('entregas');
-      if (includeShipments) backupTypes.push('embarques');
+      if (includeOperational) backupTypes.push('operacional');
+      if (includeFinancial) backupTypes.push('financeiro');
+      if (includeFleet) backupTypes.push('frota');
+      if (includeInventory) backupTypes.push('estoque');
+      if (includeSettings) backupTypes.push('configurações');
       
       backupData['_metadata'] = {
         createdAt: new Date().toISOString(),
         version: '1.0',
-        type: 'velomax_selective_backup',
+        type: 'velomax_menu_backup',
         includes: backupTypes
       };
       
@@ -172,10 +173,10 @@ export function SystemBackup() {
         try {
           await supabase.from('backup_logs').insert([{
             user_id: user.id,
-            backup_type: 'selective',
+            backup_type: 'menu_selective',
             file_name: fileName,
             file_size: backupJson.length,
-            notes: `Backup seletivo incluindo: ${backupTypes.join(', ')}`
+            notes: `Backup por menus incluindo: ${backupTypes.join(', ')}`
           }]);
         } catch (logError) {
           console.error("Error logging backup:", logError);
@@ -225,30 +226,50 @@ export function SystemBackup() {
           
           // Validate backup file
           if (!backupData._metadata || 
-              (!backupData._metadata.type?.includes('velomax') && 
-               !['velomax_full_backup', 'velomax_selective_backup'].includes(backupData._metadata.type))) {
+              (!backupData._metadata.type?.includes('velomax'))) {
             throw new Error("O arquivo não é um backup válido do sistema");
           }
           
           let restoredTypes: string[] = [];
           
+          // Define data categories for each menu
+          const dataCategories = {
+            operational: ['deliveries', 'shipments'],
+            financial: ['financial_reports', 'receivable_accounts', 'payable_accounts'],
+            fleet: ['vehicles', 'logbook_entries', 'fuel_records', 'maintenance_records', 'tire_maintenance_records'],
+            inventory: ['products', 'inventory_entries', 'inventory_exits'],
+            settings: ['clients', 'employees', 'cities', 'price_tables', 'company_settings', 'system_settings', 'users']
+          };
+          
           // Restore data based on what's included in the backup and what user wants to restore
           Object.keys(backupData).forEach(key => {
             if (key !== '_metadata') {
-              // Check if this is deliveries data
-              if (key.includes('deliveries') && includeDeliveries) {
-                localStorage.setItem(key, JSON.stringify(backupData[key]));
-                if (!restoredTypes.includes('entregas')) restoredTypes.push('entregas');
+              let shouldRestore = false;
+              
+              // Check if this key belongs to any of the selected categories for restoration
+              if (includeOperational && dataCategories.operational.some(cat => key.includes(cat))) {
+                shouldRestore = true;
+                if (!restoredTypes.includes('operacional')) restoredTypes.push('operacional');
               }
-              // Check if this is shipments data
-              else if (key.includes('shipments') && includeShipments) {
-                localStorage.setItem(key, JSON.stringify(backupData[key]));
-                if (!restoredTypes.includes('embarques')) restoredTypes.push('embarques');
+              if (includeFinancial && dataCategories.financial.some(cat => key.includes(cat))) {
+                shouldRestore = true;
+                if (!restoredTypes.includes('financeiro')) restoredTypes.push('financeiro');
               }
-              // Other system data
-              else if (!key.includes('deliveries') && !key.includes('shipments') && includeSystemData) {
+              if (includeFleet && dataCategories.fleet.some(cat => key.includes(cat))) {
+                shouldRestore = true;
+                if (!restoredTypes.includes('frota')) restoredTypes.push('frota');
+              }
+              if (includeInventory && dataCategories.inventory.some(cat => key.includes(cat))) {
+                shouldRestore = true;
+                if (!restoredTypes.includes('estoque')) restoredTypes.push('estoque');
+              }
+              if (includeSettings && dataCategories.settings.some(cat => key.includes(cat))) {
+                shouldRestore = true;
+                if (!restoredTypes.includes('configurações')) restoredTypes.push('configurações');
+              }
+              
+              if (shouldRestore) {
                 localStorage.setItem(key, JSON.stringify(backupData[key]));
-                if (!restoredTypes.includes('sistema')) restoredTypes.push('sistema');
               }
             }
           });
@@ -258,10 +279,10 @@ export function SystemBackup() {
             try {
               await supabase.from('backup_logs').insert([{
                 user_id: user.id,
-                backup_type: 'restore_selective',
+                backup_type: 'restore_menu_selective',
                 file_name: file.name,
                 file_size: file.size,
-                notes: `Restauração seletiva: ${restoredTypes.join(', ')}`
+                notes: `Restauração por menus: ${restoredTypes.join(', ')}`
               }]);
             } catch (logError) {
               console.error("Error logging restore:", logError);
@@ -358,56 +379,76 @@ export function SystemBackup() {
       <CardHeader>
         <CardTitle>Backup e Restauração do Sistema</CardTitle>
         <CardDescription>
-          Exporte dados selecionados do sistema para um arquivo ou restaure a partir de um backup anterior.
+          Exporte dados selecionados por menus do sistema para um arquivo ou restaure a partir de um backup anterior.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Backup Selection Options */}
         <div className="space-y-4">
-          <h3 className="text-sm font-medium">Selecionar Dados para Backup/Restauração</h3>
+          <h3 className="text-sm font-medium">Selecionar Menus para Backup/Restauração</h3>
           <div className="grid grid-cols-1 gap-3">
             <div className="flex items-center space-x-2">
               <Checkbox 
-                id="system-data" 
-                checked={includeSystemData}
-                onCheckedChange={(checked) => setIncludeSystemData(!!checked)}
+                id="operational-data" 
+                checked={includeOperational}
+                onCheckedChange={(checked) => setIncludeOperational(!!checked)}
               />
-              <Label htmlFor="system-data" className="text-sm">
-                Dados do Sistema (configurações, clientes, funcionários, tabelas de preço)
+              <Label htmlFor="operational-data" className="text-sm">
+                Operacional (entregas, embarques)
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox 
-                id="deliveries" 
-                checked={includeDeliveries}
-                onCheckedChange={(checked) => setIncludeDeliveries(!!checked)}
+                id="financial-data" 
+                checked={includeFinancial}
+                onCheckedChange={(checked) => setIncludeFinancial(!!checked)}
               />
-              <Label htmlFor="deliveries" className="text-sm">
-                Entregas
+              <Label htmlFor="financial-data" className="text-sm">
+                Financeiro (relatórios, contas a receber, contas a pagar)
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox 
-                id="shipments" 
-                checked={includeShipments}
-                onCheckedChange={(checked) => setIncludeShipments(!!checked)}
+                id="fleet-data" 
+                checked={includeFleet}
+                onCheckedChange={(checked) => setIncludeFleet(!!checked)}
               />
-              <Label htmlFor="shipments" className="text-sm">
-                Embarques
+              <Label htmlFor="fleet-data" className="text-sm">
+                Frota (veículos, livro de bordo, combustível, manutenção)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="inventory-data" 
+                checked={includeInventory}
+                onCheckedChange={(checked) => setIncludeInventory(!!checked)}
+              />
+              <Label htmlFor="inventory-data" className="text-sm">
+                Estoque (produtos, entradas, saídas)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="settings-data" 
+                checked={includeSettings}
+                onCheckedChange={(checked) => setIncludeSettings(!!checked)}
+              />
+              <Label htmlFor="settings-data" className="text-sm">
+                Configurações (clientes, funcionários, cidades, tabelas de preço, configurações)
               </Label>
             </div>
           </div>
         </div>
         
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Backup Seletivo</h3>
+          <h3 className="text-sm font-medium">Backup Seletivo por Menus</h3>
           <p className="text-sm text-muted-foreground">
-            Crie um arquivo de backup com os dados selecionados acima. Você pode usar este arquivo para restaurar o sistema posteriormente.
+            Crie um arquivo de backup com os dados dos menus selecionados acima. Você pode usar este arquivo para restaurar o sistema posteriormente.
           </p>
           <Button
             variant="outline"
             onClick={handleCreateBackup}
-            disabled={isExporting || (!includeSystemData && !includeDeliveries && !includeShipments)}
+            disabled={isExporting || (!includeOperational && !includeFinancial && !includeFleet && !includeInventory && !includeSettings)}
             className="mt-2 w-full sm:w-auto"
           >
             <SaveAll className="mr-2 h-4 w-4" />
@@ -418,7 +459,7 @@ export function SystemBackup() {
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Restaurar Sistema</h3>
           <p className="text-sm text-muted-foreground">
-            Restaure os dados selecionados acima a partir de um arquivo de backup. Esta ação substituirá os dados atuais dos tipos selecionados.
+            Restaure os dados dos menus selecionados acima a partir de um arquivo de backup. Esta ação substituirá os dados atuais dos menus selecionados.
           </p>
           
           <AlertDialog>
@@ -426,7 +467,7 @@ export function SystemBackup() {
               <Button
                 variant="outline"
                 className="mt-2 w-full sm:w-auto"
-                disabled={!includeSystemData && !includeDeliveries && !includeShipments}
+                disabled={!includeOperational && !includeFinancial && !includeFleet && !includeInventory && !includeSettings}
               >
                 <ArchiveRestore className="mr-2 h-4 w-4" />
                 Restaurar Sistema
@@ -436,13 +477,15 @@ export function SystemBackup() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Restaurar Sistema</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Esta ação substituirá os dados atuais dos tipos selecionados pelos dados do backup.
+                  Esta ação substituirá os dados atuais dos menus selecionados pelos dados do backup.
                   <br />
-                  <strong>Dados que serão restaurados:</strong>
+                  <strong>Menus que serão restaurados:</strong>
                   <ul className="list-disc list-inside mt-2">
-                    {includeSystemData && <li>Dados do Sistema</li>}
-                    {includeDeliveries && <li>Entregas</li>}
-                    {includeShipments && <li>Embarques</li>}
+                    {includeOperational && <li>Operacional</li>}
+                    {includeFinancial && <li>Financeiro</li>}
+                    {includeFleet && <li>Frota</li>}
+                    {includeInventory && <li>Estoque</li>}
+                    {includeSettings && <li>Configurações</li>}
                   </ul>
                   <br />
                   Certifique-se de que o arquivo é um backup válido do sistema.
