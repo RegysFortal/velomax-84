@@ -113,9 +113,10 @@ function App() {
                                     <Route path="inventory/entries" element={<EntriesPage />} />
                                     <Route path="inventory/exits" element={<ExitsPage />} />
                                     <Route path="inventory/dashboard" element={<DashboardPage />} />
-                                    
-                                    <Route path="*" element={<NotFound />} />
                                   </Route>
+                                  
+                                  {/* Catch-all route - deve ser a última */}
+                                  <Route path="*" element={<NotFound />} />
                                 </Routes>
                               </LogbookProvider>
                             </BudgetProvider>
