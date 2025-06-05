@@ -2,7 +2,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
-import { formatClientNameForFileName } from '../companyUtils';
 
 /**
  * Creates an Excel report for deliveries
@@ -30,49 +29,39 @@ export function createExcelReport(data: {
     ['RELATÓRIO DE FECHAMENTO'],
     [],
     [`Cliente: ${client?.name || 'N/A'}`],
+    [],
+    ['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']
   ];
-  
-  // Adicionar informações de pagamento se o relatório estiver fechado
-  if (report.status === 'closed') {
-    const paymentMethods = {
-      boleto: "Boleto",
-      pix: "PIX",
-      cartao: "Cartão",
-      especie: "Espécie",
-      transferencia: "Transferência"
-    };
-    
-    const paymentMethod = report.paymentMethod 
-      ? paymentMethods[report.paymentMethod as keyof typeof paymentMethods] || report.paymentMethod 
-      : "N/A";
-    
-    const dueDate = report.dueDate 
-      ? format(new Date(report.dueDate), 'dd/MM/yyyy', { locale: ptBR })
-      : "N/A";
-    
-    headerRows.push([`Forma de Pagamento: ${paymentMethod} | Vencimento: ${dueDate}`]);
-  }
-  
-  // Adicionar linha em branco e cabeçalhos da tabela
-  headerRows.push([]);
-  headerRows.push(['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']);
   
   const worksheet = XLSX.utils.aoa_to_sheet(headerRows);
   
-  // Add the data rows
-  const data_rows = deliveries.map(delivery => [
-    delivery.minuteNumber,
-    format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
-    delivery.deliveryTime || '-',
-    delivery.receiver || '-',
-    delivery.weight,
-    delivery.totalFreight,
-    delivery.notes || '-'
-  ]);
+  // Sort deliveries by creation order (oldest first, so they appear in order of inclusion)
+  const sortedDeliveries = [...deliveries].sort((a, b) => {
+    // If createdAt exists, use it; otherwise use index order
+    if (a.createdAt && b.createdAt) {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    return 0;
+  });
+  
+  // Add the data rows with corrected dates
+  const data_rows = sortedDeliveries.map(delivery => {
+    // Fix date display - create date at noon to avoid timezone issues
+    const deliveryDate = new Date(`${delivery.deliveryDate}T12:00:00`);
+    return [
+      delivery.minuteNumber,
+      format(deliveryDate, 'dd/MM/yyyy', { locale: ptBR }),
+      delivery.deliveryTime || '-',
+      delivery.receiver || '-',
+      delivery.weight,
+      delivery.totalFreight,
+      delivery.notes || '-'
+    ];
+  });
   
   XLSX.utils.sheet_add_aoa(worksheet, data_rows, { origin: headerRows.length });
   
-  // Add total row
+  // Add total row at the end
   XLSX.utils.sheet_add_aoa(worksheet, [
     ['', '', '', '', '', 'Total:', report.totalFreight]
   ], { origin: headerRows.length + data_rows.length });
@@ -99,9 +88,7 @@ export function createExcelReport(data: {
   
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
   
-  // Use the actual client name for the filename, not a formatted version
   const fileName = `Relatório_${client?.name || 'Cliente'}.xlsx`;
-  
   XLSX.writeFile(workbook, fileName);
   return fileName;
 }

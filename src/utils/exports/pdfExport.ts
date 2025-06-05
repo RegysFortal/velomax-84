@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { formatClientNameForFileName } from '../companyUtils';
 
 /**
  * Creates a PDF report for deliveries
@@ -69,45 +68,36 @@ export function createPDFReport(data: {
   doc.setFont('helvetica', 'normal');
   doc.text(`Cliente: ${client?.name || 'N/A'}`, 14, 60);
   
-  // Add payment information if available
-  if (report.status === 'closed') {
-    const paymentMethods = {
-      boleto: "Boleto",
-      pix: "PIX",
-      cartao: "Cartão",
-      especie: "Espécie",
-      transferencia: "Transferência"
-    };
-    
-    const paymentMethod = report.paymentMethod 
-      ? paymentMethods[report.paymentMethod as keyof typeof paymentMethods] || report.paymentMethod 
-      : "N/A";
-    
-    const dueDate = report.dueDate 
-      ? format(new Date(report.dueDate), 'dd/MM/yyyy', { locale: ptBR })
-      : "N/A";
-    
-    doc.text(`Forma de Pagamento: ${paymentMethod}`, 14, 67);
-    doc.text(`Vencimento: ${dueDate}`, 90, 67);
-  }
+  // Sort deliveries by creation order (oldest first, so they appear in order of inclusion)
+  const sortedDeliveries = [...deliveries].sort((a, b) => {
+    // If createdAt exists, use it; otherwise use index order
+    if (a.createdAt && b.createdAt) {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    return 0;
+  });
   
   // Track if total has been added already
   let totalAdded = false;
   
   // Create table with all required fields and borders
   autoTable(doc, {
-    startY: report.status === 'closed' ? 75 : 70,
+    startY: 70,
     head: [['Minuta', 'Data de Entrega', 'Hora', 'Recebedor', 'Peso (kg)', 'Valor do Frete', 'Observações']],
-    body: deliveries.map(delivery => [
-      delivery.minuteNumber,
-      format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR }),
-      delivery.deliveryTime || '-',
-      delivery.receiver || '-',
-      delivery.weight.toString(),
-      formatCurrency(delivery.totalFreight),
-      delivery.notes || '-'
-    ]),
-    theme: 'grid', // Use 'grid' theme to add all borders
+    body: sortedDeliveries.map(delivery => {
+      // Fix date display - create date at noon to avoid timezone issues
+      const deliveryDate = new Date(`${delivery.deliveryDate}T12:00:00`);
+      return [
+        delivery.minuteNumber,
+        format(deliveryDate, 'dd/MM/yyyy', { locale: ptBR }),
+        delivery.deliveryTime || '-',
+        delivery.receiver || '-',
+        delivery.weight.toString(),
+        formatCurrency(delivery.totalFreight),
+        delivery.notes || '-'
+      ];
+    }),
+    theme: 'grid',
     styles: { 
       fontSize: 10,
       cellPadding: 3,
@@ -124,14 +114,11 @@ export function createPDFReport(data: {
       lineWidth: 0.5,
       lineColor: [0, 0, 0]
     },
-    // Add the total on the last page only
     didDrawPage: (data) => {
-      // Check if this is the last page
-      const currentPage = doc.getNumberOfPages();
-      const pageCount = doc.getNumberOfPages();
+      // Check if this is the last page and we haven't added the total yet
+      const isLastPage = data.pageNumber === doc.getNumberOfPages();
       
-      // Only add total on the last page
-      if (currentPage === pageCount && !totalAdded) {
+      if (isLastPage && !totalAdded) {
         const finalY = data.cursor.y + 10;
         
         // Draw total row - aligned to the right
@@ -149,10 +136,17 @@ export function createPDFReport(data: {
     }
   });
   
-  // Make sure client name is properly used - fallback to "Cliente" if undefined
-  // Make sure to use the actual name, not a formatted version
-  const fileName = `Relatório_${client?.name || 'Cliente'}.pdf`;
+  // If we still haven't added the total (shouldn't happen but safety check)
+  if (!totalAdded) {
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    const pageWidth = doc.internal.pageSize.width;
+    doc.text("Total geral dos serviços:", pageWidth - 90, finalY);
+    doc.text(formatCurrency(report.totalFreight), pageWidth - 15, finalY, { align: 'right' });
+  }
   
+  const fileName = `Relatório_${client?.name || 'Cliente'}.pdf`;
   doc.save(fileName);
   return fileName;
 }
