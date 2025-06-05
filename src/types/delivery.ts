@@ -14,8 +14,7 @@ export type DeliveryType =
   | 'infectiousBiological'
   | 'tracked'
   | 'door_to_door'
-  | 'scheduled'
-  | 'cortesia'; // Nova opção adicionada
+  | 'scheduled';
 
 export type CargoType = 'standard' | 'perishable';
 
@@ -47,8 +46,9 @@ export interface Delivery {
   pickupName?: string;
   pickupDate?: string;
   pickupTime?: string;
-  invoiceNumbers?: string[]; // Add this property to support invoice numbers in delivery objects
-  arrivalKnowledgeNumber?: string; // Adicionado: Número do conhecimento de chegada
+  invoiceNumbers?: string[];
+  arrivalKnowledgeNumber?: string;
+  isCourtesy?: boolean; // Novo campo para marcar como cortesia
 }
 
 // Adding DeliveryFormData interface which was missing
@@ -72,5 +72,6 @@ export interface DeliveryFormData {
   pickupDate?: string;
   pickupTime?: string;
   invoiceNumbers?: string[];
-  arrivalKnowledgeNumber?: string; // Adicionado: Número do conhecimento de chegada
+  arrivalKnowledgeNumber?: string;
+  isCourtesy?: boolean; // Novo campo para marcar como cortesia
 }

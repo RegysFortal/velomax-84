@@ -24,6 +24,7 @@ const deliveryFormSchema = z.object({
   occurrence: z.string().optional(),
   cityId: z.string().optional(),
   arrivalKnowledgeNumber: z.string().optional(),
+  isCourtesy: z.boolean().optional(),
 });
 
 interface DeliveryFormContextType {
@@ -83,6 +84,7 @@ export const DeliveryFormProvider = ({ children, delivery }: DeliveryFormProvide
       occurrence: delivery?.occurrence || '',
       cityId: delivery?.cityId || '',
       arrivalKnowledgeNumber: delivery?.arrivalKnowledgeNumber || '',
+      isCourtesy: delivery?.isCourtesy || false,
     },
   });
 
@@ -95,6 +97,7 @@ export const DeliveryFormProvider = ({ children, delivery }: DeliveryFormProvide
 
   // Watch delivery type to show/hide door to door fields
   const watchDeliveryType = form.watch('deliveryType');
+  const watchIsCourtesy = form.watch('isCourtesy');
   const showDoorToDoor = doorToDoorDeliveryTypes.includes(watchDeliveryType);
 
   // Set initial freight value
@@ -104,10 +107,25 @@ export const DeliveryFormProvider = ({ children, delivery }: DeliveryFormProvide
     }
   }, [delivery]);
 
-  // Recalculate freight when relevant fields change, except when it's cortesia
+  // Handle courtesy checkbox
+  useEffect(() => {
+    if (watchIsCourtesy) {
+      setFreight(0);
+      form.setValue('totalFreight', 0);
+    } else {
+      // Recalculate freight when courtesy is unchecked
+      const formValues = form.getValues();
+      if (formValues.clientId && formValues.weight && formValues.deliveryType) {
+        const newFreight = calculateFreight();
+        form.setValue('totalFreight', newFreight);
+      }
+    }
+  }, [watchIsCourtesy, form, calculateFreight, setFreight]);
+
+  // Recalculate freight when relevant fields change, except when it's courtesy
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (value.deliveryType === 'cortesia') {
+      if (value.isCourtesy) {
         setFreight(0);
         form.setValue('totalFreight', 0);
         return;

@@ -29,24 +29,25 @@ export const useDeliveryFormCalculations = ({
     const formValues = form.getValues();
     const clientId = formValues.clientId;
     const deliveryType = formValues.deliveryType as DeliveryType;
+    const isCourtesy = formValues.isCourtesy;
     
     // Se for cortesia, zerar o frete
-    if (deliveryType === 'cortesia') {
-      console.log("Tipo cortesia selecionado - zerando frete");
+    if (isCourtesy) {
+      console.log("Entrega cortesia selecionada - zerando frete");
       setFreight(0);
       return 0;
     }
     
     if (!clientId) {
       console.log("Não é possível calcular o frete: ID do cliente não fornecido");
-      return 0; // Return 0 instead of undefined
+      return 0;
     }
     
     // Usar o hook do useClientPriceTable para obter a tabela de preço
     const priceTable = getClientPriceTable(clientId);
     if (!priceTable) {
       console.log(`Cliente não possui tabela de preço associada`);
-      return 0; // Return 0 instead of undefined
+      return 0;
     }
     
     // Obter valores do formulário

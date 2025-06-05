@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { City, DeliveryType } from '@/types';
 
 interface DeliveryFormTypeFieldsProps {
@@ -40,13 +41,6 @@ export function DeliveryFormTypeFields({
   getValues
 }: DeliveryFormTypeFieldsProps) {
 
-  // Effect to handle cortesia option - zero out freight
-  useEffect(() => {
-    if (watchDeliveryType === 'cortesia' && setValue) {
-      setValue('totalFreight', 0);
-    }
-  }, [watchDeliveryType, setValue]);
-
   const deliveryTypeOptions = [
     { value: 'standard', label: 'Padrão' },
     { value: 'emergency', label: 'Emergência' },
@@ -60,35 +54,64 @@ export function DeliveryFormTypeFields({
     { value: 'normalBiological', label: 'Biológico Normal' },
     { value: 'infectiousBiological', label: 'Biológico Infeccioso' },
     { value: 'tracked', label: 'Rastreado' },
-    { value: 'cortesia', label: 'Cortesia' }, // Nova opção adicionada
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <FormField
-        control={control}
-        name="deliveryType"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Tipo de Entrega</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={control}
+          name="deliveryType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo de Entrega</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {deliveryTypeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="isCourtesy"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked && setValue) {
+                      setValue('totalFreight', 0);
+                    }
+                  }}
+                />
               </FormControl>
-              <SelectContent>
-                {deliveryTypeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Entrega Cortesia
+                </FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Marque se esta entrega é cortesia (frete zerado)
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
+      </div>
 
       {showDoorToDoor && (
         <FormField
@@ -141,14 +164,6 @@ export function DeliveryFormTypeFields({
             </FormItem>
           )}
         />
-      )}
-
-      {watchDeliveryType === 'cortesia' && (
-        <div className="col-span-2">
-          <p className="text-sm text-muted-foreground bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
-            💡 Entrega cortesia selecionada - o frete será zerado automaticamente.
-          </p>
-        </div>
       )}
     </div>
   );

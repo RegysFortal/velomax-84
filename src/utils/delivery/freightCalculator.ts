@@ -15,12 +15,6 @@ export const calculateFreight = (
   city?: City
 ): number => {
   try {
-    // Se for cortesia, retorna 0
-    if (deliveryType === 'cortesia') {
-      console.log('Tipo de entrega cortesia - frete zerado');
-      return 0;
-    }
-
     if (!priceTable) {
       console.warn('Tabela de preço não encontrada para cálculo de frete');
       return 0;

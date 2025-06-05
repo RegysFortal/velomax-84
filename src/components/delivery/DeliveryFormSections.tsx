@@ -103,18 +103,19 @@ export const DeliveryFormSections: React.FC<{
         }
       }
       
-      // Preparar dados para envio - definir cargoType como 'standard' para todos os casos
+      // Preparar dados para envio
       const deliveryData = {
         ...data,
-        cargoType: 'standard' as CargoType, // Properly type the cargoType
-        totalFreight: freight || data.totalFreight || 50,
+        cargoType: 'standard' as CargoType,
+        totalFreight: data.isCourtesy ? 0 : (freight || data.totalFreight || 50),
         weight: weight,
         packages: packages,
         cargoValue: data.cargoValue ? parseFloat(String(data.cargoValue)) : 0,
+        isCourtesy: data.isCourtesy || false,
       };
       
       if (isEditMode && delivery?.id) {
-        // Atualizar entrega existente - usar updateDelivery em vez de addDelivery
+        // Atualizar entrega existente
         console.log('Updating existing delivery with ID:', delivery.id);
         const result = await updateDelivery(delivery.id, deliveryData);
         if (result) {
@@ -149,11 +150,12 @@ export const DeliveryFormSections: React.FC<{
         
         const deliveryData = {
           ...formData,
-          cargoType: 'standard' as CargoType, // Properly type the cargoType
-          totalFreight: freight || formData.totalFreight || 50,
+          cargoType: 'standard' as CargoType,
+          totalFreight: formData.isCourtesy ? 0 : (freight || formData.totalFreight || 50),
           weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) : formData.weight,
           packages: typeof formData.packages === 'string' ? parseInt(formData.packages) : formData.packages,
           cargoValue: formData.cargoValue ? parseFloat(String(formData.cargoValue)) : 0,
+          isCourtesy: formData.isCourtesy || false,
         };
         
         if (isEditMode && delivery?.id) {
