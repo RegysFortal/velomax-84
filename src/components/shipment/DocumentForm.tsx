@@ -84,8 +84,8 @@ export function DocumentForm({
           <div className="space-y-2">
             <Label>Números de Nota Fiscal</Label>
             <InvoiceNumberInput 
-              invoiceNumbers={safeInvoiceNumbers}
-              setInvoiceNumbers={handleInvoiceNumbersChange}
+              value={safeInvoiceNumbers}
+              onChange={handleInvoiceNumbersChange}
             />
             <p className="text-sm text-muted-foreground">
               Pressione Enter para adicionar cada número de nota fiscal
