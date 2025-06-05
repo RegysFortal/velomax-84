@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from './contexts/auth/AuthContext';
+import { AdminAreaProvider } from './contexts/AdminAreaContext';
 import { ActivityLogProvider } from './contexts/ActivityLogContext';
 import { DeliveriesProvider } from './contexts/deliveries/DeliveriesProvider';
 import { ShipmentsProvider } from './contexts/shipments';
@@ -51,78 +53,80 @@ function App() {
       <ThemeProvider>
         <BrowserRouter>
           <AuthProvider>
-            <ActivityLogProvider>
-              <CitiesProvider>
-                <PriceTablesProvider>
-                  <ClientsProvider>
-                    <ShipmentsProvider>
-                      <DeliveriesProvider>
-                        <FinancialProvider>
-                          <BudgetProvider>
-                            <LogbookProvider>
-                              <Routes>
-                                <Route path="/" element={<Navigate to="/login" replace />} />
-                                <Route path="/login" element={<Login />} />
-                                <Route
-                                  element={
-                                    <PrivateRoute>
-                                      <AppLayout>
-                                        <Dashboard />
-                                      </AppLayout>
-                                    </PrivateRoute>
-                                  }
-                                  path="/dashboard"
-                                />
-                                <Route
-                                  element={
-                                    <PrivateRoute>
-                                      <AppLayout>
-                                        <Outlet />
-                                      </AppLayout>
-                                    </PrivateRoute>
-                                  }
-                                >
-                                  <Route path="activities" element={<Activities />} />
-                                  <Route path="deliveries" element={<DeliveriesPage />} />
-                                  <Route path="employees" element={<Employees />} />
-                                  <Route path="vehicles" element={<Vehicles />} />
-                                  <Route path="logbooks" element={<Logbooks />} />
-                                  <Route path="logbook" element={<Logbook />} />
-                                  <Route path="maintenance" element={<Maintenance />} />
-                                  <Route path="financial" element={<Financial />} />
-                                  <Route path="financial-dashboard" element={<FinancialDashboard />} />
-                                  <Route path="shipments" element={<Shipments />} />
-                                  <Route path="shipment-reports" element={<ShipmentReports />} />
-                                  <Route path="budgets" element={<Budgets />} />
-                                  <Route path="clients" element={<Clients />} />
-                                  <Route path="cities" element={<Cities />} />
-                                  <Route path="price-tables" element={<PriceTables />} />
-                                  <Route path="users" element={<Users />} />
-                                  <Route path="reports" element={<Reports />} />
-                                  <Route path="accounts/reports" element={<FinancialReportsPage />} />
-                                  <Route path="accounts/payable" element={<PayableAccountsPage />} />
-                                  <Route path="accounts/receivable" element={<ReceivableAccountsPage />} />
-                                  <Route path="activity-logs" element={<ActivityLogs />} />
-                                  <Route path="contractors" element={<Contractors />} />
-                                  <Route path="settings" element={<Settings />} />
-                                  
-                                  <Route path="inventory/products" element={<ProductsPage />} />
-                                  <Route path="inventory/entries" element={<EntriesPage />} />
-                                  <Route path="inventory/exits" element={<ExitsPage />} />
-                                  <Route path="inventory/dashboard" element={<DashboardPage />} />
-                                  
-                                  <Route path="*" element={<NotFound />} />
-                                </Route>
-                              </Routes>
-                            </LogbookProvider>
-                          </BudgetProvider>
-                        </FinancialProvider>
-                      </DeliveriesProvider>
-                    </ShipmentsProvider>
-                  </ClientsProvider>
-                </PriceTablesProvider>
-              </CitiesProvider>
-            </ActivityLogProvider>
+            <AdminAreaProvider>
+              <ActivityLogProvider>
+                <CitiesProvider>
+                  <PriceTablesProvider>
+                    <ClientsProvider>
+                      <ShipmentsProvider>
+                        <DeliveriesProvider>
+                          <FinancialProvider>
+                            <BudgetProvider>
+                              <LogbookProvider>
+                                <Routes>
+                                  <Route path="/" element={<Navigate to="/login" replace />} />
+                                  <Route path="/login" element={<Login />} />
+                                  <Route
+                                    element={
+                                      <PrivateRoute>
+                                        <AppLayout>
+                                          <Dashboard />
+                                        </AppLayout>
+                                      </PrivateRoute>
+                                    }
+                                    path="/dashboard"
+                                  />
+                                  <Route
+                                    element={
+                                      <PrivateRoute>
+                                        <AppLayout>
+                                          <Outlet />
+                                        </AppLayout>
+                                      </PrivateRoute>
+                                    }
+                                  >
+                                    <Route path="activities" element={<Activities />} />
+                                    <Route path="deliveries" element={<DeliveriesPage />} />
+                                    <Route path="employees" element={<Employees />} />
+                                    <Route path="vehicles" element={<Vehicles />} />
+                                    <Route path="logbooks" element={<Logbooks />} />
+                                    <Route path="logbook" element={<Logbook />} />
+                                    <Route path="maintenance" element={<Maintenance />} />
+                                    <Route path="financial" element={<Financial />} />
+                                    <Route path="financial-dashboard" element={<FinancialDashboard />} />
+                                    <Route path="shipments" element={<Shipments />} />
+                                    <Route path="shipment-reports" element={<ShipmentReports />} />
+                                    <Route path="budgets" element={<Budgets />} />
+                                    <Route path="clients" element={<Clients />} />
+                                    <Route path="cities" element={<Cities />} />
+                                    <Route path="price-tables" element={<PriceTables />} />
+                                    <Route path="users" element={<Users />} />
+                                    <Route path="reports" element={<Reports />} />
+                                    <Route path="accounts/reports" element={<FinancialReportsPage />} />
+                                    <Route path="accounts/payable" element={<PayableAccountsPage />} />
+                                    <Route path="accounts/receivable" element={<ReceivableAccountsPage />} />
+                                    <Route path="activity-logs" element={<ActivityLogs />} />
+                                    <Route path="contractors" element={<Contractors />} />
+                                    <Route path="settings" element={<Settings />} />
+                                    
+                                    <Route path="inventory/products" element={<ProductsPage />} />
+                                    <Route path="inventory/entries" element={<EntriesPage />} />
+                                    <Route path="inventory/exits" element={<ExitsPage />} />
+                                    <Route path="inventory/dashboard" element={<DashboardPage />} />
+                                    
+                                    <Route path="*" element={<NotFound />} />
+                                  </Route>
+                                </Routes>
+                              </LogbookProvider>
+                            </BudgetProvider>
+                          </FinancialProvider>
+                        </DeliveriesProvider>
+                      </ShipmentsProvider>
+                    </ClientsProvider>
+                  </PriceTablesProvider>
+                </CitiesProvider>
+              </ActivityLogProvider>
+            </AdminAreaProvider>
           </AuthProvider>
         </BrowserRouter>
       </ThemeProvider>

@@ -2,6 +2,7 @@
 import React from "react";
 import { NavigationMenu, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { useAuth } from "@/contexts/auth/AuthContext";
+import { useAdminArea } from "@/contexts/AdminAreaContext";
 import { OperationalMenu } from "./nav/OperationalMenu";
 import { FinancialMenu } from "./nav/FinancialMenu";
 import { ManagementMenu } from "./nav/ManagementMenu";
@@ -11,6 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export function NavMenu() {
   const { user, hasPermission } = useAuth();
+  const { isAdminArea } = useAdminArea();
   const { isMobile } = useIsMobile();
 
   // Prevent duplicate menu openings with this state
@@ -29,30 +31,43 @@ export function NavMenu() {
           open={openMenuIndex === 0} 
           onOpenChange={() => handleMenuOpen(0)} 
         />
-        <FinancialMenu 
-          user={user} 
-          hasPermission={hasPermission}
-          open={openMenuIndex === 1} 
-          onOpenChange={() => handleMenuOpen(1)} 
-        />
-        <FleetMenu 
-          user={user} 
-          hasPermission={hasPermission}
-          open={openMenuIndex === 2} 
-          onOpenChange={() => handleMenuOpen(2)} 
-        />
+        
+        {/* Financeiro - só aparece na área administrativa */}
+        {isAdminArea && (
+          <FinancialMenu 
+            user={user} 
+            hasPermission={hasPermission}
+            open={openMenuIndex === 1} 
+            onOpenChange={() => handleMenuOpen(1)} 
+          />
+        )}
+        
+        {/* Frota - só aparece na área administrativa */}
+        {isAdminArea && (
+          <FleetMenu 
+            user={user} 
+            hasPermission={hasPermission}
+            open={openMenuIndex === 2} 
+            onOpenChange={() => handleMenuOpen(2)} 
+          />
+        )}
+        
         <InventoryMenu 
           user={user} 
           hasPermission={hasPermission}
           open={openMenuIndex === 3} 
           onOpenChange={() => handleMenuOpen(3)} 
         />
-        <ManagementMenu 
-          user={user} 
-          hasPermission={hasPermission}
-          open={openMenuIndex === 4} 
-          onOpenChange={() => handleMenuOpen(4)} 
-        />
+        
+        {/* Configurações (Administração) - só aparece na área administrativa */}
+        {isAdminArea && (
+          <ManagementMenu 
+            user={user} 
+            hasPermission={hasPermission}
+            open={openMenuIndex === 4} 
+            onOpenChange={() => handleMenuOpen(4)} 
+          />
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );

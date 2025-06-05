@@ -2,6 +2,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { useAdminArea } from '@/contexts/AdminAreaContext';
 import { AppHeader } from './AppHeader';
 import { toast } from 'sonner';
 import { User, PermissionLevel } from '@/types';
@@ -12,6 +13,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading, hasPermission } = useAuth();
+  const { isAdminArea } = useAdminArea();
   const navigate = useNavigate();
   const location = useLocation();
   const [settingsPermissions, setSettingsPermissions] = useState<{[key: string]: boolean}>({
@@ -92,6 +94,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         level: keyof PermissionLevel; 
         roleRestrictions?: string[];
         allowRegularUser?: boolean;
+        requiresAdminArea?: boolean;
       }> = {
         '/deliveries': { path: 'deliveries', level: 'view', allowRegularUser: true },
         '/shipments': { path: 'shipments', level: 'view', allowRegularUser: true },
@@ -99,57 +102,65 @@ export function AppLayout({ children }: AppLayoutProps) {
         '/financial': { 
           path: 'financialDashboard', 
           level: 'view',
-          roleRestrictions: ['admin', 'manager'] 
+          roleRestrictions: ['admin', 'manager'],
+          requiresAdminArea: true
         },  
         '/reports': { 
           path: 'financialReports', 
           level: 'view',
-          roleRestrictions: ['admin', 'manager']
+          roleRestrictions: ['admin', 'manager'],
+          requiresAdminArea: true
         },     
         '/price-tables': { 
           path: 'priceTables', 
           level: 'view',
-          roleRestrictions: ['admin', 'manager']
+          roleRestrictions: ['admin', 'manager'],
+          requiresAdminArea: true
         },
         '/cities': { 
           path: 'cities', 
           level: 'view',
-          allowRegularUser: true // Regular users can view cities
+          allowRegularUser: true,
+          requiresAdminArea: true
         },
         '/dashboard': { path: 'dashboard', level: 'view', allowRegularUser: true },
         '/logbook': { path: 'logbook', level: 'view', allowRegularUser: true },
         '/clients': { path: 'clients', level: 'view', allowRegularUser: true },
         '/employees': { path: 'employees', level: 'view', allowRegularUser: true },
         '/contractors': { path: 'contractors', level: 'view', allowRegularUser: true },
-        '/vehicles': { path: 'vehicles', level: 'view', allowRegularUser: true },
-        '/maintenance': { path: 'maintenance', level: 'view', allowRegularUser: true },
-        '/settings': { path: 'settings', level: 'view' },
+        '/vehicles': { path: 'vehicles', level: 'view', allowRegularUser: true, requiresAdminArea: true },
+        '/maintenance': { path: 'maintenance', level: 'view', allowRegularUser: true, requiresAdminArea: true },
+        '/settings': { path: 'settings', level: 'view', requiresAdminArea: true },
         '/budgets': { path: 'budgets', level: 'view', allowRegularUser: true },
         '/financial-dashboard': { 
           path: 'financialDashboard', 
           level: 'view',
-          roleRestrictions: ['admin', 'manager']
+          roleRestrictions: ['admin', 'manager'],
+          requiresAdminArea: true
         },
         '/accounts/reports': { 
           path: 'financialReports', 
           level: 'view',
-          roleRestrictions: ['admin', 'manager']
+          roleRestrictions: ['admin', 'manager'],
+          requiresAdminArea: true
         },
         '/accounts/payable': { 
           path: 'payableAccounts', 
           level: 'view',
-          roleRestrictions: ['admin', 'manager']
+          roleRestrictions: ['admin', 'manager'],
+          requiresAdminArea: true
         },
         '/accounts/receivable': { 
           path: 'receivableAccounts', 
           level: 'view',
-          roleRestrictions: ['admin', 'manager']
+          roleRestrictions: ['admin', 'manager'],
+          requiresAdminArea: true
         },
         '/inventory/products': { path: 'products', level: 'view', allowRegularUser: true },
         '/inventory/entries': { path: 'inventoryEntries', level: 'view', allowRegularUser: true },
         '/inventory/exits': { path: 'inventoryExits', level: 'view', allowRegularUser: true },
         '/inventory/dashboard': { path: 'inventoryDashboard', level: 'view', allowRegularUser: true },
-        '/activity-logs': { path: 'activity-logs', level: 'view' }
+        '/activity-logs': { path: 'activity-logs', level: 'view', requiresAdminArea: true }
       };
 
       // Special case for activity logs (admin only)
@@ -166,9 +177,9 @@ export function AppLayout({ children }: AppLayoutProps) {
         // If user has no permission to any settings section
         const hasAnySettingsPermission = Object.values(settingsPermissions).some(Boolean);
         
-        if (!hasAnySettingsPermission) {
+        if (!hasAnySettingsPermission || !isAdminArea) {
           toast.error("Acesso restrito", {
-            description: "Você não tem permissão para acessar as configurações.",
+            description: "Você precisa estar na área administrativa para acessar as configurações.",
           });
           navigate('/dashboard');
           return;
@@ -184,6 +195,17 @@ export function AppLayout({ children }: AppLayoutProps) {
       const permissionConfig = pathPermissions[location.pathname];
       
       if (permissionConfig) {
+        // Check if requires admin area
+        if (permissionConfig.requiresAdminArea && !isAdminArea) {
+          console.log(`Access denied: Path ${location.pathname} requires admin area`);
+          toast.error("Acesso restrito", {
+            description: "Esta página só está disponível na área administrativa.",
+          });
+          
+          navigate('/dashboard');
+          return;
+        }
+
         // Admin users bypass permission checks
         if (user.role === 'admin') {
           return;
@@ -232,7 +254,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         }
       }
     }
-  }, [location.pathname, user, loading, hasPermission, navigate, settingsPermissions]);
+  }, [location.pathname, user, loading, hasPermission, navigate, settingsPermissions, isAdminArea]);
   
   if (loading) {
     return (

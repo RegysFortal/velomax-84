@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { AdminAreaDialog } from './AdminAreaDialog';
 
 export function UserButton() {
   const { user, logout } = useAuth();
@@ -45,12 +46,17 @@ export function UserButton() {
           <User className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleProfileClick}>
           Perfil
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <div className="p-1">
+          <AdminAreaDialog />
+        </div>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           Sair
         </DropdownMenuItem>
