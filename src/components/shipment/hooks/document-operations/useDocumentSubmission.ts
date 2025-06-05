@@ -45,11 +45,10 @@ export function useDocumentSubmission({
     invoiceNumbers: string[],
     packages: string,
     weight: string,
-    notes: string,
-    isDelivered: boolean
+    notes: string
   ) => {
     try {
-      console.log("Creating document with values:", { minuteNumber, invoiceNumbers, packages, weight, notes, isDelivered });
+      console.log("Creating document with values:", { minuteNumber, invoiceNumbers, packages, weight, notes });
       
       const packageCount = packages ? parseInt(packages) : undefined;
       const weightValue = weight ? parseFloat(weight) : undefined;
@@ -68,7 +67,7 @@ export function useDocumentSubmission({
         packages: packageCount,
         weight: weightValue,
         notes: notes.trim() || undefined,
-        isDelivered
+        isDelivered: false // Always false for new documents
       });
       
       toast.success("Documento adicionado com sucesso");
@@ -88,12 +87,11 @@ export function useDocumentSubmission({
     invoiceNumbers: string[],
     packages: string,
     weight: string,
-    notes: string,
-    isDelivered: boolean
+    notes: string
   ) => {
     try {
       console.log("Updating document with ID:", editingDocument.id);
-      console.log("Updated values:", { minuteNumber, invoiceNumbers, packages, weight, notes, isDelivered });
+      console.log("Updated values:", { minuteNumber, invoiceNumbers, packages, weight, notes });
       
       const packageCount = packages ? parseInt(packages) : undefined;
       const weightValue = weight ? parseFloat(weight) : undefined;
@@ -101,15 +99,15 @@ export function useDocumentSubmission({
       // Validate
       if (!validateDocument(packageCount, weightValue)) return;
       
-      // Update existing document
+      // Update existing document - preserve delivery status
       const updatedDocument = {
         ...editingDocument,
         minuteNumber: minuteNumber.trim() || undefined,
         invoiceNumbers: [...invoiceNumbers], // Make a copy to ensure array is preserved
         packages: packageCount,
         weight: weightValue,
-        notes: notes.trim() || undefined,
-        isDelivered
+        notes: notes.trim() || undefined
+        // Don't change isDelivered, isRetained, or isPickedUp - these are controlled by status
       };
       
       console.log("Final document to update:", updatedDocument);

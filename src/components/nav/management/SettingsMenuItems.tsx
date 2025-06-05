@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { Settings, Building2, Users, Database } from "lucide-react";
+import { Settings, Building2, Database } from "lucide-react";
 import { getActiveClass } from "../navUtils";
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -18,7 +18,7 @@ export function SettingsMenuItems({ location, hasSettingsAccess }: SettingsMenuI
   
   if (!hasSettingsAccess) return null;
   
-  // Only admin can see system, company, and users settings
+  // Only admin can see system and company settings
   const isAdmin = user?.role === 'admin';
   
   // Only admin and manager can see backup settings
@@ -28,7 +28,7 @@ export function SettingsMenuItems({ location, hasSettingsAccess }: SettingsMenuI
     event.preventDefault();
     
     // Check permissions before navigating
-    if ((tab === 'system' || tab === 'company' || tab === 'users') && !isAdmin) {
+    if ((tab === 'system' || tab === 'company') && !isAdmin) {
       toast.error("Acesso restrito", {
         description: "Apenas administradores podem acessar esta seção."
       });
@@ -75,20 +75,6 @@ export function SettingsMenuItems({ location, hasSettingsAccess }: SettingsMenuI
         >
           <Building2 className="mr-2 h-4 w-4" />
           Empresa
-        </Link>
-      )}
-      
-      {isAdmin && (
-        <Link
-          to="/settings?tab=users"
-          className={cn(
-            "flex items-center p-2 rounded-md hover:bg-accent",
-            getActiveClass(location.pathname, "/settings")
-          )}
-          onClick={(e) => handleSettingsClick('users', e)}
-        >
-          <Users className="mr-2 h-4 w-4" />
-          Usuários
         </Link>
       )}
       

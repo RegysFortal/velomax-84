@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { InvoiceNumberInput } from './InvoiceNumberInput';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FormActions } from './form-sections/FormActions';
@@ -126,15 +125,6 @@ export function DocumentForm({
               placeholder="Informações adicionais"
               rows={3}
             />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="isDelivered" 
-              checked={isDelivered} 
-              onCheckedChange={setIsDelivered} 
-            />
-            <Label htmlFor="isDelivered">Entregue</Label>
           </div>
         </div>
       </ScrollArea>

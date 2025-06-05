@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSettings } from './SystemSettings';
 import { BudgetBackupTools } from '@/components/budget/BudgetBackupTools';
 import { SystemBackup } from './SystemBackup';
-import { UserManagement } from './UserManagement';
 import { CompanySettings } from './CompanySettings';
 import { ClientsManagement } from './ClientsManagement';
 import { BudgetProvider } from '@/contexts/budget';
@@ -18,7 +17,6 @@ interface SettingsTabsProps {
   permissions: {
     system: boolean;
     company: boolean;
-    users: boolean;
     backup: boolean;
     clients: boolean;
     employees: boolean;
@@ -68,7 +66,6 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
       <TabsList className="mb-6">
         {permissions.system && <TabsTrigger value="system">Sistema</TabsTrigger>}
         {permissions.company && <TabsTrigger value="company">Empresa</TabsTrigger>}
-        {permissions.users && <TabsTrigger value="users">Usuários</TabsTrigger>}
         {permissions.backup && <TabsTrigger value="backup">Backup</TabsTrigger>}
         {permissions.clients && <TabsTrigger value="clients">Clientes</TabsTrigger>}
         {permissions.employees && <TabsTrigger value="employees">Funcionários</TabsTrigger>}
@@ -84,12 +81,6 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
       {permissions.company && (
         <TabsContent value="company" className="space-y-6">
           <CompanySettings />
-        </TabsContent>
-      )}
-      
-      {permissions.users && (
-        <TabsContent value="users" className="space-y-6">
-          <UserManagement />
         </TabsContent>
       )}
       
