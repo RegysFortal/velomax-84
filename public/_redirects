@@ -1,2 +1,25 @@
 
+# Netlify redirects file
 /*    /index.html   200
+
+# Fallback for history API
+/dashboard    /index.html   200
+/deliveries   /index.html   200
+/shipments    /index.html   200
+/clients      /index.html   200
+/employees    /index.html   200
+/vehicles     /index.html   200
+/maintenance  /index.html   200
+/financial    /index.html   200
+/settings     /index.html   200
+/budgets      /index.html   200
+/reports      /index.html   200
+/cities       /index.html   200
+/price-tables /index.html   200
+/users        /index.html   200
+/contractors  /index.html   200
+/logbook      /index.html   200
+/logbooks     /index.html   200
+/activities   /index.html   200
+/inventory/*  /index.html   200
+/accounts/*   /index.html   200

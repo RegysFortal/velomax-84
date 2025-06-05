@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // Configuração para SPA routing em desenvolvimento
+    historyApiFallback: {
+      index: '/index.html',
+    },
   },
   plugins: [
     react(),
@@ -25,9 +29,18 @@ export default defineConfig(({ mode }) => ({
         manualChunks: undefined,
       },
     },
+    // Otimizações para SPA
+    target: 'esnext',
+    minify: 'esbuild',
   },
   preview: {
     port: 8080,
     host: "::",
+    // Configuração para SPA routing em preview
+    historyApiFallback: {
+      index: '/index.html',
+    },
   },
+  // Base URL configuration
+  base: '/',
 }));

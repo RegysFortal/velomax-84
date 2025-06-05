@@ -2,7 +2,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Home, ArrowLeft } from "lucide-react";
+import { Home, ArrowLeft, RefreshCw } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
@@ -13,6 +13,10 @@ const NotFound = () => {
       location.pathname
     );
   }, [location.pathname]);
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
@@ -37,10 +41,16 @@ const NotFound = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
+
+          <Button variant="secondary" onClick={handleRefresh} className="w-full">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Recarregar Página
+          </Button>
         </div>
         
         <div className="mt-8 text-xs text-gray-400">
           <p>Caminho tentado: <code className="bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">{location.pathname}</code></p>
+          <p className="mt-2">Se o problema persistir, tente limpar o cache do navegador.</p>
         </div>
       </div>
     </div>

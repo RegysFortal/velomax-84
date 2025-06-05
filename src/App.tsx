@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from './contexts/auth/AuthContext';
@@ -46,12 +46,20 @@ import Logbook from './pages/Logbook';
 import Settings from './pages/Settings';
 
 function App() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        retry: 1,
+      },
+    },
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <BrowserRouter>
+        <BrowserRouter basename="/">
           <AuthProvider>
             <AdminAreaProvider>
               <ActivityLogProvider>
@@ -64,9 +72,15 @@ function App() {
                             <BudgetProvider>
                               <LogbookProvider>
                                 <Routes>
+                                  {/* Redirect root to login */}
                                   <Route path="/" element={<Navigate to="/login" replace />} />
+                                  
+                                  {/* Public routes */}
                                   <Route path="/login" element={<Login />} />
+                                  
+                                  {/* Dashboard route */}
                                   <Route
+                                    path="/dashboard"
                                     element={
                                       <PrivateRoute>
                                         <AppLayout>
@@ -74,49 +88,51 @@ function App() {
                                         </AppLayout>
                                       </PrivateRoute>
                                     }
-                                    path="/dashboard"
                                   />
+                                  
+                                  {/* Protected routes with layout */}
                                   <Route
+                                    path="/*"
                                     element={
                                       <PrivateRoute>
                                         <AppLayout>
-                                          <Outlet />
+                                          <Routes>
+                                            <Route path="activities" element={<Activities />} />
+                                            <Route path="deliveries" element={<DeliveriesPage />} />
+                                            <Route path="employees" element={<Employees />} />
+                                            <Route path="vehicles" element={<Vehicles />} />
+                                            <Route path="logbooks" element={<Logbooks />} />
+                                            <Route path="logbook" element={<Logbook />} />
+                                            <Route path="maintenance" element={<Maintenance />} />
+                                            <Route path="financial" element={<Financial />} />
+                                            <Route path="financial-dashboard" element={<FinancialDashboard />} />
+                                            <Route path="shipments" element={<Shipments />} />
+                                            <Route path="shipment-reports" element={<ShipmentReports />} />
+                                            <Route path="budgets" element={<Budgets />} />
+                                            <Route path="clients" element={<Clients />} />
+                                            <Route path="cities" element={<Cities />} />
+                                            <Route path="price-tables" element={<PriceTables />} />
+                                            <Route path="users" element={<Users />} />
+                                            <Route path="reports" element={<Reports />} />
+                                            <Route path="accounts/reports" element={<FinancialReportsPage />} />
+                                            <Route path="accounts/payable" element={<PayableAccountsPage />} />
+                                            <Route path="accounts/receivable" element={<ReceivableAccountsPage />} />
+                                            <Route path="activity-logs" element={<ActivityLogs />} />
+                                            <Route path="contractors" element={<Contractors />} />
+                                            <Route path="settings" element={<Settings />} />
+                                            
+                                            <Route path="inventory/products" element={<ProductsPage />} />
+                                            <Route path="inventory/entries" element={<EntriesPage />} />
+                                            <Route path="inventory/exits" element={<ExitsPage />} />
+                                            <Route path="inventory/dashboard" element={<DashboardPage />} />
+                                            
+                                            {/* Catch-all para rotas não encontradas */}
+                                            <Route path="*" element={<NotFound />} />
+                                          </Routes>
                                         </AppLayout>
                                       </PrivateRoute>
                                     }
-                                  >
-                                    <Route path="activities" element={<Activities />} />
-                                    <Route path="deliveries" element={<DeliveriesPage />} />
-                                    <Route path="employees" element={<Employees />} />
-                                    <Route path="vehicles" element={<Vehicles />} />
-                                    <Route path="logbooks" element={<Logbooks />} />
-                                    <Route path="logbook" element={<Logbook />} />
-                                    <Route path="maintenance" element={<Maintenance />} />
-                                    <Route path="financial" element={<Financial />} />
-                                    <Route path="financial-dashboard" element={<FinancialDashboard />} />
-                                    <Route path="shipments" element={<Shipments />} />
-                                    <Route path="shipment-reports" element={<ShipmentReports />} />
-                                    <Route path="budgets" element={<Budgets />} />
-                                    <Route path="clients" element={<Clients />} />
-                                    <Route path="cities" element={<Cities />} />
-                                    <Route path="price-tables" element={<PriceTables />} />
-                                    <Route path="users" element={<Users />} />
-                                    <Route path="reports" element={<Reports />} />
-                                    <Route path="accounts/reports" element={<FinancialReportsPage />} />
-                                    <Route path="accounts/payable" element={<PayableAccountsPage />} />
-                                    <Route path="accounts/receivable" element={<ReceivableAccountsPage />} />
-                                    <Route path="activity-logs" element={<ActivityLogs />} />
-                                    <Route path="contractors" element={<Contractors />} />
-                                    <Route path="settings" element={<Settings />} />
-                                    
-                                    <Route path="inventory/products" element={<ProductsPage />} />
-                                    <Route path="inventory/entries" element={<EntriesPage />} />
-                                    <Route path="inventory/exits" element={<ExitsPage />} />
-                                    <Route path="inventory/dashboard" element={<DashboardPage />} />
-                                  </Route>
-                                  
-                                  {/* Catch-all route - deve ser a última */}
-                                  <Route path="*" element={<NotFound />} />
+                                  />
                                 </Routes>
                               </LogbookProvider>
                             </BudgetProvider>
