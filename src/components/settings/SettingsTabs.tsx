@@ -1,76 +1,124 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CompanySettings } from "./CompanySettings";
-import { SystemSettings } from "./SystemSettings";
-import { UserManagement } from "./UserManagement";
-import { SystemBackup } from "./SystemBackup";
-import { DataBackup } from "./DataBackup";
-import { NotificationSettings } from "./NotificationSettings";
-import { EmployeesManagement } from "./EmployeesManagement";
-import { ClientsManagement } from "./ClientsManagement";
-import { ContractorsManagement } from "./ContractorsManagement";
-import { useSettingsPermissions } from "./useSettingsPermissions";
+import React, { useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SystemSettings } from './SystemSettings';
+import { BudgetBackupTools } from '@/components/budget/BudgetBackupTools';
+import { SystemBackup } from './SystemBackup';
+import { UserManagement } from './UserManagement';
+import { CompanySettings } from './CompanySettings';
+import { ClientsManagement } from './ClientsManagement';
+import { BudgetProvider } from '@/contexts/budget';
+import { toast } from 'sonner';
+import { EmployeesManagement } from './EmployeesManagement';
+import { ContractorsManagement } from './ContractorsManagement';
 
-export function SettingsTabs() {
-  const { canAccessSystemSettings, canAccessUserManagement, canAccessBackup } = useSettingsPermissions();
+interface SettingsTabsProps {
+  activeTab: string;
+  handleTabChange: (value: string) => void;
+  permissions: {
+    system: boolean;
+    company: boolean;
+    users: boolean;
+    backup: boolean;
+    clients: boolean;
+    employees: boolean;
+    contractors: boolean;
+  };
+}
+
+export const SettingsTabs: React.FC<SettingsTabsProps> = ({
+  activeTab,
+  handleTabChange,
+  permissions,
+}) => {
+  // Debug logs to help troubleshoot issues
+  useEffect(() => {
+    console.log("SettingsTabs rendered with activeTab:", activeTab);
+    console.log("Permissions:", permissions);
+  }, [activeTab, permissions]);
+
+  // Renderizar apenas as abas com permissões
+  const availableTabs = Object.entries(permissions)
+    .filter(([_, hasPermission]) => hasPermission)
+    .map(([tab]) => tab);
+
+  console.log("Available tabs:", availableTabs);
+  
+  if (availableTabs.length === 0) {
+    return (
+      <div className="p-4 text-center">
+        <p>Você não tem permissões para visualizar as configurações do sistema.</p>
+      </div>
+    );
+  }
+
+  // Verificar se a aba ativa está disponível, caso contrário, redirecionar para a primeira aba disponível
+  useEffect(() => {
+    if (availableTabs.length > 0 && !availableTabs.includes(activeTab)) {
+      console.log(`Active tab ${activeTab} not available. Switching to ${availableTabs[0]}`);
+      handleTabChange(availableTabs[0]);
+      toast.info("Redirecionado para a aba disponível", {
+        description: "A aba selecionada não está disponível com suas permissões atuais."
+      });
+    }
+  }, [activeTab, availableTabs, handleTabChange]);
 
   return (
-    <Tabs defaultValue="company" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
-        <TabsTrigger value="company">Empresa</TabsTrigger>
-        <TabsTrigger value="notifications">Notificações</TabsTrigger>
-        <TabsTrigger value="employees">Funcionários</TabsTrigger>
-        <TabsTrigger value="clients">Clientes</TabsTrigger>
-        <TabsTrigger value="contractors">Terceirizados</TabsTrigger>
-        {canAccessBackup && <TabsTrigger value="backup">Backup</TabsTrigger>}
-        {canAccessBackup && <TabsTrigger value="data-backup">Backup Dados</TabsTrigger>}
-        {canAccessSystemSettings && <TabsTrigger value="system">Sistema</TabsTrigger>}
-        {canAccessUserManagement && <TabsTrigger value="users">Usuários</TabsTrigger>}
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+      <TabsList className="mb-6">
+        {permissions.system && <TabsTrigger value="system">Sistema</TabsTrigger>}
+        {permissions.company && <TabsTrigger value="company">Empresa</TabsTrigger>}
+        {permissions.users && <TabsTrigger value="users">Usuários</TabsTrigger>}
+        {permissions.backup && <TabsTrigger value="backup">Backup</TabsTrigger>}
+        {permissions.clients && <TabsTrigger value="clients">Clientes</TabsTrigger>}
+        {permissions.employees && <TabsTrigger value="employees">Funcionários</TabsTrigger>}
+        {permissions.contractors && <TabsTrigger value="contractors">Terceiros</TabsTrigger>}
       </TabsList>
-
-      <TabsContent value="company">
-        <CompanySettings />
-      </TabsContent>
-
-      <TabsContent value="notifications">
-        <NotificationSettings />
-      </TabsContent>
-
-      <TabsContent value="employees">
-        <EmployeesManagement />
-      </TabsContent>
-
-      <TabsContent value="clients">
-        <ClientsManagement />
-      </TabsContent>
-
-      <TabsContent value="contractors">
-        <ContractorsManagement />
-      </TabsContent>
-
-      {canAccessBackup && (
-        <TabsContent value="backup">
-          <SystemBackup />
-        </TabsContent>
-      )}
-
-      {canAccessBackup && (
-        <TabsContent value="data-backup">
-          <DataBackup />
-        </TabsContent>
-      )}
-
-      {canAccessSystemSettings && (
-        <TabsContent value="system">
+      
+      {permissions.system && (
+        <TabsContent value="system" className="space-y-6">
           <SystemSettings />
         </TabsContent>
       )}
-
-      {canAccessUserManagement && (
-        <TabsContent value="users">
+      
+      {permissions.company && (
+        <TabsContent value="company" className="space-y-6">
+          <CompanySettings />
+        </TabsContent>
+      )}
+      
+      {permissions.users && (
+        <TabsContent value="users" className="space-y-6">
           <UserManagement />
+        </TabsContent>
+      )}
+      
+      {permissions.backup && (
+        <TabsContent value="backup" className="space-y-6">
+          <SystemBackup />
+          <BudgetProvider>
+            <BudgetBackupTools />
+          </BudgetProvider>
+        </TabsContent>
+      )}
+      
+      {permissions.clients && (
+        <TabsContent value="clients" className="space-y-6">
+          <ClientsManagement />
+        </TabsContent>
+      )}
+      
+      {permissions.employees && (
+        <TabsContent value="employees" className="space-y-6">
+          <EmployeesManagement />
+        </TabsContent>
+      )}
+      
+      {permissions.contractors && (
+        <TabsContent value="contractors" className="space-y-6">
+          <ContractorsManagement />
         </TabsContent>
       )}
     </Tabs>
   );
-}
+};
