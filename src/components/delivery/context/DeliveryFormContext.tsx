@@ -1,38 +1,52 @@
 
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { deliveryFormSchema } from '../schema/deliveryFormSchema';
-import { Delivery } from '@/types';
-import { useDuplicateMinuteCheck } from '../hooks/useDuplicateMinuteCheck';
-import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
-import { useFreightCalculation } from '@/contexts/deliveries/hooks/useFreightCalculation';
-import { useClientPriceTable } from '@/contexts/budget/useClientPriceTable';
-import { useCities } from '@/contexts/cities';
-import { useClients } from '@/contexts';
+import * as z from 'zod';
+import { Delivery, DeliveryFormData } from '@/types';
+import { useDeliveryFormCalculations } from '../hooks/useDeliveryFormCalculations';
+import { doorToDoorDeliveryTypes } from '@/types/delivery';
+
+const deliveryFormSchema = z.object({
+  minuteNumber: z.string().optional(),
+  clientId: z.string().min(1, 'Cliente é obrigatório'),
+  deliveryDate: z.string().min(1, 'Data de entrega é obrigatória'),
+  deliveryTime: z.string().min(1, 'Horário é obrigatório'),
+  receiver: z.string().min(1, 'Destinatário é obrigatório'),
+  receiverId: z.string().optional(),
+  weight: z.number().min(0.1, 'Peso deve ser maior que 0'),
+  packages: z.number().min(1, 'Quantidade deve ser maior que 0'),
+  deliveryType: z.string().min(1, 'Tipo de entrega é obrigatório'),
+  cargoType: z.string().min(1, 'Tipo de carga é obrigatório'),
+  cargoValue: z.number().optional(),
+  totalFreight: z.number().min(0, 'Frete deve ser maior ou igual a 0'),
+  notes: z.string().optional(),
+  occurrence: z.string().optional(),
+  cityId: z.string().optional(),
+  arrivalKnowledgeNumber: z.string().optional(),
+});
 
 interface DeliveryFormContextType {
   form: any;
-  delivery: Delivery | null;
+  delivery: Delivery | null | undefined;
   isEditMode: boolean;
   showDoorToDoor: boolean;
   showDuplicateAlert: boolean;
   setShowDuplicateAlert: (show: boolean) => void;
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: DeliveryFormData | null;
+  setFormData: (data: DeliveryFormData | null) => void;
   freight: number;
   setFreight: (value: number) => void;
-  clients: any[];
   insuranceValue: number;
   setInsuranceValue: (value: number) => void;
 }
 
-const DeliveryFormContext = createContext<DeliveryFormContextType | undefined>(undefined);
+const DeliveryFormContext = createContext<DeliveryFormContextType | null>(null);
 
 export const useDeliveryFormContext = () => {
   const context = useContext(DeliveryFormContext);
   if (!context) {
-    throw new Error('useDeliveryFormContext must be used within a DeliveryFormProvider');
+    throw new Error('useDeliveryFormContext must be used within DeliveryFormProvider');
   }
   return context;
 };
@@ -40,151 +54,77 @@ export const useDeliveryFormContext = () => {
 interface DeliveryFormProviderProps {
   children: React.ReactNode;
   delivery?: Delivery | null;
-  isEditMode?: boolean;
 }
 
-export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({ 
-  children, 
-  delivery = null, 
-  isEditMode = false 
-}) => {
-  const { checkMinuteNumberExistsForClient } = useDeliveries();
-  const { cities } = useCities();
-  const { clients } = useClients();
-  const [freight, setFreight] = useState<number>(0);
-  const [insuranceValue, setInsuranceValue] = useState<number>(0);
+export const DeliveryFormProvider = ({ children, delivery }: DeliveryFormProviderProps) => {
+  const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
+  const [formData, setFormData] = useState<DeliveryFormData | null>(null);
+  const [freight, setFreight] = useState(0);
+  const [insuranceValue, setInsuranceValue] = useState(0);
   
-  // Memoize clients to prevent unnecessary re-renders
-  const memoizedClients = useMemo(() => clients, [clients]);
+  const isEditMode = !!delivery;
   
-  // Safely get the required hooks
-  let getClientPriceTable = useCallback((clientId: string) => undefined, []);
-  
-  try {
-    const clientPriceTableHook = useClientPriceTable();
-    getClientPriceTable = clientPriceTableHook.getClientPriceTable;
-  } catch (error) {
-    console.warn("useClientPriceTable not available, using fallback");
-  }
-
-  const { calculateFreight } = useFreightCalculation(getClientPriceTable, cities);
-  
-  const {
-    showDuplicateAlert,
-    setShowDuplicateAlert,
-    formData,
-    setFormData
-  } = useDuplicateMinuteCheck();
-
-  // Memoize default values to prevent form re-initialization
-  const defaultValues = useMemo(() => {
-    return delivery ? {
-      minuteNumber: delivery.minuteNumber || '',
-      clientId: delivery.clientId || '',
-      deliveryDate: delivery.deliveryDate || '',
-      deliveryTime: delivery.deliveryTime || '',
-      receiver: delivery.receiver || '',
-      receiverId: delivery.receiverId || '',
-      weight: delivery.weight || 0,
-      packages: delivery.packages || 0,
-      deliveryType: delivery.deliveryType || 'standard',
-      cargoType: delivery.cargoType || 'standard',
-      cargoValue: delivery.cargoValue || 0,
-      totalFreight: delivery.totalFreight || 0,
-      notes: delivery.notes || '',
-      occurrence: delivery.occurrence || '',
-      cityId: delivery.cityId || '',
-      arrivalKnowledgeNumber: delivery.arrivalKnowledgeNumber || ''
-    } : {
-      minuteNumber: '',
-      clientId: '',
-      deliveryDate: '',
-      deliveryTime: '',
-      receiver: '',
-      receiverId: '',
-      weight: 0,
-      packages: 0,
-      deliveryType: 'standard',
-      cargoType: 'standard',
-      cargoValue: 0,
-      totalFreight: 0,
-      notes: '',
-      occurrence: '',
-      cityId: '',
-      arrivalKnowledgeNumber: ''
-    };
-  }, [delivery]);
-
   const form = useForm({
     resolver: zodResolver(deliveryFormSchema),
-    defaultValues
+    defaultValues: {
+      minuteNumber: delivery?.minuteNumber || '',
+      clientId: delivery?.clientId || '',
+      deliveryDate: delivery?.deliveryDate || '',
+      deliveryTime: delivery?.deliveryTime || '',
+      receiver: delivery?.receiver || '',
+      receiverId: delivery?.receiverId || '',
+      weight: delivery?.weight || 0,
+      packages: delivery?.packages || 1,
+      deliveryType: delivery?.deliveryType || 'standard',
+      cargoType: delivery?.cargoType || 'standard',
+      cargoValue: delivery?.cargoValue || 0,
+      totalFreight: delivery?.totalFreight || 0,
+      notes: delivery?.notes || '',
+      occurrence: delivery?.occurrence || '',
+      cityId: delivery?.cityId || '',
+      arrivalKnowledgeNumber: delivery?.arrivalKnowledgeNumber || '',
+    },
   });
 
-  // Watch for changes to calculate freight - use debounced approach
-  const watchClientId = form.watch('clientId');
+  const { calculateFreight, setManualFreight } = useDeliveryFormCalculations({
+    form,
+    setFreight,
+    delivery,
+    isEditMode
+  });
+
+  // Watch delivery type to show/hide door to door fields
   const watchDeliveryType = form.watch('deliveryType');
-  const watchCityId = form.watch('cityId');
-  const watchWeight = form.watch('weight');
-  const watchPackages = form.watch('packages');
-  const watchCargoType = form.watch('cargoType');
-  const watchCargoValue = form.watch('cargoValue');
+  const showDoorToDoor = doorToDoorDeliveryTypes.includes(watchDeliveryType);
 
-  // Calculate insurance for reshipment
+  // Set initial freight value
   useEffect(() => {
-    if (watchDeliveryType === 'reshipment' && watchCargoValue > 0) {
-      const insurance = watchCargoValue * 0.01;
-      setInsuranceValue(insurance);
-    } else {
-      setInsuranceValue(0);
+    if (delivery?.totalFreight) {
+      setFreight(delivery.totalFreight);
     }
-  }, [watchDeliveryType, watchCargoValue]);
+  }, [delivery]);
 
-  // Calculate freight automatically when relevant fields change - debounced
+  // Recalculate freight when relevant fields change, except when it's cortesia
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (watchClientId && watchWeight && watchDeliveryType) {
-        console.log('Calculating freight with params:', {
-          clientId: watchClientId,
-          weight: watchWeight,
-          deliveryType: watchDeliveryType,
-          cargoType: watchCargoType,
-          cargoValue: watchCargoValue,
-          cityId: watchCityId,
-          insuranceValue
-        });
-
-        const calculatedFreight = calculateFreight(
-          watchClientId,
-          parseFloat(String(watchWeight)) || 0,
-          watchDeliveryType as any,
-          watchCargoType as any,
-          parseFloat(String(watchCargoValue)) || 0,
-          undefined,
-          watchCityId
-        );
-
-        // Add insurance for reshipment
-        const totalWithInsurance = calculatedFreight + insuranceValue;
-
-        console.log('Calculated freight:', calculatedFreight, 'Insurance:', insuranceValue, 'Total:', totalWithInsurance);
-
-        if (totalWithInsurance > 0) {
-          setFreight(totalWithInsurance);
-          form.setValue('totalFreight', totalWithInsurance);
+    const subscription = form.watch((value, { name }) => {
+      if (value.deliveryType === 'cortesia') {
+        setFreight(0);
+        form.setValue('totalFreight', 0);
+        return;
+      }
+      
+      if (['clientId', 'weight', 'deliveryType', 'cargoType', 'cargoValue', 'cityId'].includes(name || '')) {
+        if (value.clientId && value.weight && value.deliveryType) {
+          const newFreight = calculateFreight();
+          form.setValue('totalFreight', newFreight);
         }
       }
-    }, 300); // 300ms debounce
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, calculateFreight]);
 
-    return () => clearTimeout(timeoutId);
-  }, [watchClientId, watchDeliveryType, watchCityId, watchWeight, watchPackages, watchCargoType, watchCargoValue, calculateFreight, form, insuranceValue]);
-
-  // Determine if door-to-door delivery type is selected
-  const showDoorToDoor = useMemo(() => {
-    return ['doorToDoorInterior', 'metropolitanRegion'].includes(watchDeliveryType);
-  }, [watchDeliveryType]);
-
-  // Memoize context value to prevent unnecessary re-renders
-  const contextValue = useMemo(() => ({
+  const contextValue: DeliveryFormContextType = {
     form,
     delivery,
     isEditMode,
@@ -195,24 +135,9 @@ export const DeliveryFormProvider: React.FC<DeliveryFormProviderProps> = ({
     setFormData,
     freight,
     setFreight,
-    clients: memoizedClients,
     insuranceValue,
-    setInsuranceValue
-  }), [
-    form,
-    delivery,
-    isEditMode,
-    showDoorToDoor,
-    showDuplicateAlert,
-    setShowDuplicateAlert,
-    formData,
-    setFormData,
-    freight,
-    setFreight,
-    memoizedClients,
-    insuranceValue,
-    setInsuranceValue
-  ]);
+    setInsuranceValue,
+  };
 
   return (
     <DeliveryFormContext.Provider value={contextValue}>

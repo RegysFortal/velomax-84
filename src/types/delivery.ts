@@ -14,7 +14,8 @@ export type DeliveryType =
   | 'infectiousBiological'
   | 'tracked'
   | 'door_to_door'
-  | 'scheduled';
+  | 'scheduled'
+  | 'cortesia'; // Nova opção adicionada
 
 export type CargoType = 'standard' | 'perishable';
 

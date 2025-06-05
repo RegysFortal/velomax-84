@@ -1,5 +1,5 @@
 
-import React from "react";
+import React from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,45 +10,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDeliveryFormContext } from "./context/DeliveryFormContext";
-import { useDeliveryFormSubmit } from "./hooks/useDeliveryFormSubmit";
+import { useDeliveryFormContext } from './context/DeliveryFormContext';
 
 interface DuplicateMinuteAlertDialogProps {
-  onConfirm(): void;
+  onConfirm: () => void;
 }
 
-export const DuplicateMinuteAlertDialog: React.FC<DuplicateMinuteAlertDialogProps> = ({
-  onConfirm,
-}) => {
-  const {
-    showDuplicateAlert,
-    setShowDuplicateAlert,
-    formData,
-    form,
-  } = useDeliveryFormContext();
+export function DuplicateMinuteAlertDialog({ onConfirm }: DuplicateMinuteAlertDialogProps) {
+  const { showDuplicateAlert, setShowDuplicateAlert, formData } = useDeliveryFormContext();
 
-  // Confirm handler delegates to useDeliveryFormSubmit logic
   return (
     <AlertDialog open={showDuplicateAlert} onOpenChange={setShowDuplicateAlert}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Número de minuta duplicado</AlertDialogTitle>
+          <AlertDialogTitle>Entrega Duplicada Detectada</AlertDialogTitle>
           <AlertDialogDescription>
-            Já existe uma entrega com o número de minuta{" "}
-            <span className="font-semibold">{form.watch("minuteNumber")}</span> para este cliente.
-            Deseja realmente criar outra entrega com o mesmo número?
+            Já existe uma entrega com o número de minuta "{formData?.minuteNumber}". 
+            Deseja continuar e criar uma nova entrega mesmo assim?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => onConfirm()}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
-            Sim, criar mesmo assim
+          <AlertDialogCancel onClick={() => setShowDuplicateAlert(false)}>
+            Cancelar
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>
+            Sim, criar entrega
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
-};
+}

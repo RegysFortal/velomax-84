@@ -28,6 +28,14 @@ export const useDeliveryFormCalculations = ({
   const calculateFreight = useCallback(() => {
     const formValues = form.getValues();
     const clientId = formValues.clientId;
+    const deliveryType = formValues.deliveryType as DeliveryType;
+    
+    // Se for cortesia, zerar o frete
+    if (deliveryType === 'cortesia') {
+      console.log("Tipo cortesia selecionado - zerando frete");
+      setFreight(0);
+      return 0;
+    }
     
     if (!clientId) {
       console.log("Não é possível calcular o frete: ID do cliente não fornecido");
@@ -43,7 +51,6 @@ export const useDeliveryFormCalculations = ({
     
     // Obter valores do formulário
     const weight = parseFloat(formValues.weight) || 0;
-    const deliveryType = formValues.deliveryType as DeliveryType;
     const cargoType = formValues.cargoType as CargoType;
     const cargoValue = formValues.cargoValue ? parseFloat(formValues.cargoValue) : undefined;
     const cityId = formValues.cityId;

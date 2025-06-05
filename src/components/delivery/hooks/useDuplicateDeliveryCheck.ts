@@ -1,25 +1,18 @@
 
+import { useMemo } from 'react';
 import { Delivery } from '@/types';
-import { useState } from 'react';
 
 export function useDuplicateDeliveryCheck(deliveries: Delivery[]) {
-  const [duplicateMinuteNumber, setDuplicateMinuteNumber] = useState<string>('');
+  const duplicateMinuteNumber = useMemo(() => {
+    const minuteNumbers = deliveries.map(d => d.minuteNumber).filter(Boolean);
+    return minuteNumbers.find((item, index) => minuteNumbers.indexOf(item) !== index);
+  }, [deliveries]);
 
   const checkDuplicateDelivery = (minuteNumber: string): boolean => {
-    // Skip check if no minute number provided
     if (!minuteNumber) return false;
-
-    // Check if there's an existing delivery with the same minute number
-    const isDuplicate = deliveries.some(
-      delivery => delivery.minuteNumber.toLowerCase() === minuteNumber.toLowerCase()
+    return deliveries.some(delivery => 
+      delivery.minuteNumber === minuteNumber
     );
-
-    if (isDuplicate) {
-      setDuplicateMinuteNumber(minuteNumber);
-      return true;
-    }
-
-    return false;
   };
 
   return {

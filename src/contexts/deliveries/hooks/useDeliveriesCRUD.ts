@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -165,29 +164,26 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       console.log('Updating delivery in database with ID:', id, data);
 
       const supabaseData: any = {
-        client_id: data.clientId,
-        city_id: data.cityId,
-        minute_number: data.minuteNumber,
-        packages: data.packages,
-        weight: data.weight,
-        cargo_type: data.cargoType,
-        cargo_value: data.cargoValue,
-        delivery_type: data.deliveryType,
-        notes: data.notes,
-        occurrence: data.occurrence,
-        receiver: data.receiver,
-        receiver_id: data.receiverId,
-        delivery_date: data.deliveryDate,
-        delivery_time: data.deliveryTime,
-        total_freight: data.totalFreight !== undefined ? totalFreightValue : undefined,
-        arrival_knowledge_number: data.arrivalKnowledgeNumber,
         updated_at: new Date().toISOString(),
       };
 
-      // Remove undefined values
-      Object.keys(supabaseData).forEach(
-        (key) => supabaseData[key] === undefined && delete supabaseData[key]
-      );
+      // Only include fields that are defined
+      if (data.clientId !== undefined) supabaseData.client_id = data.clientId;
+      if (data.cityId !== undefined) supabaseData.city_id = data.cityId;
+      if (data.minuteNumber !== undefined) supabaseData.minute_number = data.minuteNumber;
+      if (data.packages !== undefined) supabaseData.packages = data.packages;
+      if (data.weight !== undefined) supabaseData.weight = data.weight;
+      if (data.cargoType !== undefined) supabaseData.cargo_type = data.cargoType;
+      if (data.cargoValue !== undefined) supabaseData.cargo_value = data.cargoValue;
+      if (data.deliveryType !== undefined) supabaseData.delivery_type = data.deliveryType;
+      if (data.notes !== undefined) supabaseData.notes = data.notes;
+      if (data.occurrence !== undefined) supabaseData.occurrence = data.occurrence;
+      if (data.receiver !== undefined) supabaseData.receiver = data.receiver;
+      if (data.receiverId !== undefined) supabaseData.receiver_id = data.receiverId;
+      if (data.deliveryDate !== undefined) supabaseData.delivery_date = data.deliveryDate;
+      if (data.deliveryTime !== undefined) supabaseData.delivery_time = data.deliveryTime;
+      if (data.totalFreight !== undefined) supabaseData.total_freight = totalFreightValue;
+      if (data.arrivalKnowledgeNumber !== undefined) supabaseData.arrival_knowledge_number = data.arrivalKnowledgeNumber;
 
       const { data: updatedData, error } = await supabase
         .from('deliveries')
@@ -235,6 +231,7 @@ export function useDeliveriesCRUD(deliveries: Delivery[], setDeliveries: React.D
       });
 
       console.log('Successfully updated delivery in state');
+      toast.success('Entrega atualizada com sucesso');
       return updatedDelivery;
     } catch (error) {
       console.error('Error updating delivery:', error);
