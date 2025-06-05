@@ -5,8 +5,9 @@ import { Logo } from '@/components/ui/logo';
 import { ReportGenerationForm } from '@/components/report/ReportGenerationForm';
 import { ReportContent } from '@/components/report/ReportContent';
 import { useReportManagement } from '@/hooks/report/useReportManagement';
+import { FinancialProvider } from '@/contexts/financial';
 
-const Reports = () => {
+const ReportsContent = () => {
   const {
     selectedClient,
     setSelectedClient,
@@ -75,6 +76,14 @@ const Reports = () => {
         </div>
       </ScrollArea>
     </div>
+  );
+};
+
+const Reports = () => {
+  return (
+    <FinancialProvider>
+      <ReportsContent />
+    </FinancialProvider>
   );
 };
 

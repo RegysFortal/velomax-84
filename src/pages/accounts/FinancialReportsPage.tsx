@@ -8,8 +8,9 @@ import { FinancialReportHeader } from './components/FinancialReportHeader';
 import { DashboardTab } from './components/DashboardTab';
 import { DetailedReportTabs } from './components/DetailedReportTabs';
 import { IncomeReportTab } from './components/IncomeReportTab';
+import { FinancialProvider } from '@/contexts/financial';
 
-export default function FinancialReportsPage() {
+const FinancialReportsContent = () => {
   const {
     startDate,
     endDate,
@@ -85,5 +86,13 @@ export default function FinancialReportsPage() {
         />
       </Tabs>
     </div>
+  );
+};
+
+export default function FinancialReportsPage() {
+  return (
+    <FinancialProvider>
+      <FinancialReportsContent />
+    </FinancialProvider>
   );
 }

@@ -1,5 +1,6 @@
 
 import { Logo } from '@/components/ui/logo';
+import { FinancialProvider } from '@/contexts/financial';
 import { useFinancial } from '@/contexts/financial';
 import { useFinancialPageState } from '@/hooks/financial/useFinancialPageState';
 import { useFinancialOperations } from '@/hooks/financial/useFinancialOperations';
@@ -10,7 +11,7 @@ import { ReportDialogs } from '@/components/financial/ReportDialogs';
 import { useToast } from '@/hooks/use-toast';
 import { FinancialReport } from '@/types';
 
-const FinancialPage = () => {
+const FinancialPageContent = () => {
   // Estado da página
   const {
     activeTab,
@@ -139,6 +140,14 @@ const FinancialPage = () => {
         onDeleteReport={handleDeleteReport}
       />
     </div>
+  );
+};
+
+const FinancialPage = () => {
+  return (
+    <FinancialProvider>
+      <FinancialPageContent />
+    </FinancialProvider>
   );
 };
 
