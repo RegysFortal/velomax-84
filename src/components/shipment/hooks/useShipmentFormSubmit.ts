@@ -94,6 +94,8 @@ export function useShipmentFormSubmit({
         return;
       }
       
+      console.log('useShipmentFormSubmit - shipmentDate received:', shipmentDate);
+      
       const newShipment = {
         companyId,
         companyName,
@@ -102,7 +104,7 @@ export function useShipmentFormSubmit({
         trackingNumber,
         packages: packagesNum,
         weight: weightNum,
-        arrivalDate: shipmentDate, // Using shipmentDate as arrivalDate for now
+        arrivalDate: shipmentDate, // Usar shipmentDate diretamente já que vem em formato ISO correto
         status,
         isRetained: status === 'retained',
         ...(status === 'retained' && retentionReason && {
@@ -116,6 +118,8 @@ export function useShipmentFormSubmit({
           }
         })
       };
+      
+      console.log('useShipmentFormSubmit - shipment data to be sent:', newShipment);
       
       const shipment = await addShipment(newShipment);
       

@@ -13,6 +13,9 @@ export const useShipmentAdd = (
       const transportMode = shipmentData.transportMode as TransportMode;
       const status = shipmentData.status as ShipmentStatus;
       
+      console.log('useShipmentAdd - shipmentData received:', shipmentData);
+      console.log('useShipmentAdd - arrivalDate:', shipmentData.arrivalDate);
+      
       const supabaseShipment = {
         company_id: shipmentData.companyId,
         company_name: shipmentData.companyName,
@@ -22,11 +25,13 @@ export const useShipmentAdd = (
         packages: shipmentData.packages,
         weight: shipmentData.weight,
         arrival_flight: shipmentData.arrivalFlight,
-        arrival_date: shipmentData.arrivalDate,
+        arrival_date: shipmentData.arrivalDate, // Manter a data ISO exatamente como recebida
         observations: shipmentData.observations,
         status: status,
         is_retained: shipmentData.status === 'retained'
       };
+      
+      console.log('useShipmentAdd - supabaseShipment to be saved:', supabaseShipment);
       
       const { data: newShipment, error } = await supabase
         .from('shipments')
@@ -37,6 +42,8 @@ export const useShipmentAdd = (
       if (error) {
         throw error;
       }
+
+      console.log('useShipmentAdd - shipment saved in database:', newShipment);
 
       let fiscalAction = undefined;
       if (shipmentData.status === 'retained' && shipmentData.fiscalActionData) {
@@ -90,6 +97,8 @@ export const useShipmentAdd = (
         createdAt: newShipment.created_at,
         updatedAt: newShipment.updated_at
       };
+      
+      console.log('useShipmentAdd - final mapped shipment:', newShipmentMapped);
       
       setShipments(prev => [newShipmentMapped, ...prev]);
       return newShipmentMapped;
