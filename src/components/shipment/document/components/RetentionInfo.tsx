@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Hash, FileText, DollarSign } from "lucide-react";
 import { Document } from "@/types/shipment";
 
 interface RetentionInfoProps {
@@ -9,6 +9,8 @@ interface RetentionInfoProps {
 }
 
 export function RetentionInfo({ document, shouldShowPriorityBackground }: RetentionInfoProps) {
+  if (!document.isRetained) return null;
+
   // Formatação do valor da retenção
   const formatCurrency = (value?: string) => {
     if (!value) return "R$ 0,00";
@@ -28,29 +30,29 @@ export function RetentionInfo({ document, shouldShowPriorityBackground }: Retent
 
   return (
     <div className={`mt-3 border-t ${shouldShowPriorityBackground ? 'border-red-300' : 'border-amber-200'} pt-2`}>
-      <div className={`${shouldShowPriorityBackground ? 'bg-red-100' : 'bg-amber-50'} p-2 rounded text-sm`}>
-        <div className={`flex items-center ${shouldShowPriorityBackground ? 'text-red-800' : 'text-amber-800'} font-medium mb-1`}>
+      <div className={`${shouldShowPriorityBackground ? 'bg-red-100' : 'bg-amber-50'} p-3 rounded text-sm`}>
+        <div className={`flex items-center ${shouldShowPriorityBackground ? 'text-red-800' : 'text-amber-800'} font-medium mb-2`}>
           <AlertTriangle className={`h-4 w-4 mr-1 ${shouldShowPriorityBackground ? 'text-red-600' : 'text-amber-600'}`} />
           Retenção Fiscal
         </div>
-        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 ${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 ${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
           {document.retentionInfo?.actionNumber && (
-            <div>Nº Ação: {document.retentionInfo.actionNumber}</div>
+            <div className="flex items-center">
+              <Hash className="h-3 w-3 mr-1" />
+              <span className="font-medium">Nº Ação:</span> {document.retentionInfo.actionNumber}
+            </div>
           )}
           {document.retentionInfo?.reason && (
-            <div>Motivo: {document.retentionInfo.reason}</div>
+            <div className="flex items-center">
+              <FileText className="h-3 w-3 mr-1" />
+              <span className="font-medium">Motivo:</span> {document.retentionInfo.reason}
+            </div>
           )}
           {document.retentionInfo?.amount && (
-            <div>Valor: {formatCurrency(document.retentionInfo.amount)}</div>
-          )}
-          {document.retentionInfo?.paymentDate && (
-            <div>Pgto: {document.retentionInfo.paymentDate}</div>
-          )}
-          {document.retentionInfo?.releaseDate && (
-            <div>Liberação: {document.retentionInfo.releaseDate}</div>
-          )}
-          {document.retentionInfo?.notes && (
-            <div className="col-span-2">Obs: {document.retentionInfo.notes}</div>
+            <div className="flex items-center">
+              <DollarSign className="h-3 w-3 mr-1" />
+              <span className="font-medium">Valor:</span> {formatCurrency(document.retentionInfo.amount)}
+            </div>
           )}
         </div>
       </div>

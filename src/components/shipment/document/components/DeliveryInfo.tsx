@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CheckSquare, User, Calendar, Clock, FileText, Hash } from "lucide-react";
+import { CheckSquare, User, Calendar, Clock } from "lucide-react";
 import { Document } from "@/types/shipment";
 
 interface DeliveryInfoProps {
@@ -30,13 +30,6 @@ export function DeliveryInfo({ document, shipment, shouldShowPriorityBackground 
             </div>
           )}
           
-          {deliveryInfo?.receiverId && (
-            <div className="flex items-center">
-              <Hash className="h-3 w-3 mr-1" />
-              <span className="font-medium">Documento:</span> {deliveryInfo.receiverId}
-            </div>
-          )}
-          
           {deliveryInfo?.deliveryDate && (
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
@@ -48,20 +41,6 @@ export function DeliveryInfo({ document, shipment, shouldShowPriorityBackground 
             <div className="flex items-center">
               <Clock className="h-3 w-3 mr-1" />
               <span className="font-medium">Hora:</span> {deliveryInfo.deliveryTime}
-            </div>
-          )}
-          
-          {/* Use shipment's arrival knowledge number or document's if available */}
-          {(shipment?.arrivalKnowledgeNumber || deliveryInfo?.arrivalKnowledgeNumber) && (
-            <div className="flex items-center col-span-full">
-              <FileText className="h-3 w-3 mr-1" />
-              <span className="font-medium">Conhecimento:</span> {shipment?.arrivalKnowledgeNumber || deliveryInfo?.arrivalKnowledgeNumber}
-            </div>
-          )}
-          
-          {deliveryInfo?.notes && (
-            <div className="col-span-full">
-              <span className="font-medium">Observações:</span> {deliveryInfo.notes}
             </div>
           )}
         </div>

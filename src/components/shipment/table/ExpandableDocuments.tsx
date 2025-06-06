@@ -8,6 +8,8 @@ import { DocumentDeliveryForm } from "./DocumentDeliveryForm";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { DocumentStatusControl } from "../DocumentStatusControl";
+import { DeliveryInfo } from "../document/components/DeliveryInfo";
+import { RetentionInfo } from "../document/components/RetentionInfo";
 
 interface ExpandableDocumentsProps {
   shipment: Shipment;
@@ -122,59 +124,18 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
                     )}
                   </div>
 
-                  {/* Retention Information */}
-                  {document.isRetained && document.retentionInfo && (
-                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                      <h4 className="font-medium text-red-800 mb-2">Informações de Retenção</h4>
-                      <div className="text-sm text-red-700 space-y-1">
-                        {document.retentionInfo.reason && (
-                          <div><strong>Motivo:</strong> {document.retentionInfo.reason}</div>
-                        )}
-                        {document.retentionInfo.amount && (
-                          <div><strong>Valor:</strong> R$ {document.retentionInfo.amount}</div>
-                        )}
-                        {document.retentionInfo.actionNumber && (
-                          <div><strong>Número da Ação:</strong> {document.retentionInfo.actionNumber}</div>
-                        )}
-                        {document.retentionInfo.paymentDate && (
-                          <div><strong>Data de Pagamento:</strong> {document.retentionInfo.paymentDate}</div>
-                        )}
-                        {document.retentionInfo.releaseDate && (
-                          <div><strong>Data de Liberação:</strong> {document.retentionInfo.releaseDate}</div>
-                        )}
-                        {document.retentionInfo.notes && (
-                          <div><strong>Observações:</strong> {document.retentionInfo.notes}</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {/* Retention Information - Only show action number, reason, and amount */}
+                  <RetentionInfo 
+                    document={document} 
+                    shouldShowPriorityBackground={document.isPriority || false} 
+                  />
 
-                  {/* Delivery Information */}
-                  {document.isDelivered && document.deliveryInfo && (
-                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
-                      <h4 className="font-medium text-green-800 mb-2">Informações de Entrega</h4>
-                      <div className="text-sm text-green-700 space-y-1">
-                        {document.deliveryInfo.receiverName && (
-                          <div><strong>Recebedor:</strong> {document.deliveryInfo.receiverName}</div>
-                        )}
-                        {document.deliveryInfo.receiverId && (
-                          <div><strong>ID do Recebedor:</strong> {document.deliveryInfo.receiverId}</div>
-                        )}
-                        {document.deliveryInfo.deliveryDate && (
-                          <div><strong>Data de Entrega:</strong> {document.deliveryInfo.deliveryDate}</div>
-                        )}
-                        {document.deliveryInfo.deliveryTime && (
-                          <div><strong>Hora de Entrega:</strong> {document.deliveryInfo.deliveryTime}</div>
-                        )}
-                        {document.deliveryInfo.arrivalKnowledgeNumber && (
-                          <div><strong>Número do Conhecimento:</strong> {document.deliveryInfo.arrivalKnowledgeNumber}</div>
-                        )}
-                        {document.deliveryInfo.notes && (
-                          <div><strong>Observações:</strong> {document.deliveryInfo.notes}</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {/* Delivery Information - Only show receiver, date, and time */}
+                  <DeliveryInfo 
+                    document={document} 
+                    shipment={shipment}
+                    shouldShowPriorityBackground={document.isPriority || false} 
+                  />
                 </div>
               ))
             ) : (
