@@ -10,6 +10,13 @@ export function ClientsManagement() {
   const { clients, loading, deleteClient, updateClient } = useClients();
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Sort clients alphabetically by trading name or name
+  const sortedClients = [...clients].sort((a, b) => {
+    const nameA = (a.tradingName || a.name).toLowerCase();
+    const nameB = (b.tradingName || b.name).toLowerCase();
+    return nameA.localeCompare(nameB, 'pt-BR');
+  });
+
   const handleEditClient = (client: Client) => {
     // In the settings context, we'll just show a toast since we don't have the edit dialog here
     toast.info("Edição de cliente", {
@@ -40,7 +47,7 @@ export function ClientsManagement() {
             </div>
           ) : (
             <ClientTable 
-              clients={clients}
+              clients={sortedClients}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               onEditClient={handleEditClient}
