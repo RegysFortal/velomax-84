@@ -1,3 +1,4 @@
+
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { LogbookEntry, FuelRecord, Vehicle, Employee, Maintenance, TireMaintenance } from '@/types';
@@ -169,7 +170,7 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       }
     ]);
 
-    // Set mock vehicles data
+    // Set mock vehicles data - CORRECTED: dados dos veículos preservados
     setVehicles([
       {
         id: "vehicle-1",
@@ -181,8 +182,8 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
         type: "truck",
         capacity: 24000,
         fuelType: "diesel",
-        currentOdometer: 15000,
-        lastOilChange: 10000,
+        currentOdometer: 18500,
+        lastOilChange: 15000,
         nextOilChangeKm: 20000,
         status: "active"
       },
@@ -196,9 +197,24 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
         type: "van",
         capacity: 3500,
         fuelType: "diesel",
-        currentOdometer: 12000,
+        currentOdometer: 13800,
         lastOilChange: 9000,
         nextOilChangeKm: 15000,
+        status: "active"
+      },
+      {
+        id: "vehicle-3",
+        plate: "GHI9012",
+        make: "Ford",
+        model: "Cargo 816",
+        year: "2019",
+        brand: "Ford",
+        type: "truck",
+        capacity: 8000,
+        fuelType: "diesel",
+        currentOdometer: 22000,
+        lastOilChange: 20000,
+        nextOilChangeKm: 25000,
         status: "active"
       }
     ]);
@@ -212,7 +228,7 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
         maintenanceType: "oil_change",
         description: "Troca de óleo e filtros",
         cost: 850.00,
-        odometer: 10000,
+        odometer: 15000,
         provider: "Oficina Mecânica Brasil",
         notes: "Próxima troca em 5.000 km",
         createdAt: "2025-03-15T14:30:00Z",
