@@ -140,12 +140,12 @@ export const calculateFreight = (
     
     // Add insurance value if there's cargo value (1% do valor da carga)
     if (cargoValue > 0) {
-      let insuranceRate = 0.01; // 1% como padrão
+      let insuranceRate = 0.01; // Sempre 1% para qualquer tipo de entrega
       
-      // Para redespacho, usar taxa específica ou taxa padrão de seguro
+      // Para redespacho, sempre usar 1% independente da tabela
       if (deliveryType === 'reshipment') {
-        insuranceRate = priceTable.insurance?.standard || priceTable.insurance?.rate || 0.01;
-        console.log(`Redespacho - Taxa de seguro aplicada: ${insuranceRate}`);
+        insuranceRate = 0.01; // Forçar 1% para redespacho
+        console.log(`Redespacho - Taxa de seguro: 1%`);
       } else {
         // Para outros tipos de entrega, usar taxa padrão da tabela ou 1%
         insuranceRate = priceTable.insurance?.standard || priceTable.insurance?.rate || 0.01;
