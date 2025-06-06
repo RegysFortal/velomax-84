@@ -68,11 +68,11 @@ export const DelayedShipmentsAlert = () => {
     <div className="animate-vibrate mb-6">
       <Alert variant="destructive" className="bg-red-50 border-red-300 dark:bg-red-900/30 dark:border-red-800">
         <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-        <AlertTitle className="text-red-700 dark:text-red-300 font-semibold">
+        <AlertTitle className="text-red-700 dark:text-red-300 font-semibold text-left">
           Embarques Atrasados! ({delayedShipments.length})
         </AlertTitle>
         <AlertDescription className="text-red-600 dark:text-red-200">
-          <div className="mt-2 max-h-32 overflow-y-auto">
+          <div className="mt-2 max-h-32 overflow-y-auto text-left">
             {delayedShipments.map((shipment) => (
               <div key={shipment.id} className="mb-1">
                 <span className="font-medium">{shipment.companyName}</span> - 
