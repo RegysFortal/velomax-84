@@ -65,8 +65,10 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
           <div className="border rounded-md bg-gray-50 p-4 space-y-3">
             {shipment.documents && shipment.documents.length > 0 ? (
               shipment.documents.map((document) => {
-                // Verificar se documento está retido - melhorar lógica de detecção
-                const isRetained = document.isRetained || (!document.isDelivered && !document.isPickedUp && document.status === 'retained');
+                // Verificar se documento está retido usando a nova lógica
+                const isRetained = document.type === 'retained' || 
+                                  (document.notes && typeof document.notes === 'string' && 
+                                   document.notes.includes('reason'));
                 
                 return (
                   <div 
@@ -105,12 +107,12 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
                       {document.packages && (
                         <div><strong>Volumes:</strong> {document.packages}</div>
                       )}
-                      {document.notes && (
+                      {document.notes && typeof document.notes === 'string' && !document.notes.includes('reason') && (
                         <div><strong>Observações:</strong> {document.notes}</div>
                       )}
                     </div>
 
-                    {/* Retention Information - Only show action number, reason, and amount */}
+                    {/* Retention Information */}
                     {isRetained && (
                       <RetentionInfo 
                         document={document} 
@@ -118,7 +120,7 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
                       />
                     )}
 
-                    {/* Delivery Information - Only show receiver, date, and time */}
+                    {/* Delivery Information */}
                     <DeliveryInfo 
                       document={document} 
                       shipment={shipment}

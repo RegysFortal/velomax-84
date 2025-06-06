@@ -53,19 +53,15 @@ export function DocumentStatusControl({
   } = useDocumentDelivery({ shipmentId, documentId: document.id, onStatusChange });
   
   const getStatusBadge = () => {
-    // Verificar se documento está retido baseado no status ou flags de compatibilidade
-    const isRetained = document.isRetained || (!document.isDelivered && !document.isPickedUp && document.status === 'retained');
+    // Verificar se documento está retido - usando o campo type ou verificando se notes contém dados de retenção
+    const isRetained = document.type === 'retained' || 
+                      (document.notes && typeof document.notes === 'string' && 
+                       document.notes.includes('reason'));
     
     if (isRetained) {
       return (
         <Badge className="bg-red-500 hover:bg-red-600">
           Retido
-        </Badge>
-      );
-    } else if (document.isPickedUp) {
-      return (
-        <Badge className="bg-blue-500 hover:bg-blue-600">
-          Retirado
         </Badge>
       );
     } else if (document.isDelivered) {
@@ -112,7 +108,6 @@ export function DocumentStatusControl({
   const updateDocumentStatus = async (status: DocumentStatus) => {
     try {
       const isDelivered = status === "delivered";
-      const isPickedUp = status === "picked_up";
       
       console.log(`Updating document ${document.id} to status: ${status}`);
       
@@ -121,6 +116,7 @@ export function DocumentStatusControl({
         .from('shipment_documents')
         .update({
           is_delivered: isDelivered,
+          type: status === "pending" ? "pending" : document.type, // Preserva o tipo atual se não for pending
           updated_at: new Date().toISOString()
         })
         .eq('id', document.id);
@@ -136,7 +132,6 @@ export function DocumentStatusControl({
       // Show success message
       let statusText = "Pendente";
       if (status === "delivered") statusText = "Entregue";
-      else if (status === "picked_up") statusText = "Retirado";
       else if (status === "retained") statusText = "Retido";
       
       toast.success(`Documento marcado como ${statusText}`);
@@ -177,10 +172,6 @@ export function DocumentStatusControl({
           <DropdownMenuItem onClick={() => handleStatusChange("retained")}>
             <AlertTriangle className="mr-2 h-4 w-4" />
             <span>Retido</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleStatusChange("picked_up")}>
-            <Package className="mr-2 h-4 w-4" />
-            <span>Retirado</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleStatusChange("delivered")}>
             <Check className="mr-2 h-4 w-4" />

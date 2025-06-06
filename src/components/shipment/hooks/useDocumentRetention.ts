@@ -15,7 +15,7 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
   const [fiscalNotes, setFiscalNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { getShipmentById, refreshShipmentsData } = useShipments();
+  const { refreshShipmentsData } = useShipments();
   
   // Manipulador para quando o formulário de retenção é confirmado
   const handleRetentionConfirm = async () => {
@@ -31,21 +31,23 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
       
       console.log("Atualizando documento para retido:", documentId);
       
-      // Preparar dados de retenção
+      // Preparar dados de retenção para salvar como JSONB
       const retentionInfo = {
-        actionNumber: actionNumber?.trim() || undefined,
+        actionNumber: actionNumber?.trim() || null,
         reason: retentionReason.trim(),
-        amount: retentionAmount?.trim() || undefined,
-        paymentDate: paymentDate || undefined,
-        releaseDate: releaseDate || undefined,
-        notes: fiscalNotes?.trim() || undefined
+        amount: retentionAmount?.trim() || null,
+        paymentDate: paymentDate || null,
+        releaseDate: releaseDate || null,
+        notes: fiscalNotes?.trim() || null
       };
       
-      // Update document in Supabase - mark as retained (not delivered) and save retention info
+      // Update document in Supabase - save retention info as JSONB and mark as retained
       const { error } = await supabase
         .from('shipment_documents')
         .update({
           is_delivered: false, // Marca como não entregue (retido)
+          type: 'retained', // Atualiza o tipo para retido
+          notes: JSON.stringify(retentionInfo), // Salva as informações de retenção no campo notes como JSON
           updated_at: new Date().toISOString()
         })
         .eq('id', documentId);

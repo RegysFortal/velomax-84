@@ -9,10 +9,29 @@ interface RetentionInfoProps {
 }
 
 export function RetentionInfo({ document, shouldShowPriorityBackground }: RetentionInfoProps) {
-  if (!document.isRetained) return null;
+  // Verificar se documento está retido e tem informações de retenção
+  const isRetained = document.type === 'retained' || 
+                    (document.notes && typeof document.notes === 'string' && 
+                     document.notes.includes('reason'));
+  
+  if (!isRetained) return null;
+
+  // Tentar extrair informações de retenção do campo notes
+  let retentionInfo = null;
+  if (document.notes && typeof document.notes === 'string') {
+    try {
+      retentionInfo = JSON.parse(document.notes);
+    } catch (e) {
+      // Se não conseguir fazer parse, retentionInfo permanece null
+      console.warn('Could not parse retention info from notes:', document.notes);
+    }
+  }
+
+  // Se não há informações de retenção válidas, não mostrar
+  if (!retentionInfo || !retentionInfo.reason) return null;
 
   // Formatação do valor da retenção
-  const formatCurrency = (value?: string) => {
+  const formatCurrency = (value?: string | null) => {
     if (!value) return "R$ 0,00";
     
     // If already has comma, format as is
@@ -36,22 +55,22 @@ export function RetentionInfo({ document, shouldShowPriorityBackground }: Retent
           Retenção Fiscal
         </div>
         <div className={`grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 ${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
-          {document.retentionInfo?.actionNumber && (
+          {retentionInfo.actionNumber && (
             <div className="flex items-center">
               <Hash className="h-3 w-3 mr-1" />
-              <span className="font-medium">Nº Ação:</span> {document.retentionInfo.actionNumber}
+              <span className="font-medium">Nº Ação:</span> {retentionInfo.actionNumber}
             </div>
           )}
-          {document.retentionInfo?.reason && (
+          {retentionInfo.reason && (
             <div className="flex items-center">
               <FileText className="h-3 w-3 mr-1" />
-              <span className="font-medium">Motivo:</span> {document.retentionInfo.reason}
+              <span className="font-medium">Motivo:</span> {retentionInfo.reason}
             </div>
           )}
-          {document.retentionInfo?.amount && (
+          {retentionInfo.amount && (
             <div className="flex items-center">
               <DollarSign className="h-3 w-3 mr-1" />
-              <span className="font-medium">Valor:</span> {formatCurrency(document.retentionInfo.amount)}
+              <span className="font-medium">Valor:</span> {formatCurrency(retentionInfo.amount)}
             </div>
           )}
         </div>
