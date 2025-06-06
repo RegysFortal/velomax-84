@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { PayableAccount, ReceivableAccount } from '@/types';
+import { PayableAccount, ReceivableAccount } from '@/types/financial';
 import { mockPayableAccounts, mockReceivableAccounts } from '../data/mockFinancialData';
 
 export function useFinancialReportsState() {
