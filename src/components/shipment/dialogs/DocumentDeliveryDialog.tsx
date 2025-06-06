@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
+import { toISODateString, fromISODateString } from "@/utils/dateUtils";
 
 interface DocumentDeliveryDialogProps {
   open: boolean;
@@ -48,7 +50,11 @@ export function DocumentDeliveryDialog({
 }: DocumentDeliveryDialogProps) {
   const getCurrentDate = () => {
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const day = today.getDate();
+    const safeDate = new Date(year, month, day, 12, 0, 0);
+    return toISODateString(safeDate);
   };
 
   const getCurrentTime = () => {
@@ -63,6 +69,22 @@ export function DocumentDeliveryDialog({
     }
   }, [open, deliveryDate, deliveryTime, setDeliveryDate, setDeliveryTime]);
 
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      // Create safe date at noon to avoid timezone issues
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      const safeDate = new Date(year, month, day, 12, 0, 0);
+      
+      const formattedDate = toISODateString(safeDate);
+      console.log('DocumentDeliveryDialog - Date selected:', safeDate, 'Formatted as ISO:', formattedDate);
+      setDeliveryDate(formattedDate);
+    } else {
+      setDeliveryDate('');
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -73,12 +95,10 @@ export function DocumentDeliveryDialog({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="deliveryDate">Data de Entrega</Label>
-            <Input
-              id="deliveryDate"
-              type="date"
-              value={deliveryDate}
-              onChange={(e) => setDeliveryDate(e.target.value)}
-              required
+            <DatePicker
+              date={deliveryDate ? fromISODateString(deliveryDate) : undefined}
+              onSelect={handleDateSelect}
+              placeholder="Selecione a data"
             />
           </div>
           

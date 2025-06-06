@@ -31,7 +31,6 @@ export function DeliveryDialog({
   setDeliveryTime,
   onConfirm
 }: DeliveryDialogProps) {
-  // Este efeito garante que o console.log apenas será executado quando as props mudam
   useEffect(() => {
     if (open) {
       console.log('DeliveryDialog - Current values:', { 
@@ -73,7 +72,7 @@ export function DeliveryDialog({
       const year = date.getFullYear();
       const month = date.getMonth();
       const day = date.getDate();
-      const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
+      const safeDate = new Date(year, month, day, 12, 0, 0);
       
       const formattedDate = toISODateString(safeDate);
       console.log('DeliveryDialog - Date selected:', safeDate, 'Formatted as ISO:', formattedDate);

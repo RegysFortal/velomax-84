@@ -25,7 +25,7 @@ export function ShipmentDateSection({
             const year = date.getFullYear();
             const month = date.getMonth();
             const day = date.getDate();
-            const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
+            const safeDate = new Date(year, month, day, 12, 0, 0);
             
             const formattedDate = toISODateString(safeDate);
             console.log('ShipmentDateSection - Data selecionada:', safeDate, 'Convertida para ISO:', formattedDate);

@@ -28,7 +28,6 @@ export function DatePickerField({
   allowTyping = true,
   disabled = false
 }: DatePickerFieldProps) {
-  // When value changes externally, ensure the component reflects it
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(value || date);
 
   useEffect(() => {
@@ -36,17 +35,28 @@ export function DatePickerField({
   }, [value, date]);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
-    setSelectedDate(selectedDate);
-    
-    console.log('DatePickerField - Date selected:', selectedDate);
-    
-    // Call the appropriate callback
-    if (onChange) {
-      onChange(selectedDate);
-    }
-    
-    if (onDateChange && selectedDate) {
-      onDateChange(selectedDate);
+    if (selectedDate) {
+      // Create safe date at noon to avoid timezone issues
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const day = selectedDate.getDate();
+      const safeDate = new Date(year, month, day, 12, 0, 0);
+      
+      console.log('DatePickerField - Date selected:', safeDate);
+      setSelectedDate(safeDate);
+      
+      if (onChange) {
+        onChange(safeDate);
+      }
+      
+      if (onDateChange) {
+        onDateChange(safeDate);
+      }
+    } else {
+      setSelectedDate(undefined);
+      if (onChange) {
+        onChange(undefined);
+      }
     }
   };
 

@@ -34,8 +34,14 @@ export function DeliveryDateTimeFields({
                 date={field.value ? fromISODateString(field.value) : undefined}
                 onSelect={(date) => {
                   if (date) {
-                    const isoDate = toISODateString(date);
-                    console.log('DeliveryDateTimeFields - Data selecionada:', date, 'Convertida para ISO:', isoDate);
+                    // Create safe date at noon to avoid timezone issues
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const day = date.getDate();
+                    const safeDate = new Date(year, month, day, 12, 0, 0);
+                    
+                    const isoDate = toISODateString(safeDate);
+                    console.log('DeliveryDateTimeFields - Data selecionada:', safeDate, 'Convertida para ISO:', isoDate);
                     field.onChange(isoDate);
                   } else {
                     field.onChange('');
@@ -62,7 +68,6 @@ export function DeliveryDateTimeFields({
                 value={field.value || ''}
                 className="bg-background"
                 onChange={(e) => {
-                  // Permitir valor vazio ou null
                   field.onChange(e.target.value || '');
                 }}
               />

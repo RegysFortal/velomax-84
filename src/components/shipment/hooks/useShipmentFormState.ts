@@ -11,7 +11,12 @@ export function useShipmentFormState() {
   const [trackingNumber, setTrackingNumber] = useState<string>("");
   const [packages, setPackages] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
-  const [shipmentDate, setShipmentDate] = useState<string>(toISODateString(new Date()));
+  
+  // Create safe date at noon for initial state
+  const today = new Date();
+  const safeToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
+  const [shipmentDate, setShipmentDate] = useState<string>(toISODateString(safeToday));
+  
   const [status, setStatus] = useState<ShipmentStatus>("in_transit");
   const [retentionReason, setRetentionReason] = useState<string>("");
   const [retentionAmount, setRetentionAmount] = useState<string>("");
@@ -28,7 +33,12 @@ export function useShipmentFormState() {
     setTrackingNumber("");
     setPackages("");
     setWeight("");
-    setShipmentDate(toISODateString(new Date()));
+    
+    // Reset to safe today date
+    const today = new Date();
+    const safeToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
+    setShipmentDate(toISODateString(safeToday));
+    
     setStatus("in_transit");
     setRetentionReason("");
     setRetentionAmount("");
