@@ -21,8 +21,14 @@ export function ShipmentDateSection({
         date={shipmentDate ? fromISODateString(shipmentDate) : undefined}
         onSelect={(date) => {
           if (date) {
-            const formattedDate = toISODateString(date);
-            console.log('ShipmentDateSection - Data selecionada:', date, 'Convertida para ISO:', formattedDate);
+            // Create safe date at noon to avoid timezone issues
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const day = date.getDate();
+            const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
+            
+            const formattedDate = toISODateString(safeDate);
+            console.log('ShipmentDateSection - Data selecionada:', safeDate, 'Convertida para ISO:', formattedDate);
             setShipmentDate(formattedDate);
           } else {
             setShipmentDate('');

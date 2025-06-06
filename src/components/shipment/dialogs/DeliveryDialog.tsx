@@ -69,8 +69,14 @@ export function DeliveryDialog({
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      const formattedDate = toISODateString(date);
-      console.log('DeliveryDialog - Date selected:', date, 'Formatted as ISO:', formattedDate);
+      // Create safe date at noon to avoid timezone issues
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
+      
+      const formattedDate = toISODateString(safeDate);
+      console.log('DeliveryDialog - Date selected:', safeDate, 'Formatted as ISO:', formattedDate);
       setDeliveryDate(formattedDate);
     } else {
       setDeliveryDate('');

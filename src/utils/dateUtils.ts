@@ -20,8 +20,9 @@ export function toISODateString(date: Date): string {
  * Converts an ISO date string to a Date object at noon to avoid timezone issues
  */
 export function fromISODateString(dateString: string): Date {
-  // Criar data ao meio-dia para evitar problemas de fuso horário
-  return new Date(`${dateString}T12:00:00`);
+  // Parse the date parts and create at noon to avoid timezone issues
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day, 12, 0, 0); // hora 12h
 }
 
 /**
@@ -45,14 +46,11 @@ export const toLocalDate = (date: Date): Date => {
   if (!date) return new Date();
   
   // Create a date at noon in local timezone to avoid timezone issues
-  const localDate = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    12, 0, 0
-  );
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
   
-  return localDate;
+  return new Date(year, month, day, 12, 0, 0); // hora 12h
 };
 
 /**
@@ -103,7 +101,7 @@ export const parseDateString = (dateString: string): Date | null => {
   if (day < 1 || day > 31 || month < 0 || month > 11 || year < 1900) return null;
   
   // Create date at noon to avoid timezone issues
-  return new Date(year, month, day, 12, 0, 0);
+  return new Date(year, month, day, 12, 0, 0); // hora 12h
 };
 
 /**
@@ -129,7 +127,7 @@ export const formatPartialDateString = (value: string): string => {
  * Safe date creation - creates date at noon to avoid timezone issues
  */
 export const createSafeDate = (year: number, month: number, day: number): Date => {
-  return new Date(year, month, day, 12, 0, 0);
+  return new Date(year, month, day, 12, 0, 0); // hora 12h
 };
 
 /**

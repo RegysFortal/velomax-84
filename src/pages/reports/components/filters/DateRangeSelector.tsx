@@ -42,20 +42,38 @@ export function DateRangeSelector({
   
   // Handle date selection from DatePicker
   const handleStartDateSelect = (date: Date | undefined) => {
-    setStartDateObj(date);
     if (date) {
-      const isoDate = toISODateString(date);
-      console.log('DateRangeSelector - Selected start date:', date, 'Converting to ISO:', isoDate);
+      // Create safe date at noon to avoid timezone issues
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
+      
+      setStartDateObj(safeDate);
+      const isoDate = toISODateString(safeDate);
+      console.log('DateRangeSelector - Selected start date:', safeDate, 'Converting to ISO:', isoDate);
       onStartDateChange(isoDate);
+    } else {
+      setStartDateObj(undefined);
+      onStartDateChange('');
     }
   };
   
   const handleEndDateSelect = (date: Date | undefined) => {
-    setEndDateObj(date);
     if (date) {
-      const isoDate = toISODateString(date);
-      console.log('DateRangeSelector - Selected end date:', date, 'Converting to ISO:', isoDate);
+      // Create safe date at noon to avoid timezone issues
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
+      
+      setEndDateObj(safeDate);
+      const isoDate = toISODateString(safeDate);
+      console.log('DateRangeSelector - Selected end date:', safeDate, 'Converting to ISO:', isoDate);
       onEndDateChange(isoDate);
+    } else {
+      setEndDateObj(undefined);
+      onEndDateChange('');
     }
   };
   
