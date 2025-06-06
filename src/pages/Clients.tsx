@@ -18,6 +18,13 @@ const ClientsPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
+  // Sort clients alphabetically by trading name or name
+  const sortedClients = [...clients].sort((a, b) => {
+    const nameA = (a.tradingName || a.name).toLowerCase();
+    const nameB = (b.tradingName || b.name).toLowerCase();
+    return nameA.localeCompare(nameB, 'pt-BR');
+  });
+
   const handleEditClient = useCallback((client: Client) => {
     console.log("Editing client:", client);
     setSelectedClient(client);
@@ -58,7 +65,7 @@ const ClientsPage = () => {
         </CardHeader>
         <CardContent className="pl-2 pb-4 pt-0">
           <ClientTable 
-            clients={clients}
+            clients={sortedClients}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             onEditClient={handleEditClient}
