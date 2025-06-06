@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Shipment, ShipmentStatus, TransportMode } from '@/types/shipment';
 import { ShipmentCreateData } from './types';
@@ -68,7 +67,16 @@ export function useShipmentOperations(
         documents: [] // Initialize empty documents array
       };
 
-      setShipments(prev => [...prev, newShipment]);
+      // Update shipments list immediately
+      setShipments(prev => [newShipment, ...prev]);
+      
+      // Dispatch custom events to notify other components
+      window.dispatchEvent(new CustomEvent('shipment-created', { 
+        detail: { shipment: newShipment } 
+      }));
+      window.dispatchEvent(new CustomEvent('shipments-updated', { 
+        detail: { type: 'create', shipment: newShipment } 
+      }));
       
       toast.success("Embarque criado com sucesso");
       return newShipment;

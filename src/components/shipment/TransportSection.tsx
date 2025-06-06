@@ -31,6 +31,16 @@ export function TransportSection({
   // Road carriers
   const roadCarriers = ["Concept", "Global", "Jeam", "Outro"];
 
+  // Get current carriers based on transport mode
+  const currentCarriers = transportMode === "air" ? airCarriers : roadCarriers;
+
+  // Reset carrier when transport mode changes and current carrier is not in new list
+  React.useEffect(() => {
+    if (carrierName && !currentCarriers.includes(carrierName)) {
+      setCarrierName("");
+    }
+  }, [transportMode, carrierName, setCarrierName, currentCarriers]);
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -65,23 +75,14 @@ export function TransportSection({
             disabled={disabled}
             className="grid grid-cols-2 gap-2 pt-1"
           >
-            {transportMode === "air" ? (
-              // Display air carriers
-              airCarriers.map(carrier => (
-                <div key={carrier} className="flex items-center space-x-2">
-                  <RadioGroupItem value={carrier} id={`carrier-${carrier}`} />
-                  <Label htmlFor={`carrier-${carrier}`}>{carrier}</Label>
-                </div>
-              ))
-            ) : (
-              // Display road carriers
-              roadCarriers.map(carrier => (
-                <div key={carrier} className="flex items-center space-x-2">
-                  <RadioGroupItem value={carrier} id={`carrier-${carrier}`} />
-                  <Label htmlFor={`carrier-${carrier}`}>{carrier}</Label>
-                </div>
-              ))
-            )}
+            {currentCarriers.map(carrier => (
+              <div key={carrier} className="flex items-center space-x-2">
+                <RadioGroupItem value={carrier} id={`carrier-${carrier}`} />
+                <Label htmlFor={`carrier-${carrier}`} className="text-sm cursor-pointer">
+                  {carrier}
+                </Label>
+              </div>
+            ))}
           </RadioGroup>
         </FormField>
         

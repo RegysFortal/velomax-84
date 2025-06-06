@@ -46,6 +46,11 @@ export function useShipmentsData(user: SupabaseUser | null | undefined) {
       }));
       
       setShipments(mappedShipments);
+      
+      // Dispatch custom event to notify components
+      window.dispatchEvent(new CustomEvent('shipments-updated', { 
+        detail: { type: 'fetch', shipments: mappedShipments } 
+      }));
     } catch (error) {
       console.error('Error fetching shipments:', error);
       toast.error("Erro ao carregar embarques. Usando dados locais como fallback.");
@@ -82,6 +87,21 @@ export function useShipmentsData(user: SupabaseUser | null | undefined) {
       localStorage.setItem('velomax_shipments', JSON.stringify(shipments));
     }
   }, [shipments, loading]);
+
+  // Listen for shipment updates
+  useEffect(() => {
+    const handleShipmentUpdate = () => {
+      fetchShipments();
+    };
+
+    window.addEventListener('shipment-created', handleShipmentUpdate);
+    window.addEventListener('shipment-updated', handleShipmentUpdate);
+    
+    return () => {
+      window.removeEventListener('shipment-created', handleShipmentUpdate);
+      window.removeEventListener('shipment-updated', handleShipmentUpdate);
+    };
+  }, []);
 
   return {
     shipments,

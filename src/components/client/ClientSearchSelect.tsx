@@ -35,10 +35,21 @@ export function ClientSearchSelect({
 }: ClientSearchSelectProps) {
   const navigate = useNavigate();
   
+  // Sort clients alphabetically by tradingName or name
+  const sortedClients = useMemo(() => {
+    if (!clients || clients.length === 0) return [];
+    
+    return [...clients].sort((a, b) => {
+      const nameA = (a.tradingName || a.name).toLowerCase();
+      const nameB = (b.tradingName || b.name).toLowerCase();
+      return nameA.localeCompare(nameB, 'pt-BR');
+    });
+  }, [clients]);
+  
   // Memoize client options to prevent unnecessary recalculations
   const clientOptions = useMemo<SearchableSelectOption[]>(() => {
     try {
-      if (!clients || clients.length === 0) {
+      if (!sortedClients || sortedClients.length === 0) {
         console.log("ClientSearchSelect - No clients available");
         return includeAllOption ? [{ 
           value: allOptionValue, 
@@ -46,14 +57,14 @@ export function ClientSearchSelect({
         }] : [];
       }
       
-      console.log("ClientSearchSelect - Formatting options for", clients.length, "clients");
+      console.log("ClientSearchSelect - Formatting options for", sortedClients.length, "clients");
       
       const options = [
         ...(includeAllOption ? [{ 
           value: allOptionValue, 
           label: allOptionLabel 
         }] : []),
-        ...clients.map(client => ({
+        ...sortedClients.map(client => ({
           value: client.id,
           label: client.tradingName || client.name,
           description: client.tradingName ? client.name : undefined
@@ -66,7 +77,7 @@ export function ClientSearchSelect({
       console.error("Error formatting client options:", error);
       return [];
     }
-  }, [clients, includeAllOption, allOptionLabel, allOptionValue]);
+  }, [sortedClients, includeAllOption, allOptionLabel, allOptionValue]);
   
   const handleCreateNewClient = useCallback(() => {
     // Store current route to return after client creation

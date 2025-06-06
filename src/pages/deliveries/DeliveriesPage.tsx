@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
 import { useClients } from '@/contexts';
 import { useFinancial } from '@/contexts/financial'; 
@@ -18,7 +18,7 @@ import { useDeliveriesFilters } from './hooks/useDeliveriesFilters';
 import { useDeliveriesOps } from './hooks/useDeliveriesOps';
 
 export default function DeliveriesPage() {
-  const { deliveries, fetchDeliveries } = useDeliveries();
+  const { deliveries, fetchDeliveries, refreshDeliveries } = useDeliveries();
   const { clients, loading: clientsLoading } = useClients();
   
   // Safely access financial context with fallback
@@ -29,6 +29,20 @@ export default function DeliveriesPage() {
   } catch (error) {
     console.warn("FinancialProvider not available, using empty reports array");
   }
+
+  // Listen for delivery updates
+  useEffect(() => {
+    const handleDeliveryUpdate = (event: CustomEvent) => {
+      console.log('Delivery update event received:', event.detail);
+      refreshDeliveries();
+    };
+
+    window.addEventListener('deliveries-updated', handleDeliveryUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('deliveries-updated', handleDeliveryUpdate as EventListener);
+    };
+  }, [refreshDeliveries]);
 
   // Filtros
   const {

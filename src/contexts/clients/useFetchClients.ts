@@ -11,6 +11,14 @@ export function useFetchClients(user: SupabaseUser | null | undefined): UseFetch
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  const sortClientsByName = (clientsList: Client[]): Client[] => {
+    return clientsList.sort((a, b) => {
+      const nameA = (a.tradingName || a.name).toLowerCase();
+      const nameB = (b.tradingName || b.name).toLowerCase();
+      return nameA.localeCompare(nameB, 'pt-BR');
+    });
+  };
+
   const fetchClients = async () => {
     try {
       setLoading(true);
@@ -45,7 +53,9 @@ export function useFetchClients(user: SupabaseUser | null | undefined): UseFetch
         updatedAt: client.updated_at
       }));
       
-      setClients(mappedClients);
+      // Sort clients alphabetically by trading name or name
+      const sortedClients = sortClientsByName(mappedClients);
+      setClients(sortedClients);
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast({
@@ -59,7 +69,8 @@ export function useFetchClients(user: SupabaseUser | null | undefined): UseFetch
       if (storedClients) {
         try {
           const parsed = JSON.parse(storedClients);
-          setClients(parsed);
+          const sortedClients = sortClientsByName(parsed);
+          setClients(sortedClients);
         } catch (error) {
           console.error('Failed to parse stored clients', error);
           setClients([]);
@@ -85,7 +96,10 @@ export function useFetchClients(user: SupabaseUser | null | undefined): UseFetch
 
   return {
     clients,
-    setClients,
+    setClients: (newClients) => {
+      const sortedClients = Array.isArray(newClients) ? sortClientsByName(newClients) : newClients;
+      setClients(sortedClients);
+    },
     loading
   };
 }
