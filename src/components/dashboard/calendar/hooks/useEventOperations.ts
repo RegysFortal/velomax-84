@@ -60,7 +60,7 @@ export const useEventOperations = (
       // Ensure we're using a normalized date at noon to avoid timezone issues
       const normalizedEventDate = createNormalizedDate(eventDate);
       
-      const eventDataToSave = {
+      const eventDataToSave: Omit<CalendarEvent, 'id'> = {
         date: normalizedEventDate,
         title: eventTitle,
         type: eventType,
