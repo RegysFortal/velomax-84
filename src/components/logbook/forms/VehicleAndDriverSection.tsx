@@ -40,7 +40,7 @@ export function VehicleAndDriverSection({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Veículo</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um veículo" />
@@ -64,7 +64,7 @@ export function VehicleAndDriverSection({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Motorista</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um motorista" />
@@ -87,15 +87,15 @@ export function VehicleAndDriverSection({
         name="assistantId"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Ajudante</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormLabel>Ajudante (Opcional)</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um ajudante" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="no_assistant">Nenhum</SelectItem> {/* Changed from "none" to "no_assistant" */}
+                <SelectItem value="no_assistant">Nenhum</SelectItem>
                 {assistants.map((assistant) => (
                   <SelectItem key={assistant.id} value={assistant.id}>
                     {assistant.name}

@@ -1,8 +1,8 @@
-
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { LogbookEntry, FuelRecord, Vehicle, Employee, Maintenance, TireMaintenance } from '@/types';
 import { useAuth } from './auth/AuthContext';
+import { useEmployeesData } from '@/hooks/useEmployeesData';
 
 interface LogbookContextType {
   // Logbook entries
@@ -52,13 +52,43 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
   const [fuelRecords, setFuelRecords] = useState<FuelRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>([]);
   const [tireMaintenanceRecords, setTireMaintenanceRecords] = useState<TireMaintenance[]>([]);
   const { user } = useAuth();
   
+  // Use real employees data instead of mock data
+  const { employees: realEmployees, loading: employeesLoading } = useEmployeesData();
+  
+  // Convert User type to Employee type for compatibility
+  const employees: Employee[] = realEmployees.map(emp => ({
+    id: emp.id,
+    name: emp.name,
+    position: emp.position,
+    email: emp.email,
+    phone: emp.phone,
+    isActive: true,
+    hireDate: emp.employeeSince,
+    departmentId: emp.department,
+    createdAt: emp.createdAt,
+    updatedAt: emp.updatedAt,
+    userId: emp.id,
+    rg: emp.rg,
+    cpf: emp.cpf,
+    birthDate: emp.birthDate,
+    driverLicense: emp.driverLicense,
+    driverLicenseExpiry: emp.driverLicenseExpiry,
+    driverLicenseCategory: emp.driverLicenseCategory,
+    fatherName: emp.fatherName,
+    motherName: emp.motherName,
+    address: emp.address,
+    city: emp.city,
+    state: emp.state,
+    zipCode: emp.zipCode,
+    employeeSince: emp.employeeSince
+  }));
+  
   useEffect(() => {
-    // Load mock data for now
+    // Load mock data for entries and other data
     setEntries([
       {
         id: "1",
@@ -173,41 +203,6 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       }
     ]);
 
-    // Set mock employees data
-    setEmployees([
-      {
-        id: "driver-1",
-        name: "João Silva",
-        position: "driver",
-        email: "joao.silva@example.com",
-        phone: "11999991111",
-        isActive: true,
-        hireDate: "2020-01-15",
-        driverLicense: "12345678900",
-        driverLicenseCategory: "E"
-      },
-      {
-        id: "driver-2",
-        name: "Carlos Pereira",
-        position: "driver",
-        email: "carlos.pereira@example.com",
-        phone: "11999992222",
-        isActive: true,
-        hireDate: "2019-05-20",
-        driverLicense: "98765432100",
-        driverLicenseCategory: "D"
-      },
-      {
-        id: "assistant-1",
-        name: "Pedro Santos",
-        position: "assistant",
-        email: "pedro.santos@example.com",
-        phone: "11999993333",
-        isActive: true,
-        hireDate: "2021-03-10"
-      }
-    ]);
-
     // Set mock maintenance records
     setMaintenanceRecords([
       {
@@ -272,8 +267,11 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       }
     ]);
     
-    setIsLoading(false);
-  }, []);
+    // Set loading to false when employees data is loaded
+    if (!employeesLoading) {
+      setIsLoading(false);
+    }
+  }, [employeesLoading]);
   
   // CRUD operations for logbook entries
   const addEntry = async (entry: Omit<LogbookEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
@@ -412,7 +410,7 @@ export const LogbookProvider = ({ children }: { children: ReactNode }) => {
       addVehicle,
       updateVehicle,
       deleteVehicle,
-      employees,
+      employees, // Now using real employees data
       maintenanceRecords,
       addMaintenance,
       updateMaintenance,

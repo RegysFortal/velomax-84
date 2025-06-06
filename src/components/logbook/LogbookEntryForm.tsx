@@ -26,13 +26,20 @@ const LogbookEntryForm = ({
 }: LogbookEntryFormProps) => {
   const { vehicles, employees } = useLogbook();
   
-  const drivers = employees.filter(employee => 
-    employee.position === 'driver' || employee.position === 'Driver'
-  );
+  // Filter employees by position - drivers and assistants
+  const drivers = employees.filter(employee => {
+    const position = employee.position?.toLowerCase();
+    return position === 'driver' || position === 'motorista' || position === 'condutor';
+  });
   
-  const assistants = employees.filter(employee => 
-    employee.position === 'assistant' || employee.position === 'Assistant'
-  );
+  const assistants = employees.filter(employee => {
+    const position = employee.position?.toLowerCase();
+    return position === 'assistant' || position === 'ajudante' || position === 'auxiliar';
+  });
+
+  console.log('Available employees:', employees);
+  console.log('Filtered drivers:', drivers);
+  console.log('Filtered assistants:', assistants);
 
   const { form, onSubmit } = useLogbookForm({
     initialData,
