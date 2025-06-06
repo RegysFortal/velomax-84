@@ -1,20 +1,18 @@
+
 import React, { useEffect, useState } from "react";
 import { ClientSelection } from "@/components/shipment/ClientSelection";
 import { TransportSection } from "@/components/shipment/TransportSection";
 import { PackageDetailsSection } from "@/components/shipment/PackageDetailsSection";
 import { ShipmentDateSection } from "@/components/shipment/ShipmentDateSection";
-import { CarrierSection } from "@/components/shipment/CarrierSection";
 import { StatusSection } from "@/components/shipment/StatusSection";
 import { RetentionFormSection } from "./form-sections/RetentionFormSection";
 import { FormActions } from "./form-sections/FormActions";
 import { AddDocumentsModal } from "./AddDocumentsModal";
 import { useCompanySelection } from "./hooks/useCompanySelection";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { FileText } from "lucide-react";
 import { Client } from "@/types";
 import { ShipmentStatus, TransportMode } from "@/types";
-import { FormField } from "@/components/ui/form-field";
 
 interface ShipmentFormContentProps {
   companyId: string;
@@ -129,29 +127,12 @@ export function ShipmentFormContent({
         <TransportSection 
           transportMode={transportMode} 
           setTransportMode={setTransportMode} 
-          carrierName="" 
-          setCarrierName={() => {}} 
-          trackingNumber="" 
-          setTrackingNumber={() => {}} 
+          carrierName={carrierName} 
+          setCarrierName={setCarrierName} 
+          trackingNumber={trackingNumber} 
+          setTrackingNumber={setTrackingNumber} 
         />
       </div>
-      
-      {/* Carrier Section */}
-      <CarrierSection 
-        transportMode={transportMode} 
-        carrierName={carrierName} 
-        setCarrierName={setCarrierName} 
-      />
-      
-      {/* Tracking Number */}
-      <FormField id="trackingNumber" label="Número do Conhecimento">
-        <Input
-          id="trackingNumber"
-          value={trackingNumber}
-          onChange={(e) => setTrackingNumber(e.target.value)}
-          placeholder="Digite o número do conhecimento"
-        />
-      </FormField>
       
       {/* Package Info */}
       <PackageDetailsSection 
