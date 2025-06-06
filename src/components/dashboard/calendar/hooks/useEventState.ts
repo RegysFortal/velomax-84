@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { CalendarEvent } from '@/hooks/useCalendarEvents';
@@ -24,18 +25,25 @@ export const useEventState = (
   const [eventTime, setEventTime] = useState('09:00');
   const [recurrence, setRecurrence] = useState<RecurrenceType>('none');
   
+  // Create a normalized date at noon local time to avoid timezone issues
+  const createNormalizedDate = (date: Date): Date => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  };
+  
   // Handle selecting a date on the calendar
   const handleSelect = (date: Date | undefined) => {
     if (!date) return;
     
-    const dateStr = format(date, 'yyyy-MM-dd');
+    const normalizedSelectedDate = createNormalizedDate(date);
+    const dateStr = format(normalizedSelectedDate, 'yyyy-MM-dd');
+    
     const eventsForDate = events.filter(event => {
-      const eventDate = new Date(event.date);
-      return eventDate.toDateString() === date.toDateString();
+      const eventDate = createNormalizedDate(new Date(event.date));
+      return eventDate.toDateString() === normalizedSelectedDate.toDateString();
     });
     
-    setSelectedDate(date);
-    setEventDate(date);
+    setSelectedDate(normalizedSelectedDate);
+    setEventDate(normalizedSelectedDate);
     
     if (eventsForDate.length === 1) {
       const event = eventsForDate[0];
@@ -82,8 +90,11 @@ export const useEventState = (
     }
     
     try {
+      // Ensure we're using a normalized date at noon to avoid timezone issues
+      const normalizedEventDate = createNormalizedDate(eventDate);
+      
       const eventData = {
-        date: eventDate,
+        date: normalizedEventDate,
         title: eventTitle,
         type: eventType,
         description: eventDescription || undefined,
@@ -148,7 +159,7 @@ export const useEventState = (
     setEventDescription('');
     setIsScheduledDelivery(false);
     setScheduledShipmentId('');
-    setEventDate(new Date());
+    setEventDate(createNormalizedDate(new Date()));
     setIsAllDay(true);
     setEventTime('09:00');
     setRecurrence('none');
@@ -157,20 +168,23 @@ export const useEventState = (
   const getEventsForSelectedDate = () => {
     return selectedDate 
       ? events.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.toDateString() === selectedDate.toDateString();
+          const eventDate = createNormalizedDate(new Date(event.date));
+          const selectedDateNormalized = createNormalizedDate(selectedDate);
+          return eventDate.toDateString() === selectedDateNormalized.toDateString();
         })
       : [];
   };
     
   const handleEditEvent = (event: CalendarEvent) => {
+    const normalizedEventDate = createNormalizedDate(new Date(event.date));
+    
     setSelectedEvent(event);
     setEventTitle(event.title);
     setEventType(event.type);
     setEventDescription(event.description || '');
     setIsScheduledDelivery(event.isScheduledDelivery || false);
     setScheduledShipmentId(event.scheduledShipmentId || '');
-    setEventDate(new Date(event.date));
+    setEventDate(normalizedEventDate);
     setIsAllDay(event.isAllDay !== undefined ? event.isAllDay : true);
     setEventTime(event.time || '09:00');
     setRecurrence(event.recurrence || 'none');
@@ -178,8 +192,9 @@ export const useEventState = (
   };
 
   const handleNewEvent = () => {
-    setSelectedDate(new Date());
-    setEventDate(new Date());
+    const today = createNormalizedDate(new Date());
+    setSelectedDate(today);
+    setEventDate(today);
     setShowEventDialog(true);
   };
   
