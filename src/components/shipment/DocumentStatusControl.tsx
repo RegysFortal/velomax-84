@@ -53,7 +53,10 @@ export function DocumentStatusControl({
   } = useDocumentDelivery({ shipmentId, documentId: document.id, onStatusChange });
   
   const getStatusBadge = () => {
-    if (document.isRetained) {
+    // Verificar se documento está retido baseado no status ou flags de compatibilidade
+    const isRetained = document.isRetained || (!document.isDelivered && !document.isPickedUp && document.status === 'retained');
+    
+    if (isRetained) {
       return (
         <Badge className="bg-red-500 hover:bg-red-600">
           Retido
@@ -86,6 +89,7 @@ export function DocumentStatusControl({
       
       // If changing to retained status, show retention form
       if (status === "retained") {
+        console.log("Opening retention sheet for document:", document.id);
         retentionState.setShowRetentionSheet(true);
         return;
       }
@@ -108,8 +112,9 @@ export function DocumentStatusControl({
   const updateDocumentStatus = async (status: DocumentStatus) => {
     try {
       const isDelivered = status === "delivered";
-      const isRetained = status === "retained";
       const isPickedUp = status === "picked_up";
+      
+      console.log(`Updating document ${document.id} to status: ${status}`);
       
       // Update in Supabase
       const { error } = await supabase
@@ -125,6 +130,8 @@ export function DocumentStatusControl({
         toast.error("Erro ao atualizar documento no banco de dados");
         return;
       }
+      
+      console.log(`Document ${document.id} updated successfully to status: ${status}`);
       
       // Show success message
       let statusText = "Pendente";

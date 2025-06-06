@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Document, Shipment } from "@/types/shipment";
 import { ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
@@ -28,15 +27,21 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
   const totalDocuments = shipment.documents?.length || 0;
 
   const getStatusBadgeVariant = (document: Document) => {
+    // Verificar se documento está retido - melhorar lógica de detecção
+    const isRetained = document.isRetained || (!document.isDelivered && !document.isPickedUp && document.status === 'retained');
+    
     if (document.isDelivered) return 'default';
-    if (document.isRetained) return 'destructive';
+    if (isRetained) return 'destructive';
     if (document.isPickedUp) return 'outline';
     return 'secondary';
   };
 
   const getStatusLabel = (document: Document) => {
+    // Verificar se documento está retido - melhorar lógica de detecção
+    const isRetained = document.isRetained || (!document.isDelivered && !document.isPickedUp && document.status === 'retained');
+    
     if (document.isDelivered) return 'Entregue';
-    if (document.isRetained) return 'Retido';
+    if (isRetained) return 'Retido';
     if (document.isPickedUp) return 'Retirado';
     return 'Em Trânsito';
   };
@@ -78,66 +83,73 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
         <CollapsibleContent className="mt-2">
           <div className="border rounded-md bg-gray-50 p-4 space-y-3">
             {shipment.documents && shipment.documents.length > 0 ? (
-              shipment.documents.map((document) => (
-                <div 
-                  key={document.id} 
-                  className={`border rounded-md p-3 bg-white ${document.isPriority ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        {document.isPriority && (
-                          <AlertTriangle className="h-4 w-4 text-red-500" />
-                        )}
-                        <span className="font-medium">
-                          {document.minuteNumber ? `Minuta: ${document.minuteNumber}` : document.name}
-                        </span>
+              shipment.documents.map((document) => {
+                // Verificar se documento está retido - melhorar lógica de detecção
+                const isRetained = document.isRetained || (!document.isDelivered && !document.isPickedUp && document.status === 'retained');
+                
+                return (
+                  <div 
+                    key={document.id} 
+                    className={`border rounded-md p-3 bg-white ${document.isPriority ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          {document.isPriority && (
+                            <AlertTriangle className="h-4 w-4 text-red-500" />
+                          )}
+                          <span className="font-medium">
+                            {document.minuteNumber ? `Minuta: ${document.minuteNumber}` : document.name}
+                          </span>
+                        </div>
+                        
+                        <Badge variant={getStatusBadgeVariant(document)}>
+                          {getStatusLabel(document)}
+                        </Badge>
                       </div>
-                      
-                      <Badge variant={getStatusBadgeVariant(document)}>
-                        {getStatusLabel(document)}
-                      </Badge>
+
+                      <DocumentStatusControl
+                        shipmentId={shipment.id}
+                        document={document}
+                        onStatusChange={onDocumentUpdate}
+                      />
+                    </div>
+                    
+                    {/* Document details */}
+                    <div className="mt-2 text-sm text-gray-600 space-y-1">
+                      {document.invoiceNumbers && document.invoiceNumbers.length > 0 && (
+                        <div>
+                          <strong>Notas Fiscais:</strong> {document.invoiceNumbers.join(', ')}
+                        </div>
+                      )}
+                      {document.weight && (
+                        <div><strong>Peso:</strong> {document.weight} kg</div>
+                      )}
+                      {document.packages && (
+                        <div><strong>Volumes:</strong> {document.packages}</div>
+                      )}
+                      {document.notes && (
+                        <div><strong>Observações:</strong> {document.notes}</div>
+                      )}
                     </div>
 
-                    <DocumentStatusControl
-                      shipmentId={shipment.id}
-                      document={document}
-                      onStatusChange={onDocumentUpdate}
+                    {/* Retention Information - Only show action number, reason, and amount */}
+                    {isRetained && (
+                      <RetentionInfo 
+                        document={document} 
+                        shouldShowPriorityBackground={document.isPriority || false} 
+                      />
+                    )}
+
+                    {/* Delivery Information - Only show receiver, date, and time */}
+                    <DeliveryInfo 
+                      document={document} 
+                      shipment={shipment}
+                      shouldShowPriorityBackground={document.isPriority || false} 
                     />
                   </div>
-                  
-                  {/* Document details */}
-                  <div className="mt-2 text-sm text-gray-600 space-y-1">
-                    {document.invoiceNumbers && document.invoiceNumbers.length > 0 && (
-                      <div>
-                        <strong>Notas Fiscais:</strong> {document.invoiceNumbers.join(', ')}
-                      </div>
-                    )}
-                    {document.weight && (
-                      <div><strong>Peso:</strong> {document.weight} kg</div>
-                    )}
-                    {document.packages && (
-                      <div><strong>Volumes:</strong> {document.packages}</div>
-                    )}
-                    {document.notes && (
-                      <div><strong>Observações:</strong> {document.notes}</div>
-                    )}
-                  </div>
-
-                  {/* Retention Information - Only show action number, reason, and amount */}
-                  <RetentionInfo 
-                    document={document} 
-                    shouldShowPriorityBackground={document.isPriority || false} 
-                  />
-
-                  {/* Delivery Information - Only show receiver, date, and time */}
-                  <DeliveryInfo 
-                    document={document} 
-                    shipment={shipment}
-                    shouldShowPriorityBackground={document.isPriority || false} 
-                  />
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center text-gray-500 py-4">
                 Nenhum documento encontrado

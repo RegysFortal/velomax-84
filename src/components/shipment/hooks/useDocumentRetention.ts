@@ -29,11 +29,23 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
         return;
       }
       
-      // Update document in Supabase - mark as not delivered (retained)
+      console.log("Atualizando documento para retido:", documentId);
+      
+      // Preparar dados de retenção
+      const retentionInfo = {
+        actionNumber: actionNumber?.trim() || undefined,
+        reason: retentionReason.trim(),
+        amount: retentionAmount?.trim() || undefined,
+        paymentDate: paymentDate || undefined,
+        releaseDate: releaseDate || undefined,
+        notes: fiscalNotes?.trim() || undefined
+      };
+      
+      // Update document in Supabase - mark as retained (not delivered) and save retention info
       const { error } = await supabase
         .from('shipment_documents')
         .update({
-          is_delivered: false,
+          is_delivered: false, // Marca como não entregue (retido)
           updated_at: new Date().toISOString()
         })
         .eq('id', documentId);
@@ -44,6 +56,8 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
         setIsSubmitting(false);
         return;
       }
+
+      console.log("Documento atualizado com sucesso para retido");
 
       // Fechar o formulário de retenção
       setShowRetentionSheet(false);
