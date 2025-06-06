@@ -8,6 +8,7 @@ import { FinancialMenu } from "./nav/FinancialMenu";
 import { ManagementMenu } from "./nav/ManagementMenu";
 import { FleetMenu } from "./nav/FleetMenu";
 import { InventoryMenu } from "./nav/InventoryMenu";
+import { StorageMenu } from "./nav/StorageMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function NavMenu() {
@@ -59,13 +60,20 @@ export function NavMenu() {
           onOpenChange={() => handleMenuOpen(3)} 
         />
         
+        <StorageMenu 
+          user={user} 
+          hasPermission={hasPermission}
+          open={openMenuIndex === 4} 
+          onOpenChange={() => handleMenuOpen(4)} 
+        />
+        
         {/* Configurações (Administração) - só aparece na área administrativa */}
         {isAdminArea && (
           <ManagementMenu 
             user={user} 
             hasPermission={hasPermission}
-            open={openMenuIndex === 4} 
-            onOpenChange={() => handleMenuOpen(4)} 
+            open={openMenuIndex === 5} 
+            onOpenChange={() => handleMenuOpen(5)} 
           />
         )}
       </NavigationMenuList>
