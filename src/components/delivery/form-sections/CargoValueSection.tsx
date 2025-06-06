@@ -35,16 +35,27 @@ export function CargoValueSection({
             <Input
               type="number"
               step="0.01"
+              min="0"
               placeholder="0,00"
-              {...field}
+              value={field.value || ''}
               onChange={(e) => {
-                const value = parseFloat(e.target.value) || 0;
-                field.onChange(e);
-                onCargoValueChange?.(value);
+                const stringValue = e.target.value;
+                const numericValue = stringValue ? parseFloat(stringValue) : 0;
+                
+                // Atualizar o campo do formulário com o valor string
+                field.onChange(stringValue);
+                
+                // Chamar callback com valor numérico para cálculos
+                if (onCargoValueChange) {
+                  onCargoValueChange(numericValue);
+                }
               }}
             />
           </FormControl>
           <FormMessage />
+          <p className="text-sm text-muted-foreground mt-1">
+            Será aplicado 1% do valor da carga como seguro no frete
+          </p>
         </FormItem>
       )}
     />

@@ -53,14 +53,24 @@ export const useDeliveryFormCalculations = ({
     // Obter valores do formulário
     const weight = parseFloat(formValues.weight) || 0;
     const cargoType = formValues.cargoType as CargoType;
-    const cargoValue = formValues.cargoValue ? parseFloat(formValues.cargoValue) : undefined;
+    
+    // Converter cargoValue para número se for string
+    let cargoValue = formValues.cargoValue;
+    if (typeof cargoValue === 'string') {
+      cargoValue = cargoValue ? parseFloat(cargoValue) : 0;
+    } else if (typeof cargoValue === 'number') {
+      cargoValue = cargoValue || 0;
+    } else {
+      cargoValue = 0;
+    }
+    
     const cityId = formValues.cityId;
     
     console.log(`Calculando frete para cliente com tabela ${priceTable.name}`);
-    console.log(`Parâmetros: peso=${weight}, tipo=${deliveryType}, carga=${cargoType}, valor=${cargoValue || 0}`);
+    console.log(`Parâmetros: peso=${weight}, tipo=${deliveryType}, carga=${cargoType}, valor=${cargoValue}`);
     
     // Para redespacho, garantir que o valor da carga seja considerado
-    if (deliveryType === 'reshipment' && cargoValue) {
+    if (deliveryType === 'reshipment' && cargoValue > 0) {
       console.log(`Redespacho detectado com valor da carga: R$ ${cargoValue}`);
     }
     
@@ -81,7 +91,7 @@ export const useDeliveryFormCalculations = ({
       weight,
       deliveryType,
       cargoType,
-      cargoValue || 0, // Garantir que cargoValue seja passado, mesmo que seja 0
+      cargoValue, // Agora sempre será um número
       undefined,
       cityObj
     );
