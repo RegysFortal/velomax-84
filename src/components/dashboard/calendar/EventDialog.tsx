@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash } from 'lucide-react';
-import { CalendarEvent, EventType, EVENT_TYPES } from '@/hooks/calendar/event-types';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Edit, Trash, Calendar, Clock } from 'lucide-react';
+import { CalendarEvent, EventType, RecurrenceType, EVENT_TYPES, RECURRENCE_TYPES } from '@/hooks/calendar/event-types';
 import { Shipment } from '@/types';
 
 interface EventDialogProps {
@@ -28,6 +29,14 @@ interface EventDialogProps {
   handleSaveEvent: () => void;
   handleDeleteEvent: () => void;
   resetForm: () => void;
+  eventDate: Date | undefined;
+  setEventDate: (date: Date | undefined) => void;
+  isAllDay: boolean;
+  setIsAllDay: (isAllDay: boolean) => void;
+  eventTime: string;
+  setEventTime: (time: string) => void;
+  recurrence: RecurrenceType;
+  setRecurrence: (recurrence: RecurrenceType) => void;
 }
 
 export function EventDialog({
@@ -47,18 +56,52 @@ export function EventDialog({
   shipments,
   handleSaveEvent,
   handleDeleteEvent,
-  resetForm
+  resetForm,
+  eventDate,
+  setEventDate,
+  isAllDay,
+  setIsAllDay,
+  eventTime,
+  setEventTime,
+  recurrence,
+  setRecurrence
 }: EventDialogProps) {
+  const formatDateForInput = (date: Date | undefined) => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0];
+  };
+
+  const handleDateChange = (dateString: string) => {
+    if (dateString) {
+      setEventDate(new Date(dateString));
+    } else {
+      setEventDate(undefined);
+    }
+  };
+
   return (
     <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
             {selectedEvent ? 'Editar Evento' : 'Novo Evento'}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
+          {/* Data do evento */}
+          <div className="space-y-2">
+            <Label htmlFor="eventDate">Data do evento</Label>
+            <Input
+              id="eventDate"
+              type="date"
+              value={formatDateForInput(eventDate)}
+              onChange={(e) => handleDateChange(e.target.value)}
+            />
+          </div>
+
+          {/* Título */}
           <div className="space-y-2">
             <Label htmlFor="title">Título</Label>
             <Input
@@ -69,8 +112,9 @@ export function EventDialog({
             />
           </div>
           
+          {/* Tipo de evento */}
           <div className="space-y-2">
-            <Label htmlFor="type">Tipo de Evento</Label>
+            <Label htmlFor="type">Tipo de evento</Label>
             <Select
               value={eventType}
               onValueChange={(value) => setEventType(value as EventType)}
@@ -81,20 +125,69 @@ export function EventDialog({
               <SelectContent>
                 {Object.entries(EVENT_TYPES).map(([key, value]) => (
                   <SelectItem key={key} value={key}>
-                    {value.label}
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${value.color}`} />
+                      {value.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Horário */}
+          <div className="space-y-3">
+            <Label>Horário</Label>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="allDay"
+                checked={isAllDay}
+                onCheckedChange={setIsAllDay}
+              />
+              <Label htmlFor="allDay" className="text-sm font-normal">
+                Dia inteiro
+              </Label>
+            </div>
+            
+            {!isAllDay && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="time"
+                  value={eventTime}
+                  onChange={(e) => setEventTime(e.target.value)}
+                  className="w-32"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Repetição */}
+          <div className="space-y-2">
+            <Label htmlFor="recurrence">Repetição</Label>
+            <Select
+              value={recurrence}
+              onValueChange={(value) => setRecurrence(value as RecurrenceType)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a repetição" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(RECURRENCE_TYPES).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>
+                    {value}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           
+          {/* Checkbox para entrega agendada - mantido para compatibilidade */}
           <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="isScheduledDelivery"
               checked={isScheduledDelivery}
-              onChange={(e) => setIsScheduledDelivery(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              onCheckedChange={setIsScheduledDelivery}
             />
             <Label htmlFor="isScheduledDelivery" className="text-sm font-normal">
               É uma entrega agendada
@@ -122,6 +215,7 @@ export function EventDialog({
             </div>
           )}
           
+          {/* Descrição */}
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea
@@ -129,6 +223,7 @@ export function EventDialog({
               value={eventDescription}
               onChange={(e) => setEventDescription(e.target.value)}
               placeholder="Digite uma descrição (opcional)"
+              rows={3}
             />
           </div>
         </div>

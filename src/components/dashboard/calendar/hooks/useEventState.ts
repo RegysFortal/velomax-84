@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { CalendarEvent, EventType } from '@/hooks/useCalendarEvents';
+import { CalendarEvent, EventType, RecurrenceType } from '@/hooks/useCalendarEvents';
 import { useToast } from '@/hooks/use-toast';
 
 export const useEventState = (
@@ -19,6 +19,10 @@ export const useEventState = (
   const [eventDescription, setEventDescription] = useState('');
   const [isScheduledDelivery, setIsScheduledDelivery] = useState(false);
   const [scheduledShipmentId, setScheduledShipmentId] = useState('');
+  const [eventDate, setEventDate] = useState<Date | undefined>(new Date());
+  const [isAllDay, setIsAllDay] = useState(true);
+  const [eventTime, setEventTime] = useState('09:00');
+  const [recurrence, setRecurrence] = useState<RecurrenceType>('none');
   
   // Handle selecting a date on the calendar
   const handleSelect = (date: Date | undefined) => {
@@ -31,6 +35,7 @@ export const useEventState = (
     });
     
     setSelectedDate(date);
+    setEventDate(date);
     
     if (eventsForDate.length === 1) {
       const event = eventsForDate[0];
@@ -40,6 +45,9 @@ export const useEventState = (
       setEventDescription(event.description || '');
       setIsScheduledDelivery(event.isScheduledDelivery || false);
       setScheduledShipmentId(event.scheduledShipmentId || '');
+      setIsAllDay(event.isAllDay !== undefined ? event.isAllDay : true);
+      setEventTime(event.time || '09:00');
+      setRecurrence(event.recurrence || 'none');
       setShowEventDialog(true);
     } else {
       setSelectedEvent(undefined);
@@ -48,43 +56,52 @@ export const useEventState = (
       setEventDescription('');
       setIsScheduledDelivery(false);
       setScheduledShipmentId('');
+      setIsAllDay(true);
+      setEventTime('09:00');
+      setRecurrence('none');
     }
   };
   
   const handleSaveEvent = () => {
-    if (!selectedDate) return;
+    if (!eventDate) {
+      toast({
+        title: "Erro",
+        description: "A data do evento é obrigatória.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!eventTitle.trim()) {
+      toast({
+        title: "Erro",
+        description: "O título do evento é obrigatório.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
-      if (!eventTitle.trim()) {
-        toast({
-          title: "Erro",
-          description: "O título do evento é obrigatório.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
+      const eventData = {
+        date: eventDate,
+        title: eventTitle,
+        type: eventType,
+        description: eventDescription || undefined,
+        isScheduledDelivery,
+        isAllDay,
+        time: isAllDay ? undefined : eventTime,
+        recurrence,
+        ...(isScheduledDelivery && { scheduledShipmentId })
+      };
+
       if (selectedEvent) {
-        updateEvent(selectedEvent.id, {
-          title: eventTitle,
-          type: eventType,
-          description: eventDescription,
-          isScheduledDelivery,
-          ...(isScheduledDelivery && { scheduledShipmentId })
-        });
+        updateEvent(selectedEvent.id, eventData);
         toast({
           title: "Evento atualizado",
           description: "O evento foi atualizado com sucesso."
         });
       } else {
-        addEvent({
-          date: selectedDate,
-          title: eventTitle,
-          type: eventType,
-          description: eventDescription || undefined,
-          isScheduledDelivery,
-          ...(isScheduledDelivery && { scheduledShipmentId })
-        });
+        addEvent(eventData);
         toast({
           title: "Evento criado",
           description: "O evento foi criado com sucesso."
@@ -131,6 +148,10 @@ export const useEventState = (
     setEventDescription('');
     setIsScheduledDelivery(false);
     setScheduledShipmentId('');
+    setEventDate(new Date());
+    setIsAllDay(true);
+    setEventTime('09:00');
+    setRecurrence('none');
   };
 
   const getEventsForSelectedDate = () => {
@@ -149,11 +170,16 @@ export const useEventState = (
     setEventDescription(event.description || '');
     setIsScheduledDelivery(event.isScheduledDelivery || false);
     setScheduledShipmentId(event.scheduledShipmentId || '');
+    setEventDate(new Date(event.date));
+    setIsAllDay(event.isAllDay !== undefined ? event.isAllDay : true);
+    setEventTime(event.time || '09:00');
+    setRecurrence(event.recurrence || 'none');
     setShowEventDialog(true);
   };
 
   const handleNewEvent = () => {
     setSelectedDate(new Date());
+    setEventDate(new Date());
     setShowEventDialog(true);
   };
   
@@ -174,6 +200,14 @@ export const useEventState = (
     setIsScheduledDelivery,
     scheduledShipmentId,
     setScheduledShipmentId,
+    eventDate,
+    setEventDate,
+    isAllDay,
+    setIsAllDay,
+    eventTime,
+    setEventTime,
+    recurrence,
+    setRecurrence,
     handleSelect,
     handleSaveEvent,
     handleDeleteEvent,

@@ -1,33 +1,29 @@
 
 export const EVENT_TYPES = {
-  delivery: {
-    label: 'Entrega',
-    color: 'bg-blue-500'
-  },
-  shipment: {
-    label: 'Embarque',
-    color: 'bg-green-500'
+  birthday: {
+    label: 'Aniversário',
+    color: 'bg-pink-500'
   },
   meeting: {
     label: 'Reunião',
-    color: 'bg-purple-500'
+    color: 'bg-blue-500'
   },
-  maintenance: {
-    label: 'Manutenção',
-    color: 'bg-orange-500'
+  holiday: {
+    label: 'Feriado',
+    color: 'bg-green-500'
   },
   other: {
-    label: 'Outros',
+    label: 'Outro',
     color: 'bg-gray-500'
   }
 } as const;
 
 export const RECURRENCE_TYPES = {
-  none: 'Não repetir',
-  daily: 'Diariamente',
-  weekly: 'Semanalmente',
-  monthly: 'Mensalmente',
-  yearly: 'Anualmente'
+  none: 'Não se repete',
+  daily: 'Todos os dias',
+  weekly: 'Todas as semanas',
+  monthly: 'Todos os meses',
+  yearly: 'Todos os anos'
 } as const;
 
 export type EventType = keyof typeof EVENT_TYPES;
@@ -41,6 +37,8 @@ export interface CalendarEvent {
   description?: string;
   recurrence?: RecurrenceType;
   recurrenceEndDate?: Date;
+  isAllDay?: boolean;
+  time?: string;
   isScheduledDelivery?: boolean;
   scheduledShipmentId?: string;
 }

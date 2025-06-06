@@ -36,6 +36,14 @@ export const EventsCalendar = ({
     setIsScheduledDelivery,
     scheduledShipmentId,
     setScheduledShipmentId,
+    eventDate,
+    setEventDate,
+    isAllDay,
+    setIsAllDay,
+    eventTime,
+    setEventTime,
+    recurrence,
+    setRecurrence,
     handleSelect,
     handleSaveEvent,
     handleDeleteEvent,
@@ -93,6 +101,14 @@ export const EventsCalendar = ({
         handleSaveEvent={handleSaveEvent}
         handleDeleteEvent={handleDeleteEvent}
         resetForm={resetForm}
+        eventDate={eventDate}
+        setEventDate={setEventDate}
+        isAllDay={isAllDay}
+        setIsAllDay={setIsAllDay}
+        eventTime={eventTime}
+        setEventTime={setEventTime}
+        recurrence={recurrence}
+        setRecurrence={setRecurrence}
       />
     </>
   );
