@@ -138,22 +138,21 @@ export const calculateFreight = (
       totalFreight *= perishableMultiplier;
     }
     
-    // Add insurance value if there's cargo value
+    // Add insurance value if there's cargo value (1% do valor da carga)
     if (cargoValue > 0) {
-      let insuranceRate = 0;
+      let insuranceRate = 0.01; // 1% como padrão
       
       // Para redespacho, usar taxa específica ou taxa padrão de seguro
       if (deliveryType === 'reshipment') {
-        // Para redespacho, usar 1% (0.01) como taxa de seguro padrão
         insuranceRate = priceTable.insurance?.standard || priceTable.insurance?.rate || 0.01;
         console.log(`Redespacho - Taxa de seguro aplicada: ${insuranceRate}`);
       } else {
-        // Para outros tipos de entrega, usar taxa padrão
+        // Para outros tipos de entrega, usar taxa padrão da tabela ou 1%
         insuranceRate = priceTable.insurance?.standard || priceTable.insurance?.rate || 0.01;
       }
       
       const insuranceCharge = cargoValue * insuranceRate;
-      console.log(`Seguro: ${cargoValue} × ${insuranceRate} = ${insuranceCharge}`);
+      console.log(`Seguro (${insuranceRate * 100}%): ${cargoValue} × ${insuranceRate} = ${insuranceCharge}`);
       totalFreight += insuranceCharge;
     }
     
