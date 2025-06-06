@@ -4,7 +4,6 @@ import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { useClientPriceTable } from './useClientPriceTable';
 import { useBudgetCalculations } from '@/components/budget/hooks/useBudgetCalculations';
-import { usePriceTables } from '@/contexts';
 import { calculateBudgetValue } from '@/contexts/priceTables/priceTableUtils';
 
 interface UseBudgetCRUDProps {
@@ -17,7 +16,16 @@ export function useBudgetCRUD({ budgets, setBudgets, setLoading }: UseBudgetCRUD
   const { toast } = useToast();
   const { getClientPriceTable } = useClientPriceTable();
   const { calculateTotalWeight } = useBudgetCalculations();
-  const { priceTables } = usePriceTables();
+  
+  // Safely get price tables from context
+  let priceTables = [];
+  try {
+    const { usePriceTables } = require('@/contexts/priceTables');
+    const priceTablesContext = usePriceTables();
+    priceTables = priceTablesContext?.priceTables || [];
+  } catch (error) {
+    console.warn("PriceTablesProvider not available, using empty price tables array");
+  }
 
   const addBudget = async (budgetData: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
