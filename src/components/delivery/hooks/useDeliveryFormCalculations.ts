@@ -59,6 +59,11 @@ export const useDeliveryFormCalculations = ({
     console.log(`Calculando frete para cliente com tabela ${priceTable.name}`);
     console.log(`Parâmetros: peso=${weight}, tipo=${deliveryType}, carga=${cargoType}, valor=${cargoValue || 0}`);
     
+    // Para redespacho, garantir que o valor da carga seja considerado
+    if (deliveryType === 'reshipment' && cargoValue) {
+      console.log(`Redespacho detectado com valor da carga: R$ ${cargoValue}`);
+    }
+    
     // Encontrar a cidade completa a partir do ID
     let cityObj: City | undefined;
     if (cityId) {
@@ -76,7 +81,7 @@ export const useDeliveryFormCalculations = ({
       weight,
       deliveryType,
       cargoType,
-      cargoValue,
+      cargoValue || 0, // Garantir que cargoValue seja passado, mesmo que seja 0
       undefined,
       cityObj
     );
