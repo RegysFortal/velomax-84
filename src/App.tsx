@@ -41,7 +41,7 @@ import Users from '@/pages/Users';
 import Employees from '@/pages/Employees';
 import Contractors from '@/pages/Contractors';
 import Vehicles from '@/pages/Vehicles';
-import Logbook from '@/pages/Logbook';
+import Logbooks from '@/pages/Logbooks';
 import Maintenance from '@/pages/Maintenance';
 import NotFound from '@/pages/NotFound';
 
@@ -107,7 +107,7 @@ function App() {
                                       <Route path="/employees" element={<PrivateRoute><Employees /></PrivateRoute>} />
                                       <Route path="/contractors" element={<PrivateRoute><Contractors /></PrivateRoute>} />
                                       <Route path="/vehicles" element={<PrivateRoute><Vehicles /></PrivateRoute>} />
-                                      <Route path="/logbook" element={<PrivateRoute><Logbook /></PrivateRoute>} />
+                                      <Route path="/logbook" element={<PrivateRoute><Logbooks /></PrivateRoute>} />
                                       <Route path="/maintenance" element={<PrivateRoute><Maintenance /></PrivateRoute>} />
                                       
                                       {/* Inventory routes */}

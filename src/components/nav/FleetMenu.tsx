@@ -67,10 +67,10 @@ export const FleetMenu: React.FC<FleetMenuProps> = ({
             
             {hasLogbookPermission && (
               <Link
-                to="/logbooks"
+                to="/logbook"
                 className={cn(
                   "flex items-center p-2 rounded-md hover:bg-accent",
-                  getActiveClass(location.pathname, "/logbooks")
+                  getActiveClass(location.pathname, "/logbook")
                 )}
               >
                 <CalendarRange className="mr-2 h-4 w-4" />
