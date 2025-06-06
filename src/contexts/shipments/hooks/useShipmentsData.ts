@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Shipment, Document } from '@/types/shipment';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,12 +22,10 @@ export function useShipmentsData(user: SupabaseUser | null | undefined) {
       status: 'in_transit', // Default status
       isPriority: false, // Default priority
       retentionInfo: {
-        _type: "undefined",
-        value: "undefined"
+        // Empty retention info object - will be populated when document is retained
       },
       deliveryInfo: {
-        _type: "undefined", 
-        value: "undefined"
+        // Empty delivery info object - will be populated when document is delivered
       },
       isDelivered: doc.is_delivered || false,
       createdAt: doc.created_at,

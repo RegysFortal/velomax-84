@@ -18,12 +18,10 @@ export const mapSupabaseToDocument = (supabaseDoc: any): Document => {
     status: 'in_transit', // Default status
     isPriority: false, // Default priority
     retentionInfo: {
-      _type: "undefined",
-      value: "undefined"
+      // Empty retention info object - will be populated when document is retained
     },
     deliveryInfo: {
-      _type: "undefined",
-      value: "undefined"
+      // Empty delivery info object - will be populated when document is delivered
     },
     isDelivered: supabaseDoc.is_delivered || false,
     createdAt: supabaseDoc.created_at,
