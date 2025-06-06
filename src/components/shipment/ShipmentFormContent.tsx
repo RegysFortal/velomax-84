@@ -2,15 +2,14 @@
 import React, { useEffect, useState } from "react";
 import { ClientSelection } from "@/components/shipment/ClientSelection";
 import { TransportSection } from "@/components/shipment/TransportSection";
+import { CarrierSection } from "@/components/shipment/CarrierSection";
 import { PackageDetailsSection } from "@/components/shipment/PackageDetailsSection";
 import { ShipmentDateSection } from "@/components/shipment/ShipmentDateSection";
-import { StatusSection } from "@/components/shipment/StatusSection";
 import { RetentionFormSection } from "./form-sections/RetentionFormSection";
 import { FormActions } from "./form-sections/FormActions";
-import { AddDocumentsModal } from "./AddDocumentsModal";
 import { useCompanySelection } from "./hooks/useCompanySelection";
-import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Client } from "@/types";
 import { ShipmentStatus, TransportMode } from "@/types";
 
@@ -83,9 +82,6 @@ export function ShipmentFormContent({
   onSubmit,
   onCancel
 }: ShipmentFormContentProps) {
-  const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false);
-  const [documentsAdded, setDocumentsAdded] = useState(0);
-
   useEffect(() => {
     console.log("ShipmentFormContent - Clients available:", clients.length);
     if (clients.length > 0) {
@@ -100,11 +96,6 @@ export function ShipmentFormContent({
     setCompanyId,
     setCompanyName
   });
-
-  const handleDocumentsSave = (documents: any[]) => {
-    setDocumentsAdded(documents.length);
-    console.log("Documents saved:", documents);
-  };
 
   return (
     <div className="space-y-6">
@@ -121,51 +112,59 @@ export function ShipmentFormContent({
         clients={clients} 
       />
       
-      {/* Transport Mode */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Tipo de Transporte</label>
-        <TransportSection 
-          transportMode={transportMode} 
-          setTransportMode={setTransportMode} 
-          carrierName={carrierName} 
-          setCarrierName={setCarrierName} 
-          trackingNumber={trackingNumber} 
-          setTrackingNumber={setTrackingNumber} 
+      {/* Transport Mode (without label) */}
+      <TransportSection 
+        transportMode={transportMode} 
+        setTransportMode={setTransportMode} 
+        carrierName={carrierName} 
+        setCarrierName={setCarrierName} 
+        trackingNumber={trackingNumber} 
+        setTrackingNumber={setTrackingNumber} 
+      />
+      
+      {/* Carrier Selection and Tracking Number */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CarrierSection
+          transportMode={transportMode}
+          carrierName={carrierName}
+          setCarrierName={setCarrierName}
         />
+        
+        <div className="space-y-2">
+          <Label htmlFor="trackingNumber">Número do Conhecimento</Label>
+          <Input
+            id="trackingNumber"
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="Digite o número do conhecimento"
+          />
+        </div>
       </div>
       
-      {/* Package Info */}
-      <PackageDetailsSection 
-        packages={packages} 
-        setPackages={setPackages} 
-        weight={weight} 
-        setWeight={setWeight} 
-      />
-      
-      {/* Add Documents Button */}
-      <div className="space-y-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={() => setIsDocumentsModalOpen(true)} 
-          className="w-full"
-        >
-          <FileText className="w-4 h-4 mr-2" />
-          Adicionar Documentos
-          {documentsAdded > 0 && (
-            <span className="ml-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs">
-              {documentsAdded}
-            </span>
-          )}
-        </Button>
+      {/* Package Info - Volumes and Weight on same line */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="packages">Volumes</Label>
+          <Input 
+            id="packages" 
+            value={packages} 
+            onChange={(e) => setPackages(e.target.value)}
+            type="number"
+            min="0"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="weight">Peso (kg)</Label>
+          <Input 
+            id="weight" 
+            value={weight} 
+            onChange={(e) => setWeight(e.target.value)}
+            type="number"
+            min="0"
+            step="0.01"
+          />
+        </div>
       </div>
-      
-      {/* Status */}
-      <StatusSection 
-        status={status} 
-        setStatus={setStatus} 
-        shipmentId="" 
-      />
       
       {/* Retention Details (conditional) */}
       {status === "retained" && (
@@ -187,13 +186,6 @@ export function ShipmentFormContent({
       
       {/* Form Actions */}
       <FormActions onSubmit={onSubmit} onCancel={onCancel} />
-      
-      {/* Documents Modal */}
-      <AddDocumentsModal 
-        open={isDocumentsModalOpen} 
-        onOpenChange={setIsDocumentsModalOpen} 
-        onSave={handleDocumentsSave} 
-      />
     </div>
   );
 }
