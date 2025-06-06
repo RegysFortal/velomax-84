@@ -14,3 +14,4 @@ export * from './city';
 export * from './priceTable';
 export * from './user';
 export * from './inventory';
+export * from './storage';
