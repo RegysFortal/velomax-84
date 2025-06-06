@@ -1,18 +1,18 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AppLayout } from '@/components/AppLayout';
-import { PrivateRoute } from '@/components/PrivateRoute';
+import PrivateRoute from '@/components/PrivateRoute';
 import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import { AuthProvider } from '@/contexts/auth/AuthContext';
 import { ActivityLogProvider } from '@/contexts/ActivityLogContext';
 import { AdminAreaProvider } from '@/contexts/AdminAreaContext';
-import { DeliveriesProvider } from '@/contexts/deliveries';
+import { DeliveriesProvider } from '@/contexts/deliveries/DeliveriesProvider';
 import { ClientsProvider } from '@/contexts/clients';
 import { BudgetProvider } from '@/contexts/budget';
 import { PriceTablesProvider } from '@/contexts/priceTables';
@@ -22,19 +22,19 @@ import { FinancialProvider } from '@/contexts/financial';
 import { LogbookProvider } from '@/contexts/LogbookContext';
 
 // Page imports
-import { DeliveriesPage } from '@/pages/deliveries';
-import { ShipmentsPage } from '@/pages/shipments';
+import DeliveriesPage from '@/pages/deliveries';
+import ShipmentsPage from '@/pages/shipments';
 import Budgets from '@/pages/Budgets';
 import Clients from '@/pages/Clients';
-import { PriceTablesPage } from '@/pages/PriceTables';
+import PriceTablesPage from '@/pages/PriceTables';
 import Cities from '@/pages/Cities';
 import Reports from '@/pages/Reports';
 import ShipmentReports from '@/pages/ShipmentReports';
 import Financial from '@/pages/Financial';
 import FinancialDashboard from '@/pages/FinancialDashboard';
-import { FinancialReportsPage } from '@/pages/accounts/FinancialReportsPage';
-import { ReceivableAccountsPage } from '@/pages/accounts/ReceivableAccountsPage';
-import { PayableAccountsPage } from '@/pages/accounts/PayableAccountsPage';
+import FinancialReportsPage from '@/pages/accounts/FinancialReportsPage';
+import ReceivableAccountsPage from '@/pages/accounts/ReceivableAccountsPage';
+import PayableAccountsPage from '@/pages/accounts/PayableAccountsPage';
 import Settings from '@/pages/Settings';
 import Profile from '@/pages/Profile';
 import Users from '@/pages/Users';
@@ -86,7 +86,7 @@ function App() {
                                     <Route path="/login" element={<Login />} />
                                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                     
-                                    <Route element={<AppLayout />}>
+                                    <Route element={<AppLayout><Outlet /></AppLayout>}>
                                       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                                       <Route path="/deliveries" element={<PrivateRoute><DeliveriesPage /></PrivateRoute>} />
                                       <Route path="/shipments" element={<PrivateRoute><ShipmentsPage /></PrivateRoute>} />
