@@ -10,7 +10,7 @@ interface RetentionInfoProps {
 
 export function RetentionInfo({ document, shouldShowPriorityBackground }: RetentionInfoProps) {
   // Verificar se documento está retido e tem informações de retenção
-  const isRetained = document.type === 'retained' || 
+  const isRetained = document.isRetained || 
                     (document.notes && typeof document.notes === 'string' && 
                      document.notes.includes('reason'));
   

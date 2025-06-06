@@ -53,8 +53,8 @@ export function DocumentStatusControl({
   } = useDocumentDelivery({ shipmentId, documentId: document.id, onStatusChange });
   
   const getStatusBadge = () => {
-    // Verificar se documento está retido - usando o campo type ou verificando se notes contém dados de retenção
-    const isRetained = document.type === 'retained' || 
+    // Verificar se documento está retido - usando isRetained ou verificando se notes contém dados de retenção
+    const isRetained = document.isRetained || 
                       (document.notes && typeof document.notes === 'string' && 
                        document.notes.includes('reason'));
     
@@ -108,6 +108,7 @@ export function DocumentStatusControl({
   const updateDocumentStatus = async (status: DocumentStatus) => {
     try {
       const isDelivered = status === "delivered";
+      const isRetained = status === "retained";
       
       console.log(`Updating document ${document.id} to status: ${status}`);
       
@@ -116,7 +117,7 @@ export function DocumentStatusControl({
         .from('shipment_documents')
         .update({
           is_delivered: isDelivered,
-          type: status === "pending" ? "pending" : document.type, // Preserva o tipo atual se não for pending
+          // Don't change the type field, it's for document type not status
           updated_at: new Date().toISOString()
         })
         .eq('id', document.id);

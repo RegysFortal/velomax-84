@@ -46,7 +46,6 @@ export function useDocumentRetention(shipmentId: string, documentId: string, onS
         .from('shipment_documents')
         .update({
           is_delivered: false, // Marca como não entregue (retido)
-          type: 'retained', // Atualiza o tipo para retido
           notes: JSON.stringify(retentionInfo), // Salva as informações de retenção no campo notes como JSON
           updated_at: new Date().toISOString()
         })

@@ -65,8 +65,8 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
           <div className="border rounded-md bg-gray-50 p-4 space-y-3">
             {shipment.documents && shipment.documents.length > 0 ? (
               shipment.documents.map((document) => {
-                // Verificar se documento está retido usando a nova lógica
-                const isRetained = document.type === 'retained' || 
+                // Verificar se documento está retido usando isRetained ou verificando se notes contém dados de retenção
+                const isRetained = document.isRetained || 
                                   (document.notes && typeof document.notes === 'string' && 
                                    document.notes.includes('reason'));
                 
