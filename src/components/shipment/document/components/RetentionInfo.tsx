@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertTriangle, Hash, FileText, DollarSign } from "lucide-react";
+import { AlertTriangle, Hash, FileText, DollarSign, Calendar } from "lucide-react";
 import { Document } from "@/types/shipment";
 
 interface RetentionInfoProps {
@@ -54,60 +54,84 @@ export function RetentionInfo({ document, shouldShowPriorityBackground }: Retent
     return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  // Formatação de data
+  const formatDate = (date?: string | null) => {
+    if (!date) return null;
+    
+    try {
+      const dateObj = new Date(date);
+      return dateObj.toLocaleDateString('pt-BR');
+    } catch (e) {
+      return date; // Retorna a string original se não conseguir formatar
+    }
+  };
+
   return (
-    <div className={`mt-3 border-t ${shouldShowPriorityBackground ? 'border-red-300' : 'border-amber-200'} pt-2`}>
-      <div className={`${shouldShowPriorityBackground ? 'bg-red-100' : 'bg-amber-50'} p-3 rounded text-sm`}>
-        <div className={`flex items-center ${shouldShowPriorityBackground ? 'text-red-800' : 'text-amber-800'} font-medium mb-2`}>
-          <AlertTriangle className={`h-4 w-4 mr-1 ${shouldShowPriorityBackground ? 'text-red-600' : 'text-amber-600'}`} />
-          Retenção Fiscal
+    <div className={`mt-3 border-t ${shouldShowPriorityBackground ? 'border-red-300' : 'border-amber-200'} pt-3`}>
+      <div className={`${shouldShowPriorityBackground ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'} border rounded-lg p-4`}>
+        <div className={`flex items-center ${shouldShowPriorityBackground ? 'text-red-800' : 'text-amber-800'} font-semibold mb-3 text-sm`}>
+          <AlertTriangle className={`h-4 w-4 mr-2 ${shouldShowPriorityBackground ? 'text-red-600' : 'text-amber-600'}`} />
+          Informações da Retenção Fiscal
         </div>
-        <div className={`space-y-2 ${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {retentionInfo.actionNumber && (
-            <div>
-              <div className="flex items-center font-medium">
+            <div className={`${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
+              <div className="flex items-center font-medium text-xs mb-1">
                 <Hash className="h-3 w-3 mr-1" />
-                Nº Ação:
+                Número da Ação:
               </div>
-              <div className="ml-4">{retentionInfo.actionNumber}</div>
+              <div className="text-sm font-semibold pl-4">{retentionInfo.actionNumber}</div>
             </div>
           )}
+          
           {retentionInfo.reason && (
-            <div>
-              <div className="flex items-center font-medium">
+            <div className={`${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
+              <div className="flex items-center font-medium text-xs mb-1">
                 <FileText className="h-3 w-3 mr-1" />
-                Motivo:
+                Motivo da Retenção:
               </div>
-              <div className="ml-4">{retentionInfo.reason}</div>
+              <div className="text-sm font-semibold pl-4">{retentionInfo.reason}</div>
             </div>
           )}
+          
           {retentionInfo.amount && (
-            <div>
-              <div className="flex items-center font-medium">
+            <div className={`${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
+              <div className="flex items-center font-medium text-xs mb-1">
                 <DollarSign className="h-3 w-3 mr-1" />
-                Valor:
+                Valor da Retenção:
               </div>
-              <div className="ml-4">{formatCurrency(retentionInfo.amount)}</div>
+              <div className="text-sm font-semibold pl-4">{formatCurrency(retentionInfo.amount)}</div>
             </div>
           )}
+          
           {retentionInfo.paymentDate && (
-            <div>
-              <div className="font-medium">Data de Pagamento:</div>
-              <div className="ml-4">{retentionInfo.paymentDate}</div>
+            <div className={`${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
+              <div className="flex items-center font-medium text-xs mb-1">
+                <Calendar className="h-3 w-3 mr-1" />
+                Data de Pagamento:
+              </div>
+              <div className="text-sm font-semibold pl-4">{formatDate(retentionInfo.paymentDate)}</div>
             </div>
           )}
+          
           {retentionInfo.releaseDate && (
-            <div>
-              <div className="font-medium">Data de Liberação:</div>
-              <div className="ml-4">{retentionInfo.releaseDate}</div>
-            </div>
-          )}
-          {retentionInfo.notes && (
-            <div>
-              <div className="font-medium">Observações:</div>
-              <div className="ml-4">{retentionInfo.notes}</div>
+            <div className={`${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
+              <div className="flex items-center font-medium text-xs mb-1">
+                <Calendar className="h-3 w-3 mr-1" />
+                Data de Liberação:
+              </div>
+              <div className="text-sm font-semibold pl-4">{formatDate(retentionInfo.releaseDate)}</div>
             </div>
           )}
         </div>
+        
+        {retentionInfo.notes && (
+          <div className={`mt-3 pt-3 border-t ${shouldShowPriorityBackground ? 'border-red-200 text-red-700' : 'border-amber-200 text-amber-700'}`}>
+            <div className="font-medium text-xs mb-1">Observações:</div>
+            <div className="text-sm pl-4">{retentionInfo.notes}</div>
+          </div>
+        )}
       </div>
     </div>
   );
