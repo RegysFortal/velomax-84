@@ -142,8 +142,8 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
                         {document.retentionInfo.releaseDate && (
                           <div><strong>Data de Liberação:</strong> {document.retentionInfo.releaseDate}</div>
                         )}
-                        {document.retentionInfo.fiscalNotes && (
-                          <div><strong>Notas Fiscais:</strong> {document.retentionInfo.fiscalNotes}</div>
+                        {document.retentionInfo.notes && (
+                          <div><strong>Observações:</strong> {document.retentionInfo.notes}</div>
                         )}
                       </div>
                     </div>
