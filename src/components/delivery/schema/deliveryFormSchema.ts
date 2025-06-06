@@ -5,7 +5,7 @@ export const deliveryFormSchema = z.object({
   minuteNumber: z.string().optional(),
   clientId: z.string().min(1, "Cliente é obrigatório"),
   deliveryDate: z.string().min(1, "Data de entrega é obrigatória"),
-  deliveryTime: z.string().optional(),
+  deliveryTime: z.string().optional(), // Tornar hora opcional
   receiver: z.string().min(1, "Destinatário é obrigatório"),
   receiverId: z.string().optional(),
   weight: z.union([
@@ -32,7 +32,7 @@ export const deliveryFormSchema = z.object({
       return !isNaN(num) && num >= 0;
     }, "Valor da carga deve ser maior ou igual a 0")
   ]).transform(val => {
-    if (val === '' || val === undefined) return undefined;
+    if (val === '' || val === undefined) return 0; // Sempre retornar número
     return typeof val === 'string' ? parseFloat(val) : val;
   }).optional(),
   totalFreight: z.number().min(0, "Valor do frete deve ser maior ou igual a 0"),

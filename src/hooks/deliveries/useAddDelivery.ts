@@ -28,25 +28,37 @@ export const useAddDelivery = (
         minuteNumber = generateMinuteNumber(deliveries);
       }
       
+      // Converter cargoValue para número garantindo que seja sempre um número
+      let cargoValue = 0;
+      if (delivery.cargoValue !== undefined && delivery.cargoValue !== null) {
+        if (typeof delivery.cargoValue === 'string') {
+          cargoValue = delivery.cargoValue ? parseFloat(delivery.cargoValue) : 0;
+        } else if (typeof delivery.cargoValue === 'number') {
+          cargoValue = delivery.cargoValue;
+        }
+      }
+      
+      console.log('Valor da carga convertido:', cargoValue, 'Tipo:', typeof cargoValue);
+      
       // Prepare data for Supabase insert using the correct field names for Supabase schema
       const supabaseDelivery: any = {
         minute_number: minuteNumber,
         client_id: delivery.clientId,
         delivery_date: delivery.deliveryDate,
-        delivery_time: delivery.deliveryTime || '',
+        delivery_time: delivery.deliveryTime || '', // Permitir vazio
         receiver: delivery.receiver || '',
-        receiver_id: delivery.receiverId || '', // Adicionado: ID do recebedor
-        weight: parseFloat(delivery.weight.toString()), // Ensure weight is a number
-        packages: parseInt(delivery.packages.toString()), // Ensure packages is a number
+        receiver_id: delivery.receiverId || '',
+        weight: parseFloat(delivery.weight.toString()),
+        packages: parseInt(delivery.packages.toString()),
         delivery_type: delivery.deliveryType,
         cargo_type: delivery.cargoType,
-        cargo_value: delivery.cargoValue ? parseFloat(delivery.cargoValue.toString()) : 0,
-        total_freight: delivery.totalFreight || 50, // Ensure there's always a freight value
+        cargo_value: cargoValue, // Sempre será um número
+        total_freight: delivery.totalFreight || 50,
         notes: delivery.notes || '',
         occurrence: delivery.occurrence || '',
         city_id: delivery.cityId || null,
         user_id: user?.id,
-        arrival_knowledge_number: delivery.arrivalKnowledgeNumber || '', // Adicionado: Número de conhecimento
+        arrival_knowledge_number: delivery.arrivalKnowledgeNumber || '',
       };
       
       // Handle invoice numbers
@@ -79,7 +91,7 @@ export const useAddDelivery = (
         deliveryDate: responseData.delivery_date,
         deliveryTime: responseData.delivery_time || '',
         receiver: responseData.receiver || '',
-        receiverId: responseData.receiver_id, // Adicionado: ID do recebedor
+        receiverId: responseData.receiver_id,
         weight: responseData.weight,
         packages: responseData.packages,
         deliveryType: responseData.delivery_type as Delivery['deliveryType'],
@@ -95,7 +107,7 @@ export const useAddDelivery = (
         pickupName: '',
         pickupDate: '',
         pickupTime: '',
-        arrivalKnowledgeNumber: responseData.arrival_knowledge_number || '', // Adicionado: Número de conhecimento
+        arrivalKnowledgeNumber: responseData.arrival_knowledge_number || '',
       };
       
       setDeliveries(prev => [...prev, newDelivery]);

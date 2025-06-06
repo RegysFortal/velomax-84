@@ -40,10 +40,17 @@ export function CargoValueSection({
               value={field.value || ''}
               onChange={(e) => {
                 const stringValue = e.target.value;
-                const numericValue = stringValue ? parseFloat(stringValue) : 0;
+                let numericValue = 0;
                 
-                // Atualizar o campo do formulário com o valor string
-                field.onChange(stringValue);
+                if (stringValue && stringValue !== '') {
+                  numericValue = parseFloat(stringValue);
+                  if (isNaN(numericValue)) {
+                    numericValue = 0;
+                  }
+                }
+                
+                // Atualizar o campo do formulário com o valor numérico
+                field.onChange(numericValue);
                 
                 // Chamar callback com valor numérico para cálculos
                 if (onCargoValueChange) {

@@ -17,7 +17,7 @@ interface DeliveryDateTimeFieldsProps {
 export function DeliveryDateTimeFields({ 
   control,
   dateLabel = "Data de Entrega",
-  timeLabel = "Hora",
+  timeLabel = "Hora (Opcional)", // Indicar que é opcional
   dateName = "deliveryDate",
   timeName = "deliveryTime"
 }: DeliveryDateTimeFieldsProps) {
@@ -56,7 +56,12 @@ export function DeliveryDateTimeFields({
           <FormItem>
             <FormLabel>{timeLabel}</FormLabel>
             <FormControl>
-              <Input type="time" {...field} className="bg-background" />
+              <Input 
+                type="time" 
+                {...field} 
+                value={field.value || ''} // Garantir que não seja undefined
+                className="bg-background" 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
