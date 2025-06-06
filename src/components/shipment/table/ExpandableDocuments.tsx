@@ -18,6 +18,9 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [editMode, setEditMode] = useState<'retention' | 'delivery' | null>(null);
 
+  // Debug log to see what documents we have
+  console.log("ExpandableDocuments - Shipment documents:", shipment.documents);
+
   const priorityDocuments = shipment.documents?.filter(doc => doc.isPriority) || [];
   const totalDocuments = shipment.documents?.length || 0;
 
@@ -45,6 +48,19 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
     setEditingDocument(null);
     setEditMode(null);
   };
+
+  if (totalDocuments === 0) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">Documentos (0)</span>
+        </div>
+        <div className="mt-2 text-center text-gray-500 py-4">
+          Nenhum documento encontrado
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

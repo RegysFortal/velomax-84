@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Shipment } from '@/types/shipment';
+import { Shipment, Document } from '@/types/shipment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -9,42 +9,85 @@ export function useShipmentsData(user: SupabaseUser | null | undefined) {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const mapSupabaseToDocument = (doc: any): Document => {
+    return {
+      id: doc.id,
+      name: doc.name,
+      type: doc.type,
+      url: doc.url,
+      notes: doc.notes,
+      minuteNumber: doc.minute_number,
+      invoiceNumbers: doc.invoice_numbers || [],
+      weight: doc.weight ? parseFloat(doc.weight) : undefined,
+      packages: doc.packages,
+      status: 'in_transit', // Default status
+      isPriority: false, // Default priority
+      retentionInfo: {
+        _type: "undefined",
+        value: "undefined"
+      },
+      deliveryInfo: {
+        _type: "undefined", 
+        value: "undefined"
+      },
+      isDelivered: doc.is_delivered || false,
+      createdAt: doc.created_at,
+      updatedAt: doc.updated_at
+    };
+  };
+
   const fetchShipments = async () => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      console.log("Fetching shipments with documents...");
+      
+      // Fetch shipments with their documents
+      const { data: shipmentsData, error: shipmentsError } = await supabase
         .from('shipments')
-        .select('*')
+        .select(`
+          *,
+          shipment_documents (*)
+        `)
         .order('created_at', { ascending: false });
       
-      if (error) {
-        throw error;
+      if (shipmentsError) {
+        throw shipmentsError;
       }
       
-      const mappedShipments = data.map((shipment: any): Shipment => ({
-        id: shipment.id,
-        companyId: shipment.company_id,
-        companyName: shipment.company_name,
-        transportMode: shipment.transport_mode,
-        carrierName: shipment.carrier_name,
-        trackingNumber: shipment.tracking_number,
-        packages: shipment.packages,
-        weight: shipment.weight,
-        arrivalFlight: shipment.arrival_flight,
-        arrivalDate: shipment.arrival_date,
-        observations: shipment.observations,
-        status: shipment.status,
-        createdAt: shipment.created_at,
-        updatedAt: shipment.updated_at,
-        isRetained: shipment.is_retained || false,
-        receiverName: shipment.receiver_name,
-        receiverId: shipment.receiver_id,
-        deliveryDate: shipment.delivery_date,
-        deliveryTime: shipment.delivery_time,
-        documents: [] // Initialize empty documents array
-      }));
+      console.log("Raw shipments data from Supabase:", shipmentsData);
       
+      const mappedShipments = shipmentsData.map((shipment: any): Shipment => {
+        // Map documents
+        const documents = shipment.shipment_documents?.map(mapSupabaseToDocument) || [];
+        
+        console.log(`Shipment ${shipment.id} has ${documents.length} documents:`, documents);
+        
+        return {
+          id: shipment.id,
+          companyId: shipment.company_id,
+          companyName: shipment.company_name,
+          transportMode: shipment.transport_mode,
+          carrierName: shipment.carrier_name,
+          trackingNumber: shipment.tracking_number,
+          packages: shipment.packages,
+          weight: shipment.weight,
+          arrivalFlight: shipment.arrival_flight,
+          arrivalDate: shipment.arrival_date,
+          observations: shipment.observations,
+          status: shipment.status,
+          createdAt: shipment.created_at,
+          updatedAt: shipment.updated_at,
+          isRetained: shipment.is_retained || false,
+          receiverName: shipment.receiver_name,
+          receiverId: shipment.receiver_id,
+          deliveryDate: shipment.delivery_date,
+          deliveryTime: shipment.delivery_time,
+          documents: documents // Ensure documents are included
+        };
+      });
+      
+      console.log("Final mapped shipments:", mappedShipments);
       setShipments(mappedShipments);
       
       // Dispatch custom event to notify components
@@ -74,6 +117,7 @@ export function useShipmentsData(user: SupabaseUser | null | undefined) {
   };
 
   const refreshShipmentsData = () => {
+    console.log("Refreshing shipments data...");
     fetchShipments();
   };
 
