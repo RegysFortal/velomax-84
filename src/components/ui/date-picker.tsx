@@ -65,21 +65,23 @@ export function DatePicker({
     setOpen(false)
     
     if (newDate) {
-      console.log('Date selected from calendar before conversion:', newDate);
+      console.log('Date selected from calendar:', newDate);
       
-      // Create a new date using the exact values from the selected date
-      // This prevents timezone issues by ensuring we use the exact day, month, year
-      const exactDate = new Date(
+      // Create a new date using local date components to avoid timezone issues
+      const localDate = new Date(
         newDate.getFullYear(),
         newDate.getMonth(),
         newDate.getDate(),
-        12, 0, 0
+        12, // Set to noon to avoid DST issues
+        0,
+        0,
+        0
       );
       
-      console.log('Date after exact conversion:', exactDate);
+      console.log('Date after local conversion:', localDate);
       
-      onSelect?.(exactDate)
-      setInputValue(format(exactDate, "dd/MM/yyyy", { locale: ptBR }))
+      onSelect?.(localDate)
+      setInputValue(format(localDate, "dd/MM/yyyy", { locale: ptBR }))
     } else {
       onSelect?.(undefined)
       setInputValue("")

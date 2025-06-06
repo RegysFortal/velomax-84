@@ -5,7 +5,7 @@ export const deliveryFormSchema = z.object({
   minuteNumber: z.string().optional(),
   clientId: z.string().min(1, "Cliente é obrigatório"),
   deliveryDate: z.string().min(1, "Data de entrega é obrigatória"),
-  deliveryTime: z.string().optional(), // Hora é opcional
+  deliveryTime: z.string().optional().default(''), // Hora é opcional e pode ser vazia
   receiver: z.string().min(1, "Destinatário é obrigatório"),
   receiverId: z.string().optional(),
   weight: z.union([

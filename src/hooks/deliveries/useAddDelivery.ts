@@ -39,13 +39,15 @@ export const useAddDelivery = (
       }
       
       console.log('Valor da carga convertido:', cargoValue, 'Tipo:', typeof cargoValue);
+      console.log('Data de entrega recebida:', delivery.deliveryDate);
+      console.log('Hora de entrega recebida:', delivery.deliveryTime);
       
       // Prepare data for Supabase insert using the correct field names for Supabase schema
       const supabaseDelivery: any = {
         minute_number: minuteNumber,
         client_id: delivery.clientId,
-        delivery_date: delivery.deliveryDate,
-        delivery_time: delivery.deliveryTime || '', // Hora opcional - pode ser vazia
+        delivery_date: delivery.deliveryDate, // Manter exatamente como recebido
+        delivery_time: delivery.deliveryTime || null, // Usar null em vez de string vazia se não fornecido
         receiver: delivery.receiver || '',
         receiver_id: delivery.receiverId || '',
         weight: parseFloat(delivery.weight.toString()),

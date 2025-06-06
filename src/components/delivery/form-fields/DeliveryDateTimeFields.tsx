@@ -4,7 +4,6 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Control } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
-import { toISODateString } from '@/utils/dateUtils';
 
 interface DeliveryDateTimeFieldsProps {
   control: Control<any>;
@@ -34,13 +33,13 @@ export function DeliveryDateTimeFields({
                 date={field.value ? new Date(`${field.value}T12:00:00`) : undefined}
                 onSelect={(date) => {
                   if (date) {
-                    // Garantir que usamos a data exata selecionada
+                    // Create ISO date string using local date components
                     const year = date.getFullYear();
                     const month = String(date.getMonth() + 1).padStart(2, '0');
                     const day = String(date.getDate()).padStart(2, '0');
-                    const formattedDate = `${year}-${month}-${day}`;
-                    console.log('Data selecionada:', date, 'Formatada:', formattedDate);
-                    field.onChange(formattedDate);
+                    const isoDate = `${year}-${month}-${day}`;
+                    console.log('Data selecionada:', date, 'ISO formatada:', isoDate);
+                    field.onChange(isoDate);
                   } else {
                     field.onChange('');
                   }
