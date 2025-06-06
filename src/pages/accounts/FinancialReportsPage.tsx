@@ -37,6 +37,19 @@ const FinancialReportsContent = () => {
   
   const { generatePDF, exportToExcel } = useReportActions([]);
   
+  // Convert string dates to Date objects for components that need them
+  const startDateObj = new Date(startDate);
+  const endDateObj = new Date(endDate);
+  
+  // Helper functions to handle date conversions
+  const handleStartDateChange = (date: Date) => {
+    setStartDate(date.toISOString().split('T')[0]);
+  };
+  
+  const handleEndDateChange = (date: Date) => {
+    setEndDate(date.toISOString().split('T')[0]);
+  };
+  
   // Prepare chart data
   const categoryExpenseData = getCategoryExpenseData(filteredPayables);
   const categoryIncomeData = getCategoryIncomeData(filteredReceivables);
@@ -45,10 +58,10 @@ const FinancialReportsContent = () => {
   return (
     <div className="flex flex-col gap-6">
       <FinancialReportHeader 
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
+        startDate={startDateObj}
+        endDate={endDateObj}
+        onStartDateChange={handleStartDateChange}
+        onEndDateChange={handleEndDateChange}
         generatePDF={generatePDF}
         exportToExcel={exportToExcel}
       />
@@ -76,13 +89,13 @@ const FinancialReportsContent = () => {
         <DetailedReportTabs 
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          startDate={startDate}
-          endDate={endDate}
+          startDate={startDateObj}
+          endDate={endDateObj}
         />
         
         <IncomeReportTab 
-          startDate={startDate}
-          endDate={endDate}
+          startDate={startDateObj}
+          endDate={endDateObj}
         />
       </Tabs>
     </div>
