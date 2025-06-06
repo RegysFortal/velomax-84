@@ -1,5 +1,6 @@
 
 import { CalendarEvent } from '@/hooks/useCalendarEvents';
+import { EventType, RecurrenceType } from '@/hooks/calendar/event-types';
 import { useToast } from '@/hooks/use-toast';
 import { useDateUtils } from './useDateUtils';
 
@@ -16,13 +17,13 @@ export const useEventOperations = (
     eventData: {
       eventDate: Date | undefined;
       eventTitle: string;
-      eventType: string;
+      eventType: EventType;
       eventDescription: string;
       isScheduledDelivery: boolean;
       scheduledShipmentId: string;
       isAllDay: boolean;
       eventTime: string;
-      recurrence: string;
+      recurrence: RecurrenceType;
     }
   ) => {
     const {

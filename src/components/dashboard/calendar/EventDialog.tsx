@@ -1,16 +1,14 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Trash, Calendar, Clock } from 'lucide-react';
-import { CalendarEvent, EventType, RecurrenceType, EVENT_TYPES, RECURRENCE_TYPES } from '@/hooks/calendar/event-types';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { CalendarEvent, EventType, RecurrenceType } from '@/hooks/calendar/event-types';
 import { Shipment } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { EventDialogHeader } from './dialog/EventDialogHeader';
+import { EventDialogFooter } from './dialog/EventDialogFooter';
+import { EventDateField } from './dialog/EventDateField';
+import { EventFormFields } from './dialog/EventFormFields';
+import { DeliveryFields } from './dialog/DeliveryFields';
 
 interface EventDialogProps {
   showEventDialog: boolean;
@@ -67,208 +65,50 @@ export function EventDialog({
   recurrence,
   setRecurrence
 }: EventDialogProps) {
-  const formatDateForInput = (date: Date | undefined) => {
-    if (!date) return '';
-    // Use local date components to avoid timezone issues
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const handleDateChange = (dateString: string) => {
-    if (dateString) {
-      // Create date at noon local time to avoid timezone issues
-      const [year, month, day] = dateString.split('-').map(Number);
-      const newDate = new Date(year, month - 1, day, 12, 0, 0);
-      setEventDate(newDate);
-    } else {
-      setEventDate(undefined);
-    }
-  };
-
   return (
     <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
       <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            {selectedEvent ? 'Editar Evento' : 'Novo Evento'}
-          </DialogTitle>
-        </DialogHeader>
+        <EventDialogHeader selectedEvent={selectedEvent} />
         
         <ScrollArea className="flex-1 pr-4">
           <div className="space-y-4 py-4">
-            {/* Data do evento */}
-            <div className="space-y-2">
-              <Label htmlFor="eventDate">Data do evento</Label>
-              <Input
-                id="eventDate"
-                type="date"
-                value={formatDateForInput(eventDate)}
-                onChange={(e) => handleDateChange(e.target.value)}
-              />
-            </div>
+            <EventDateField 
+              eventDate={eventDate}
+              setEventDate={setEventDate}
+            />
 
-            {/* Título */}
-            <div className="space-y-2">
-              <Label htmlFor="title">Título</Label>
-              <Input
-                id="title"
-                value={eventTitle}
-                onChange={(e) => setEventTitle(e.target.value)}
-                placeholder="Digite o título do evento"
-              />
-            </div>
+            <EventFormFields
+              eventTitle={eventTitle}
+              setEventTitle={setEventTitle}
+              eventType={eventType}
+              setEventType={setEventType}
+              eventDescription={eventDescription}
+              setEventDescription={setEventDescription}
+              isAllDay={isAllDay}
+              setIsAllDay={setIsAllDay}
+              eventTime={eventTime}
+              setEventTime={setEventTime}
+              recurrence={recurrence}
+              setRecurrence={setRecurrence}
+            />
             
-            {/* Tipo de evento */}
-            <div className="space-y-2">
-              <Label htmlFor="type">Tipo de evento</Label>
-              <Select
-                value={eventType}
-                onValueChange={(value) => setEventType(value as EventType)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${value.color}`} />
-                        {value.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Horário */}
-            <div className="space-y-3">
-              <Label>Horário</Label>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="allDay"
-                  checked={isAllDay}
-                  onCheckedChange={setIsAllDay}
-                />
-                <Label htmlFor="allDay" className="text-sm font-normal">
-                  Dia inteiro
-                </Label>
-              </div>
-              
-              {!isAllDay && (
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="time"
-                    value={eventTime}
-                    onChange={(e) => setEventTime(e.target.value)}
-                    className="w-32"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Repetição */}
-            <div className="space-y-2">
-              <Label htmlFor="recurrence">Repetição</Label>
-              <Select
-                value={recurrence}
-                onValueChange={(value) => setRecurrence(value as RecurrenceType)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a repetição" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(RECURRENCE_TYPES).map(([key, value]) => (
-                    <SelectItem key={key} value={key}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Checkbox para entrega agendada - mantido para compatibilidade */}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isScheduledDelivery"
-                checked={isScheduledDelivery}
-                onCheckedChange={setIsScheduledDelivery}
-              />
-              <Label htmlFor="isScheduledDelivery" className="text-sm font-normal">
-                É uma entrega agendada
-              </Label>
-            </div>
-            
-            {isScheduledDelivery && shipments.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="shipment">Embarque</Label>
-                <Select 
-                  value={scheduledShipmentId} 
-                  onValueChange={setScheduledShipmentId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o embarque" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {shipments.map((shipment) => (
-                      <SelectItem key={shipment.id} value={shipment.id}>
-                        {shipment.trackingNumber} - {shipment.companyName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            {/* Descrição */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={eventDescription}
-                onChange={(e) => setEventDescription(e.target.value)}
-                placeholder="Digite uma descrição (opcional)"
-                rows={3}
-              />
-            </div>
+            <DeliveryFields
+              isScheduledDelivery={isScheduledDelivery}
+              setIsScheduledDelivery={setIsScheduledDelivery}
+              scheduledShipmentId={scheduledShipmentId}
+              setScheduledShipmentId={setScheduledShipmentId}
+              shipments={shipments}
+            />
           </div>
         </ScrollArea>
         
-        <DialogFooter className="flex justify-between pt-4">
-          {selectedEvent && (
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteEvent}
-              type="button"
-            >
-              <Trash className="h-4 w-4 mr-1" />
-              Excluir
-            </Button>
-          )}
-          <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowEventDialog(false);
-                resetForm();
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveEvent}>
-              {selectedEvent ? (
-                <>
-                  <Edit className="h-4 w-4 mr-1" />
-                  Atualizar
-                </>
-              ) : 'Salvar'}
-            </Button>
-          </div>
-        </DialogFooter>
+        <EventDialogFooter
+          selectedEvent={selectedEvent}
+          handleDeleteEvent={handleDeleteEvent}
+          handleSaveEvent={handleSaveEvent}
+          setShowEventDialog={setShowEventDialog}
+          resetForm={resetForm}
+        />
       </DialogContent>
     </Dialog>
   );
