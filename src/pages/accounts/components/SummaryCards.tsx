@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DollarSign, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
 
 interface SummaryCardsProps {
   totalPayable: number;
@@ -8,7 +8,7 @@ interface SummaryCardsProps {
   totalReceivable: number;
   pendingReceivable: number;
   balance: number;
-  cashFlow: string;
+  cashFlow: number;
   formatCurrency: (value: number) => string;
 }
 
@@ -22,22 +22,11 @@ export function SummaryCards({
   formatCurrency
 }: SummaryCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total a Pagar</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-600">{formatCurrency(totalPayable)}</div>
-          <p className="text-xs text-muted-foreground">
-            Pendente: {formatCurrency(pendingPayable)}
-          </p>
-        </CardContent>
-      </Card>
-      
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total a Receber</CardTitle>
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-green-600">{formatCurrency(totalReceivable)}</div>
@@ -49,31 +38,43 @@ export function SummaryCards({
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Saldo</CardTitle>
+          <CardTitle className="text-sm font-medium">Total a Pagar</CardTitle>
+          <TrendingDown className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {cashFlow}
-          </div>
+          <div className="text-2xl font-bold text-red-600">{formatCurrency(totalPayable)}</div>
           <p className="text-xs text-muted-foreground">
-            No período selecionado
+            Pendente: {formatCurrency(pendingPayable)}
           </p>
         </CardContent>
       </Card>
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Taxa de Realização</CardTitle>
+          <CardTitle className="text-sm font-medium">Saldo</CardTitle>
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {totalPayable > 0 ? 
-              `${(((totalPayable - pendingPayable) / totalPayable) * 100).toFixed(1)}%` : 
-              '0%'
-            }
+          <div className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatCurrency(balance)}
           </div>
           <p className="text-xs text-muted-foreground">
-            Despesas pagas / Total despesas
+            Receitas - Despesas
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Fluxo de Caixa</CardTitle>
+          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-2xl font-bold ${cashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatCurrency(cashFlow)}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Pendências líquidas
           </p>
         </CardContent>
       </Card>

@@ -1,41 +1,46 @@
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 interface ChartSectionProps {
-  monthlyComparisonData: any[];
-  categoryExpenseData: any[];
-  categoryIncomeData: any[];
+  monthlyComparisonData: Array<{
+    month: string;
+    despesas: number;
+    receitas: number;
+  }>;
+  categoryExpenseData: Array<{
+    name: string;
+    value: number;
+  }>;
+  categoryIncomeData: Array<{
+    name: string;
+    value: number;
+  }>;
 }
 
-export function ChartSection({ monthlyComparisonData, categoryExpenseData, categoryIncomeData }: ChartSectionProps) {
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28BFF', '#FF6B6B', '#4CAF50'];
-  
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d'];
+
+export function ChartSection({
+  monthlyComparisonData,
+  categoryExpenseData,
+  categoryIncomeData
+}: ChartSectionProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Card className="col-span-2">
         <CardHeader>
-          <CardTitle>Comparativo Mensal</CardTitle>
+          <CardTitle>Comparação Mensal</CardTitle>
         </CardHeader>
-        <CardContent className="h-96">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={monthlyComparisonData}
-              margin={{
-                top: 20,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={monthlyComparisonData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => `R$ ${Number(value).toFixed(2)}`} />
+              <Tooltip formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, '']} />
               <Legend />
-              <Bar dataKey="income" name="Receitas" fill="#4CAF50" />
-              <Bar dataKey="expenses" name="Despesas" fill="#FF6B6B" />
+              <Bar dataKey="receitas" fill="#10b981" name="Receitas" />
+              <Bar dataKey="despesas" fill="#ef4444" name="Despesas" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -45,53 +50,24 @@ export function ChartSection({ monthlyComparisonData, categoryExpenseData, categ
         <CardHeader>
           <CardTitle>Despesas por Categoria</CardTitle>
         </CardHeader>
-        <CardContent className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={categoryExpenseData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
                 {categoryExpenseData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => `R$ ${Number(value).toFixed(2)}`} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Receitas por Categoria</CardTitle>
-        </CardHeader>
-        <CardContent className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={categoryIncomeData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {categoryIncomeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => `R$ ${Number(value).toFixed(2)}`} />
-              <Legend />
+              <Tooltip formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor']} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>

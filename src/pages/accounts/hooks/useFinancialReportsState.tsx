@@ -1,13 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { PayableAccount, ReceivableAccount } from '@/types/financial';
+import { mockPayableAccounts, mockReceivableAccounts } from '../data/mockFinancialData';
 
 export function useFinancialReportsState() {
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [payableAccounts, setPayableAccounts] = useState<PayableAccount[]>([]);
-  const [receivableAccounts, setReceivableAccounts] = useState<ReceivableAccount[]>([]);
+  const [payableAccounts, setPayableAccounts] = useState<PayableAccount[]>(mockPayableAccounts);
+  const [receivableAccounts, setReceivableAccounts] = useState<ReceivableAccount[]>(mockReceivableAccounts);
 
   // Filter accounts by date range
   const filteredPayables = payableAccounts.filter(account => {
