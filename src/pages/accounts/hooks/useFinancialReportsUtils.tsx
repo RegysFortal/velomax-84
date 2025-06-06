@@ -55,8 +55,8 @@ export function useFinancialReportsUtils() {
       
       months.push({
         month: monthName,
-        despesas: monthPayables, // Changed from 'expenses' to 'despesas'
-        receitas: monthReceivables // Changed from 'income' to 'receitas'
+        despesas: monthPayables,
+        receitas: monthReceivables
       });
     }
     
