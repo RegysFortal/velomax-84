@@ -16,7 +16,7 @@ export function AppHeader() {
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-14 items-center px-4">
         {isMobile ? (
           <Sheet>
             <SheetTrigger asChild>
@@ -30,7 +30,7 @@ export function AppHeader() {
             </SheetContent>
           </Sheet>
         ) : (
-          <div className="mr-4">
+          <div className="mr-4 flex items-center">
             <Button variant="ghost" size="icon" asChild className="mr-2">
               <Link to="/dashboard">
                 <Home className="h-5 w-5" />

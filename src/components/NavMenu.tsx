@@ -7,7 +7,6 @@ import { OperationalMenu } from "./nav/OperationalMenu";
 import { FinancialMenu } from "./nav/FinancialMenu";
 import { ManagementMenu } from "./nav/ManagementMenu";
 import { FleetMenu } from "./nav/FleetMenu";
-import { InventoryMenu } from "./nav/InventoryMenu";
 import { StorageMenu } from "./nav/StorageMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -53,18 +52,11 @@ export function NavMenu() {
           />
         )}
         
-        <InventoryMenu 
+        <StorageMenu 
           user={user} 
           hasPermission={hasPermission}
           open={openMenuIndex === 3} 
           onOpenChange={() => handleMenuOpen(3)} 
-        />
-        
-        <StorageMenu 
-          user={user} 
-          hasPermission={hasPermission}
-          open={openMenuIndex === 4} 
-          onOpenChange={() => handleMenuOpen(4)} 
         />
         
         {/* Configurações (Administração) - só aparece na área administrativa */}
@@ -72,8 +64,8 @@ export function NavMenu() {
           <ManagementMenu 
             user={user} 
             hasPermission={hasPermission}
-            open={openMenuIndex === 5} 
-            onOpenChange={() => handleMenuOpen(5)} 
+            open={openMenuIndex === 4} 
+            onOpenChange={() => handleMenuOpen(4)} 
           />
         )}
       </NavigationMenuList>
