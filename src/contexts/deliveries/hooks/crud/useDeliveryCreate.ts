@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Delivery, DeliveryFormData } from '@/types';
+import { Delivery, DeliveryFormData, DeliveryType, CargoType } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
 export function useDeliveryCreate(setDeliveries: React.Dispatch<React.SetStateAction<Delivery[]>>) {
@@ -64,8 +64,8 @@ export function useDeliveryCreate(setDeliveries: React.Dispatch<React.SetStateAc
         receiverId: data.receiver_id,
         weight: data.weight,
         packages: data.packages,
-        deliveryType: data.delivery_type,
-        cargoType: data.cargo_type,
+        deliveryType: data.delivery_type as DeliveryType,
+        cargoType: data.cargo_type as CargoType,
         cargoValue: data.cargo_value,
         totalFreight: data.total_freight,
         notes: data.notes,
