@@ -20,10 +20,17 @@ export function RetentionInfo({ document, shouldShowPriorityBackground }: Retent
   let retentionInfo = null;
   if (document.notes && typeof document.notes === 'string') {
     try {
-      retentionInfo = JSON.parse(document.notes);
+      // Se for um JSON válido, fazer parse
+      if (document.notes.startsWith('{') && document.notes.endsWith('}')) {
+        retentionInfo = JSON.parse(document.notes);
+      } else {
+        // Se não for JSON, assumir que é texto simples
+        return null;
+      }
     } catch (e) {
       // Se não conseguir fazer parse, retentionInfo permanece null
       console.warn('Could not parse retention info from notes:', document.notes);
+      return null;
     }
   }
 
@@ -34,16 +41,16 @@ export function RetentionInfo({ document, shouldShowPriorityBackground }: Retent
   const formatCurrency = (value?: string | null) => {
     if (!value) return "R$ 0,00";
     
-    // If already has comma, format as is
+    // Se já tem vírgula, formatar como está
     if (value.includes(',')) {
       return `R$ ${value}`;
     }
     
-    // If it's a numeric string or number, convert to float and format
+    // Se é um string numérico ou número, converter para float e formatar
     const numValue = parseFloat(value.replace(',', '.'));
     if (isNaN(numValue)) return "R$ 0,00";
     
-    // Format with comma as decimal separator
+    // Formatar com vírgula como separador decimal
     return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
@@ -54,23 +61,50 @@ export function RetentionInfo({ document, shouldShowPriorityBackground }: Retent
           <AlertTriangle className={`h-4 w-4 mr-1 ${shouldShowPriorityBackground ? 'text-red-600' : 'text-amber-600'}`} />
           Retenção Fiscal
         </div>
-        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 ${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
+        <div className={`space-y-2 ${shouldShowPriorityBackground ? 'text-red-700' : 'text-amber-700'}`}>
           {retentionInfo.actionNumber && (
-            <div className="flex items-center">
-              <Hash className="h-3 w-3 mr-1" />
-              <span className="font-medium">Nº Ação:</span> {retentionInfo.actionNumber}
+            <div>
+              <div className="flex items-center font-medium">
+                <Hash className="h-3 w-3 mr-1" />
+                Nº Ação:
+              </div>
+              <div className="ml-4">{retentionInfo.actionNumber}</div>
             </div>
           )}
           {retentionInfo.reason && (
-            <div className="flex items-center">
-              <FileText className="h-3 w-3 mr-1" />
-              <span className="font-medium">Motivo:</span> {retentionInfo.reason}
+            <div>
+              <div className="flex items-center font-medium">
+                <FileText className="h-3 w-3 mr-1" />
+                Motivo:
+              </div>
+              <div className="ml-4">{retentionInfo.reason}</div>
             </div>
           )}
           {retentionInfo.amount && (
-            <div className="flex items-center">
-              <DollarSign className="h-3 w-3 mr-1" />
-              <span className="font-medium">Valor:</span> {formatCurrency(retentionInfo.amount)}
+            <div>
+              <div className="flex items-center font-medium">
+                <DollarSign className="h-3 w-3 mr-1" />
+                Valor:
+              </div>
+              <div className="ml-4">{formatCurrency(retentionInfo.amount)}</div>
+            </div>
+          )}
+          {retentionInfo.paymentDate && (
+            <div>
+              <div className="font-medium">Data de Pagamento:</div>
+              <div className="ml-4">{retentionInfo.paymentDate}</div>
+            </div>
+          )}
+          {retentionInfo.releaseDate && (
+            <div>
+              <div className="font-medium">Data de Liberação:</div>
+              <div className="ml-4">{retentionInfo.releaseDate}</div>
+            </div>
+          )}
+          {retentionInfo.notes && (
+            <div>
+              <div className="font-medium">Observações:</div>
+              <div className="ml-4">{retentionInfo.notes}</div>
             </div>
           )}
         </div>
