@@ -1,33 +1,36 @@
 
 import { useState, useEffect } from 'react';
-import { PayableAccount, ReceivableAccount } from '@/types/financial';
+import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { PayableAccount, ReceivableAccount } from '@/types';
 import { mockPayableAccounts, mockReceivableAccounts } from '../data/mockFinancialData';
 
 export function useFinancialReportsState() {
-  const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const [endDate, setEndDate] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [startDate, setStartDate] = useState<string>(format(startOfMonth(subMonths(new Date(), 1)), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState<string>(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
   const [payableAccounts, setPayableAccounts] = useState<PayableAccount[]>(mockPayableAccounts);
   const [receivableAccounts, setReceivableAccounts] = useState<ReceivableAccount[]>(mockReceivableAccounts);
 
   // Filter accounts by date range
   const filteredPayables = payableAccounts.filter(account => {
-    const accountDate = new Date(account.dueDate);
+    const accountDate = account.dueDate;
     return accountDate >= startDate && accountDate <= endDate;
   });
-
+  
   const filteredReceivables = receivableAccounts.filter(account => {
-    const accountDate = new Date(account.dueDate);
+    const accountDate = account.dueDate;
     return accountDate >= startDate && accountDate <= endDate;
   });
 
   // Calculate totals
   const totalPayable = filteredPayables.reduce((sum, account) => sum + account.amount, 0);
   const totalReceivable = filteredReceivables.reduce((sum, account) => sum + account.amount, 0);
-  const pendingPayable = filteredPayables.filter(acc => acc.status === 'pending').reduce((sum, account) => sum + account.amount, 0);
-  const pendingReceivable = filteredReceivables.filter(acc => acc.status === 'pending').reduce((sum, account) => sum + account.amount, 0);
+  const pendingPayable = filteredPayables.filter(a => a.status !== 'paid').reduce((sum, account) => sum + account.amount, 0);
+  const pendingReceivable = filteredReceivables.filter(a => a.status !== 'received' && a.status !== 'partially_received').reduce((sum, account) => sum + account.amount, 0);
+  
   const balance = totalReceivable - totalPayable;
-  const cashFlow = pendingReceivable - pendingPayable;
+  const cashFlow = pendingReceivable - pendingPayable; // Return as number, not formatted string
 
   return {
     startDate,
