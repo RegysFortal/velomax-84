@@ -38,13 +38,13 @@ export const useAddDelivery = (
         }
       }
       
-      console.log('Valor da carga convertido:', cargoValue, 'Tipo:', typeof cargoValue);
-      console.log('Data de entrega recebida:', delivery.deliveryDate);
-      console.log('Hora de entrega recebida:', delivery.deliveryTime);
+      console.log('useAddDelivery - Valor da carga convertido:', cargoValue, 'Tipo:', typeof cargoValue);
+      console.log('useAddDelivery - Data de entrega recebida:', delivery.deliveryDate);
+      console.log('useAddDelivery - Hora de entrega recebida:', delivery.deliveryTime);
       
       // Validar formato da data (deve estar em yyyy-MM-dd)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(delivery.deliveryDate)) {
-        console.error('Data em formato incorreto:', delivery.deliveryDate);
+        console.error('useAddDelivery - Data em formato incorreto:', delivery.deliveryDate);
         throw new Error('Data deve estar no formato yyyy-MM-dd');
       }
       
@@ -76,7 +76,7 @@ export const useAddDelivery = (
         supabaseDelivery.notes = `${supabaseDelivery.notes} Notas Fiscais: ${invoiceList}`.trim();
       }
       
-      console.log("Enviando para Supabase:", supabaseDelivery);
+      console.log("useAddDelivery - Enviando para Supabase:", supabaseDelivery);
       
       // Insert the delivery into Supabase
       const { data, error } = await supabase
@@ -86,7 +86,7 @@ export const useAddDelivery = (
         .single();
       
       if (error) {
-        console.error("Erro na inserção:", error);
+        console.error("useAddDelivery - Erro na inserção:", error);
         throw error;
       }
       
@@ -96,7 +96,7 @@ export const useAddDelivery = (
         id: responseData.id,
         minuteNumber: responseData.minute_number,
         clientId: responseData.client_id,
-        deliveryDate: responseData.delivery_date,
+        deliveryDate: responseData.delivery_date, // Manter como string ISO
         deliveryTime: responseData.delivery_time || '',
         receiver: responseData.receiver || '',
         receiverId: responseData.receiver_id,
@@ -136,9 +136,10 @@ export const useAddDelivery = (
         details: `Nova entrega registrada: ${minuteNumber}`
       });
       
+      console.log('useAddDelivery - Entrega criada com sucesso:', newDelivery);
       return newDelivery;
     } catch (error) {
-      console.error("Error adding delivery:", error);
+      console.error("useAddDelivery - Error adding delivery:", error);
       toast({
         title: "Erro ao registrar entrega",
         description: "Ocorreu um erro ao registrar a entrega. Tente novamente.",

@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { DatePicker } from '@/components/ui/date-picker';
+import { toISODateString, fromISODateString } from '@/utils/dateUtils';
 
 interface DatePickerFieldProps {
   id?: string;
@@ -37,6 +38,8 @@ export function DatePickerField({
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setSelectedDate(selectedDate);
     
+    console.log('DatePickerField - Date selected:', selectedDate);
+    
     // Call the appropriate callback
     if (onChange) {
       onChange(selectedDate);
@@ -45,8 +48,6 @@ export function DatePickerField({
     if (onDateChange && selectedDate) {
       onDateChange(selectedDate);
     }
-    
-    console.log('Date selected:', selectedDate);
   };
 
   return (

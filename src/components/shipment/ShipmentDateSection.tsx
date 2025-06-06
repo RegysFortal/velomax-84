@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DatePicker } from "@/components/ui/date-picker";
-import { toISODateString } from "@/utils/dateUtils";
+import { toISODateString, fromISODateString } from "@/utils/dateUtils";
 
 interface ShipmentDateSectionProps {
   shipmentDate: string;
@@ -18,10 +18,11 @@ export function ShipmentDateSection({
     <div className="space-y-2">
       <label htmlFor="shipmentDate" className="text-sm font-medium">Data do Embarque</label>
       <DatePicker
-        date={shipmentDate ? new Date(`${shipmentDate}T12:00:00`) : undefined}
+        date={shipmentDate ? fromISODateString(shipmentDate) : undefined}
         onSelect={(date) => {
           if (date) {
             const formattedDate = toISODateString(date);
+            console.log('ShipmentDateSection - Data selecionada:', date, 'Convertida para ISO:', formattedDate);
             setShipmentDate(formattedDate);
           } else {
             setShipmentDate('');

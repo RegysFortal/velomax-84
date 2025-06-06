@@ -12,6 +12,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { logbookFormSchema } from '../schema';
 import { DatePicker } from '@/components/ui/date-picker';
+import { toISODateString, fromISODateString } from '@/utils/dateUtils';
 
 interface DateAndTimeSectionProps {
   form: UseFormReturn<z.infer<typeof logbookFormSchema>>;
@@ -28,9 +29,15 @@ export function DateAndTimeSection({ form }: DateAndTimeSectionProps) {
             <FormLabel>Data</FormLabel>
             <FormControl>
               <DatePicker
-                date={field.value ? new Date(field.value) : undefined}
+                date={field.value ? fromISODateString(field.value) : undefined}
                 onSelect={(date) => {
-                  field.onChange(date ? date.toISOString().split('T')[0] : '');
+                  if (date) {
+                    const isoDate = toISODateString(date);
+                    console.log('LogbookDateTimeSection - Data selecionada:', date, 'Convertida para ISO:', isoDate);
+                    field.onChange(isoDate);
+                  } else {
+                    field.onChange('');
+                  }
                 }}
                 placeholder="Selecione a data"
               />

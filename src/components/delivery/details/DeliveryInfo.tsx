@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Delivery } from '@/types';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatToReadableDate } from '@/utils/dateUtils';
 import { useAuth } from '@/contexts/auth/AuthContext';
 
 interface DeliveryInfoProps {
@@ -37,7 +36,7 @@ export function DeliveryInfo({ delivery }: DeliveryInfoProps) {
         <div>
           <p className="text-sm text-gray-500">Data e Hora da Entrega</p>
           <p className="font-medium">
-            {delivery.deliveryDate && format(new Date(delivery.deliveryDate), 'dd/MM/yyyy', { locale: ptBR })}
+            {delivery.deliveryDate && formatToReadableDate(delivery.deliveryDate)}
             {delivery.deliveryTime && ` às ${delivery.deliveryTime}`}
           </p>
         </div>

@@ -17,9 +17,10 @@ export function toISODateString(date: Date): string {
 }
 
 /**
- * Converts an ISO date string to a Date object
+ * Converts an ISO date string to a Date object at noon to avoid timezone issues
  */
 export function fromISODateString(dateString: string): Date {
+  // Criar data ao meio-dia para evitar problemas de fuso horário
   return new Date(`${dateString}T12:00:00`);
 }
 
@@ -30,7 +31,7 @@ export function formatDateForDisplay(dateString: string): string {
   if (!dateString) return '';
   
   try {
-    const date = new Date(`${dateString}T12:00:00`);
+    const date = fromISODateString(dateString);
     return date.toLocaleDateString('pt-BR');
   } catch (error) {
     return dateString;
@@ -55,14 +56,13 @@ export const toLocalDate = (date: Date): Date => {
 };
 
 /**
- * Format a date to a locale format (YYYY-MM-DD)
+ * Format a date to a locale format (YYYY-MM-DD) - FIXED VERSION
  */
 export const formatToLocaleDate = (date: Date): string => {
-  // Create a local date at noon to avoid timezone issues
-  const localDate = toLocalDate(date);
+  if (!date) return '';
   
-  // Format to ISO and take only the date part
-  return localDate.toISOString().split('T')[0];
+  // Use toISODateString to avoid timezone issues
+  return toISODateString(date);
 };
 
 /**
@@ -72,24 +72,17 @@ export const formatToReadableDate = (date: Date | string): string => {
   if (!date) return '';
   
   if (typeof date === 'string') {
-    // Parse the date string
+    // Parse the date string using our safe method
     try {
-      // If it's already in ISO format (YYYY-MM-DD)
-      if (date.includes('-')) {
-        return format(new Date(`${date}T12:00:00`), 'dd/MM/yyyy', { locale: ptBR });
-      } else {
-        // If it might be in a different format, try to parse with parseISO
-        return format(parseISO(date), 'dd/MM/yyyy', { locale: ptBR });
-      }
+      const parsedDate = fromISODateString(date);
+      return format(parsedDate, 'dd/MM/yyyy', { locale: ptBR });
     } catch (e) {
       console.error('Error parsing date:', date, e);
-      // Fallback to a generic approach
-      const parsedDate = new Date(date);
-      return format(toLocalDate(parsedDate), 'dd/MM/yyyy', { locale: ptBR });
+      return date;
     }
   }
   
-  // If it's already a Date object, ensure we're using noon to avoid timezone issues
+  // If it's already a Date object, use toLocalDate to ensure consistency
   return format(toLocalDate(date), 'dd/MM/yyyy', { locale: ptBR });
 };
 
@@ -109,6 +102,7 @@ export const parseDateString = (dateString: string): Date | null => {
   if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
   if (day < 1 || day > 31 || month < 0 || month > 11 || year < 1900) return null;
   
+  // Create date at noon to avoid timezone issues
   return new Date(year, month, day, 12, 0, 0);
 };
 
@@ -129,4 +123,35 @@ export const formatPartialDateString = (value: string): string => {
   }
   
   return formatted;
+};
+
+/**
+ * Safe date creation - creates date at noon to avoid timezone issues
+ */
+export const createSafeDate = (year: number, month: number, day: number): Date => {
+  return new Date(year, month, day, 12, 0, 0);
+};
+
+/**
+ * Convert date input to safe ISO string
+ */
+export const dateInputToISO = (dateInput: string | Date): string => {
+  if (!dateInput) return '';
+  
+  if (typeof dateInput === 'string') {
+    // If it's already in YYYY-MM-DD format, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+      return dateInput;
+    }
+    
+    // If it's in DD/MM/YYYY format, convert it
+    const parsed = parseDateString(dateInput);
+    if (parsed) {
+      return toISODateString(parsed);
+    }
+    
+    return dateInput;
+  }
+  
+  return toISODateString(dateInput);
 };

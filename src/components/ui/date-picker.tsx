@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
-import { parseDateString, formatPartialDateString } from "@/utils/dateUtils"
+import { parseDateString, formatPartialDateString, toLocalDate, toISODateString } from "@/utils/dateUtils"
 
 interface DatePickerProps {
   date?: Date
@@ -36,8 +36,10 @@ export function DatePicker({
   // Update input value when date changes externally
   React.useEffect(() => {
     if (date) {
-      const formattedDate = format(date, "dd/MM/yyyy", { locale: ptBR });
+      const safeDate = toLocalDate(date);
+      const formattedDate = format(safeDate, "dd/MM/yyyy", { locale: ptBR });
       setInputValue(formattedDate)
+      console.log('DatePicker - Date prop changed:', date, 'Formatted as:', formattedDate);
     } else {
       setInputValue("")
     }
@@ -55,7 +57,7 @@ export function DatePicker({
     if (formatted.length === 10) {
       const parsedDate = parseDateString(formatted)
       if (parsedDate && !isNaN(parsedDate.getTime())) {
-        console.log('Date entered manually:', parsedDate);
+        console.log('DatePicker - Date entered manually:', parsedDate, 'ISO:', toISODateString(parsedDate));
         onSelect?.(parsedDate)
       }
     }
@@ -65,10 +67,10 @@ export function DatePicker({
     setOpen(false)
     
     if (newDate) {
-      console.log('Date selected from calendar:', newDate);
+      console.log('DatePicker - Date selected from calendar:', newDate);
       
-      // Create a new date using local date components to avoid timezone issues
-      const localDate = new Date(
+      // Create a safe local date to avoid timezone issues
+      const safeDate = new Date(
         newDate.getFullYear(),
         newDate.getMonth(),
         newDate.getDate(),
@@ -78,10 +80,10 @@ export function DatePicker({
         0
       );
       
-      console.log('Date after local conversion:', localDate);
+      console.log('DatePicker - Safe date created:', safeDate, 'ISO:', toISODateString(safeDate));
       
-      onSelect?.(localDate)
-      setInputValue(format(localDate, "dd/MM/yyyy", { locale: ptBR }))
+      onSelect?.(safeDate)
+      setInputValue(format(safeDate, "dd/MM/yyyy", { locale: ptBR }))
     } else {
       onSelect?.(undefined)
       setInputValue("")

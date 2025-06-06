@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
-import { toISODateString } from "@/utils/dateUtils";
+import { toISODateString, fromISODateString } from "@/utils/dateUtils";
 
 interface DeliveryDialogProps {
   open: boolean;
@@ -69,10 +69,8 @@ export function DeliveryDialog({
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      // Using our helper function to avoid timezone issues
       const formattedDate = toISODateString(date);
-      
-      console.log('DeliveryDialog - Date selected:', formattedDate);
+      console.log('DeliveryDialog - Date selected:', date, 'Formatted as ISO:', formattedDate);
       setDeliveryDate(formattedDate);
     } else {
       setDeliveryDate('');
@@ -100,7 +98,7 @@ export function DeliveryDialog({
           <div className="space-y-2">
             <Label htmlFor="deliveryDate">Data da Entrega</Label>
             <DatePicker
-              date={deliveryDate ? new Date(`${deliveryDate}T12:00:00`) : undefined}
+              date={deliveryDate ? fromISODateString(deliveryDate) : undefined}
               onSelect={handleDateSelect}
               placeholder="Selecione a data"
             />

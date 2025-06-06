@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
 import { DatePicker } from '@/components/ui/date-picker';
-import { toLocalDate } from '@/utils/dateUtils';
+import { toISODateString, fromISODateString } from '@/utils/dateUtils';
 
 interface DateRangeSelectorProps {
   startDate: string;
@@ -18,24 +18,23 @@ export function DateRangeSelector({
   onEndDateChange
 }: DateRangeSelectorProps) {
   // Convert string dates to Date objects for DatePicker
-  // Important: Using toLocalDate to create dates at noon to avoid timezone issues
   const [startDateObj, setStartDateObj] = useState<Date | undefined>(
-    startDate ? new Date(`${startDate}T12:00:00`) : undefined
+    startDate ? fromISODateString(startDate) : undefined
   );
   const [endDateObj, setEndDateObj] = useState<Date | undefined>(
-    endDate ? new Date(`${endDate}T12:00:00`) : undefined
+    endDate ? fromISODateString(endDate) : undefined
   );
   
   // Update local date objects when props change
   useEffect(() => {
     if (startDate) {
-      setStartDateObj(new Date(`${startDate}T12:00:00`));
+      setStartDateObj(fromISODateString(startDate));
     } else {
       setStartDateObj(undefined);
     }
     
     if (endDate) {
-      setEndDateObj(new Date(`${endDate}T12:00:00`));
+      setEndDateObj(fromISODateString(endDate));
     } else {
       setEndDateObj(undefined);
     }
@@ -45,13 +44,8 @@ export function DateRangeSelector({
   const handleStartDateSelect = (date: Date | undefined) => {
     setStartDateObj(date);
     if (date) {
-      // Format date manually to avoid timezone issues
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const isoDate = `${year}-${month}-${day}`;
-      
-      console.log('Selected start date:', date, 'Converting to ISO:', isoDate);
+      const isoDate = toISODateString(date);
+      console.log('DateRangeSelector - Selected start date:', date, 'Converting to ISO:', isoDate);
       onStartDateChange(isoDate);
     }
   };
@@ -59,13 +53,8 @@ export function DateRangeSelector({
   const handleEndDateSelect = (date: Date | undefined) => {
     setEndDateObj(date);
     if (date) {
-      // Format date manually to avoid timezone issues
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const isoDate = `${year}-${month}-${day}`;
-      
-      console.log('Selected end date:', date, 'Converting to ISO:', isoDate);
+      const isoDate = toISODateString(date);
+      console.log('DateRangeSelector - Selected end date:', date, 'Converting to ISO:', isoDate);
       onEndDateChange(isoDate);
     }
   };

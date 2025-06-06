@@ -4,6 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Control } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
+import { toISODateString, fromISODateString } from '@/utils/dateUtils';
 
 interface DeliveryDateTimeFieldsProps {
   control: Control<any>;
@@ -30,15 +31,11 @@ export function DeliveryDateTimeFields({
             <FormLabel>{dateLabel}</FormLabel>
             <FormControl>
               <DatePicker
-                date={field.value ? new Date(`${field.value}T12:00:00`) : undefined}
+                date={field.value ? fromISODateString(field.value) : undefined}
                 onSelect={(date) => {
                   if (date) {
-                    // Garantir que a data seja formatada corretamente como yyyy-MM-dd
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const isoDate = `${year}-${month}-${day}`;
-                    console.log('Data selecionada:', date.toLocaleDateString('pt-BR'), 'Convertida para ISO:', isoDate);
+                    const isoDate = toISODateString(date);
+                    console.log('DeliveryDateTimeFields - Data selecionada:', date, 'Convertida para ISO:', isoDate);
                     field.onChange(isoDate);
                   } else {
                     field.onChange('');
