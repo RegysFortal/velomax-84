@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useShipments } from "@/contexts/shipments";
 import { useDeliveries } from '@/contexts/deliveries/useDeliveries';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { Document } from "@/types/shipment";
 
@@ -24,7 +25,7 @@ export function useDocumentDelivery({
   const [arrivalKnowledgeNumber, setArrivalKnowledgeNumber] = useState("");
   const [notes, setNotes] = useState("");
 
-  const { getShipmentById, updateDocument } = useShipments();
+  const { getShipmentById, refreshShipmentsData } = useShipments();
   const { addDelivery } = useDeliveries();
 
   const resetDeliveryForm = () => {
@@ -50,25 +51,20 @@ export function useDocumentDelivery({
         return;
       }
 
-      // Update document status to delivered
-      const updatedDocuments = shipment.documents.map(doc => {
-        if (doc.id === documentId) {
-          return {
-            ...doc,
-            isDelivered: true,
-            deliveryInfo: {
-              deliveryDate,
-              deliveryTime,
-              receiverName,
-              receiverId,
-              notes
-            }
-          };
-        }
-        return doc;
-      });
+      // Update document in Supabase with delivery information
+      const { error } = await supabase
+        .from('shipment_documents')
+        .update({
+          is_delivered: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', documentId);
 
-      await updateDocument(shipmentId, documentId, updatedDocuments);
+      if (error) {
+        console.error("Error updating document:", error);
+        toast.error("Erro ao marcar documento como entregue");
+        return;
+      }
 
       // Create delivery entry
       await addDelivery({
@@ -80,9 +76,9 @@ export function useDocumentDelivery({
         receiverId,
         weight: document.weight || 0,
         packages: document.packages || 0,
-        deliveryType: 'standard', // Will need to be completed later
+        deliveryType: 'standard',
         cargoType: 'standard',
-        totalFreight: 0, // Will need to be completed later
+        totalFreight: 0,
         notes: notes || `Documento do embarque ${shipment.trackingNumber}`,
         arrivalKnowledgeNumber,
         invoiceNumbers: document.invoiceNumbers || []
@@ -91,6 +87,9 @@ export function useDocumentDelivery({
       toast.success("Documento marcado como entregue e adicionado à lista de entregas");
       setShowDeliveryDialog(false);
       resetDeliveryForm();
+
+      // Refresh shipments data to update the UI
+      refreshShipmentsData();
 
       if (onStatusChange) {
         onStatusChange();

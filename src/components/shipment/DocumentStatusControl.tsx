@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useShipments } from "@/contexts/shipments";
+import { supabase } from '@/integrations/supabase/client';
 import { Document, DocumentStatus } from "@/types/shipment";
 import { RetentionSheet } from "./dialogs/RetentionSheet";
 import { useDocumentRetention } from "./hooks/useDocumentRetention";
@@ -23,7 +24,7 @@ export function DocumentStatusControl({
   document, 
   onStatusChange 
 }: DocumentStatusControlProps) {
-  const { getShipmentById, updateDocument } = useShipments();
+  const { refreshShipmentsData } = useShipments();
   
   // Use document retention hook
   const { 
@@ -105,44 +106,44 @@ export function DocumentStatusControl({
 
   // Helper function to update document status directly
   const updateDocumentStatus = async (status: DocumentStatus) => {
-    const shipment = getShipmentById(shipmentId);
-    
-    if (!shipment || !shipment.documents) {
-      toast.error("Não foi possível encontrar os documentos do embarque");
-      return;
-    }
-    
-    // Create updated documents list
-    const updatedDocuments = shipment.documents.map(doc => {
-      if (doc.id === document.id) {
-        const isDelivered = status === "delivered";
-        const isRetained = status === "retained";
-        const isPickedUp = status === "picked_up";
-        
-        return {
-          ...doc,
-          isDelivered,
-          isRetained,
-          isPickedUp
-        };
+    try {
+      const isDelivered = status === "delivered";
+      const isRetained = status === "retained";
+      const isPickedUp = status === "picked_up";
+      
+      // Update in Supabase
+      const { error } = await supabase
+        .from('shipment_documents')
+        .update({
+          is_delivered: isDelivered,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', document.id);
+
+      if (error) {
+        console.error("Error updating document in Supabase:", error);
+        toast.error("Erro ao atualizar documento no banco de dados");
+        return;
       }
-      return doc;
-    });
-    
-    // Update the document
-    await updateDocument(shipmentId, document.id, updatedDocuments);
-    
-    // Show success message
-    let statusText = "Pendente";
-    if (status === "delivered") statusText = "Entregue";
-    else if (status === "picked_up") statusText = "Retirado";
-    else if (status === "retained") statusText = "Retido";
-    
-    toast.success(`Documento marcado como ${statusText}`);
-    
-    // Call callback if provided
-    if (onStatusChange) {
-      onStatusChange();
+      
+      // Show success message
+      let statusText = "Pendente";
+      if (status === "delivered") statusText = "Entregue";
+      else if (status === "picked_up") statusText = "Retirado";
+      else if (status === "retained") statusText = "Retido";
+      
+      toast.success(`Documento marcado como ${statusText}`);
+      
+      // Refresh data to update UI
+      refreshShipmentsData();
+      
+      // Call callback if provided
+      if (onStatusChange) {
+        onStatusChange();
+      }
+    } catch (error) {
+      console.error("Error updating document status:", error);
+      toast.error("Erro ao atualizar status do documento");
     }
   };
 
