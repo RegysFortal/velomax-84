@@ -34,15 +34,15 @@ export const useReportActions = (data: Shipment[]) => {
       // Format current date
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
       
-      // PRODUCTION FIX: Force explicit filename format with no variables
+      // Simple filename format
       const date = new Date();
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
       
-      // Hard-code the filename pattern to ensure it works in all environments
-      const fileName = `Embarques_${day}-${month}`;
+      const fileName = `Relatorio_Embarques_${day}-${month}-${year}`;
       
-      console.log(`[VERCEL DEBUG] Gerando PDF com nome explícito: "${fileName}.pdf"`);
+      console.log(`Gerando PDF: ${fileName}.pdf`);
       
       // Add company information
       const companyInfo = getCompanyInfo();
@@ -80,40 +80,30 @@ export const useReportActions = (data: Shipment[]) => {
         (item.observations || '').slice(0, 50) + (item.observations && item.observations.length > 50 ? '...' : '')
       ]);
       
-      // Add table to PDF with explicit import of jspdf-autotable
-      try {
-        doc.autoTable({
-          startY: 45,
-          head: [headers],
-          body: tableData,
-          theme: 'grid',
-          headStyles: {
-            fillColor: [80, 80, 80],
-            textColor: [255, 255, 255],
-            fontStyle: 'bold',
-            halign: 'center'
-          },
-          styles: {
-            fontSize: 9,
-            cellPadding: 2,
-          }
-        });
-        
-        // VERCEL FIX: Forçar nome de arquivo fixo para garantir que seja sempre "Embarques_DD-MM.pdf"
-        // Remove qualquer referência a formatClientNameForFileName ou outros helpers que podem estar causando problemas
-        const finalFileName = `${fileName}.pdf`;
-        console.log(`[VERCEL DEBUG] Salvando arquivo PDF como: "${finalFileName}"`);
-        
-        // Use a string direta para o nome do arquivo, sem substituições dinâmicas
-        doc.save(finalFileName);
-        
-        toast.success("PDF gerado com sucesso!");
-      } catch (error) {
-        console.error("[VERCEL ERROR] Erro específico ao gerar tabela PDF:", error);
-        toast.error("Erro ao gerar tabela no PDF. Verifique o console.");
-      }
+      // Add table to PDF
+      doc.autoTable({
+        startY: 45,
+        head: [headers],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [80, 80, 80],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 2,
+        }
+      });
+      
+      // Save with simple filename
+      doc.save(`${fileName}.pdf`);
+      
+      toast.success("PDF gerado com sucesso!");
     } catch (error) {
-      console.error("[VERCEL ERROR] Erro ao gerar PDF:", error);
+      console.error("Erro ao gerar PDF:", error);
       toast.error("Erro ao gerar PDF. Tente novamente.");
     } finally {
       setLoading(false);
@@ -126,13 +116,14 @@ export const useReportActions = (data: Shipment[]) => {
       
       const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
       
-      // VERCEL FIX: Usar a mesma lógica de nome de arquivo do PDF para o Excel
+      // Simple filename format  
       const date = new Date();
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
-      const fileName = `Embarques_${day}-${month}`;
+      const year = date.getFullYear();
+      const fileName = `Relatorio_Embarques_${day}-${month}-${year}`;
       
-      console.log(`[VERCEL DEBUG] Gerando Excel com nome explícito: "${fileName}.xlsx"`);
+      console.log(`Gerando Excel: ${fileName}.xlsx`);
       
       // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
@@ -179,16 +170,12 @@ export const useReportActions = (data: Shipment[]) => {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Embarques");
       
-      // VERCEL FIX: Forçar nome de arquivo fixo para garantir que seja sempre "Embarques_DD-MM.xlsx"
-      const finalFileName = `${fileName}.xlsx`;
-      console.log(`[VERCEL DEBUG] Salvando arquivo Excel como: "${finalFileName}"`);
-      
-      // Use a string direta para o nome do arquivo
-      XLSX.writeFile(wb, finalFileName);
+      // Save with simple filename
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
       
       toast.success("Excel gerado com sucesso!");
     } catch (error) {
-      console.error("[VERCEL ERROR] Erro ao gerar Excel:", error);
+      console.error("Erro ao gerar Excel:", error);
       toast.error("Erro ao gerar Excel. Tente novamente.");
     } finally {
       setLoading(false);

@@ -11,6 +11,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { ShipmentStatus } from "@/types";
+import { useCarrierFiltering } from "./filters/useCarrierFiltering";
 
 interface ReportFiltersProps {
   startDate: string;
@@ -39,6 +40,14 @@ export function ReportFilters({
   onCarrierChange,
   uniqueCarriers
 }: ReportFiltersProps) {
+  // Use carrier filtering hook
+  const { filteredCarriers } = useCarrierFiltering(
+    filterMode, 
+    filterCarrier, 
+    uniqueCarriers, 
+    onCarrierChange
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -100,13 +109,13 @@ export function ReportFilters({
         
         <div className="space-y-2">
           <Label htmlFor="carrier">Transportadora</Label>
-          <Select value={filterCarrier} onValueChange={(value) => onCarrierChange(value)}>
+          <Select value={filterCarrier} onValueChange={onCarrierChange}>
             <SelectTrigger id="carrier">
               <SelectValue placeholder="Todas as transportadoras" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
-              {uniqueCarriers.map((carrier) => (
+              {filteredCarriers.map((carrier) => (
                 <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
               ))}
             </SelectContent>
