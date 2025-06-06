@@ -15,14 +15,14 @@ export function DeliveryInfo({ document, shipment, shouldShowPriorityBackground 
   
   const deliveryInfo = document.deliveryInfo;
   
-  // Format date to DD/MM/AA (Brazilian short format)
-  const formatDateToBrazilianShort = (dateString: string) => {
+  // Format date to DD/MM/YYYY (Brazilian format)
+  const formatDateToBrazilian = (dateString: string) => {
     if (!dateString) return '';
     try {
       const date = new Date(dateString);
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(-2); // Get last 2 digits of year
+      const year = String(date.getFullYear());
       return `${day}/${month}/${year}`;
     } catch (e) {
       return dateString;
@@ -48,7 +48,7 @@ export function DeliveryInfo({ document, shipment, shouldShowPriorityBackground 
           {(deliveryInfo?.deliveryDate || shipment?.deliveryDate) && (
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
-              <span className="font-medium">DATA:</span> {deliveryInfo?.deliveryDate ? formatDateToBrazilianShort(deliveryInfo.deliveryDate) : shipment?.deliveryDate}
+              <span className="font-medium">DATA:</span> {deliveryInfo?.deliveryDate ? formatDateToBrazilian(deliveryInfo.deliveryDate) : shipment?.deliveryDate}
             </div>
           )}
           
