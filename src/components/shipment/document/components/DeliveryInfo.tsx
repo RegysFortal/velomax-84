@@ -2,7 +2,6 @@
 import React from 'react';
 import { CheckSquare, User, Calendar, Clock } from "lucide-react";
 import { Document } from "@/types/shipment";
-import { formatToReadableDate } from "@/utils/dateFormatting";
 
 interface DeliveryInfoProps {
   document: Document;
@@ -48,7 +47,7 @@ export function DeliveryInfo({ document, shipment, shouldShowPriorityBackground 
           {(deliveryInfo?.deliveryDate || shipment?.deliveryDate) && (
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
-              <span className="font-medium">DATA:</span> {deliveryInfo?.deliveryDate ? formatDateToBrazilian(deliveryInfo.deliveryDate) : shipment?.deliveryDate}
+              <span className="font-medium">DATA:</span> {deliveryInfo?.deliveryDate ? formatDateToBrazilian(deliveryInfo.deliveryDate) : (shipment?.deliveryDate ? formatDateToBrazilian(shipment.deliveryDate) : shipment?.deliveryDate)}
             </div>
           )}
           
