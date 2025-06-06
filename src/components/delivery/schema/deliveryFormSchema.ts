@@ -5,7 +5,7 @@ export const deliveryFormSchema = z.object({
   minuteNumber: z.string().optional(),
   clientId: z.string().min(1, "Cliente é obrigatório"),
   deliveryDate: z.string().min(1, "Data de entrega é obrigatória"),
-  deliveryTime: z.string().optional(), // Tornar hora opcional
+  deliveryTime: z.string().optional(), // Hora é opcional
   receiver: z.string().min(1, "Destinatário é obrigatório"),
   receiverId: z.string().optional(),
   weight: z.union([
@@ -26,15 +26,12 @@ export const deliveryFormSchema = z.object({
   cargoType: z.string().min(1, "Tipo de carga é obrigatório"),
   cargoValue: z.union([
     z.number().min(0, "Valor da carga deve ser maior ou igual a 0"),
-    z.string().refine(val => {
-      if (val === '' || val === undefined) return true;
+    z.string().transform(val => {
+      if (val === '' || val === undefined || val === null) return 0;
       const num = parseFloat(val);
-      return !isNaN(num) && num >= 0;
-    }, "Valor da carga deve ser maior ou igual a 0")
-  ]).transform(val => {
-    if (val === '' || val === undefined) return 0; // Sempre retornar número
-    return typeof val === 'string' ? parseFloat(val) : val;
-  }).optional(),
+      return isNaN(num) ? 0 : num;
+    })
+  ]).optional().default(0),
   totalFreight: z.number().min(0, "Valor do frete deve ser maior ou igual a 0"),
   notes: z.string().optional(),
   occurrence: z.string().optional(),

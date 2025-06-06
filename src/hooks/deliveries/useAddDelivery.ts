@@ -45,7 +45,7 @@ export const useAddDelivery = (
         minute_number: minuteNumber,
         client_id: delivery.clientId,
         delivery_date: delivery.deliveryDate,
-        delivery_time: delivery.deliveryTime || '', // Permitir vazio
+        delivery_time: delivery.deliveryTime || '', // Hora opcional - pode ser vazia
         receiver: delivery.receiver || '',
         receiver_id: delivery.receiverId || '',
         weight: parseFloat(delivery.weight.toString()),

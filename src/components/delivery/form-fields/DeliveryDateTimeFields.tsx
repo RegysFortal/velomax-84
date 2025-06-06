@@ -17,7 +17,7 @@ interface DeliveryDateTimeFieldsProps {
 export function DeliveryDateTimeFields({ 
   control,
   dateLabel = "Data de Entrega",
-  timeLabel = "Hora (Opcional)", // Indicar que é opcional
+  timeLabel = "Hora (Opcional)",
   dateName = "deliveryDate",
   timeName = "deliveryTime"
 }: DeliveryDateTimeFieldsProps) {
@@ -34,8 +34,12 @@ export function DeliveryDateTimeFields({
                 date={field.value ? new Date(`${field.value}T12:00:00`) : undefined}
                 onSelect={(date) => {
                   if (date) {
-                    // Usando o toISODateString atualizado
-                    const formattedDate = toISODateString(date);
+                    // Garantir que usamos a data exata selecionada
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const formattedDate = `${year}-${month}-${day}`;
+                    console.log('Data selecionada:', date, 'Formatada:', formattedDate);
                     field.onChange(formattedDate);
                   } else {
                     field.onChange('');
@@ -59,7 +63,7 @@ export function DeliveryDateTimeFields({
               <Input 
                 type="time" 
                 {...field} 
-                value={field.value || ''} // Garantir que não seja undefined
+                value={field.value || ''}
                 className="bg-background" 
               />
             </FormControl>
