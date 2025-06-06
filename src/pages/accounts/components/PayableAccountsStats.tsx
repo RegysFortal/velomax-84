@@ -13,6 +13,7 @@ export const PayableAccountsStats = ({ accounts }: PayableAccountsStatsProps) =>
   const pendingAmount = accounts
     .filter(account => account.status === "pending" || account.status === "overdue")
     .reduce((sum, account) => sum + account.amount, 0);
+    
   const overdueAmount = accounts
     .filter(account => account.status === "overdue")
     .reduce((sum, account) => sum + account.amount, 0);

@@ -101,6 +101,10 @@ function App() {
                                       <Route path="/financial-reports" element={<PrivateRoute><FinancialReportsPage /></PrivateRoute>} />
                                       <Route path="/receivable-accounts" element={<PrivateRoute><ReceivableAccountsPage /></PrivateRoute>} />
                                       <Route path="/payable-accounts" element={<PrivateRoute><PayableAccountsPage /></PrivateRoute>} />
+                                      {/* Fixed routes for accounts pages */}
+                                      <Route path="/accounts/receivable" element={<PrivateRoute><ReceivableAccountsPage /></PrivateRoute>} />
+                                      <Route path="/accounts/payable" element={<PrivateRoute><PayableAccountsPage /></PrivateRoute>} />
+                                      <Route path="/accounts/reports" element={<PrivateRoute><FinancialReportsPage /></PrivateRoute>} />
                                       <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
                                       <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
                                       <Route path="/users" element={<PrivateRoute><Users /></PrivateRoute>} />

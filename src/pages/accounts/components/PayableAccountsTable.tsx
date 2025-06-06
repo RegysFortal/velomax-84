@@ -37,7 +37,7 @@ export const PayableAccountsTable = ({
   onEdit,
   onDelete,
   onMarkAsPaid,
-  isLoading = false,
+  isLoading = false
 }: PayableAccountsTableProps) => {
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
   
@@ -65,6 +65,23 @@ export const PayableAccountsTable = ({
         return <span className="text-red-500 font-medium">Atrasado</span>;
       default:
         return <span className="text-gray-500 font-medium">Desconhecido</span>;
+    }
+  };
+  
+  const getPaymentMethodLabel = (method: string) => {
+    switch (method) {
+      case "pix":
+        return "PIX";
+      case "boleto":
+        return "Boleto";
+      case "transferencia":
+        return "Transferência";
+      case "cartao":
+        return "Cartão";
+      case "especie":
+        return "Dinheiro";
+      default:
+        return "Outro";
     }
   };
 

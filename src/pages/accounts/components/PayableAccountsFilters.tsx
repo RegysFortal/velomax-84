@@ -29,10 +29,9 @@ export function PayableAccountsFilters() {
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="combustivel">Combustível</SelectItem>
-            <SelectItem value="aluguel">Aluguel</SelectItem>
-            <SelectItem value="seguros">Seguros</SelectItem>
             <SelectItem value="manutencao">Manutenção</SelectItem>
-            <SelectItem value="servicos">Serviços</SelectItem>
+            <SelectItem value="seguros">Seguros</SelectItem>
+            <SelectItem value="outros">Outros</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -61,10 +60,10 @@ export function PayableAccountsFilters() {
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="pix">PIX</SelectItem>
-            <SelectItem value="card">Cartão</SelectItem>
-            <SelectItem value="transfer">Transferência</SelectItem>
-            <SelectItem value="cash">Dinheiro</SelectItem>
-            <SelectItem value="bank_slip">Boleto</SelectItem>
+            <SelectItem value="boleto">Boleto</SelectItem>
+            <SelectItem value="transferencia">Transferência</SelectItem>
+            <SelectItem value="cartao">Cartão</SelectItem>
+            <SelectItem value="especie">Dinheiro</SelectItem>
           </SelectContent>
         </Select>
       </div>

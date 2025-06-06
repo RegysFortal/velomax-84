@@ -1,38 +1,23 @@
 
-import React from 'react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TabsContent } from "@/components/ui/tabs";
-import { ReportFilters } from './ReportFilters';
+import { ReceivableAccountsTable } from "./ReceivableAccountsTable";
+import { ReceivableAccountsFilters } from "./ReceivableAccountsFilters";
 
 interface IncomeReportTabProps {
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
 }
 
 export function IncomeReportTab({ startDate, endDate }: IncomeReportTabProps) {
   return (
-    <TabsContent value="income" className="space-y-6">
-      <ReportFilters />
-      {/* Income reports and tables would go here */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Relatório Detalhado de Receitas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground pb-4">
-            Filtro aplicado: {format(new Date(startDate), 'dd/MM/yyyy', { locale: ptBR })} até {format(new Date(endDate), 'dd/MM/yyyy', { locale: ptBR })}
-          </p>
-          
-          {/* Table would go here */}
-          <div className="border rounded-md">
-            <p className="p-4 text-center text-muted-foreground">
-              Dados de receitas detalhados seriam exibidos aqui
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    <TabsContent value="income" className="space-y-4">
+      <div className="space-y-4">
+        <ReceivableAccountsFilters />
+        <div className="text-center py-8 text-muted-foreground">
+          <p>Tabela de receitas será implementada aqui</p>
+          <p className="text-sm">Período: {startDate.toLocaleDateString('pt-BR')} - {endDate.toLocaleDateString('pt-BR')}</p>
+        </div>
+      </div>
     </TabsContent>
   );
 }
