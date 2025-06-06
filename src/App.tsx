@@ -1,147 +1,295 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { AppLayout } from '@/components/AppLayout';
-import PrivateRoute from '@/components/PrivateRoute';
-import Login from '@/pages/Login';
-import Dashboard from '@/pages/Dashboard';
-import { AuthProvider } from '@/contexts/auth/AuthContext';
-import { ActivityLogProvider } from '@/contexts/ActivityLogContext';
-import { AdminAreaProvider } from '@/contexts/AdminAreaContext';
-import { DeliveriesProvider } from '@/contexts/deliveries/DeliveriesProvider';
-import { ClientsProvider } from '@/contexts/clients';
-import { BudgetProvider } from '@/contexts/budget';
-import { PriceTablesProvider } from '@/contexts/priceTables';
-import { CitiesProvider } from '@/contexts/cities';
-import { ShipmentsProvider } from '@/contexts/shipments';
-import { FinancialProvider } from '@/contexts/financial';
-import { LogbookProvider } from '@/contexts/LogbookContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/auth/AuthContext';
+import { ClientProvider } from './contexts/clients';
+import { PermissionProvider } from './contexts/permissions/PermissionContext';
+import { DeliveryProvider } from './contexts/deliveries/DeliveryContext';
+import { ShipmentProvider } from './contexts/shipments';
+import { UserProvider } from './contexts/users/UserContext';
+import { CompanyProvider } from './contexts/company/CompanyContext';
+import { SystemProvider } from './contexts/system/SystemContext';
+import { UserSettingsProvider } from './contexts/user-settings/UserSettingsContext';
+import { CalendarProvider } from './contexts/calendar/CalendarContext';
+import { ProductProvider } from './contexts/products/ProductContext';
+import { VehicleProvider } from './contexts/vehicles/VehicleContext';
+import { FinancialProvider } from './contexts/financial';
+import { Layout } from './components/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Toaster } from './components/ui/toaster';
+import { Toaster as SonnerToaster } from 'sonner';
 
-// Page imports
-import DeliveriesPage from '@/pages/deliveries';
-import ShipmentsPage from '@/pages/shipments';
-import Budgets from '@/pages/Budgets';
-import Clients from '@/pages/Clients';
-import PriceTablesPage from '@/pages/PriceTables';
-import Cities from '@/pages/Cities';
-import Reports from '@/pages/Reports';
-import ShipmentReports from '@/pages/ShipmentReports';
-import Financial from '@/pages/Financial';
-import FinancialDashboard from '@/pages/FinancialDashboard';
-import FinancialReportsPage from '@/pages/accounts/FinancialReportsPage';
-import ReceivableAccountsPage from '@/pages/accounts/ReceivableAccountsPage';
-import PayableAccountsPage from '@/pages/accounts/PayableAccountsPage';
-import Settings from '@/pages/Settings';
-import Profile from '@/pages/Profile';
-import Users from '@/pages/Users';
-import Employees from '@/pages/Employees';
-import Contractors from '@/pages/Contractors';
-import Vehicles from '@/pages/Vehicles';
-import Logbooks from '@/pages/Logbooks';
-import Maintenance from '@/pages/Maintenance';
-import NotFound from '@/pages/NotFound';
-
-// Inventory imports
-import { 
-  ProductsPage as InventoryProductsPage, 
-  EntriesPage as InventoryEntriesPage, 
-  ExitsPage as InventoryExitsPage, 
-  DashboardPage as InventoryDashboardPage 
-} from '@/pages/inventory';
-
-// Storage imports
-import { 
-  ProductsPage as StorageProductsPage, 
-  EntriesPage as StorageEntriesPage, 
-  ExitsPage as StorageExitsPage, 
-  DashboardPage as StorageDashboardPage 
-} from '@/pages/storage';
-
-import './App.css';
-
-const queryClient = new QueryClient();
+// Pages
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import DeliveryDashboard from './pages/DeliveryDashboard';
+import FinancialDashboard from './pages/FinancialDashboard';
+import Deliveries from './pages/Deliveries';
+import Shipments from './pages/Shipments';
+import ShipmentDetail from './pages/ShipmentDetail';
+import Reports from './pages/Reports';
+import Clients from './pages/Clients';
+import ClientDetail from './pages/ClientDetail';
+import Employees from './pages/Employees';
+import ContractorRegister from './pages/ContractorRegister';
+import Users from './pages/Users';
+import Settings from './pages/Settings';
+import PriceTables from './pages/PriceTables';
+import Cities from './pages/Cities';
+import UserSettings from './pages/UserSettings';
+import Calendar from './pages/Calendar';
+import Financial from './pages/Financial';
+import Products from './pages/Products';
+import Vehicles from './pages/Vehicles';
+import VehicleDetail from './pages/VehicleDetail';
+import VehicleFuel from './pages/VehicleFuel';
+import VehicleMaintenance from './pages/VehicleMaintenance';
+import VehicleTires from './pages/VehicleTires';
+import VehicleLogbook from './pages/VehicleLogbook';
+import FinancialReportsPage from './pages/accounts/FinancialReportsPage';
+import PayableAccountsPage from './pages/accounts/PayableAccountsPage';
+import ReceivableAccountsPage from './pages/accounts/ReceivableAccountsPage';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <AuthProvider>
-            <AdminAreaProvider>
-              <ActivityLogProvider>
-                <DeliveriesProvider>
-                  <ClientsProvider>
-                    <BudgetProvider>
-                      <PriceTablesProvider>
-                        <CitiesProvider>
-                          <ShipmentsProvider>
-                            <FinancialProvider>
-                              <LogbookProvider>
-                                <Router>
-                                  <Routes>
-                                    <Route path="/login" element={<Login />} />
-                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                    
-                                    <Route element={<AppLayout><Outlet /></AppLayout>}>
-                                      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-                                      <Route path="/deliveries" element={<PrivateRoute><DeliveriesPage /></PrivateRoute>} />
-                                      <Route path="/shipments" element={<PrivateRoute><ShipmentsPage /></PrivateRoute>} />
-                                      <Route path="/budgets" element={<PrivateRoute><Budgets /></PrivateRoute>} />
-                                      <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
-                                      <Route path="/price-tables" element={<PrivateRoute><PriceTablesPage /></PrivateRoute>} />
-                                      <Route path="/cities" element={<PrivateRoute><Cities /></PrivateRoute>} />
-                                      <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
-                                      <Route path="/shipment-reports" element={<PrivateRoute><ShipmentReports /></PrivateRoute>} />
-                                      <Route path="/financial" element={<PrivateRoute><Financial /></PrivateRoute>} />
-                                      <Route path="/financial-dashboard" element={<PrivateRoute><FinancialDashboard /></PrivateRoute>} />
-                                      <Route path="/financial-reports" element={<PrivateRoute><FinancialReportsPage /></PrivateRoute>} />
-                                      <Route path="/receivable-accounts" element={<PrivateRoute><ReceivableAccountsPage /></PrivateRoute>} />
-                                      <Route path="/payable-accounts" element={<PrivateRoute><PayableAccountsPage /></PrivateRoute>} />
-                                      <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-                                      <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-                                      <Route path="/users" element={<PrivateRoute><Users /></PrivateRoute>} />
-                                      <Route path="/employees" element={<PrivateRoute><Employees /></PrivateRoute>} />
-                                      <Route path="/contractors" element={<PrivateRoute><Contractors /></PrivateRoute>} />
-                                      <Route path="/vehicles" element={<PrivateRoute><Vehicles /></PrivateRoute>} />
-                                      <Route path="/logbook" element={<PrivateRoute><Logbooks /></PrivateRoute>} />
-                                      <Route path="/maintenance" element={<PrivateRoute><Maintenance /></PrivateRoute>} />
-                                      
-                                      {/* Inventory routes */}
-                                      <Route path="/inventory/products" element={<PrivateRoute><InventoryProductsPage /></PrivateRoute>} />
-                                      <Route path="/inventory/entries" element={<PrivateRoute><InventoryEntriesPage /></PrivateRoute>} />
-                                      <Route path="/inventory/exits" element={<PrivateRoute><InventoryExitsPage /></PrivateRoute>} />
-                                      <Route path="/inventory/dashboard" element={<PrivateRoute><InventoryDashboardPage /></PrivateRoute>} />
-                                      
-                                      {/* Storage routes */}
-                                      <Route path="/storage/products" element={<PrivateRoute><StorageProductsPage /></PrivateRoute>} />
-                                      <Route path="/storage/entries" element={<PrivateRoute><StorageEntriesPage /></PrivateRoute>} />
-                                      <Route path="/storage/exits" element={<PrivateRoute><StorageExitsPage /></PrivateRoute>} />
-                                      <Route path="/storage/dashboard" element={<PrivateRoute><StorageDashboardPage /></PrivateRoute>} />
-                                      
-                                      <Route path="*" element={<NotFound />} />
-                                    </Route>
-                                  </Routes>
-                                </Router>
-                                <Toaster />
-                                <Sonner />
-                              </LogbookProvider>
-                            </FinancialProvider>
-                          </ShipmentsProvider>
-                        </CitiesProvider>
-                      </PriceTablesProvider>
-                    </BudgetProvider>
-                  </ClientsProvider>
-                </DeliveriesProvider>
-              </ActivityLogProvider>
-            </AdminAreaProvider>
-          </AuthProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <Router>
+      <AuthProvider>
+        <UserProvider>
+          <PermissionProvider>
+            <SystemProvider>
+              <UserSettingsProvider>
+                <CompanyProvider>
+                  <ClientProvider>
+                    <DeliveryProvider>
+                      <ShipmentProvider>
+                        <CalendarProvider>
+                          <ProductProvider>
+                            <VehicleProvider>
+                              <Routes>
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Dashboard />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/dashboard" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Dashboard />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/delivery-dashboard" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <DeliveryDashboard />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/financial-dashboard" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <FinancialDashboard />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/deliveries" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Deliveries />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/shipments" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Shipments />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/shipments/:id" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <ShipmentDetail />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/reports" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Reports />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/clients" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Clients />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/clients/:id" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <ClientDetail />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/employees" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Employees />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/contractor-register" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <ContractorRegister />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/users" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Users />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/settings" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Settings />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/price-tables" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <PriceTables />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/cities" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Cities />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/user-settings" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <UserSettings />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/calendar" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Calendar />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/financial" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Financial />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/products" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Products />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/vehicles" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <Vehicles />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/vehicles/:id" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <VehicleDetail />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/vehicles/:vehicleId/fuel" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <VehicleFuel />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/vehicles/:vehicleId/maintenance" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <VehicleMaintenance />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/vehicles/:vehicleId/tires" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <VehicleTires />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/vehicles/:vehicleId/logbook" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <VehicleLogbook />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                
+                                {/* Financial Accounts Routes */}
+                                <Route path="/accounts/reports" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <FinancialReportsPage />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/accounts/payable" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <PayableAccountsPage />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                <Route path="/accounts/receivable" element={
+                                  <ProtectedRoute>
+                                    <Layout>
+                                      <ReceivableAccountsPage />
+                                    </Layout>
+                                  </ProtectedRoute>
+                                } />
+                                
+                                <Route path="*" element={<NotFound />} />
+                              </Routes>
+                            </VehicleProvider>
+                          </ProductProvider>
+                        </CalendarProvider>
+                      </ShipmentProvider>
+                    </DeliveryProvider>
+                  </ClientProvider>
+                </CompanyProvider>
+              </UserSettingsProvider>
+            </SystemProvider>
+          </PermissionProvider>
+        </UserProvider>
+      </AuthProvider>
+      <Toaster />
+      <SonnerToaster />
+    </Router>
   );
 }
 
