@@ -51,11 +51,11 @@ export const PriorityDocumentsAlert = () => {
     <div className="animate-pulse mb-6">
       <Alert variant="destructive" className="bg-red-50 border-red-300 dark:bg-red-900/30 dark:border-red-800">
         <Siren className="h-5 w-5 text-red-600 dark:text-red-400" />
-        <AlertTitle className="text-red-700 dark:text-red-300 font-semibold">
+        <AlertTitle className="text-red-700 dark:text-red-300 font-semibold text-left">
           Documentos Prioritários! ({priorityDocuments.length})
         </AlertTitle>
         <AlertDescription className="text-red-600 dark:text-red-200">
-          <div className="mt-2 max-h-32 overflow-y-auto">
+          <div className="mt-2 max-h-32 overflow-y-auto text-left">
             {priorityDocuments.map((doc) => (
               <div key={doc.id} className="mb-1">
                 <Link 
@@ -68,7 +68,7 @@ export const PriorityDocumentsAlert = () => {
                     <span> - NF: {doc.invoiceNumbers.join(', ')}</span>
                   )}
                   {doc.notes && (
-                    <div className="ml-4 text-sm italic">
+                    <div className="ml-4 text-sm italic text-left">
                       Obs: {doc.notes}
                     </div>
                   )}
