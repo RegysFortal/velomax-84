@@ -42,12 +42,18 @@ export const useAddDelivery = (
       console.log('Data de entrega recebida:', delivery.deliveryDate);
       console.log('Hora de entrega recebida:', delivery.deliveryTime);
       
+      // Validar formato da data (deve estar em yyyy-MM-dd)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(delivery.deliveryDate)) {
+        console.error('Data em formato incorreto:', delivery.deliveryDate);
+        throw new Error('Data deve estar no formato yyyy-MM-dd');
+      }
+      
       // Prepare data for Supabase insert using the correct field names for Supabase schema
       const supabaseDelivery: any = {
         minute_number: minuteNumber,
         client_id: delivery.clientId,
-        delivery_date: delivery.deliveryDate, // Manter exatamente como recebido
-        delivery_time: delivery.deliveryTime || null, // Usar null em vez de string vazia se não fornecido
+        delivery_date: delivery.deliveryDate, // Manter exatamente como recebido (formato yyyy-MM-dd)
+        delivery_time: delivery.deliveryTime || null, // null se vazio
         receiver: delivery.receiver || '',
         receiver_id: delivery.receiverId || '',
         weight: parseFloat(delivery.weight.toString()),
