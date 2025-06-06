@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { CalendarEvent, EventType, RecurrenceType } from '@/hooks/useCalendarEvents';
+import { CalendarEvent } from '@/hooks/useCalendarEvents';
+import { EventType, RecurrenceType } from '@/hooks/calendar/event-types';
 import { useToast } from '@/hooks/use-toast';
 
 export const useEventState = (
