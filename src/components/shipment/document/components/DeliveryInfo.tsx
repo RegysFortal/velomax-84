@@ -23,24 +23,24 @@ export function DeliveryInfo({ document, shipment, shouldShowPriorityBackground 
         </div>
         
         <div className={`grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 ${shouldShowPriorityBackground ? 'text-red-700' : 'text-green-700'}`}>
-          {deliveryInfo?.receiverName && (
+          {(deliveryInfo?.receiverName || shipment?.receiverName) && (
             <div className="flex items-center">
               <User className="h-3 w-3 mr-1" />
-              <span className="font-medium">Recebedor:</span> {deliveryInfo.receiverName}
+              <span className="font-medium">Quem recebeu:</span> {deliveryInfo?.receiverName || shipment?.receiverName}
             </div>
           )}
           
-          {deliveryInfo?.deliveryDate && (
+          {(deliveryInfo?.deliveryDate || shipment?.deliveryDate) && (
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
-              <span className="font-medium">Data:</span> {new Date(deliveryInfo.deliveryDate).toLocaleDateString('pt-BR')}
+              <span className="font-medium">Data:</span> {deliveryInfo?.deliveryDate ? new Date(deliveryInfo.deliveryDate).toLocaleDateString('pt-BR') : shipment?.deliveryDate}
             </div>
           )}
           
-          {deliveryInfo?.deliveryTime && (
+          {(deliveryInfo?.deliveryTime || shipment?.deliveryTime) && (
             <div className="flex items-center">
               <Clock className="h-3 w-3 mr-1" />
-              <span className="font-medium">Hora:</span> {deliveryInfo.deliveryTime}
+              <span className="font-medium">Hora:</span> {deliveryInfo?.deliveryTime || shipment?.deliveryTime}
             </div>
           )}
         </div>
