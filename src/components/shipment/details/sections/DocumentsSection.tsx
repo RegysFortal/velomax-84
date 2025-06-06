@@ -4,6 +4,9 @@ import { Shipment, Document } from "@/types/shipment";
 import { DocumentsList } from "../../DocumentsList";
 import { DocumentItem } from "../../document";
 import { Card } from "@/components/ui/card";
+import { RetentionInfo } from "../../document/components/RetentionInfo";
+import { DeliveryInfo } from "../../document/components/DeliveryInfo";
+import { AlertTriangle } from "lucide-react";
 
 interface DocumentsSectionProps {
   shipment: Shipment;
@@ -49,17 +52,52 @@ export function DocumentsSection({ shipment, onDocumentStatusChange }: Documents
       {/* Documentos Retidos (se houver) */}
       {retainedDocuments.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-medium text-amber-800">Documentos Retidos</h3>
+          <h3 className="text-lg font-medium text-amber-800 flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-2" />
+            Documentos Retidos
+          </h3>
           <div className="space-y-2">
             {retainedDocuments.map(doc => (
-              <DocumentItem
-                key={doc.id}
-                document={doc}
-                shipmentId={shipment.id}
-                onEdit={() => {}}
-                onDelete={() => {}}
-                onStatusChange={onDocumentStatusChange}
-              />
+              <Card key={doc.id} className="p-4 bg-amber-50 border-amber-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <span className="font-medium text-amber-800">
+                      {doc.minuteNumber ? `Minuta: ${doc.minuteNumber}` : doc.name}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Document details */}
+                <div className="text-sm text-amber-700 space-y-1 mb-3">
+                  {doc.invoiceNumbers && doc.invoiceNumbers.length > 0 && (
+                    <div>
+                      <strong>Notas Fiscais:</strong> {doc.invoiceNumbers.join(', ')}
+                    </div>
+                  )}
+                  {doc.weight && (
+                    <div><strong>Peso:</strong> {doc.weight} kg</div>
+                  )}
+                  {doc.packages && (
+                    <div><strong>Volumes:</strong> {doc.packages}</div>
+                  )}
+                </div>
+
+                {/* Retention Information using the same component */}
+                <RetentionInfo 
+                  document={doc} 
+                  shouldShowPriorityBackground={false} 
+                />
+
+                {/* Delivery Information if delivered */}
+                {doc.isDelivered && (
+                  <DeliveryInfo 
+                    document={doc} 
+                    shipment={shipment}
+                    shouldShowPriorityBackground={false} 
+                  />
+                )}
+              </Card>
             ))}
           </div>
         </div>

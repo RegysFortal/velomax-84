@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { RetentionInfoSection } from "./RetentionInfoSection";
+import { RetentionInfo } from "../../document/components/RetentionInfo";
+import { Document } from "@/types/shipment";
 
 interface LegacyRetentionWrapperProps {
   status: string;
@@ -30,15 +31,41 @@ export function LegacyRetentionWrapper({
     return null;
   }
   
+  // Create a mock document with retention info to use with RetentionInfo component
+  const mockDocument: Document = {
+    id: "legacy-retention",
+    name: "Retenção do Embarque",
+    type: "other",
+    status: "retained",
+    isRetained: true,
+    notes: JSON.stringify({
+      actionNumber,
+      reason: retentionReason,
+      amount: retentionAmount,
+      paymentDate,
+      releaseDate,
+      notes: fiscalNotes
+    }),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
   return (
-    <RetentionInfoSection
-      actionNumber={actionNumber}
-      retentionReason={retentionReason}
-      retentionAmount={retentionAmount}
-      paymentDate={paymentDate}
-      releaseDate={releaseDate}
-      fiscalNotes={fiscalNotes}
-      onEditClick={onEditClick}
-    />
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Informações da Retenção</h3>
+        <button 
+          onClick={onEditClick}
+          className="text-sm text-blue-600 hover:text-blue-800 underline"
+        >
+          Editar Informações de Retenção
+        </button>
+      </div>
+      
+      <RetentionInfo 
+        document={mockDocument} 
+        shouldShowPriorityBackground={false} 
+      />
+    </div>
   );
 }
