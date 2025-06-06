@@ -67,10 +67,12 @@ export function EventDialog({
 }: EventDialogProps) {
   return (
     <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
-        <EventDialogHeader selectedEvent={selectedEvent} />
+      <DialogContent className="max-w-md max-h-[90vh] p-0 flex flex-col">
+        <div className="p-6 pb-0">
+          <EventDialogHeader selectedEvent={selectedEvent} />
+        </div>
         
-        <ScrollArea className="flex-1 pr-4">
+        <ScrollArea className="flex-1 px-6">
           <div className="space-y-4 py-4">
             <EventDateField 
               eventDate={eventDate}
@@ -102,13 +104,15 @@ export function EventDialog({
           </div>
         </ScrollArea>
         
-        <EventDialogFooter
-          selectedEvent={selectedEvent}
-          handleDeleteEvent={handleDeleteEvent}
-          handleSaveEvent={handleSaveEvent}
-          setShowEventDialog={setShowEventDialog}
-          resetForm={resetForm}
-        />
+        <div className="p-6 pt-0 border-t">
+          <EventDialogFooter
+            selectedEvent={selectedEvent}
+            handleDeleteEvent={handleDeleteEvent}
+            handleSaveEvent={handleSaveEvent}
+            setShowEventDialog={setShowEventDialog}
+            resetForm={resetForm}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
