@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Document, Shipment } from "@/types/shipment";
 import { ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
@@ -25,26 +26,6 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
 
   const priorityDocuments = shipment.documents?.filter(doc => doc.isPriority) || [];
   const totalDocuments = shipment.documents?.length || 0;
-
-  const getStatusBadgeVariant = (document: Document) => {
-    // Verificar se documento está retido - melhorar lógica de detecção
-    const isRetained = document.isRetained || (!document.isDelivered && !document.isPickedUp && document.status === 'retained');
-    
-    if (document.isDelivered) return 'default';
-    if (isRetained) return 'destructive';
-    if (document.isPickedUp) return 'outline';
-    return 'secondary';
-  };
-
-  const getStatusLabel = (document: Document) => {
-    // Verificar se documento está retido - melhorar lógica de detecção
-    const isRetained = document.isRetained || (!document.isDelivered && !document.isPickedUp && document.status === 'retained');
-    
-    if (document.isDelivered) return 'Entregue';
-    if (isRetained) return 'Retido';
-    if (document.isPickedUp) return 'Retirado';
-    return 'Em Trânsito';
-  };
 
   const closeEditMode = () => {
     setEditingDocument(null);
@@ -102,10 +83,6 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
                             {document.minuteNumber ? `Minuta: ${document.minuteNumber}` : document.name}
                           </span>
                         </div>
-                        
-                        <Badge variant={getStatusBadgeVariant(document)}>
-                          {getStatusLabel(document)}
-                        </Badge>
                       </div>
 
                       <DocumentStatusControl
