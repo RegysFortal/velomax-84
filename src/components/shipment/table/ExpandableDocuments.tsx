@@ -7,6 +7,7 @@ import { DocumentRetentionForm } from "./DocumentRetentionForm";
 import { DocumentDeliveryForm } from "./DocumentDeliveryForm";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
+import { DocumentStatusControl } from "../DocumentStatusControl";
 
 interface ExpandableDocumentsProps {
   shipment: Shipment;
@@ -24,24 +25,18 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
   const priorityDocuments = shipment.documents?.filter(doc => doc.isPriority) || [];
   const totalDocuments = shipment.documents?.length || 0;
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'in_transit': return 'secondary';
-      case 'picked_up': return 'outline';
-      case 'retained': return 'destructive';
-      case 'delivered': return 'default';
-      default: return 'secondary';
-    }
+  const getStatusBadgeVariant = (document: Document) => {
+    if (document.isDelivered) return 'default';
+    if (document.isRetained) return 'destructive';
+    if (document.isPickedUp) return 'outline';
+    return 'secondary';
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'in_transit': return 'Em Trânsito';
-      case 'picked_up': return 'Retirado';
-      case 'retained': return 'Retido';
-      case 'delivered': return 'Entregue';
-      default: return status;
-    }
+  const getStatusLabel = (document: Document) => {
+    if (document.isDelivered) return 'Entregue';
+    if (document.isRetained) return 'Retido';
+    if (document.isPickedUp) return 'Retirado';
+    return 'Em Trânsito';
   };
 
   const closeEditMode = () => {
@@ -97,10 +92,16 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
                         </span>
                       </div>
                       
-                      <Badge variant={getStatusBadgeVariant(document.status || 'in_transit')}>
-                        {getStatusLabel(document.status || 'in_transit')}
+                      <Badge variant={getStatusBadgeVariant(document)}>
+                        {getStatusLabel(document)}
                       </Badge>
                     </div>
+
+                    <DocumentStatusControl
+                      shipmentId={shipment.id}
+                      document={document}
+                      onStatusChange={onDocumentUpdate}
+                    />
                   </div>
                   
                   {/* Document details */}
@@ -120,6 +121,60 @@ export function ExpandableDocuments({ shipment, onDocumentUpdate }: ExpandableDo
                       <div><strong>Observações:</strong> {document.notes}</div>
                     )}
                   </div>
+
+                  {/* Retention Information */}
+                  {document.isRetained && document.retentionInfo && (
+                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                      <h4 className="font-medium text-red-800 mb-2">Informações de Retenção</h4>
+                      <div className="text-sm text-red-700 space-y-1">
+                        {document.retentionInfo.reason && (
+                          <div><strong>Motivo:</strong> {document.retentionInfo.reason}</div>
+                        )}
+                        {document.retentionInfo.amount && (
+                          <div><strong>Valor:</strong> R$ {document.retentionInfo.amount}</div>
+                        )}
+                        {document.retentionInfo.actionNumber && (
+                          <div><strong>Número da Ação:</strong> {document.retentionInfo.actionNumber}</div>
+                        )}
+                        {document.retentionInfo.paymentDate && (
+                          <div><strong>Data de Pagamento:</strong> {document.retentionInfo.paymentDate}</div>
+                        )}
+                        {document.retentionInfo.releaseDate && (
+                          <div><strong>Data de Liberação:</strong> {document.retentionInfo.releaseDate}</div>
+                        )}
+                        {document.retentionInfo.fiscalNotes && (
+                          <div><strong>Notas Fiscais:</strong> {document.retentionInfo.fiscalNotes}</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Delivery Information */}
+                  {document.isDelivered && document.deliveryInfo && (
+                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                      <h4 className="font-medium text-green-800 mb-2">Informações de Entrega</h4>
+                      <div className="text-sm text-green-700 space-y-1">
+                        {document.deliveryInfo.receiverName && (
+                          <div><strong>Recebedor:</strong> {document.deliveryInfo.receiverName}</div>
+                        )}
+                        {document.deliveryInfo.receiverId && (
+                          <div><strong>ID do Recebedor:</strong> {document.deliveryInfo.receiverId}</div>
+                        )}
+                        {document.deliveryInfo.deliveryDate && (
+                          <div><strong>Data de Entrega:</strong> {document.deliveryInfo.deliveryDate}</div>
+                        )}
+                        {document.deliveryInfo.deliveryTime && (
+                          <div><strong>Hora de Entrega:</strong> {document.deliveryInfo.deliveryTime}</div>
+                        )}
+                        {document.deliveryInfo.arrivalKnowledgeNumber && (
+                          <div><strong>Número do Conhecimento:</strong> {document.deliveryInfo.arrivalKnowledgeNumber}</div>
+                        )}
+                        {document.deliveryInfo.notes && (
+                          <div><strong>Observações:</strong> {document.deliveryInfo.notes}</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
