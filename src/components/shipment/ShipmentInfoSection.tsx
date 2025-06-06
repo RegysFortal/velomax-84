@@ -3,7 +3,7 @@ import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
-import { toISODateString } from "@/utils/dateUtils";
+import { toISODateString, fromISODateString } from "@/utils/dateUtils";
 
 interface ShipmentInfoSectionProps {
   transportMode: "air" | "road";
@@ -13,7 +13,7 @@ interface ShipmentInfoSectionProps {
   setArrivalDate: (date: string) => void;
   observations: string;
   setObservations: (observations: string) => void;
-  disabled?: boolean; // Added the disabled prop
+  disabled?: boolean;
 }
 
 export function ShipmentInfoSection({
@@ -43,11 +43,16 @@ export function ShipmentInfoSection({
       <div>
         <label htmlFor="arrivalDate" className="text-sm font-medium">Data de Chegada</label>
         <DatePicker
-          date={arrivalDate ? new Date(`${arrivalDate}T12:00:00`) : undefined}
+          date={arrivalDate ? fromISODateString(arrivalDate) : undefined}
           onSelect={(date) => {
             if (date) {
-              // Using our helper function to avoid timezone issues
-              const formattedDate = toISODateString(date);
+              // Create safe date at noon to avoid timezone issues
+              const year = date.getFullYear();
+              const month = date.getMonth();
+              const day = date.getDate();
+              const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
+              
+              const formattedDate = toISODateString(safeDate);
               console.log("ShipmentInfoSection - Setting arrival date to:", formattedDate);
               setArrivalDate(formattedDate);
             } else {
@@ -55,6 +60,7 @@ export function ShipmentInfoSection({
             }
           }}
           placeholder="Selecione a data de chegada"
+          disabled={disabled}
         />
       </div>
       

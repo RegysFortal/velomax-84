@@ -21,28 +21,38 @@ export function useShipmentOperations(
         throw new Error('Usuário não autenticado');
       }
 
+      console.log('useShipmentOperations - shipmentData received:', shipmentData);
+      console.log('useShipmentOperations - arrivalDate:', shipmentData.arrivalDate);
+
+      const supabaseShipment = {
+        company_id: shipmentData.companyId,
+        company_name: shipmentData.companyName,
+        transport_mode: shipmentData.transportMode,
+        carrier_name: shipmentData.carrierName,
+        tracking_number: shipmentData.trackingNumber,
+        packages: shipmentData.packages,
+        weight: shipmentData.weight,
+        arrival_flight: shipmentData.arrivalFlight,
+        arrival_date: shipmentData.arrivalDate, // Manter a data ISO exatamente como recebida
+        observations: shipmentData.observations,
+        status: shipmentData.status,
+        user_id: user.id,
+        is_retained: shipmentData.status === 'retained'
+      };
+
+      console.log('useShipmentOperations - supabaseShipment to be saved:', supabaseShipment);
+
       const { data, error } = await supabase
         .from('shipments')
-        .insert({
-          company_id: shipmentData.companyId,
-          company_name: shipmentData.companyName,
-          transport_mode: shipmentData.transportMode,
-          carrier_name: shipmentData.carrierName,
-          tracking_number: shipmentData.trackingNumber,
-          packages: shipmentData.packages,
-          weight: shipmentData.weight,
-          arrival_flight: shipmentData.arrivalFlight,
-          arrival_date: shipmentData.arrivalDate,
-          observations: shipmentData.observations,
-          status: shipmentData.status,
-          user_id: user.id
-        })
+        .insert(supabaseShipment)
         .select()
         .single();
 
       if (error) {
         throw error;
       }
+
+      console.log('useShipmentOperations - shipment saved in database:', data);
 
       const newShipment: Shipment = {
         id: data.id,

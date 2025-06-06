@@ -54,6 +54,8 @@ export function useShipmentSave(shipment: Shipment) {
         return false;
       }
 
+      console.log('useShipmentSave - arrivalDate being saved:', arrivalDate);
+
       const updatedShipment = {
         companyId: companyId.trim(),
         companyName,
@@ -63,7 +65,7 @@ export function useShipmentSave(shipment: Shipment) {
         packages: packageCount,
         weight: weightValue,
         arrivalFlight: arrivalFlight.trim() || undefined,
-        arrivalDate: arrivalDate || undefined,
+        arrivalDate: arrivalDate || undefined, // Manter a data ISO como está
         observations: observations.trim() || undefined,
         status,
         isRetained: status === "retained",
