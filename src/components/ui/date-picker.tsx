@@ -39,7 +39,7 @@ export function DatePicker({
       const safeDate = toLocalDate(date);
       const formattedDate = format(safeDate, "dd/MM/yyyy", { locale: ptBR });
       setInputValue(formattedDate)
-      console.log('DatePicker - Date prop changed:', date, 'Formatted as:', formattedDate);
+      console.log('DatePicker - Date prop changed:', date.toISOString(), 'Formatted as:', formattedDate);
     } else {
       setInputValue("")
     }
@@ -57,7 +57,7 @@ export function DatePicker({
     if (formatted.length === 10) {
       const parsedDate = parseDateString(formatted)
       if (parsedDate && !isNaN(parsedDate.getTime())) {
-        console.log('DatePicker - Date entered manually:', parsedDate, 'ISO:', toISODateString(parsedDate));
+        console.log('DatePicker - Date entered manually:', parsedDate.toISOString(), 'ISO:', toISODateString(parsedDate));
         onSelect?.(parsedDate)
       }
     }
@@ -67,15 +67,15 @@ export function DatePicker({
     setOpen(false)
     
     if (newDate) {
-      console.log('DatePicker - Date selected from calendar:', newDate);
+      console.log('DatePicker - Date selected from calendar:', newDate.toISOString());
       
-      // Create a safe local date to avoid timezone issues - using 12h explicitly
+      // Create UTC date at noon to avoid timezone issues
       const year = newDate.getFullYear();
       const month = newDate.getMonth();
       const day = newDate.getDate();
-      const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
+      const safeDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
       
-      console.log('DatePicker - Safe date created:', safeDate, 'ISO:', toISODateString(safeDate));
+      console.log('DatePicker - Safe date created (UTC):', safeDate.toISOString(), 'ISO:', toISODateString(safeDate));
       
       onSelect?.(safeDate)
       setInputValue(format(safeDate, "dd/MM/yyyy", { locale: ptBR }))
