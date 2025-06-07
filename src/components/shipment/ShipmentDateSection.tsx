@@ -21,14 +21,12 @@ export function ShipmentDateSection({
         date={shipmentDate ? fromISODateString(shipmentDate) : undefined}
         onSelect={(date) => {
           if (date) {
-            // Use Brazilian timezone consistently
-            const dataLocal = new Date(date.toLocaleString("pt-BR", { timeZone: "America/Fortaleza" }));
-            const formattedDate = toISODateString(dataLocal);
-            
+            // Usar a data exatamente como selecionada, sem alterações de timezone
+            const safeDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0);
+            const formattedDate = toISODateString(safeDate);
             console.log('ShipmentDateSection - Data selecionada pelo usuário:', date.toDateString());
-            console.log('ShipmentDateSection - Data convertida para timezone brasileiro:', dataLocal.toDateString());
+            console.log('ShipmentDateSection - Data segura criada:', safeDate.toDateString());
             console.log('ShipmentDateSection - Convertida para ISO:', formattedDate);
-            
             setShipmentDate(formattedDate);
           } else {
             setShipmentDate('');

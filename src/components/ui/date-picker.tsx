@@ -69,13 +69,16 @@ export function DatePicker({
     if (newDate) {
       console.log('DatePicker - Date selected from calendar:', newDate);
       
-      // Use Brazilian timezone for consistency
-      const dataLocal = new Date(newDate.toLocaleString("pt-BR", { timeZone: "America/Fortaleza" }));
+      // Create a safe local date to avoid timezone issues - using 12h explicitly
+      const year = newDate.getFullYear();
+      const month = newDate.getMonth();
+      const day = newDate.getDate();
+      const safeDate = new Date(year, month, day, 12, 0, 0); // hora 12h
       
-      console.log('DatePicker - Date converted to Brazilian timezone:', dataLocal, 'ISO:', toISODateString(dataLocal));
+      console.log('DatePicker - Safe date created:', safeDate, 'ISO:', toISODateString(safeDate));
       
-      onSelect?.(dataLocal)
-      setInputValue(format(dataLocal, "dd/MM/yyyy", { locale: ptBR }))
+      onSelect?.(safeDate)
+      setInputValue(format(safeDate, "dd/MM/yyyy", { locale: ptBR }))
     } else {
       onSelect?.(undefined)
       setInputValue("")
