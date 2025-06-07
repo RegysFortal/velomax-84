@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { ShipmentStatus, TransportMode } from '@/types/shipment';
-import { toISODateString } from "@/utils/dateUtils";
+import { getTodayISO } from "@/utils/dateUtils";
 
 export function useShipmentFormState() {
   const [companyId, setCompanyId] = useState<string>("");
@@ -12,10 +12,8 @@ export function useShipmentFormState() {
   const [packages, setPackages] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
   
-  // Create safe date at noon for initial state
-  const today = new Date();
-  const safeToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
-  const [shipmentDate, setShipmentDate] = useState<string>(toISODateString(safeToday));
+  // Usar a função getTodayISO para garantir data correta
+  const [shipmentDate, setShipmentDate] = useState<string>(getTodayISO());
   
   const [status, setStatus] = useState<ShipmentStatus>("in_transit");
   const [retentionReason, setRetentionReason] = useState<string>("");
@@ -34,10 +32,8 @@ export function useShipmentFormState() {
     setPackages("");
     setWeight("");
     
-    // Reset to safe today date
-    const today = new Date();
-    const safeToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
-    setShipmentDate(toISODateString(safeToday));
+    // Reset para data de hoje usando getTodayISO
+    setShipmentDate(getTodayISO());
     
     setStatus("in_transit");
     setRetentionReason("");

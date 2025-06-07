@@ -6,13 +6,18 @@ import { ptBR } from 'date-fns/locale';
  * Converts a Date object to ISO date string (YYYY-MM-DD) without timezone issues
  */
 export function toISODateString(date: Date): string {
-  // Garantir que usamos os valores exatos da data sem conversão de timezone
+  if (!date || isNaN(date.getTime())) {
+    console.error('Invalid date provided to toISODateString:', date);
+    return '';
+  }
+  
+  // Use the exact local date components to avoid timezone conversion
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   
   const result = `${year}-${month}-${day}`;
-  console.log(`Data original: ${date.toString()}, Convertida para: ${result}`);
+  console.log(`toISODateString - Data original: ${date.toDateString()}, Convertida para: ${result}`);
   return result;
 }
 
@@ -20,9 +25,23 @@ export function toISODateString(date: Date): string {
  * Converts an ISO date string to a Date object at noon to avoid timezone issues
  */
 export function fromISODateString(dateString: string): Date {
-  // Parse the date parts and create at noon to avoid timezone issues
+  if (!dateString) {
+    console.error('Empty date string provided to fromISODateString');
+    return new Date();
+  }
+  
+  // Parse the date parts manually to avoid timezone issues
   const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day, 12, 0, 0); // hora 12h
+  
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+    console.error('Invalid date format in fromISODateString:', dateString);
+    return new Date();
+  }
+  
+  // Create date at noon local time to avoid timezone issues
+  const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+  console.log(`fromISODateString - String: ${dateString}, Convertida para: ${date.toDateString()}`);
+  return date;
 }
 
 /**
@@ -35,6 +54,7 @@ export function formatDateForDisplay(dateString: string): string {
     const date = fromISODateString(dateString);
     return date.toLocaleDateString('pt-BR');
   } catch (error) {
+    console.error('Error formatting date for display:', error);
     return dateString;
   }
 }
@@ -43,21 +63,27 @@ export function formatDateForDisplay(dateString: string): string {
  * Create a Date object at noon in the local timezone to avoid timezone issues
  */
 export const toLocalDate = (date: Date): Date => {
-  if (!date) return new Date();
+  if (!date || isNaN(date.getTime())) {
+    console.error('Invalid date provided to toLocalDate:', date);
+    return new Date();
+  }
   
   // Create a date at noon in local timezone to avoid timezone issues
   const year = date.getFullYear();
   const month = date.getMonth();
   const day = date.getDate();
   
-  return new Date(year, month, day, 12, 0, 0); // hora 12h
+  return new Date(year, month, day, 12, 0, 0, 0);
 };
 
 /**
  * Format a date to a locale format (YYYY-MM-DD) - FIXED VERSION
  */
 export const formatToLocaleDate = (date: Date): string => {
-  if (!date) return '';
+  if (!date || isNaN(date.getTime())) {
+    console.error('Invalid date provided to formatToLocaleDate:', date);
+    return '';
+  }
   
   // Use toISODateString to avoid timezone issues
   return toISODateString(date);
@@ -81,7 +107,12 @@ export const formatToReadableDate = (date: Date | string): string => {
   }
   
   // If it's already a Date object, use toLocalDate to ensure consistency
-  return format(toLocalDate(date), 'dd/MM/yyyy', { locale: ptBR });
+  try {
+    return format(toLocalDate(date), 'dd/MM/yyyy', { locale: ptBR });
+  } catch (e) {
+    console.error('Error formatting date:', date, e);
+    return '';
+  }
 };
 
 /**
@@ -101,7 +132,7 @@ export const parseDateString = (dateString: string): Date | null => {
   if (day < 1 || day > 31 || month < 0 || month > 11 || year < 1900) return null;
   
   // Create date at noon to avoid timezone issues
-  return new Date(year, month, day, 12, 0, 0); // hora 12h
+  return new Date(year, month, day, 12, 0, 0, 0);
 };
 
 /**
@@ -127,7 +158,7 @@ export const formatPartialDateString = (value: string): string => {
  * Safe date creation - creates date at noon to avoid timezone issues
  */
 export const createSafeDate = (year: number, month: number, day: number): Date => {
-  return new Date(year, month, day, 12, 0, 0); // hora 12h
+  return new Date(year, month, day, 12, 0, 0, 0);
 };
 
 /**
@@ -152,4 +183,13 @@ export const dateInputToISO = (dateInput: string | Date): string => {
   }
   
   return toISODateString(dateInput);
+};
+
+/**
+ * Get today's date as ISO string at noon to avoid timezone issues
+ */
+export const getTodayISO = (): string => {
+  const today = new Date();
+  const safeToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0, 0);
+  return toISODateString(safeToday);
 };
