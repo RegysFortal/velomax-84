@@ -11,11 +11,16 @@ export function useFetchClients(user: SupabaseUser | null | undefined): UseFetch
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const sortClientsByName = (clientsList: Client[]): Client[] => {
+  const sortClientsByTradingName = (clientsList: Client[]): Client[] => {
     return clientsList.sort((a, b) => {
-      const nameA = (a.tradingName || a.name).toLowerCase();
-      const nameB = (b.tradingName || b.name).toLowerCase();
-      return nameA.localeCompare(nameB, 'pt-BR');
+      // Priorizar nome fantasia (tradingName), caso não exista usar nome (name)
+      const nameA = (a.tradingName || a.name).toLowerCase().trim();
+      const nameB = (b.tradingName || b.name).toLowerCase().trim();
+      return nameA.localeCompare(nameB, 'pt-BR', { 
+        numeric: true, 
+        sensitivity: 'base',
+        ignorePunctuation: true 
+      });
     });
   };
 
@@ -53,8 +58,8 @@ export function useFetchClients(user: SupabaseUser | null | undefined): UseFetch
         updatedAt: client.updated_at
       }));
       
-      // Sort clients alphabetically by trading name or name
-      const sortedClients = sortClientsByName(mappedClients);
+      // Ordenar clientes alfabeticamente por nome fantasia
+      const sortedClients = sortClientsByTradingName(mappedClients);
       setClients(sortedClients);
     } catch (error) {
       console.error('Error fetching clients:', error);
@@ -69,7 +74,7 @@ export function useFetchClients(user: SupabaseUser | null | undefined): UseFetch
       if (storedClients) {
         try {
           const parsed = JSON.parse(storedClients);
-          const sortedClients = sortClientsByName(parsed);
+          const sortedClients = sortClientsByTradingName(parsed);
           setClients(sortedClients);
         } catch (error) {
           console.error('Failed to parse stored clients', error);
@@ -97,7 +102,7 @@ export function useFetchClients(user: SupabaseUser | null | undefined): UseFetch
   return {
     clients,
     setClients: (newClients) => {
-      const sortedClients = Array.isArray(newClients) ? sortClientsByName(newClients) : newClients;
+      const sortedClients = Array.isArray(newClients) ? sortClientsByTradingName(newClients) : newClients;
       setClients(sortedClients);
     },
     loading

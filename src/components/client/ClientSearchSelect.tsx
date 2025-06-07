@@ -35,14 +35,19 @@ export function ClientSearchSelect({
 }: ClientSearchSelectProps) {
   const navigate = useNavigate();
   
-  // Sort clients alphabetically by tradingName or name
+  // Ordenar clientes alfabeticamente por nome fantasia
   const sortedClients = useMemo(() => {
     if (!clients || clients.length === 0) return [];
     
     return [...clients].sort((a, b) => {
-      const nameA = (a.tradingName || a.name).toLowerCase();
-      const nameB = (b.tradingName || b.name).toLowerCase();
-      return nameA.localeCompare(nameB, 'pt-BR');
+      // Priorizar nome fantasia (tradingName), caso não exista usar nome (name)
+      const nameA = (a.tradingName || a.name).toLowerCase().trim();
+      const nameB = (b.tradingName || b.name).toLowerCase().trim();
+      return nameA.localeCompare(nameB, 'pt-BR', { 
+        numeric: true, 
+        sensitivity: 'base',
+        ignorePunctuation: true 
+      });
     });
   }, [clients]);
   
