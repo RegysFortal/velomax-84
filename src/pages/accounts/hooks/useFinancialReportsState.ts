@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { PayableAccount, ReceivableAccount } from '@/types';
+import { PayableAccount, ReceivableAccount } from '@/types/financial';
 import { mockPayableAccounts, mockReceivableAccounts } from '../data/mockFinancialData';
 
 export function useFinancialReportsState() {
@@ -30,7 +30,7 @@ export function useFinancialReportsState() {
   const pendingReceivable = filteredReceivables.filter(a => a.status !== 'received' && a.status !== 'partially_received').reduce((sum, account) => sum + account.amount, 0);
   
   const balance = totalReceivable - totalPayable;
-  const cashFlow = balance >= 0 ? `R$ ${balance.toFixed(2)}` : `-R$ ${Math.abs(balance).toFixed(2)}`;
+  const cashFlow = pendingReceivable - pendingPayable; // Return as number, not formatted string
 
   return {
     startDate,
