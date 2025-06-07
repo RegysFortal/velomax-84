@@ -12,9 +12,9 @@ export function toISODateString(date: Date): string {
   }
   
   // Use UTC to avoid timezone conversion
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   
   const result = `${year}-${month}-${day}`;
   console.log(`toISODateString - Data original: ${date.toISOString()}, Convertida para: ${result}`);
@@ -39,7 +39,7 @@ export function fromISODateString(dateString: string): Date {
   }
   
   // Create date in UTC at noon to avoid timezone issues
-  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  const date = new Date(year, month - 1, day);
   console.log(`fromISODateString - String: ${dateString}, Convertida para: ${date.toISOString()}`);
   return date;
 }
@@ -69,11 +69,11 @@ export const toLocalDate = (date: Date): Date => {
   }
   
   // Create a date in UTC at noon to avoid timezone issues
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth();
-  const day = date.getUTCDate();
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
   
-  return new Date(Date.UTC(year, month, day, 12, 0, 0));
+  return new Date(year, month, day);
 };
 
 /**
